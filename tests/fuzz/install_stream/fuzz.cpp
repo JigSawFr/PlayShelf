@@ -21,7 +21,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     uint64_t header_size = 0, next = 0;
     ContentStream cs(
         key, std::nullopt, 0,
-        [&](const NcaHeader& h, std::string*) {
+        [&](const NcaHeader& h, NcaSignature, std::string*) {
             header_size = h.size;
             return h.size <= (64u << 20);   // as a caller would bound its placeholder
         },

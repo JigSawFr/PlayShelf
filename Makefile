@@ -110,6 +110,10 @@ install_SRC := $(INSTALL_FORMATS) tests/install/test.cpp
 # from the system (libzstd-dev), compression too, for the NCZ it builds.
 install_stream_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp tests/install_stream/test.cpp
 install_stream_LIBS := -lzstd
+# A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
+install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
+                    source/install/installer.cpp tests/install_txn/test.cpp
+install_txn_LIBS := -lzstd
 date_SRC    := $(K)/util/date.cpp tests/date/test.cpp
 # The header-only helpers: utf8, emoji, text, json_util.
 text_util_SRC   := tests/text_util/test.cpp
@@ -183,7 +187,7 @@ TEST_PROGRAMS := $(addprefix $(TESTOUT)/,$(TESTS))
 TEST_OKS := $(addsuffix .ok,$(TEST_PROGRAMS))
 # Every header: a suite is rebuilt when one changes (coarse, but a suite
 # compiles in seconds and CI always starts cold).
-TEST_HEADERS := $(wildcard tests/*.h tests/*.hpp tests/*/*.h source/*.hpp source/*/*.h source/*/*.hpp source/kit/*/*.h source/kit/*/*.hpp)
+TEST_HEADERS := $(wildcard tests/*.h tests/*.hpp tests/*/*.h tests/*/*.hpp source/*.hpp source/*/*.h source/*/*.hpp source/kit/*/*.h source/kit/*/*.hpp)
 
 $(TESTOUT):
 	@mkdir -p $@
@@ -249,6 +253,8 @@ install_cnmt_FUZZ := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_cnm
 install_nca_FUZZ  := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_nca/fuzz.cpp
 install_stream_FUZZ      := $(filter-out tests/%,$(install_stream_SRC)) tests/fuzz/install_stream/fuzz.cpp
 install_stream_FUZZ_LIBS := -lzstd
+install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz/install_package/fuzz.cpp
+install_package_FUZZ_LIBS := -lzstd
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))
 FUZZ_RUNS := $(addsuffix .run,$(FUZZ_PROGRAMS))

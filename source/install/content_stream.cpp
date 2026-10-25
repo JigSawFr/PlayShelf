@@ -111,7 +111,7 @@ struct ContentStream::Impl
             *why = "the NCA's size differs from what the content meta gives";
             return false;
         }
-        if (on_header && !on_header(*h, why)) return false;
+        if (on_header && !on_header(*h, nca_check_signature(plain), why)) return false;
         nca = h->size;
         sha.update(buf.data(), buf.size());   // as published
         if (h->distribution == 1) nca_make_download(buf.data(), header_key.data());
