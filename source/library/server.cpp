@@ -27,14 +27,23 @@ bool is_uuid(const std::string& s)
     return true;
 }
 
-// Dotted IPv4 as a number; nothing when it is not one.
+// Dotted IPv4 as a number ("192.168.1.20": four decimal numbers up to 255,
+// nothing else); nothing when it is not one.
 std::optional<uint32_t> ipv4(const std::string& s)
 {
-    unsigned a, b, c, d;
-    char     end;
-    if (std::sscanf(s.c_str(), "%u.%u.%u.%u%c", &a, &b, &c, &d, &end) != 4 || a > 255 || b > 255 || c > 255 || d > 255)
-        return std::nullopt;
-    return a << 24 | b << 16 | c << 8 | d;
+    uint32_t addr = 0;
+    size_t   i = 0;
+    for (int part = 0; part < 4; part++) {
+        if (part && (i >= s.size() || s[i++] != '.')) return std::nullopt;
+        const size_t start = i;
+        uint32_t     v = 0;
+        while (i < s.size() && i - start < 3 && std::isdigit((unsigned char)s[i]))
+            v = v * 10 + (uint32_t)(s[i++] - '0');
+        if (i == start || v > 255) return std::nullopt;
+        addr = addr << 8 | v;
+    }
+    if (i != s.size()) return std::nullopt;
+    return addr;
 }
 
 // A DER element at [*at, end): its tag, and where its value starts and ends.

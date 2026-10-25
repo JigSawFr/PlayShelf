@@ -175,6 +175,8 @@ void test_discovery()
     CHECK(!parse_discovery(ok.data(), ok.size(), "224.0.0.1"));
     CHECK(!parse_discovery(ok.data(), ok.size(), "0.0.0.0"));
     CHECK(!parse_discovery(ok.data(), ok.size(), "not.an.ip"));
+    for (const char* bad : {"192.168.1", "192.168.1.256", "192.168.1.2.3", " 192.168.1.2", "192.168.1.2 ", "-1.2.3.4", "1234.1.1.1"})
+        CHECK(!parse_discovery(ok.data(), ok.size(), bad));
     const std::string http_remote = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":80,"public":true,"remote":"http://x"})";
     const auto h = parse_discovery(http_remote.data(), http_remote.size(), "10.0.0.2");
     CHECK(h && h->remote.empty());
