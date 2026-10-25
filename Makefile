@@ -101,6 +101,11 @@ TEST_CXXFLAGS   := -std=c++17 -Isource -Isource/kit -isystem extern/borealis/lib
 CALENDAR_C      := source/kit/core/calendar.c
 CALENDAR_CFLAGS := -std=gnu11 -Isource/kit/core
 K := source/kit
+# The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
+# pure C++ with the kit's SHA-256.
+INSTALL_FORMATS := source/install/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
+                   source/install/nca.cpp $(K)/util/sha256.cpp
+install_SRC := $(INSTALL_FORMATS) tests/install/test.cpp
 date_SRC    := $(K)/util/date.cpp tests/date/test.cpp
 # The header-only helpers: utf8, emoji, text, json_util.
 text_util_SRC   := tests/text_util/test.cpp
@@ -235,6 +240,9 @@ markdown_FUZZ      := $(filter-out tests/%,$(markdown_SRC)) tests/fuzz/markdown/
 changelog_FUZZ     := $(filter-out tests/%,$(changelog_SRC)) tests/fuzz/changelog/fuzz.cpp
 config_FUZZ        := $(filter-out tests/%,$(config_SRC)) tests/fuzz/config/fuzz.cpp
 config_FUZZ_CSRC   := $(CALENDAR_C)
+install_pfs_FUZZ  := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_pfs/fuzz.cpp
+install_cnmt_FUZZ := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_cnmt/fuzz.cpp
+install_nca_FUZZ  := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_nca/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))
 FUZZ_RUNS := $(addsuffix .run,$(FUZZ_PROGRAMS))
