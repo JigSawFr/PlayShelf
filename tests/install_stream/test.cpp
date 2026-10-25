@@ -185,6 +185,7 @@ struct Result
     Bytes       out;
     bool        compressed = false;
     int         headers = 0;
+    NcaSignature signature = NcaSignature::Valid;
 };
 
 // Feeds `file` in pieces of the sizes `sizes` cycles through.
@@ -194,7 +195,8 @@ Result run(const Bytes& file, std::optional<std::array<uint8_t, 32>> hash, uint6
     Result        r;
     ContentStream cs(
         HEADER_KEY, hash, expected_size,
-        [&](const NcaHeader& h, std::string* why) {
+        [&](const NcaHeader& h, NcaSignature sig, std::string* why) {
+            r.signature = sig;
             r.headers++;
             r.out.reserve(h.size);
             if (refuse) *why = "refused";
@@ -230,6 +232,7 @@ void test_plain()
         CHECK(r.out == b.nca);
         CHECK(!r.compressed);
         CHECK(r.headers == 1);
+        CHECK(r.signature == NcaSignature::Invalid);   // not signed with Nintendo's key
     }
     // No hash to check: fine too. The wrong one, the wrong size: refused.
     CHECK(run(b.nca, std::nullopt, 0).ok);
