@@ -11,6 +11,9 @@ static bool               s_open;
 static NcmContentStorage  s_storage;
 static NcmContentMetaDatabase s_meta;
 static NcmStorageId       s_storage_id;
+
+// ns's NsApplicationRecordType (3: installed), which libnx does not name.
+#define CORE_RECORD_INSTALLED 3
 static Service            s_es;
 static Service            s_ns_app;
 static bool               s_ns_app_owned;
@@ -198,7 +201,7 @@ Result core_push_application_record(u64 application_id, const CoreMetaKey *key)
     const struct {
         u8  last_modified_event;
         u64 application_id;
-    } in = {NsApplicationRecordType_Installed, application_id};
+    } in = {CORE_RECORD_INSTALLED, application_id};
     return serviceDispatchIn(&s_ns_app, 16, in, .buffer_attrs = {SfBufferAttr_HipcMapAlias | SfBufferAttr_In},
                              .buffers = {{&record, sizeof record}});
 }
