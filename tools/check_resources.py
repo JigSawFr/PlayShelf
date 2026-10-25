@@ -279,6 +279,9 @@ DYNAMIC_KEYS = {
     "prefs/text_sizes/": array_of("source/util/config.hpp", "TEXT_SIZES"),
     "prefs/effects_values/": array_of("source/util/config.hpp", "EFFECTS"),
     "tools/update_via_values/": array_of("source/kit/action/update_flow.cpp", "METHODS"),
+    "library/sort_values/": array_of("source/tab/library_tab.cpp", "SORTS"),
+    "library/connection_values/": array_of("source/activity/server_activity.cpp", "CONNECTIONS"),
+    "library/format_values/": array_of("source/activity/server_activity.cpp", "FORMATS"),
 }
 for prefix, values in sorted(DYNAMIC_KEYS.items()):
     values = [v for v in values if v]

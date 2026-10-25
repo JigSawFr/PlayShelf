@@ -2,6 +2,7 @@
 #include "library/client.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <deque>
 #include <set>
 
@@ -78,6 +79,24 @@ bool read_indexes(const std::string& url, const std::vector<std::string>& header
     return true;
 }
 }   // namespace
+
+bool same_origin(const std::string& a, const std::string& b)
+{
+    auto origin = [](const std::string& url) {
+        const size_t scheme = url.find("://");
+        if (scheme == std::string::npos) return std::string();
+        const size_t end = url.find_first_of("/?#", scheme + 3);
+        std::string  o = url.substr(0, end);
+        for (char& c : o) c = (char)std::tolower((unsigned char)c);
+        // Credentials in the address ("user@host") are not part of it.
+        const size_t at = o.find('@', scheme + 3);
+        if (at != std::string::npos) o.erase(scheme + 3, at - scheme - 2);
+        if (o.size() > 4 && o.compare(o.size() - 4, 4, ":443") == 0 && o.compare(0, 8, "https://") == 0) o.resize(o.size() - 4);
+        return o;
+    };
+    const std::string oa = origin(a);
+    return !oa.empty() && oa == origin(b);
+}
 
 std::vector<std::string> auth_headers(const std::string& user, const std::string& password)
 {

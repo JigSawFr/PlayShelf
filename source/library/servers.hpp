@@ -34,6 +34,13 @@ std::string password_of(const Server& s);
 // console's key cannot be had.
 bool set_password(Server& s, const std::string& password);
 
+// The key trusted for its own certificate, for a person to compare
+// ("AB:CD:…", pin_short()); "" when none is.
+std::string pin_shown(const Server& s);
+
+// The server of this id in `servers`, nullptr when there is none.
+const Server* find_server(const std::vector<Server>& servers, const std::string& id);
+
 // What is wrong with a server as set up, for the editor: "" when nothing.
 // Each address https:// (http:// refused: the plan's rule), one at least.
 std::string check_server(const Server& s);

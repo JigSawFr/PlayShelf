@@ -79,6 +79,12 @@ constexpr size_t MAX_INDEX_FETCHES = 16;
 
 Fetch fetch(const Server& server, const std::string& password, Transport& transport);
 
+// Whether `a` and `b` are on the same server: scheme, host and port alike
+// (case aside, :443 the same as none). What a catalogue's item is sent
+// with depends on it: the credentials and the pin go only to the server
+// they are for, never to another host an item points at.
+bool same_origin(const std::string& a, const std::string& b);
+
 // "Authorization: Basic …" for `user` and `password`; nothing for no user.
 std::vector<std::string> auth_headers(const std::string& user, const std::string& password);
 

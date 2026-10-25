@@ -73,6 +73,18 @@ class Progress
         brls::sync([this, done, total]() { this->show(done, total); });
     }
 
+    // The next package: its name, and "2 of 3" before it (empty: one only).
+    void package(const std::string& name, const std::string& count)
+    {
+        if (!this->dialog) return;
+        this->step = count;
+        this->body.heading->setText(this->with_step("playshelf/install/preparing"_i18n));
+        this->body.title->setText(name);
+        this->body.show(0.0f, "");
+    }
+    // From the install's thread, before each package: its percent from 0.
+    void restart() { this->percent = -1; }
+
     const std::atomic<bool>* cancel_flag() const { return &this->cancelled; }
     bool                     was_cancelled() const { return this->cancelled.load(); }
 
@@ -88,6 +100,12 @@ class Progress
     brls::Dialog*     dialog = nullptr;
     brls::Button*     button = nullptr;
     cadran::Progress  body;
+    std::string       step;
+
+    std::string with_step(const std::string& heading) const
+    {
+        return this->step.empty() ? heading : heading + " · " + this->step;
+    }
 
     void cancel()
     {
@@ -99,7 +117,7 @@ class Progress
     void show(uint64_t done, uint64_t total)
     {
         if (!this->dialog) return;
-        this->body.heading->setText("playshelf/install/installing"_i18n);
+        this->body.heading->setText(this->with_step("playshelf/install/installing"_i18n));
         const float part = total ? std::min(1.0f, (float)done / (float)total) : 1.0f;
         this->body.show(part, brls::getStr("playshelf/dev_build/downloaded_mb", mb_text(done), mb_text(total)));
     }
@@ -124,11 +142,11 @@ struct Outcome
     uint64_t    written = 0;
 };
 
-Outcome install(const std::string& url, install::SignaturePolicy policy, Progress& progress)
+Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress& progress)
 {
     using namespace install;
     Outcome    out;
-    HttpSource src(url, {}, progress.cancel_flag());
+    HttpSource src(p.url, p.headers, progress.cancel_flag(), p.pin);
     if (!src.open(&out.why)) return out;
     const auto pkg = package_open(src, &out.why);
     if (!pkg) return out;
@@ -153,26 +171,40 @@ Outcome install(const std::string& url, install::SignaturePolicy policy, Progres
     return out;
 }
 
-void run(const std::string& url, install::SignaturePolicy policy)
+// packages[first…] in one dialog, `policy` for each.
+void run(std::vector<Package> packages, size_t first, install::SignaturePolicy policy)
 {
-    const std::string name = name_of(url);
-    auto              progress = std::make_shared<Progress>(name);
-    ui::in_background("install", [url, name, policy, progress]() {
-        const Outcome o = install(url, policy, *progress);
-        brls::sync([url, name, o, progress]() {
+    if (first >= packages.size()) return;
+    const size_t count = packages.size();
+    auto         progress = std::make_shared<Progress>(packages[first].name);
+    ui::in_background("install", [packages, first, count, policy, progress]() {
+        size_t   i = first;
+        Outcome  o;
+        uint64_t written = 0;
+        for (; i < count; i++) {
+            const std::string name = packages[i].name;
+            const std::string step = count > 1 ? brls::getStr("playshelf/install/step", i + 1, count) : "";
+            brls::sync([progress, name, step]() { progress->package(name, step); });
+            progress->restart();
+            o = install_one(packages[i], policy, *progress);
+            if (!o.ok) break;
+            written += o.written;
+            brls::Logger::info("install: {} installed ({} bytes)", name, o.written);
+        }
+        brls::sync([packages, i, count, o, written, progress]() {
             const bool cancelled = progress->was_cancelled();
             progress->close();
-            if (o.ok) {
-                brls::Logger::info("install: {} installed ({} bytes)", name, o.written);
-                ui::info(brls::getStr("playshelf/install/done", name, o.titles, mb_text(o.written)));
+            if (i >= count) {
+                if (count == 1) ui::info(brls::getStr("playshelf/install/done", packages[0].name, o.titles, mb_text(written)));
+                else ui::info(brls::getStr("playshelf/install/done_many", count, mb_text(written)));
             } else if (cancelled) {
                 ui::notify("playshelf/install/cancelled"_i18n);
             } else if (o.unsigned_content) {
                 ui::confirm(brls::getStr("playshelf/install/unsigned_body", o.why), "playshelf/install/unsigned_confirm"_i18n,
-                            [url]() { run(url, install::SignaturePolicy::Off); });
+                            [packages, i]() { run(packages, i, install::SignaturePolicy::Off); });
             } else {
-                brls::Logger::warning("install: {} failed: {}", name, o.why);
-                ui::error(brls::getStr("playshelf/install/failed", name), o.why);
+                brls::Logger::warning("install: {} failed: {}", packages[i].name, o.why);
+                ui::error(brls::getStr("playshelf/install/failed", packages[i].name), o.why);
             }
         });
     });
@@ -188,8 +220,14 @@ void from_url()
             return;
         }
         s_last_url = url;
-        run(url, install::SignaturePolicy::Require);
+        run({ Package{ name_of(url), url, {}, "" } }, 0, install::SignaturePolicy::Require);
     });
+}
+
+void install(const std::vector<Package>& packages)
+{
+    if (ui::refuse_read_only()) return;
+    run(packages, 0, install::SignaturePolicy::Require);
 }
 
 }   // namespace install_flow
