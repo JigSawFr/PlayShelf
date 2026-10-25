@@ -160,13 +160,18 @@ list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 
 # libcurl for the update check (util/http.cpp). On the Switch: devkitPro's
 # switch-curl portlib (TLS through the console's ssl service), static, so its
-# own dependencies are listed after it.
+# own dependencies are listed after it. zstd for the .ncz contents
+# (install/content_stream.cpp): the switch-zstd portlib, the system's
+# libzstd on a desktop.
 if (PLATFORM_SWITCH)
-    list(APPEND APP_PLATFORM_LIB curl z nx)
+    list(APPEND APP_PLATFORM_LIB curl zstd z nx)
 else ()
     find_package(CURL REQUIRED)
     find_package(ZLIB REQUIRED)   # util/zip_read.cpp (the Switch links z above)
-    list(APPEND APP_PLATFORM_LIB CURL::libcurl ZLIB::ZLIB)
+    find_library(ZSTD_LIBRARY zstd REQUIRED)
+    find_path(ZSTD_INCLUDE_DIR zstd.h REQUIRED)
+    list(APPEND APP_PLATFORM_LIB CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY})
+    list(APPEND APP_PLATFORM_INCLUDE ${ZSTD_INCLUDE_DIR})
 endif ()
 
 # Sources: UI (C++) + service layer. The real service layer (source/core/*.c)
