@@ -12,6 +12,7 @@ PlayShelf is built on the technical base of [PlayGuard](https://github.com/JigSa
 | `source/kit/action/` | Flows: `*_logic` files are plain C++ (host-tested), `*_flow` files drive the dialogs and screens |
 | `source/kit/ui/`, `source/kit/view/` | The Cadran look over borealis: the frame (header, rail), dialogs and pickers, lists, palettes, icons, effects |
 | `source/kit/activity/`, `source/kit/tab/` | The shared screens (loading, update, development builds, diagnostics, changelog, what's new) and the base of every tab |
+| `source/install/` | The install formats, plain C++ with no libnx nor borealis, host-tested and fuzzed (`tests/install/`, `tests/fuzz/install_*`): AES-128 (XTS with Nintendo's tweak, CTR, ECB), RSA-2048-PSS, the PFS0 and HFS0 archives (an NSP, a game card's partitions) and a game card's header, a title's content meta (CNMT) and the record ncm keeps of it, an NCA's header and the content meta inside a `.cnmt.nca`. The console's keys come from outside (`NcaKeys`) |
 | `source/` (outside `kit/`) | PlayShelf itself: `main.cpp`, `app.*` (its identity and modes), `util/config.*` (its settings), its screens and tabs |
 
 The rules `tools/check_sources.py` enforces:
