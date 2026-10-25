@@ -1,0 +1,64 @@
+name: codeql
+
+# Static analysis of the C/C++ (the kit, the UI), the Python tools and the
+# workflows themselves, on the pull request that introduces a problem, plus a
+# weekly run so that a newly published query also finds old code. Findings
+# land in the Security tab and as annotations on the PR.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # A required check must report in the merge queue too (pr-title.yml).
+  merge_group:
+  schedule:
+    - cron: '23 6 * * 4'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  # Code scanning takes results from a public repository only (a private one
+  # needs GitHub Advanced Security): until PlayShelf is public, the analysis
+  # is skipped rather than failing on the upload. Asked of the API, since a
+  # scheduled run's event carries no repository.
+  visibility:
+    runs-on: ubuntu-26.04
+    outputs:
+      public: ${{ steps.repo.outputs.public }}
+    steps:
+      - id: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: echo "public=$(gh api "repos/$REPO" --jq '.private | not')" >> "$GITHUB_OUTPUT"
+
+  analyze:
+    needs: visibility
+    if: needs.visibility.outputs.public == 'true'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      security-events: write
+      # The action reads its own run to attach the analysis to the right commit.
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # build-mode none: C/C++ is extracted from the sources, without devkitPro. A traced
+      # build would need the devkitPro container for the Switch code paths; source
+      # extraction sees both the Switch and the desktop paths instead.
+      # extern/ (borealis) is not ours to fix, and would bury PlayShelf's own results.
+      - uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        with:
+          languages: c-cpp, python, actions
+          build-mode: none
+          queries: security-extended
+          config: |
+            paths-ignore:
+              - extern
+              - build
+      - uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0

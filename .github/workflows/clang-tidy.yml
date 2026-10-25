@@ -1,0 +1,127 @@
+# clang-tidy (.clang-tidy: the bugprone, cert and performance families, and
+# the static analyzer once a week) on PlayShelf's own sources, as a report:
+# each finding is an annotation on the pull request's line, the run page
+# gets a table of them by check, and the job never fails on a finding (it
+# fails only when clang-tidy itself cannot run). A pull request gets the
+# source files it changes (a changed header: the source file of the same
+# name, when there is one); a push to main every file of source/; the weekly
+# run every file with the static analyzer's checks too, which take about
+# three times as long. The compile commands are the desktop build's, made by
+# clang without the precompiled header (clang-tidy cannot read gcc's).
+name: clang-tidy
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - source/**
+      - extern/**
+      - patches/**
+      - .clang-tidy
+      - CMakeLists.txt
+      - .github/workflows/clang-tidy.yml
+  pull_request:
+    paths:
+      - source/**
+      - extern/**
+      - patches/**
+      - .clang-tidy
+      - CMakeLists.txt
+      - .github/workflows/clang-tidy.yml
+  schedule:
+    - cron: '17 5 * * 1'   # Mondays, 05:17 UTC: every file, with the static analyzer
+  workflow_dispatch:
+    inputs:
+      analyzer:
+        description: With the static analyzer's checks (every file; about three times as long)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  # The Files step lists a pull request's changed files (a private repository
+  # answers that to this permission only).
+  pull-requests: read
+
+# A new push to a pull request cancels the run on the commit it replaces.
+concurrency:
+  group: clang-tidy-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  tidy:
+    runs-on: ubuntu-26.04
+    timeout-minutes: ${{ github.event_name == 'pull_request' && 25 || 60 }}
+    env:
+      ANALYZER: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.analyzer)) && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - name: Borealis GLFW fork
+        run: git -C extern/borealis submodule update --init --depth 1 library/lib/extern/glfw
+      # A finding becomes an annotation on the file's line (the same matcher
+      # as the compilers': `file:line:col: warning: …`). Not for extern/.
+      - name: Findings as annotations
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+      # The desktop build's -dev packages (what its CMake configure looks
+      # for) and clang with clang-tidy; no man-db index nor initramfs rebuilt.
+      - name: Dependencies
+        run: |
+          sudo rm -f /var/lib/man-db/auto-update
+          initramfs=$(command -v update-initramfs || echo /usr/sbin/update-initramfs)
+          sudo dpkg-divert --quiet --local --rename --add "$initramfs"
+          sudo ln -sf /bin/true "$initramfs"
+          sudo apt-get update
+          sudo apt-get install -o Dpkg::Options::=--force-unsafe-io -y --no-install-recommends cmake clang clang-tidy libgl1-mesa-dev \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxkbcommon-dev libwayland-dev \
+            wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev
+          echo "clang-tidy $(clang-tidy --version | sed -n 's/.*version \([0-9.]*\).*/\1/p')"
+      - name: Compile commands (clang, no precompiled header)
+        run: |
+          CC=clang CXX=clang++ cmake -B build-tidy -S . -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON > configure.log 2>&1 \
+            || { cat configure.log; exit 1; }
+      # The files to check, one a line in files.txt: a pull request's changed
+      # sources (a changed header: its source file), else every file of
+      # source/; only those the desktop build compiles (a file the Switch
+      # alone builds has no compile command).
+      - name: Files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -n "$PR" ]; then
+            gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | select(.status != "removed") | .filename' > changed.txt
+          else
+            find source -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) | sort > changed.txt
+          fi
+          python3 tools/ci_summary.py tidy-files changed.txt build-tidy/compile_commands.json > files.txt
+          echo "$(wc -l < files.txt) file(s) to check"
+      - name: clang-tidy
+        run: |
+          if [ ! -s files.txt ]; then
+            echo "nothing to check" | tee clang-tidy.log
+          else
+            checks=$([ "$ANALYZER" = 1 ] || echo "-checks=-clang-analyzer-*")
+            # -quiet: the findings only; its exit status says a finding was
+            # made, which is this job's report, not its failure.
+            xargs -a files.txt run-clang-tidy -p build-tidy -quiet -j "$(nproc)" $checks > clang-tidy.log 2>&1 || true
+          fi
+          cat clang-tidy.log
+      - name: Summary
+        if: always()
+        run: |
+          python3 tools/ci_summary.py tidy clang-tidy.log --files files.txt --changed changed.txt \
+            --analyzer "$ANALYZER" --version "$(clang-tidy --version | sed -n 's/.*version \([0-9.]*\).*/\1/p')" \
+            >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: clang-tidy-${{ github.run_id }}
+          path: |
+            clang-tidy.log
+            files.txt
+          retention-days: 14
+          if-no-files-found: ignore
