@@ -1,11 +1,14 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/library_flow.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <borealis.hpp>
 #include <map>
 
-#include "action/install_flow.hpp"
+#include <fmt/format.h>
+
+#include "action/download_flow.hpp"
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
 #include "library/http_transport.hpp"
@@ -86,6 +89,16 @@ void open_editor(const library::Server& server, bool is_new, const std::function
     }));
 }
 }   // namespace
+
+std::string size_text(uint64_t bytes)
+{
+    const double mb = (double)bytes / (1024.0 * 1024.0);
+    // A decimal while the figure is small: "0,1 MB", "4,2 GB", "734 MB".
+    std::string text = mb >= 1024.0 ? fmt::format("{:.1f}", mb / 1024.0) : mb < 10.0 ? fmt::format("{:.1f}", mb) : fmt::format("{:.0f}", mb);
+    const size_t dot = text.find('.');
+    if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
+    return brls::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
+}
 
 std::shared_ptr<const Installed> installed()
 {
@@ -173,28 +186,40 @@ void discover(const std::function<void(const std::string&)>& saved)
     });
 }
 
-void install(const Loaded& l, const std::vector<size_t>& items, const std::function<void()>& after)
+void reread_installed(const std::function<void()>& after)
 {
-    const std::string              password = library::password_of(l.server);
-    const std::vector<std::string> auth = library::auth_headers(l.server.username, password);
-    std::vector<install_flow::Package> packages;
+    ui::in_background("installed", [after]() {
+        const auto now = read_installed();
+        brls::sync([now, after]() {
+            s_installed = now;
+            if (after) after();
+        });
+    });
+}
+
+size_t install(const Loaded& l, const std::vector<size_t>& items)
+{
+    if (ui::refuse_read_only()) return 0;
+    std::vector<download::Job> jobs;
     for (size_t i : items) {
         if (i >= l.fetch.catalog.items.size()) continue;
         const library::Item& it = l.fetch.catalog.items[i];
-        const bool           own = library::same_origin(it.url, l.fetch.endpoint);
-        packages.push_back({ it.name, it.url, own ? auth : std::vector<std::string>(),
-                             own && l.fetch.on_lan ? l.server.pin : "" });
+        download::Job        j;
+        // Its game's name, and which item of it ("Update v131072", an
+        // add-on's own name).
+        j.name = library::clean_name(it.name);
+        for (const library::Title& t : l.titles)
+            if (std::find(t.updates.begin(), t.updates.end(), i) != t.updates.end())
+                j.name = t.name + " · " + brls::getStr("playshelf/library/update", it.version);
+            else if ((long)i == t.base)
+                j.name = t.name;
+        j.url = it.url;
+        j.server_id = l.server.id;
+        j.title_id = it.title_id;
+        j.size = it.size;
+        jobs.push_back(std::move(j));
     }
-    if (packages.empty()) return;
-    install_flow::install(packages, [after]() {
-        ui::in_background("installed", [after]() {
-            const auto now = read_installed();
-            brls::sync([now, after]() {
-                s_installed = now;
-                if (after) after();
-            });
-        });
-    });
+    return download_flow::add(std::move(jobs));
 }
 
 }   // namespace library_flow
