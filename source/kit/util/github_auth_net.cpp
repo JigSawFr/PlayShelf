@@ -3,10 +3,11 @@
 #include <cstring>
 
 #ifndef __SWITCH__
-#include <borealis/cadran/util/text.hpp>
-
 #include "sim/sim_net.hpp"
 #endif
+
+#include <borealis/cadran/util/text.hpp>
+
 #include "util/github_auth.hpp"
 #include "util/http.hpp"
 

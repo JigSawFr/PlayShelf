@@ -7,10 +7,10 @@
 #include <chrono>
 #include <thread>
 
-#include <borealis/cadran/util/text.hpp>
-
 #include "sim/sim_net.hpp"
 #endif
+
+#include <borealis/cadran/util/text.hpp>
 
 #include "app.hpp"
 #include "core/sim_env.h"
