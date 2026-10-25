@@ -5,7 +5,7 @@
 #include <functional>
 #include <string>
 
-#include "ui/guarded.hpp"
+#include <borealis/cadran/ui/guarded.hpp>
 
 static void test_runs_while_alive()
 {

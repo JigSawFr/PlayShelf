@@ -7,6 +7,8 @@
 #include <chrono>
 #include <thread>
 
+#include <borealis/cadran/util/text.hpp>
+
 #include "sim/sim_net.hpp"
 #endif
 
@@ -17,7 +19,6 @@
 #include "util/http.hpp"
 #include "util/http_logic.hpp"
 #include "util/paths.hpp"
-#include "util/text.hpp"
 #include "util/zip_read.hpp"
 
 namespace dev_builds

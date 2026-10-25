@@ -2,9 +2,10 @@
 #include "view/funding.hpp"
 
 #include "app.hpp"
-#include "ui/cadran_kit.hpp"
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/util/text.hpp>
+
 #include "ui/ui.hpp"
-#include "util/text.hpp"
 
 using namespace brls::literals;
 

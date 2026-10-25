@@ -15,14 +15,15 @@
 #include <ctime>
 #endif
 
+#include <borealis/cadran/ui/cadran_list.hpp>
+#include <borealis/cadran/ui/effects.hpp>
+
 #include "app.hpp"
-#include "ui/effects.hpp"
+#include "core/local_time.h"
 #include "ui/ui.hpp"
-#include "ui/cadran_list.hpp"
 #include "util/config.hpp"
 #include "util/frame_stats.hpp"
 #include "util/paths.hpp"
-#include "core/local_time.h"
 
 // nanovg's per-frame counters, through the getter
 // tools/perf_nanovg_stats.patch adds to the borealis tree. Weak: a build
@@ -86,7 +87,7 @@ std::string mode()
     // The glow turned off (Developer): its cost is the difference; the
     // lighter effects off the dock (ui/effects) leave it out too, and
     // Reduced motion keeps it still.
-    if (!config::get().cadran_glow) m += "-noglow";
+    if (!config::get().look.glow) m += "-noglow";
     else if (effects::light()) m += "-light";
     else if (effects::reduced()) m += "-reduced";
     return m;

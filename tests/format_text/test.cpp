@@ -1,5 +1,5 @@
-// Host tests for source/kit/ui/format_text.cpp, translated by the real
-// catalogs (resources/i18n/<lang>/playshelf.json, read from the repository
+// Host tests for Aurore's Cadran format_text.cpp, translated by the real
+// catalogs (Aurore's extern/borealis/resources/i18n/<lang>/cadran.json, read from the repository
 // root `make test` runs in) through ui/tr.hpp's stand-in for borealis:
 // minutes ("45 min", "2 h", "2 h 05"), a duration in nanoseconds (rounded to
 // the minute) and in seconds over any length ("< 1 min", "52 h 30", "278 h"),
@@ -14,8 +14,8 @@
 #include <set>
 #include <string>
 
-#include "ui/format_text.hpp"
-#include "ui/tr.hpp"
+#include <borealis/cadran/ui/format_text.hpp>
+#include <borealis/cadran/ui/tr.hpp>
 
 static std::map<std::string, std::string> s_catalog;
 static std::set<std::string>              s_missing;   // keys asked for that the catalog lacks
@@ -33,9 +33,9 @@ static void flatten(const nlohmann::json& j, const std::string& prefix)
 static bool load(const std::string& lang)
 {
     s_catalog.clear();
-    std::ifstream in("resources/i18n/" + lang + "/playshelf.json");
+    std::ifstream in("extern/borealis/resources/i18n/" + lang + "/cadran.json");
     if (!in) return false;
-    flatten(nlohmann::json::parse(in), "playshelf/");
+    flatten(nlohmann::json::parse(in), "cadran/");
     return !s_catalog.empty();
 }
 
@@ -105,10 +105,10 @@ static void test_names()
 static void test_french()
 {
     REQUIRE(load("fr"));
-    CHECK(ui::day_name(1) == s_catalog["playshelf/days/1"]);
+    CHECK(ui::day_name(1) == s_catalog["cadran/days/1"]);
     CHECK(ui::day_name_in_text(1) == "lundi");
     CHECK(ui::fmt_minutes(125) == "2\u00A0h\u00A005");
-    CHECK(ui::fmt_duration(30) == s_catalog["playshelf/common/less_than_minute"]);
+    CHECK(ui::fmt_duration(30) == s_catalog["cadran/common/less_than_minute"]);
 }
 
 int main()

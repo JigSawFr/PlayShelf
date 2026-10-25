@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
-#include "ui/hooks.hpp"
+#include "ui/app_hooks.hpp"
 
-namespace ui::hooks
+namespace ui::app_hooks
 {
 
 Hooks& get()
@@ -10,4 +10,4 @@ Hooks& get()
     return hooks;
 }
 
-}   // namespace ui::hooks
+}   // namespace ui::app_hooks

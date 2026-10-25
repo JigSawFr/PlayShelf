@@ -4,8 +4,9 @@
 #include <cstdio>
 #include <sys/stat.h>
 
+#include <borealis/cadran/util/text.hpp>
+
 #include "util/paths.hpp"
-#include "util/text.hpp"
 
 namespace patches
 {

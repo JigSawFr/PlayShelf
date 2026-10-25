@@ -1,8 +1,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "tab/library_tab.hpp"
 
-#include "ui/cadran_frame.hpp"
-#include "ui/cadran_kit.hpp"
+#include <borealis/cadran/ui/cadran_frame.hpp>
+#include <borealis/cadran/ui/cadran_kit.hpp>
+
 
 using namespace brls::literals;
 

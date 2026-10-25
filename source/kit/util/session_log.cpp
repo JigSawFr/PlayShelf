@@ -11,10 +11,11 @@
 #include <mutex>
 #include <unistd.h>
 
+#include <borealis/cadran/util/utf8.hpp>
+
 #include "util/date.hpp"
 #include "util/log_files.hpp"
 #include "util/paths.hpp"
-#include "util/utf8.hpp"
 
 namespace session_log
 {

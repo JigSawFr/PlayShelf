@@ -2,15 +2,16 @@
 #include "tab/about_tab.hpp"
 
 #include "action/update_flow.hpp"
+#include <borealis/cadran/ui/cadran_frame.hpp>
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/view/cadran_digits.hpp>
+
 #include "activity/changelog_activity.hpp"
 #include "app.hpp"
 #include "tab/help_tab.hpp"
-#include "ui/cadran_frame.hpp"
-#include "ui/cadran_kit.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/update.hpp"
-#include "view/cadran_digits.hpp"
 #include "view/funding.hpp"
 
 using namespace brls::literals;

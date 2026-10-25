@@ -7,8 +7,8 @@
 #include "check.h"
 #include <string>
 
-#include "util/markdown.hpp"
-#include "util/safe_text.hpp"
+#include <borealis/cadran/util/markdown.hpp>
+#include <borealis/cadran/util/safe_text.hpp>
 
 using markdown::Block;
 

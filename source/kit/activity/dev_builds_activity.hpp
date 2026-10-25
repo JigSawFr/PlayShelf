@@ -24,8 +24,9 @@
 
 #include <borealis.hpp>
 
+#include <borealis/cadran/view/loading_bar.hpp>
+
 #include "util/dev_builds.hpp"
-#include "view/loading_bar.hpp"
 
 class BuildCell;
 

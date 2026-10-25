@@ -61,7 +61,7 @@ CLOCK_TEXT = "16:00"
 CLOCK_ORIGIN = (55, 692)                # the label's text origin (baseline)
 CLOCK_SIZE = "21.5"                     # brls/hints/time fontSize
 # With Preferences › Text size's larger text, the footer's clock is 1.15
-# times that (HINTS_SCALE, source/kit/ui/cadran_frame.cpp), its baseline a pixel
+# times that (HINTS_SCALE, Aurore's cadran_frame.cpp), its baseline a pixel
 # lower: a clock at least this tall (its ink, in pixels; 17 to 19 at the
 # normal size, drawn here or by the app; 20 to 21 at the larger one) is
 # redrawn at that size.

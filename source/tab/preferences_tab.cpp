@@ -3,8 +3,9 @@
 
 #include <vector>
 
+#include <borealis/cadran/ui/cadran_frame.hpp>
+
 #include "action/update_flow.hpp"
-#include "ui/cadran_frame.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 
@@ -45,8 +46,8 @@ PreferencesTab::PreferencesTab()
     effects->registerClickAction([this](brls::View*) {
         std::vector<std::string> labels;
         for (const char* e : config::EFFECTS) labels.push_back(brls::getStr(std::string("playshelf/prefs/effects_values/") + e));
-        ui::pick("playshelf/prefs/effects"_i18n, labels, index_of(config::EFFECTS, config::get().effects), [this](int i) {
-            config::get().effects = config::EFFECTS[i];   // the next frame draws by it
+        ui::pick("playshelf/prefs/effects"_i18n, labels, index_of(config::EFFECTS, config::get().look.effects), [this](int i) {
+            config::get().look.effects = config::EFFECTS[i];   // the next frame draws by it
             ui::save_config();
             this->refresh();
         });
@@ -99,7 +100,7 @@ void PreferencesTab::refresh()
     language->setDetailText(ui::language_name(true));
     theme->setDetailText(ui::theme_name(true));
     text_size->setDetailText(ui::text_size_name(true));
-    effects->setDetailText(brls::getStr("playshelf/prefs/effects_values/" + std::string(config::EFFECTS[index_of(config::EFFECTS, cfg.effects)])));
+    effects->setDetailText(brls::getStr("playshelf/prefs/effects_values/" + std::string(config::EFFECTS[index_of(config::EFFECTS, cfg.look.effects)])));
     start_tab->setDetailText(tab_name(config::START_TABS[index_of(config::START_TABS, cfg.start_tab)]));
     intro->setOn(cfg.intro, false);
     support_reminder->setOn(cfg.support_reminder, false);

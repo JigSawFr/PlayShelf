@@ -2,9 +2,10 @@
 #include "tab/tab_base.hpp"
 
 #include "action/frame_stats_flow.hpp"
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/ui/motion.hpp>
+
 #include "app.hpp"
-#include "ui/cadran_kit.hpp"
-#include "ui/motion.hpp"
 #include "ui/ui.hpp"
 
 using namespace brls::literals;

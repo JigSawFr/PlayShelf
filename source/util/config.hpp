@@ -6,22 +6,20 @@
 #include <string>
 #include <vector>
 
+#include <borealis/cadran/ui/prefs.hpp>
+
 namespace config
 {
 
 struct Config
 {
-    std::string language = "system";   // "system" or one of LANGUAGES
-    std::string theme    = "dark";     // "dark" (the default), "system", "light"
-    // The text: "auto" (larger while docked), "normal" or "large"
-    // (ui/text_size).
-    std::string text_size = "auto";
-    // "auto" (the default: lighter effects off the dock), "full" or
-    // "reduced" (no decorative movement) (ui/effects).
-    std::string effects = "auto";
+    // The look Aurore's Cadran draws (ui::use_prefs): the language, the
+    // theme, the text size ("auto": larger while docked), the effects ("auto":
+    // lighter off the dock) and the screens' background glow (Developer ›
+    // glow).
+    ui::Prefs look;
     bool dev_mode = false;             // developer tools (7 presses on About > Version)
     bool frame_stats = false;          // Developer › frame statistics (action/frame_stats_flow)
-    bool cadran_glow = true;           // Developer › the Cadran screens' background glow
     // How an update is installed: "" (not chosen yet: asked on the first
     // update), "inplace" (PlayShelf downloads it and replaces itself),
     // "auto", "sphaira", "appstore", "manual".
@@ -60,16 +58,17 @@ struct Config
 
 constexpr int    SCHEMA             = 1;    // "schema" in config.json
 // The languages PlayShelf is translated into, after "system" (the console's
-// own): each has resources/i18n/<code>/playshelf.json and a name under
-// playshelf/tools/languages/. tools/check_resources.py checks both.
-constexpr const char* LANGUAGES[] = { "system", "en-US", "fr", "fr-CA", "de", "es", "es-419", "it", "nl", "pt", "pt-BR", "ru", "ja", "ko", "zh-Hans", "zh-Hant" };
+// own): Aurore's Cadran's (ui::LANGUAGES), each with
+// resources/i18n/<code>/playshelf.json here. tools/check_resources.py
+// checks it.
+inline constexpr const auto& LANGUAGES = ui::LANGUAGES;
 // What theme may be, in the pickers' order: the console's own, then the two
-// forced ones. Dark unless chosen otherwise (Config::theme).
-constexpr const char* THEMES[] = { "system", "light", "dark" };
+// forced ones. Dark unless chosen otherwise (ui::Prefs::theme).
+inline constexpr const auto& THEMES = ui::THEMES;
 // What text_size may be: the default first.
-constexpr const char* TEXT_SIZES[] = { "auto", "normal", "large" };
+inline constexpr const auto& TEXT_SIZES = ui::TEXT_SIZES;
 // What effects may be: the default first.
-constexpr const char* EFFECTS[] = { "auto", "full", "reduced" };
+inline constexpr const auto& EFFECTS = ui::EFFECTS;
 // What start_tab may be, in the sidebar's order.
 constexpr const char* START_TABS[] = { "library", "preferences", "about" };
 // What About › Help & diagnostics offers for the reports and crash files kept.

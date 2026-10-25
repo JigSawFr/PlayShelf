@@ -35,8 +35,8 @@ static void test_defaults()
     std::remove(paths::config_file().c_str());
     config::load();
     const auto& c = config::get();
-    CHECK(c.language == "system" && c.theme == "dark" && c.text_size == "auto" && c.effects == "auto");
-    CHECK(!c.dev_mode && !c.frame_stats && c.cadran_glow && c.intro && c.support_reminder);
+    CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
+    CHECK(!c.dev_mode && !c.frame_stats && c.look.glow && c.intro && c.support_reminder);
     CHECK(c.start_tab == "library" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.update_latest.empty() && !c.update_daily);   // the update method: asked the first time
 
@@ -45,7 +45,7 @@ static void test_defaults()
         write_config(bad);
         config::get().dev_mode = true;
         config::load();
-        CHECK(!config::get().dev_mode && config::get().language == "system");
+        CHECK(!config::get().dev_mode && config::get().look.language == "system");
         CHECK(config::loaded() == config::Loaded::PutAside);
     }
     std::remove(paths::config_file().c_str());
@@ -120,7 +120,7 @@ static void test_fields()
     config::load();
     const auto& c = config::get();
     CHECK(config::loaded() == config::Loaded::Read);
-    CHECK(c.language == "fr" && c.theme == "dark" && c.text_size == "large" && c.effects == "reduced");
+    CHECK(c.look.language == "fr" && c.look.theme == "dark" && c.look.text_size == "large" && c.look.effects == "reduced");
     CHECK(!c.dev_mode && c.frame_stats && !c.intro && c.start_tab == "about");
     CHECK(c.logs_keep == 5 && c.logs_keep_days == 7 && c.logs_keep_mb == 0);
     CHECK(c.update_daily && c.update_via == "sphaira");
@@ -132,7 +132,7 @@ static void test_fields()
                     "update_snooze_version": "1.2.0", "update_snooze_until": "soon",
                     "support_reminded": "2026-13", "seen_version": "1234567890123456789012345678901234567890"})");
     config::load();
-    CHECK(c.language == "system" && c.theme == "dark" && c.text_size == "auto" && c.effects == "auto");
+    CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
     CHECK(c.start_tab == "library" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.dev_builds_order == "newest" && c.update_checked.empty());
     CHECK(c.update_snooze_version.empty() && c.update_snooze_until.empty());
@@ -149,13 +149,13 @@ static void test_round_trip()
 {
     config::get() = config::Config{};
     auto& c = config::get();
-    c.language = "ja";
-    c.theme = "light";
-    c.text_size = "normal";
-    c.effects = "full";
+    c.look.language = "ja";
+    c.look.theme = "light";
+    c.look.text_size = "normal";
+    c.look.effects = "full";
     c.dev_mode = true;
     c.frame_stats = true;
-    c.cadran_glow = false;
+    c.look.glow = false;
     c.update_via = "inplace";
     c.update_daily = true;
     c.update_checked = "2026-10-24";
@@ -176,8 +176,8 @@ static void test_round_trip()
     CHECK(save_config());
     c = config::Config{};
     config::load();
-    CHECK(c.language == before.language && c.theme == before.theme && c.text_size == before.text_size);
-    CHECK(c.effects == before.effects && c.dev_mode && c.frame_stats && !c.cadran_glow);
+    CHECK(c.look.language == before.look.language && c.look.theme == before.look.theme && c.look.text_size == before.look.text_size);
+    CHECK(c.look.effects == before.look.effects && c.dev_mode && c.frame_stats && !c.look.glow);
     CHECK(c.update_via == "inplace" && c.update_daily && c.update_checked == "2026-10-24");
     CHECK(c.update_latest == "1.2.0" && c.update_snooze_version == "1.2.0" && c.update_snooze_until == "2026-11-01");
     CHECK(c.start_tab == "preferences" && c.logs_keep == 50 && c.logs_keep_days == 30 && c.logs_keep_mb == 5);
@@ -191,13 +191,13 @@ static void test_tmp_recovery()
 {
     // Stopped after removing config.json, before renaming config.json.tmp.
     config::get() = config::Config{};
-    config::get().theme = "dark";
+    config::get().look.theme = "dark";
     CHECK(save_config());
     const std::string file = paths::config_file();
     CHECK(std::rename(file.c_str(), (file + ".tmp").c_str()) == 0);
     config::get() = config::Config{};
     config::load();
-    CHECK(config::get().theme == "dark");
+    CHECK(config::get().look.theme == "dark");
 
     // The next save must not truncate that .tmp, the only good copy: it is
     // promoted first, and a save that fails afterwards still leaves it.
@@ -226,7 +226,7 @@ static void test_tmp_recovery()
     write_config(R"({"theme": "light"})");
     CHECK(paths::atomic_write(file + ".tmp", R"({"theme": "dark"})"));
     config::load();
-    CHECK(config::get().theme == "light");
+    CHECK(config::get().look.theme == "light");
 
     // Both missing: nothing to read.
     std::remove(file.c_str());
@@ -240,7 +240,7 @@ static void test_tmp_recovery()
     CHECK(!paths::read_file(file, text) && !paths::exists_or_pending(file) && !paths::file_exists(file));
     config::get() = config::Config{};
     config::load();
-    CHECK(config::loaded() == config::Loaded::Missing && config::get().theme == "dark");
+    CHECK(config::loaded() == config::Loaded::Missing && config::get().look.theme == "dark");
     CHECK(paths::atomic_write(file, R"({"theme": "dark"})"));
     CHECK(paths::read_file(file, text) && text == R"({"theme": "dark"})");
     CHECK(!exists(file + ".part") && !exists(file + ".tmp"));

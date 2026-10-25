@@ -3,22 +3,23 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/ui/cadran_list.hpp>
+
 #include "action/cleanup_flow.hpp"
 #include "action/dev_build_flow.hpp"
-#include "action/install_flow.hpp"
-#include "action/github_login_flow.hpp"
-#include "action/log_prune_flow.hpp"
 #include "action/frame_stats_flow.hpp"
+#include "action/github_login_flow.hpp"
+#include "action/install_flow.hpp"
+#include "action/log_prune_flow.hpp"
 #include "action/upload_flow.hpp"
 #include "activity/diagnostic_activity.hpp"
 #include "app.hpp"
 #include "core/sysinfo.h"
-#include "ui/cadran_list.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/diagnostics.hpp"
-#include "util/github_auth.hpp"
 #include "util/frame_stats.hpp"
+#include "util/github_auth.hpp"
 #include "util/paths.hpp"
 
 using namespace brls::literals;
@@ -143,8 +144,8 @@ HelpTab::HelpTab()
     });
     dev_frame_stats_last->setSingleLine(false);
     // Cadran's background glow, off to weigh it with the frame statistics.
-    dev_glow->init("playshelf/dev/glow"_i18n, config::get().cadran_glow, [](bool on) {
-        config::get().cadran_glow = on;
+    dev_glow->init("playshelf/dev/glow"_i18n, config::get().look.glow, [](bool on) {
+        config::get().look.glow = on;
         ui::save_config();
     });
     this->stats_timer.setPeriod(1000);
@@ -198,7 +199,7 @@ void HelpTab::refresh()
     dev_mode->setOn(dev, false);
     dev_read_only->setOn(ro, false);
     dev_frame_stats->setOn(cfg.frame_stats, false);
-    dev_glow->setOn(cfg.cadran_glow, false);
+    dev_glow->setOn(cfg.look.glow, false);
     this->update_frame_stats();
     const bool signed_in = !github_auth::token().empty();
     ui::set_visible_all({ { github.getView(), dev || signed_in },
