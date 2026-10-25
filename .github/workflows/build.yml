@@ -129,12 +129,22 @@ jobs:
           if-no-files-found: ignore
 
   # The real UI against a simulated console, warnings as errors, then the
-  # smoke test through every screen (tools/desktop_smoke.py) and its
-  # screenshots as an artifact.
+  # smoke test through every screen (tools/desktop_smoke.py), the visual
+  # check of its stable screens against main's (tests/visual/README.md) and
+  # the screenshots as an artifact.
   desktop:
     needs: meta
     runs-on: ubuntu-26.04
     timeout-minutes: 30
+    permissions:
+      contents: read
+      # The pull request's description, for its Screens: line.
+      pull-requests: read
+    env:
+      ARTIFACT: playshelf-${{ needs.meta.outputs.label }}-screens
+      # A push to main, a release or a manual run keep their screens as the
+      # references; a pull request compares with them.
+      KEEP: ${{ github.event_name != 'pull_request' && '1' || '0' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -172,16 +182,80 @@ jobs:
           sleep 1
           python3 tools/desktop_smoke.py smoke
           python3 tools/desktop_smoke.py smoke-loading loading
+      # The screens the pull request announces it changes: its description's
+      # `Screens:` line (tests/visual/README.md). `none` or no line: none;
+      # `any`: every screen; else `scenario/name` patterns.
+      - name: Screens announced
+        id: announced
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          screens=$(gh api "repos/$REPO/pulls/$PR" --jq '.body // ""' | tr -d '\r' | sed -n 's/^[Ss]creens:[[:space:]]*//p' | head -n 1 | tr -s ' ,' ' ' | sed 's/^ //; s/ $//')
+          [ "$screens" != none ] || screens=""
+          echo "screens announced: ${screens:-none}"
+          echo "screens=$screens" >> "$GITHUB_OUTPUT"
+      # The references are main's own screens (tools/visual_refs.py): the
+      # last run of main left them in the Actions cache, .visual-refs/.
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .visual-refs
+          key: visual-refs-${{ github.sha }}
+          restore-keys: visual-refs-
+      # The screens of tests/visual/<scenario>/SCREENS against them
+      # (reference | now | changes in smoke*/visual_diff/ when one changed):
+      # on a pull request a changed screen fails the job unless the pull
+      # request announced it; elsewhere this run's screens become the
+      # references, the changed ones said.
+      - name: Visual check
+        env:
+          EXPECTED: ${{ steps.announced.outputs.screens }}
+        run: |
+          failed=""
+          for sc in smoke loading; do
+            if [ "$sc" = smoke ]; then out=smoke; else out="smoke-$sc"; fi
+            echo "::group::$sc"
+            if [ "$KEEP" = 1 ]; then
+              python3 tools/visual_refs.py keep "$out" "$sc" || failed="$failed $sc"
+            elif [ ! -d ".visual-refs/$sc" ]; then
+              echo "::warning title=Visual check ($sc)::no references of main yet (no cache): nothing compared"
+            elif ! python3 tools/visual_check.py "$out" ".visual-refs/$sc" --screens "tests/visual/$sc/SCREENS" \
+                  --scenario "$sc" --expected "$EXPECTED" > "$out-visual.txt" 2>&1; then
+              cat "$out-visual.txt"
+              summary=$(grep '^visual check:' "$out-visual.txt" || echo "visual check failed")
+              echo "::error title=Visual check ($sc)::$summary — see the $ARTIFACT artifact (visual_diff/); a change that is meant is announced on the pull request's Screens: line"
+              failed="$failed $sc"
+            else
+              cat "$out-visual.txt"
+            fi
+            echo "::endgroup::"
+          done
+          [ -z "$failed" ]
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && inputs.tag == '' }}
+        with:
+          path: .visual-refs
+          key: visual-refs-${{ github.sha }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() && env.KEEP == '1' }}
+        with:
+          name: playshelf-${{ needs.meta.outputs.label }}-refs
+          path: .visual-refs/
+          # A dot folder: left out of the artifact otherwise.
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Screenshots
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playshelf-${{ needs.meta.outputs.label }}-screens
+          name: ${{ env.ARTIFACT }}
           path: |
-            smoke/*.png
-            smoke/app.log
-            smoke-loading/*.png
-            smoke-loading/app.log
+            smoke*/*.png
+            smoke*/app.log
+            smoke*/visual_diff/*.png
           if-no-files-found: ignore
 
   # The Switch build in devkitPro's image, pinned by digest so a release can
