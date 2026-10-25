@@ -433,5 +433,17 @@
             "tagline": "主機上的遊戲庫 · 自由軟體（GPLv3）",
             "version": "版本 {}"
         }
+    },
+    "install": {
+        "from_url": "從網址安裝",
+        "url_header": "軟體包的 HTTPS 位址（NSP、NSZ、XCI 或 XCZ）",
+        "https_only": "僅限 https:// 位址：軟體包必須透過已驗證的連線傳輸。",
+        "preparing": "正在讀取軟體包…",
+        "installing": "正在安裝",
+        "done": "{} 已安裝（{}）：已寫入 {} MB。",
+        "failed": "無法安裝 {}",
+        "cancelled": "已取消安裝：主機上沒有留下任何內容。",
+        "unsigned_body": "{}。\n\n內容可能已被修改或損壞。仍要安裝嗎？",
+        "unsigned_confirm": "仍要安裝"
     }
 }

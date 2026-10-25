@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/http_logic.hpp"
 
+#include <cctype>
+
 namespace http_logic
 {
 
@@ -55,6 +57,62 @@ bool redirect_ok(long status, const std::string& target, std::string* error)
         if (error) *error = "no redirect (HTTP " + std::to_string(status) + ")";
         return false;
     }
+    return true;
+}
+
+bool parse_content_range(const std::string& line, ContentRange* out)
+{
+    const size_t colon = line.find(':');
+    if (colon == std::string::npos) return false;
+    std::string name = line.substr(0, colon);
+    for (char& c : name)
+        c = (char)std::tolower((unsigned char)c);
+    if (name != "content-range") return false;
+    size_t i = colon + 1;
+    auto skip = [&]() {
+        while (i < line.size() && (line[i] == ' ' || line[i] == '\t'))
+            i++;
+    };
+    auto number = [&](uint64_t* v) {
+        const size_t start = i;
+        uint64_t     n = 0;
+        while (i < line.size() && line[i] >= '0' && line[i] <= '9') {
+            const uint64_t d = (uint64_t)(line[i] - '0');
+            if (n > (UINT64_MAX - d) / 10) return false;
+            n = n * 10 + d;
+            i++;
+        }
+        *v = n;
+        return i > start;
+    };
+    skip();
+    if (line.compare(i, 6, "bytes ") != 0) return false;
+    i += 6;
+    skip();
+    auto expect = [&](char c) {
+        if (i >= line.size() || line[i] != c) return false;
+        i++;
+        return true;
+    };
+    ContentRange r;
+    if (!number(&r.first) || !expect('-') || !number(&r.last) || !expect('/') || !number(&r.total)) return false;
+    skip();
+    while (i < line.size() && (line[i] == '\r' || line[i] == '\n'))
+        i++;
+    if (i != line.size() || r.first > r.last || r.last >= r.total) return false;
+    *out = r;
+    return true;
+}
+
+bool range_ok(long status, const ContentRange* got, uint64_t first, uint64_t length, std::string* error)
+{
+    auto fail = [&](const std::string& why) {
+        if (error) *error = why;
+        return false;
+    };
+    if (status != 206) return fail("the server does not serve ranges (HTTP " + std::to_string(status) + ")");
+    if (!got) return fail("a range answer without its Content-Range");
+    if (got->first != first || got->last - got->first + 1 != length) return fail("the server sent another range");
     return true;
 }
 

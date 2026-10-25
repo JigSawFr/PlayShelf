@@ -433,5 +433,17 @@
             "tagline": "主机上的游戏库 · 自由软件（GPLv3）",
             "version": "版本 {}"
         }
+    },
+    "install": {
+        "from_url": "从网址安装",
+        "url_header": "软件包的 HTTPS 地址（NSP、NSZ、XCI 或 XCZ）",
+        "https_only": "仅限 https:// 地址：软件包必须通过已验证的连接传输。",
+        "preparing": "正在读取软件包…",
+        "installing": "正在安装",
+        "done": "{} 已安装（{}）：已写入 {} MB。",
+        "failed": "无法安装 {}",
+        "cancelled": "安装已取消：主机上没有留下任何内容。",
+        "unsigned_body": "{}。\n\n内容可能已被修改或损坏。仍要安装吗？",
+        "unsigned_confirm": "仍要安装"
     }
 }

@@ -433,5 +433,17 @@
             "tagline": "Votre ludothèque sur la console · logiciel libre (GPLv3)",
             "version": "Version {}"
         }
+    },
+    "install": {
+        "from_url": "Installer depuis une URL",
+        "url_header": "L'adresse HTTPS du paquet (NSP, NSZ, XCI ou XCZ)",
+        "https_only": "Seulement une adresse https:// : le paquet doit venir par une connexion vérifiée.",
+        "preparing": "Lecture du paquet…",
+        "installing": "Installation",
+        "done": "{} est installé ({}) : {} Mo écrits.",
+        "failed": "{} n'a pas pu être installé",
+        "cancelled": "Installation annulée : rien n'en reste sur la console.",
+        "unsigned_body": "{}.\n\nLe contenu a peut-être été modifié ou abîmé. L'installer quand même ?",
+        "unsigned_confirm": "Installer quand même"
     }
 }

@@ -86,6 +86,14 @@ struct Sink
     bool         status_seen = false;
     bool         refused = false;   // the answer was not written (http_logic::download_start)
     const std::atomic<bool>* cancel = nullptr;   // set: the transfer stops (download())
+    // range(): each piece to `chunk` as it arrives, once the answer is a 206
+    // for the range asked (`range_from`, `range_length`).
+    const std::function<bool(const uint8_t*, size_t)>* chunk = nullptr;
+    uint64_t                 range_from = 0, range_length = 0, range_got = 0;
+    bool                     chunk_stopped = false;   // `chunk` said stop
+    std::string              range_error{};
+    bool                     has_range = false;
+    http_logic::ContentRange content_range{};   // from the answer's headers
 };
 
 bool cancelled(const Sink* sink)
@@ -99,11 +107,46 @@ int on_progress(void* user, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
     return s_abort || cancelled(static_cast<const Sink*>(user)) ? 1 : 0;   // non-zero aborts the transfer
 }
 
+// Each header line of the answer (and of a redirect's): the Content-Range kept.
+size_t on_header(char* data, size_t size, size_t count, void* user)
+{
+    auto* sink = static_cast<Sink*>(user);
+    const size_t n = size * count;
+    http_logic::ContentRange r;
+    if (http_logic::parse_content_range(std::string(data, n), &r)) {
+        sink->content_range = r;
+        sink->has_range = true;
+    }
+    return n;
+}
+
 size_t on_data(char* data, size_t size, size_t count, void* user)
 {
     auto* sink = static_cast<Sink*>(user);
     if (s_abort || cancelled(sink)) return 0;
     const size_t n = size * count;
+    if (sink->chunk) {
+        if (!sink->status_seen) {
+            sink->status_seen = true;
+            long status = 0;
+            curl_easy_getinfo(sink->curl, CURLINFO_RESPONSE_CODE, &status);
+            if (!http_logic::range_ok(status, sink->has_range ? &sink->content_range : nullptr, sink->range_from,
+                                      sink->range_length, &sink->range_error)) {
+                sink->refused = true;
+                return 0;
+            }
+        }
+        if (n > sink->range_length - sink->range_got) {
+            sink->overflow = true;
+            return 0;
+        }
+        sink->range_got += n;
+        if (!(*sink->chunk)(reinterpret_cast<const uint8_t*>(data), n)) {
+            sink->chunk_stopped = true;
+            return 0;
+        }
+        return n;
+    }
     // A download looks at the status before its first byte: an error page is
     // not written (a part kept stays usable), a resumed download the server
     // answers in full (200, not 206) starts over, from an empty file.
@@ -161,7 +204,8 @@ struct Extra
     const Headers*     headers = nullptr;
     bool               follow = true;            // follow redirects (never for a POST)
     std::string*       location = nullptr;       // the redirect target, when not followed
-    Sink*              to_file = nullptr;        // replaces the in-memory sink (download)
+    Sink*              to_file = nullptr;        // replaces the in-memory sink (download, range)
+    std::string        range;                    // "first-last": a Range request
 };
 
 bool perform(const std::string& url, const Extra& x, std::string* body, std::string* error, size_t max_bytes,
@@ -210,10 +254,13 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, std::min(timeout_s, 30L));
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout_s);
+    if (!x.range.empty()) curl_easy_setopt(curl, CURLOPT_RANGE, x.range.c_str());
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, on_header);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &sink);
     if (to_file) {   // a long transfer: give up on a stall rather than at the end
         curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
         curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
-        if (to_file->base) curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)to_file->base);
+        if (to_file->base && !to_file->chunk) curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)to_file->base);
     }
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -252,6 +299,23 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     outcome.transfer_ok = rc == CURLE_OK;
     outcome.range_error = rc == CURLE_RANGE_ERROR;
     if (rc != CURLE_OK) outcome.transfer_error = message[0] ? message : curl_easy_strerror(rc);
+    if (sink.chunk) {
+        // A range: its own reasons first, then what the transfer says.
+        if (!sink.range_error.empty()) {
+            if (error) *error = sink.range_error;
+            return false;
+        }
+        if (sink.chunk_stopped) {
+            if (error) *error = "stopped";
+            return false;
+        }
+        if (!http_logic::succeeded(outcome, error)) return false;
+        if (sink.range_got != sink.range_length) {
+            if (error) *error = "the range came out short";
+            return false;
+        }
+        return true;
+    }
     return http_logic::succeeded(outcome, error);
 }
 }   // namespace
@@ -318,6 +382,49 @@ bool download(const std::string& url, const std::string& path, std::string* erro
         ok = false;
     }
     return ok;
+}
+
+bool range(const std::string& url, uint64_t offset, uint64_t length,
+           const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers,
+           const std::atomic<bool>* cancel)
+{
+    if (!length) return true;
+    std::string unused;
+    Sink        s{ &unused, (size_t)-1 };
+    s.chunk = &sink;
+    s.range_from = offset;
+    s.range_length = length;
+    s.cancel = cancel;
+    Extra x;
+    x.headers = &headers;
+    x.to_file = &s;
+    x.range = std::to_string(offset) + "-" + std::to_string(offset + length - 1);
+    const bool ok = perform(url, x, &unused, error, (size_t)-1, 0, nullptr);
+    if (cancel && cancel->load()) {
+        if (error) *error = "cancelled";
+        return false;
+    }
+    return ok;
+}
+
+bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers)
+{
+    uint64_t           got = 0;
+    const std::function<bool(const uint8_t*, size_t)> one = [&](const uint8_t*, size_t n) {
+        got += n;
+        return true;
+    };
+    std::string unused;
+    Sink        s{ &unused, (size_t)-1 };
+    s.chunk = &one;
+    s.range_length = 1;
+    Extra x;
+    x.headers = &headers;
+    x.to_file = &s;
+    x.range = "0-0";
+    if (!perform(url, x, &unused, error, 16, 30, nullptr)) return false;
+    *size = s.content_range.total;
+    return true;
 }
 
 void abort_all()

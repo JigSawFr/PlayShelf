@@ -5,6 +5,7 @@
 
 #include "action/cleanup_flow.hpp"
 #include "action/dev_build_flow.hpp"
+#include "action/install_flow.hpp"
 #include "action/github_login_flow.hpp"
 #include "action/log_prune_flow.hpp"
 #include "action/frame_stats_flow.hpp"
@@ -164,6 +165,10 @@ HelpTab::HelpTab()
         dev_build_flow::open();
         return true;
     });
+    dev_install->registerClickAction([](brls::View*) {
+        install_flow::from_url();
+        return true;
+    });
     // A report as a tile, an icon per line (the screen's
     // skin would dress it without).
     cadran::List list(this, true);
@@ -173,7 +178,8 @@ HelpTab::HelpTab()
                  { "hp_logs_keep_mb", "save" }, { "hp_dev_mode", "code" }, { "hp_dev_read_only", "eye" },
                  { "hp_dev_frame_stats", "activity" }, { "hp_dev_glow", "sparkle" },
                  { "hp_dev_clear_cache", "trash" }, { "hp_dev_clear_logs", "trash" },
-                 { "hp_dev_report", "file" }, { "hp_dev_build", "download" } });
+                 { "hp_dev_report", "file" }, { "hp_dev_build", "download" },
+                 { "hp_dev_install", "save" } });
 }
 
 void HelpTab::refresh()

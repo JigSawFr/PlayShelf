@@ -433,5 +433,17 @@
             "tagline": "Tu biblioteca de juegos en la consola · software libre (GPLv3)",
             "version": "Versión {}"
         }
+    },
+    "install": {
+        "from_url": "Instalar desde una URL",
+        "url_header": "La dirección HTTPS del paquete (NSP, NSZ, XCI o XCZ)",
+        "https_only": "Solo una dirección https://: el paquete debe llegar por una conexión verificada.",
+        "preparing": "Leyendo el paquete…",
+        "installing": "Instalando",
+        "done": "{} está instalado ({}): {} MB escritos.",
+        "failed": "No se ha podido instalar {}",
+        "cancelled": "Instalación cancelada: no queda nada de ella en la consola.",
+        "unsigned_body": "{}.\n\nEl contenido puede haber sido modificado o dañado. ¿Instalarlo de todos modos?",
+        "unsigned_confirm": "Instalar de todos modos"
     }
 }

@@ -433,5 +433,17 @@
             "tagline": "Your game library on the console · free software (GPLv3)",
             "version": "Version {}"
         }
+    },
+    "install": {
+        "from_url": "Install from a URL",
+        "url_header": "The package's HTTPS address (NSP, NSZ, XCI or XCZ)",
+        "https_only": "Only an https:// address: the package must come over a verified connection.",
+        "preparing": "Reading the package…",
+        "installing": "Installing",
+        "done": "{} is installed ({}): {} MB written.",
+        "failed": "{} could not be installed",
+        "cancelled": "Install cancelled: nothing of it was left on the console.",
+        "unsigned_body": "{}.\n\nThe content may have been changed or damaged. Install it anyway?",
+        "unsigned_confirm": "Install anyway"
     }
 }
