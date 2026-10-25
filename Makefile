@@ -122,6 +122,9 @@ install_txn_LIBS := -lzstd
 # discovery, endpoints, certificate pins), with the kit's SHA-256.
 LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp $(K)/util/sha256.cpp
 library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
+# A server's catalogue fetched (a scripted network) and the servers' file.
+library_client_SRC := $(filter-out $(K)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
+                      $(SECRET_BOX) $(K)/util/sha256.cpp $(K)/util/paths.cpp tests/library_client/test.cpp
 # The desktop build's console (sim/sim_install.cpp) behind install::Console.
 install_sim_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/install/console_core.cpp source/sim/sim_install.cpp \
                     $(K)/util/paths.cpp $(K)/sim/sim_env.cpp tests/install_sim/test.cpp

@@ -18,8 +18,10 @@ class HttpSource : public Source
 {
   public:
     // headers: sent with every request (an Authorization). cancel: as for
-    // http::range().
-    HttpSource(std::string url, std::vector<std::string> headers = {}, const std::atomic<bool>* cancel = nullptr);
+    // http::range(). pin: the server's key when its certificate is its own
+    // (a LAN server's, library/client.hpp).
+    HttpSource(std::string url, std::vector<std::string> headers = {}, const std::atomic<bool>* cancel = nullptr,
+               std::string pin = "");
     // Asks the server for the package's size; false (why set) when it
     // cannot be had or the server serves no ranges.
     bool     open(std::string* why);
@@ -32,6 +34,7 @@ class HttpSource : public Source
     std::string              url;
     std::vector<std::string> headers;
     const std::atomic<bool>* cancel;
+    std::string              pin;
     uint64_t                 total = 0;
 };
 

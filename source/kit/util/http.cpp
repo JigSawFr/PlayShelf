@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdio>
+#include <cstring>
 #include <curl/curl.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -206,6 +207,9 @@ struct Extra
     std::string*       location = nullptr;       // the redirect target, when not followed
     Sink*              to_file = nullptr;        // replaces the in-memory sink (download, range)
     std::string        range;                    // "first-last": a Range request
+    const std::string* pinned_key = nullptr;     // "sha256//…": this key, not the CA store, vouches for the server
+    std::string*       peer_pem = nullptr;       // peer_certificate(): the server's certificate, unverified
+    bool*              tls_failed = nullptr;     // set when the server's certificate or key was refused
 };
 
 bool perform(const std::string& url, const Extra& x, std::string* body, std::string* error, size_t max_bytes,
@@ -249,9 +253,19 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, (long)CURLPROTO_HTTPS);
 #endif
     // The server's certificate and name are checked (libcurl's defaults,
-    // written out so that no build or backend change can turn them off).
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+    // written out so that no build or backend change can turn them off),
+    // unless a pinned key vouches for it instead (a LAN server's own
+    // certificate: its key must be that one), or peer_certificate() only
+    // reads it, to make a pin the user is asked about.
+    const bool pinned = x.pinned_key && !x.pinned_key->empty();
+    const bool vouched = pinned || x.peer_pem;
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, vouched ? 0L : 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, vouched ? 0L : 2L);
+    if (pinned) curl_easy_setopt(curl, CURLOPT_PINNEDPUBLICKEY, x.pinned_key->c_str());
+    if (x.peer_pem) {
+        curl_easy_setopt(curl, CURLOPT_CERTINFO, 1L);
+        curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    }
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, std::min(timeout_s, 30L));
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout_s);
     if (!x.range.empty()) curl_easy_setopt(curl, CURLOPT_RANGE, x.range.c_str());
@@ -282,6 +296,16 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     const CURLcode rc = curl_easy_perform(curl);
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+    if (x.tls_failed)
+        *x.tls_failed = rc == CURLE_PEER_FAILED_VERIFICATION || rc == CURLE_SSL_PINNEDPUBKEYNOTMATCH ||
+                        rc == CURLE_SSL_CACERT_BADFILE || rc == CURLE_SSL_CERTPROBLEM;
+    if (x.peer_pem) {
+        x.peer_pem->clear();
+        struct curl_certinfo* info = nullptr;
+        if (curl_easy_getinfo(curl, CURLINFO_CERTINFO, &info) == CURLE_OK && info && info->num_of_certs > 0)
+            for (struct curl_slist* l = info->certinfo[0]; l; l = l->next)
+                if (std::strncmp(l->data, "Cert:", 5) == 0) *x.peer_pem = l->data + 5;
+    }
     if (x.location) {
         char* target = nullptr;
         curl_easy_getinfo(curl, CURLINFO_REDIRECT_URL, &target);
@@ -386,7 +410,7 @@ bool download(const std::string& url, const std::string& path, std::string* erro
 
 bool range(const std::string& url, uint64_t offset, uint64_t length,
            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers,
-           const std::atomic<bool>* cancel)
+           const std::atomic<bool>* cancel, const std::string& pinned_key)
 {
     if (!length) return true;
     std::string unused;
@@ -399,6 +423,7 @@ bool range(const std::string& url, uint64_t offset, uint64_t length,
     x.headers = &headers;
     x.to_file = &s;
     x.range = std::to_string(offset) + "-" + std::to_string(offset + length - 1);
+    x.pinned_key = &pinned_key;
     const bool ok = perform(url, x, &unused, error, (size_t)-1, 0, nullptr);
     if (cancel && cancel->load()) {
         if (error) *error = "cancelled";
@@ -407,7 +432,8 @@ bool range(const std::string& url, uint64_t offset, uint64_t length,
     return ok;
 }
 
-bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers)
+bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers,
+                   const std::string& pinned_key)
 {
     uint64_t           got = 0;
     const std::function<bool(const uint8_t*, size_t)> one = [&](const uint8_t*, size_t n) {
@@ -422,8 +448,34 @@ bool resource_size(const std::string& url, uint64_t* size, std::string* error, c
     x.headers = &headers;
     x.to_file = &s;
     x.range = "0-0";
+    x.pinned_key = &pinned_key;
     if (!perform(url, x, &unused, error, 16, 30, nullptr)) return false;
     *size = s.content_range.total;
+    return true;
+}
+
+bool request(const std::string& url, const Headers& headers, const std::string& pinned_key, Response* r,
+             std::string* error, size_t max_bytes, long timeout_s)
+{
+    Extra x;
+    x.headers = &headers;
+    x.pinned_key = &pinned_key;
+    x.tls_failed = &r->tls_failed;
+    r->tls_failed = false;
+    return perform(url, x, &r->body, error, max_bytes, timeout_s, &r->status);
+}
+
+bool peer_certificate(const std::string& url, std::string* pem, std::string* error)
+{
+    Extra x;
+    x.peer_pem = pem;
+    std::string body;
+    // The answer itself does not matter (a 401, a 404): only the handshake.
+    perform(url, x, &body, nullptr, 64 * 1024, 15, nullptr);
+    if (pem->find("-----BEGIN CERTIFICATE-----") == std::string::npos) {
+        if (error) *error = "the server's certificate cannot be read";
+        return false;
+    }
     return true;
 }
 
