@@ -124,11 +124,47 @@ void test_select()
 }
 }   // namespace
 
+void test_state()
+{
+    Catalog c;
+    c.items.push_back(item("Zelda", 0x0100000000010000, 0, 1000));
+    c.items.push_back(item("Zelda Update", 0x0100000000010800, 131072, 10));
+    c.items.push_back(item("Zelda DLC A", 0x0100000000011001, 0, 5));
+    c.items.push_back(item("Zelda DLC B", 0x0100000000011002, 0, 5));
+    const std::vector<Title> titles = group_titles(c);
+    if (!CHECK(titles.size() == 1)) return;
+    const Title& t = titles[0];
+
+    std::map<uint64_t, uint32_t> installed;
+    TitleState                   st = state_of(t, c, installed);
+    CHECK(!st.base && !st.update_available && st.dlcs_missing == 0);
+
+    installed[0x0100000000010000] = 0;
+    st = state_of(t, c, installed);
+    CHECK(st.base && st.version == 0 && st.update_available && st.dlcs_missing == 2);
+
+    installed[0x0100000000010800] = 65536;
+    installed[0x0100000000011002] = 0;
+    st = state_of(t, c, installed);
+    CHECK(st.version == 65536 && st.update_available && st.dlcs_missing == 1);
+    CHECK(!is_installed(c.items[1], installed));
+    CHECK(is_installed(c.items[3], installed));
+
+    installed[0x0100000000010800] = 196608;   // newer than the server's
+    st = state_of(t, c, installed);
+    CHECK(st.version == 196608 && !st.update_available);
+    CHECK(is_installed(c.items[1], installed));
+
+    Title unknown;   // no title id: nothing known of it
+    CHECK(!state_of(unknown, c, installed).base);
+}
+
 int main()
 {
     test_group();
     test_two_bases();
     test_names();
     test_select();
-    return CHECK_DONE("library titles: items by game, names, search, sections and orders passed");
+    test_state();
+    return CHECK_DONE("library titles: items by game, names, search, sections, orders and what is installed passed");
 }

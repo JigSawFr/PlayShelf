@@ -152,7 +152,11 @@
         "need_address": "Almeno un indirizzo https://, su questa rete o via Internet.",
         "seal_failed": "Impossibile sigillare la password per questa console: non è stato salvato nulla.",
         "too_many": "Al massimo 16 server: eliminane prima uno.",
-        "save_failed": "Impossibile salvare i server"
+        "save_failed": "Impossibile salvare i server",
+        "installed": "Installato",
+        "update_available": "Aggiornamento disponibile",
+        "install_missing": "Installa ciò che manca",
+        "installed_version": "Installato: v{}"
     },
     "tiles": {
         "upload": "Invia un rapporto…",

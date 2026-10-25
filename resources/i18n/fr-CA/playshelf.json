@@ -152,7 +152,11 @@
         "need_address": "Au moins une adresse https://, sur ce réseau ou par Internet.",
         "seal_failed": "Le mot de passe n'a pas pu être scellé pour cette console : rien n'a été enregistré.",
         "too_many": "16 serveurs au plus : supprimez-en un d'abord.",
-        "save_failed": "Les serveurs n'ont pas pu être enregistrés"
+        "save_failed": "Les serveurs n'ont pas pu être enregistrés",
+        "installed": "Installé",
+        "update_available": "Mise à jour disponible",
+        "install_missing": "Installer ce qui manque",
+        "installed_version": "Installé : v{}"
     },
     "tiles": {
         "upload": "Envoyer un rapport…",

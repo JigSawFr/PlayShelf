@@ -2,6 +2,7 @@
 #include "install/console_core.hpp"
 
 #include <cstdio>
+#include <vector>
 
 namespace install
 {
@@ -122,6 +123,27 @@ std::optional<NcaKeys> core_keys(std::string* why)
         return R_SUCCEEDED(core_unwrap_key(generation, index, in, out));
     };
     return k;
+}
+
+std::map<uint64_t, uint32_t> installed_versions(std::string* why)
+{
+    // A console holds a few thousand at most: games, their updates, their
+    // add-ons.
+    constexpr int            MAX = 8192;
+    std::vector<CoreMetaKey> keys(MAX);
+    int                      count = 0;
+    std::map<uint64_t, uint32_t> out;
+    const Result             rc = core_installed_list(keys.data(), MAX, &count);
+    if (R_FAILED(rc)) {
+        if (why) *why = result_text(rc, "ncm");
+        return out;
+    }
+    for (int i = 0; i < count; i++) {
+        auto it = out.find(keys[(size_t)i].id);
+        if (it == out.end()) out[keys[(size_t)i].id] = keys[(size_t)i].version;
+        else if (it->second < keys[(size_t)i].version) it->second = keys[(size_t)i].version;
+    }
+    return out;
 }
 
 }   // namespace install

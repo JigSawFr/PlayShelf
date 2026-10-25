@@ -10,7 +10,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -48,7 +50,13 @@ void discover(std::function<void(const std::string& id)> saved);
 void add(std::function<void(const std::string& id)> saved);
 void edit(const library::Server& server, std::function<void(const std::string& id)> saved);
 
-// Installs these items of `l`'s catalogue (indexes in fetch.catalog.items).
-void install(const Loaded& l, const std::vector<size_t>& items);
+// What the console has installed (install::installed_versions), read with
+// each catalogue and again after an install; empty until then.
+using Installed = std::map<uint64_t, uint32_t>;
+std::shared_ptr<const Installed> installed();
+
+// Installs these items of `l`'s catalogue (indexes in fetch.catalog.items);
+// `after` once what is installed was read again.
+void install(const Loaded& l, const std::vector<size_t>& items, std::function<void()> after = nullptr);
 
 }   // namespace library_flow

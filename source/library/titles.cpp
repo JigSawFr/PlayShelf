@@ -165,4 +165,28 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
     return out;
 }
 
+bool is_installed(const Item& item, const std::map<uint64_t, uint32_t>& installed)
+{
+    if (!item.title_id) return false;
+    const auto it = installed.find(item.title_id);
+    return it != installed.end() && it->second >= item.version;
+}
+
+TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint64_t, uint32_t>& installed)
+{
+    TitleState st;
+    if (!t.id) return st;
+    const auto base = installed.find(t.id);
+    if (base == installed.end()) return st;
+    st.base = true;
+    st.version = base->second;
+    const auto update = installed.find(t.id | 0x800);
+    if (update != installed.end() && update->second > st.version) st.version = update->second;
+    const long latest = latest_update(t);
+    st.update_available = latest >= 0 && catalog.items[(size_t)latest].version > st.version;
+    for (size_t i : t.dlcs)
+        if (!is_installed(catalog.items[i], installed)) st.dlcs_missing++;
+    return st;
+}
+
 }   // namespace library

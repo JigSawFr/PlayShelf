@@ -152,7 +152,11 @@
         "need_address": "至少需要一个 https:// 地址，位于此网络或通过互联网。",
         "seal_failed": "无法为此主机封存密码：未保存任何内容。",
         "too_many": "最多 16 个服务器：请先删除一个。",
-        "save_failed": "无法保存服务器"
+        "save_failed": "无法保存服务器",
+        "installed": "已安装",
+        "update_available": "有可用更新",
+        "install_missing": "安装缺少的内容",
+        "installed_version": "已安装：v{}"
     },
     "tiles": {
         "upload": "发送报告…",

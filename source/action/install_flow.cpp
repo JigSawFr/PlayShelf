@@ -172,12 +172,12 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
 }
 
 // packages[first…] in one dialog, `policy` for each.
-void run(std::vector<Package> packages, size_t first, install::SignaturePolicy policy)
+void run(std::vector<Package> packages, size_t first, install::SignaturePolicy policy, std::function<void()> after)
 {
     if (first >= packages.size()) return;
     const size_t count = packages.size();
     auto         progress = std::make_shared<Progress>(packages[first].name);
-    ui::in_background("install", [packages, first, count, policy, progress]() {
+    ui::in_background("install", [packages, first, count, policy, progress, after]() {
         size_t   i = first;
         Outcome  o;
         uint64_t written = 0;
@@ -191,7 +191,7 @@ void run(std::vector<Package> packages, size_t first, install::SignaturePolicy p
             written += o.written;
             brls::Logger::info("install: {} installed ({} bytes)", name, o.written);
         }
-        brls::sync([packages, i, count, o, written, progress]() {
+        brls::sync([packages, first, i, count, o, written, progress, after]() {
             const bool cancelled = progress->was_cancelled();
             progress->close();
             if (i >= count) {
@@ -201,11 +201,12 @@ void run(std::vector<Package> packages, size_t first, install::SignaturePolicy p
                 ui::notify("playshelf/install/cancelled"_i18n);
             } else if (o.unsigned_content) {
                 ui::confirm(brls::getStr("playshelf/install/unsigned_body", o.why), "playshelf/install/unsigned_confirm"_i18n,
-                            [packages, i]() { run(packages, i, install::SignaturePolicy::Off); });
+                            [packages, i, after]() { run(packages, i, install::SignaturePolicy::Off, after); });
             } else {
                 brls::Logger::warning("install: {} failed: {}", packages[i].name, o.why);
                 ui::error(brls::getStr("playshelf/install/failed", packages[i].name), o.why);
             }
+            if (i > first && after) after();   // one installed at least
         });
     });
 }
@@ -220,14 +221,14 @@ void from_url()
             return;
         }
         s_last_url = url;
-        run({ Package{ name_of(url), url, {}, "" } }, 0, install::SignaturePolicy::Require);
+        run({ Package{ name_of(url), url, {}, "" } }, 0, install::SignaturePolicy::Require, nullptr);
     });
 }
 
-void install(const std::vector<Package>& packages)
+void install(const std::vector<Package>& packages, std::function<void()> after)
 {
     if (ui::refuse_read_only()) return;
-    run(packages, 0, install::SignaturePolicy::Require);
+    run(packages, 0, install::SignaturePolicy::Require, std::move(after));
 }
 
 }   // namespace install_flow

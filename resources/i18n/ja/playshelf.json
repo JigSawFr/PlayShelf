@@ -152,7 +152,11 @@
         "need_address": "このネットワークまたはインターネット経由の https:// アドレスが少なくとも1つ必要です。",
         "seal_failed": "この本体用にパスワードを封印できませんでした。何も保存されていません。",
         "too_many": "サーバーは16個までです。先に1つ削除してください。",
-        "save_failed": "サーバーを保存できませんでした"
+        "save_failed": "サーバーを保存できませんでした",
+        "installed": "インストール済み",
+        "update_available": "アップデートあり",
+        "install_missing": "足りないものをインストール",
+        "installed_version": "インストール済み: v{}"
     },
     "tiles": {
         "upload": "レポートを送信…",

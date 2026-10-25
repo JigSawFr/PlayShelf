@@ -37,15 +37,23 @@ std::string sort_text(library::Sort s)
     return brls::getStr(std::string("playshelf/library/sort_values/") + SORTS[(int)s]);
 }
 
-// What a cover says under the name: its size, and what the server has
-// besides the base game.
-std::string tile_detail(const library::Title& t)
+// What a cover says under the name: installed (an update to get, in
+// amber), else its size and what the server has besides the base game.
+void show_detail(GameTile* tile, const library::Title& t, const library::Catalog& catalog,
+                 const library_flow::Installed& installed)
 {
+    const library::TitleState st = library::state_of(t, catalog, installed);
+    if (st.base) {
+        tile->set_detail(st.update_available ? "playshelf/library/update_available"_i18n : "playshelf/library/installed"_i18n);
+        tile->set_detail_color(cadran::kit::color(st.update_available ? "cadran/amber" : "cadran/teal"));
+        return;
+    }
+    tile->set_detail_color(cadran::kit::color("cadran/text3"));
     std::string text = size_text(t.size);
     if (t.base < 0) text += " · " + "playshelf/library/no_base"_i18n;
     else if (t.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
     else if (!t.dlcs.empty()) text += " · " + brls::getStr("playshelf/library/dlc_count", t.dlcs.size());
-    return text;
+    tile->set_detail(text);
 }
 
 int columns()
@@ -214,12 +222,24 @@ void LibraryTab::build_grid(bool force)
             if (sec.id == s_section) name = sec.title;
         ui::set_detail(section_cell, name);
     }
-    if (!force && data == this->built_data && key == this->built_key) return;
+    const auto installed = library_flow::installed();
+    if (!force && data == this->built_data && key == this->built_key) {
+        // Only what is installed changed (an install ended): the covers'
+        // lines again, in place (one of them has the focus).
+        if (installed != this->built_installed && data) {
+            this->built_installed = installed;
+            for (size_t i = 0; i < this->tiles.size(); i++)
+                show_detail(this->tiles[i], data->titles[this->selection[i]], data->fetch.catalog, *installed);
+        }
+        return;
+    }
     this->built_data = data;
     this->built_key = key;
+    this->built_installed = installed;
 
     if (inside(brls::Application::getCurrentFocus(), grid)) brls::Application::giveFocus(search_cell);
     grid->clearViews(true);
+    this->tiles.clear();
     this->grid_row = nullptr;
     this->built = 0;
     this->selection = data ? library::select_titles(data->titles, s_query, s_sort, sections ? s_section : "")
@@ -242,12 +262,13 @@ void LibraryTab::add_page()
         const library::Title& t = data->titles[index];
         auto*                 tile = new GameTile();
         tile->set_name(t.name);
-        tile->set_detail(tile_detail(t));
+        show_detail(tile, t, data->fetch.catalog, *this->built_installed);
         tile->registerClickAction([this, index](brls::View*) {
             this->open_title(index);
             return true;
         });
         this->grid_row->addView(tile);
+        this->tiles.push_back(tile);
     }
     ui::set_visible(more, data && this->built < this->selection.size());
 }
@@ -260,36 +281,42 @@ void LibraryTab::open_title(size_t index)
     const std::vector<library::Item>& items = data->fetch.catalog.items;
     using Choice = ui::Choice;
     std::vector<Choice> choices;
-    auto install = [data](std::vector<size_t> chosen) {
-        return [data, chosen]() { library_flow::install(*data, chosen); };
+    const auto installed = library_flow::installed();
+    auto       install = [this, data](std::vector<size_t> chosen) {
+        auto after = ui::guarded(this->alive, [this]() { this->refresh(); });
+        return [data, chosen, after]() { library_flow::install(*data, chosen, after); };
+    };
+    const library::TitleState st = library::state_of(t, data->fetch.catalog, *installed);
+    // Its line's end: its size, or that the console has it.
+    auto line = [&](size_t i, const char* icon, const std::string& label, const std::string& group) {
+        const bool has = library::is_installed(items[i], *installed);
+        choices.emplace_back(label, install({ i }), icon, has ? "playshelf/library/installed"_i18n : size_text(items[i].size),
+                             group, has ? Choice::Tone::ON : Choice::Tone::PLAIN);
     };
 
-    // Everything at once: the base game, its newest update, its add-ons.
-    std::vector<size_t> all;
-    if (t.base >= 0) all.push_back((size_t)t.base);
-    if (library::latest_update(t) >= 0) all.push_back((size_t)library::latest_update(t));
-    all.insert(all.end(), t.dlcs.begin(), t.dlcs.end());
-    uint64_t all_size = 0;
-    for (size_t i : all) all_size += items[i].size;
-    if (all.size() > 1)
-        choices.emplace_back("playshelf/library/install_all"_i18n, install(all), "download", size_text(all_size));
+    // Everything at once, what the console does not have of it: the base
+    // game, its newest update (when newer than the one installed), its
+    // add-ons.
+    std::vector<size_t> missing;
+    if (t.base >= 0 && !st.base) missing.push_back((size_t)t.base);
+    const long latest = library::latest_update(t);
+    if (latest >= 0 && !library::is_installed(items[(size_t)latest], *installed) &&
+        (!st.base || st.update_available))
+        missing.push_back((size_t)latest);
+    for (size_t i : t.dlcs)
+        if (!library::is_installed(items[i], *installed)) missing.push_back(i);
+    uint64_t missing_size = 0;
+    for (size_t i : missing) missing_size += items[i].size;
+    if (missing.size() > 1 || (st.base && !missing.empty()))
+        choices.emplace_back(st.base ? "playshelf/library/install_missing"_i18n : "playshelf/library/install_all"_i18n,
+                             install(missing), "download", size_text(missing_size));
 
-    if (t.base >= 0) {
-        const library::Item& it = items[(size_t)t.base];
-        choices.emplace_back("playshelf/library/base"_i18n, install({ (size_t)t.base }), "gamepad",
-                             size_text(it.size), "playshelf/library/group_base"_i18n);
-    }
-    for (size_t i : t.updates) {
-        const library::Item& it = items[i];
-        choices.emplace_back(brls::getStr("playshelf/library/update", it.version), install({ i }), "refresh",
-                             size_text(it.size), "playshelf/library/group_updates"_i18n);
-    }
-    for (size_t i : t.dlcs) {
-        const library::Item& it = items[i];
-        choices.emplace_back(library::clean_name(it.name), install({ i }), "plus", size_text(it.size),
-                             "playshelf/library/group_dlcs"_i18n);
-    }
-    const std::string subtitle = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
+    if (t.base >= 0) line((size_t)t.base, "gamepad", "playshelf/library/base"_i18n, "playshelf/library/group_base"_i18n);
+    for (size_t i : t.updates)
+        line(i, "refresh", brls::getStr("playshelf/library/update", items[i].version), "playshelf/library/group_updates"_i18n);
+    for (size_t i : t.dlcs) line(i, "plus", library::clean_name(items[i].name), "playshelf/library/group_dlcs"_i18n);
+    std::string subtitle = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
+    if (st.base) subtitle += " · " + brls::getStr("playshelf/library/installed_version", st.version);
     ui::pick_actions(t.name, choices, subtitle);
 }
 

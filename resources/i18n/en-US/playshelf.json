@@ -152,7 +152,11 @@
         "need_address": "An https:// address at least, on this network or over the Internet.",
         "seal_failed": "The password could not be sealed for this console: nothing was saved.",
         "too_many": "16 servers at most: delete one first.",
-        "save_failed": "The servers could not be saved"
+        "save_failed": "The servers could not be saved",
+        "installed": "Installed",
+        "update_available": "Update available",
+        "install_missing": "Install what is missing",
+        "installed_version": "Installed: v{}"
     },
     "tiles": {
         "upload": "Send a report…",

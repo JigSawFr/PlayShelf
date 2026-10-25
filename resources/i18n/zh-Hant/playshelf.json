@@ -152,7 +152,11 @@
         "need_address": "至少需要一個 https:// 位址，位於此網路或透過網際網路。",
         "seal_failed": "無法為此主機封存密碼：未儲存任何內容。",
         "too_many": "最多 16 個伺服器：請先刪除一個。",
-        "save_failed": "無法儲存伺服器"
+        "save_failed": "無法儲存伺服器",
+        "installed": "已安裝",
+        "update_available": "有可用更新",
+        "install_missing": "安裝缺少的內容",
+        "installed_version": "已安裝：v{}"
     },
     "tiles": {
         "upload": "傳送報告…",

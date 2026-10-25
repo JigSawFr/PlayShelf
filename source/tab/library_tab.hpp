@@ -6,7 +6,10 @@
 // stands (being read, why it could not be, how many games, the server's
 // message); then the games as covers, a page at a time ("Show more"). A on
 // a game: its sheet, to install the base game, an update, an add-on, or
-// everything at once (the base game, its newest update, its add-ons).
+// everything the console does not have of it at once (the base game, its
+// newest update, its add-ons). A cover says when the console has the game
+// (in amber when the server has a newer update), a line of the sheet when
+// it has that item.
 // Ⓧ reads the catalogue again. What is chosen stays for this run.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -52,9 +55,11 @@ class LibraryTab : public TabBase
     std::vector<size_t> selection;   // the games shown, as indexes in shown_data->titles
     size_t      built = 0;            // how many of them have a cover
     brls::Box*  grid_row = nullptr;
+    std::vector<GameTile*> tiles;     // the covers built, in the selection's order
     // What the grid was built for.
     const void* built_data = nullptr;
     std::string built_key;
+    std::shared_ptr<const library_flow::Installed> built_installed = std::make_shared<library_flow::Installed>();
 
     BRLS_BIND(brls::Box,        empty_box, "lb_empty");
     BRLS_BIND(brls::DetailCell, server_cell, "lb_server");

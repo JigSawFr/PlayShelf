@@ -231,6 +231,27 @@ Result core_unwrap_key(u8 generation, u8 index, const u8 in[16], u8 out[16])
     return rc;
 }
 
+_Static_assert(sizeof(CoreMetaKey) == sizeof(NcmContentMetaKey), "CoreMetaKey is NcmContentMetaKey's layout");
+
+Result core_installed_list(CoreMetaKey *out, int max, int *count)
+{
+    *count = 0;
+    const Result rc = ncmInitialize();
+    if (R_FAILED(rc)) return rc;
+    const NcmStorageId storages[2] = {NcmStorageId_SdCard, NcmStorageId_BuiltInUser};
+    for (int i = 0; i < 2 && *count < max; i++) {
+        NcmContentMetaDatabase db;
+        if (R_FAILED(ncmOpenContentMetaDatabase(&db, storages[i]))) continue;
+        s32 total = 0, written = 0;
+        if (R_SUCCEEDED(ncmContentMetaDatabaseList(&db, &total, &written, (NcmContentMetaKey *)(out + *count), (s32)(max - *count),
+                                                   NcmContentMetaType_Unknown, 0, 0, UINT64_MAX, NcmContentInstallType_Full)))
+            *count += written;
+        ncmContentMetaDatabaseClose(&db);
+    }
+    ncmExit();
+    return 0;
+}
+
 u32 core_system_version(void)
 {
     return hosversionGet();

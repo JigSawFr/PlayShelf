@@ -152,7 +152,11 @@
         "need_address": "Mindestens eine https://-Adresse, in diesem Netzwerk oder über das Internet.",
         "seal_failed": "Das Passwort konnte nicht für diese Konsole versiegelt werden: Es wurde nichts gespeichert.",
         "too_many": "Höchstens 16 Server: Löschen Sie zuerst einen.",
-        "save_failed": "Die Server konnten nicht gespeichert werden"
+        "save_failed": "Die Server konnten nicht gespeichert werden",
+        "installed": "Installiert",
+        "update_available": "Update verfügbar",
+        "install_missing": "Fehlendes installieren",
+        "installed_version": "Installiert: v{}"
     },
     "tiles": {
         "upload": "Bericht senden…",

@@ -8,6 +8,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -29,7 +30,8 @@ struct Package
 // These one after the other in the same dialog ("2 of 3"), as from_url()
 // does one: a failure stops there (the packages installed before it stay);
 // a content not signed by Nintendo asks, and installed anyway, the ones
-// after it are too.
-void install(const std::vector<Package>& packages);
+// after it are too. `after`, once the dialog has closed (whatever came
+// of it): what was installed changed.
+void install(const std::vector<Package>& packages, std::function<void()> after = nullptr);
 
 }   // namespace install_flow

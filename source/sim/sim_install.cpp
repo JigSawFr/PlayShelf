@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <dirent.h>
 #include <map>
 #include <string>
 #include <sys/stat.h>
@@ -149,6 +150,30 @@ Result core_meta_set(const CoreMetaKey* key, const void* record, u64 size)
 {
     s_meta_pending[meta_name(key)].assign((const uint8_t*)record, (const uint8_t*)record + size);
     s_meta_removed.erase(meta_name(key));
+    return 0;
+}
+
+Result core_installed_list(CoreMetaKey* out, int max, int* count)
+{
+    // meta/<id>-<version>.bin, as core_meta_commit() writes them; the type
+    // told by the id, as a real console's database keeps it.
+    *count = 0;
+    DIR* dir = ::opendir((root() + "/meta").c_str());
+    if (!dir) return 0;
+    while (const dirent* e = ::readdir(dir)) {
+        unsigned long long id = 0;
+        unsigned           version = 0;
+        char               ext[8] = {};
+        if (*count >= max || std::sscanf(e->d_name, "%16llx-%u.%3s", &id, &version, ext) != 3 || std::strcmp(ext, "bin") != 0)
+            continue;
+        CoreMetaKey& k = out[(*count)++];
+        k = CoreMetaKey{};
+        k.id = id;
+        k.version = version;
+        k.type = (id & 0x1000) ? 0x82 : (id & 0x800) ? 0x81 : 0x80;
+        k.install_type = 0;
+    }
+    ::closedir(dir);
     return 0;
 }
 

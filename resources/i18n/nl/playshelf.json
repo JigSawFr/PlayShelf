@@ -152,7 +152,11 @@
         "need_address": "Minstens één https://-adres, op dit netwerk of via internet.",
         "seal_failed": "Het wachtwoord kon niet voor deze console worden verzegeld: er is niets opgeslagen.",
         "too_many": "Maximaal 16 servers: verwijder er eerst een.",
-        "save_failed": "De servers konden niet worden opgeslagen"
+        "save_failed": "De servers konden niet worden opgeslagen",
+        "installed": "Geïnstalleerd",
+        "update_available": "Update beschikbaar",
+        "install_missing": "Installeer wat ontbreekt",
+        "installed_version": "Geïnstalleerd: v{}"
     },
     "tiles": {
         "upload": "Rapport versturen…",

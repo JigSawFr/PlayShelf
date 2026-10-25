@@ -61,6 +61,12 @@ Result core_import_ticket(const void *ticket, size_t ticket_size, const void *ce
 Result core_header_key(u8 out[32]);
 Result core_unwrap_key(u8 generation, u8 index, const u8 in[16], u8 out[16]);
 
+// Every content meta installed, on the SD card then in the console's
+// memory (a storage that cannot be opened, such as a missing SD card, is
+// skipped): up to `max` keys into `out`, how many in *count. Needs no
+// core_install_open().
+Result core_installed_list(CoreMetaKey *out, int max, int *count);
+
 // hosversionGet().
 u32 core_system_version(void);
 

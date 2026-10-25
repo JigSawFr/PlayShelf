@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -50,5 +51,19 @@ std::string clean_name(const std::string& name);
 
 // The newest update the server has for `t` (-1: none).
 long latest_update(const Title& t);
+
+// What the console has of a game, against what the server offers
+// (`installed`: title id -> highest version installed, any kind).
+struct TitleState
+{
+    bool     base = false;           // its base game is installed
+    uint32_t version = 0;            // the version it runs: its update's, else the base game's
+    bool     update_available = false;   // the server has a newer update than that
+    size_t   dlcs_missing = 0;       // add-ons the server has and the console has not
+};
+TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint64_t, uint32_t>& installed);
+
+// The item installed already, at this version or a newer one.
+bool is_installed(const Item& item, const std::map<uint64_t, uint32_t>& installed);
 
 }   // namespace library

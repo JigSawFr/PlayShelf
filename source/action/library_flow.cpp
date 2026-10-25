@@ -7,6 +7,7 @@
 
 #include "action/install_flow.hpp"
 #include "activity/server_activity.hpp"
+#include "install/console_core.hpp"
 #include "library/http_transport.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
@@ -20,6 +21,16 @@ namespace
 // The UI thread's only.
 std::map<std::string, std::shared_ptr<const Loaded>> s_loaded;
 bool                                                 s_loading = false;
+std::shared_ptr<const Installed>                     s_installed = std::make_shared<Installed>();
+
+// On a worker thread: what is installed, read now.
+std::shared_ptr<const Installed> read_installed()
+{
+    std::string why;
+    auto        out = std::make_shared<Installed>(install::installed_versions(&why));
+    if (!why.empty()) brls::Logger::warning("library: what is installed could not be read: {}", why);
+    return out;
+}
 
 using Done = std::function<void(std::shared_ptr<const Loaded>, std::string)>;
 
@@ -38,9 +49,10 @@ bool trust(library::Server& server, const std::string& pin)
     return true;
 }
 
-void fetched(library::Server server, std::shared_ptr<Loaded> l, Done done)
+void fetched(library::Server server, std::shared_ptr<Loaded> l, std::shared_ptr<const Installed> now, Done done)
 {
     s_loading = false;
+    s_installed = std::move(now);
     const library::Fetch& f = l->fetch;
     if (f.status == library::FetchStatus::Ok) {
         s_loaded[server.id] = l;
@@ -75,6 +87,11 @@ void open_editor(const library::Server& server, bool is_new, std::function<void(
 }
 }   // namespace
 
+std::shared_ptr<const Installed> installed()
+{
+    return s_installed;
+}
+
 std::shared_ptr<const Loaded> loaded(const std::string& server_id)
 {
     const auto it = s_loaded.find(server_id);
@@ -102,7 +119,8 @@ void load(const library::Server& server, Done done)
         l->server = server;
         l->fetch = library::fetch(server, password, transport);
         if (l->fetch.status == library::FetchStatus::Ok) l->titles = library::group_titles(l->fetch.catalog);
-        brls::sync([server, l, done]() { fetched(server, l, done); });
+        const auto now = read_installed();
+        brls::sync([server, l, now, done]() { fetched(server, l, now, done); });
     });
 }
 
@@ -155,7 +173,7 @@ void discover(std::function<void(const std::string&)> saved)
     });
 }
 
-void install(const Loaded& l, const std::vector<size_t>& items)
+void install(const Loaded& l, const std::vector<size_t>& items, std::function<void()> after)
 {
     const std::string              password = library::password_of(l.server);
     const std::vector<std::string> auth = library::auth_headers(l.server.username, password);
@@ -167,7 +185,16 @@ void install(const Loaded& l, const std::vector<size_t>& items)
         packages.push_back({ it.name, it.url, own ? auth : std::vector<std::string>(),
                              own && l.fetch.on_lan ? l.server.pin : "" });
     }
-    if (!packages.empty()) install_flow::install(packages);
+    if (packages.empty()) return;
+    install_flow::install(packages, [after]() {
+        ui::in_background("installed", [after]() {
+            const auto now = read_installed();
+            brls::sync([now, after]() {
+                s_installed = now;
+                if (after) after();
+            });
+        });
+    });
 }
 
 }   // namespace library_flow

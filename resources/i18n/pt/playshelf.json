@@ -152,7 +152,11 @@
         "need_address": "Pelo menos um endereço https://, nesta rede ou pela Internet.",
         "seal_failed": "Não foi possível selar a palavra-passe para esta consola: nada foi guardado.",
         "too_many": "16 servidores no máximo: elimine um primeiro.",
-        "save_failed": "Não foi possível guardar os servidores"
+        "save_failed": "Não foi possível guardar os servidores",
+        "installed": "Instalado",
+        "update_available": "Atualização disponível",
+        "install_missing": "Instalar o que falta",
+        "installed_version": "Instalado: v{}"
     },
     "tiles": {
         "upload": "Enviar um relatório…",
