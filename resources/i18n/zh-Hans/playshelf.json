@@ -17,36 +17,11 @@
         "exit_again": "再按一次B退出"
     },
     "common": {
-        "yes": "是",
-        "no": "否",
         "unavailable": "不可用",
         "no_limit": "无限制",
         "line": "{}：{}",
-        "minutes": "{}分钟",
-        "hours": "{}小时",
-        "hours_minutes": "{}小时{}分",
         "later": "稍后",
-        "delete": "删除",
-        "hold_hint": "按住“{}”2秒",
-        "less_than_minute": "< 1分钟"
-    },
-    "days": {
-        "0": "星期日",
-        "1": "星期一",
-        "2": "星期二",
-        "3": "星期三",
-        "4": "星期四",
-        "5": "星期五",
-        "6": "星期六"
-    },
-    "days_lower": {
-        "0": "星期日",
-        "1": "星期一",
-        "2": "星期二",
-        "3": "星期三",
-        "4": "星期四",
-        "5": "星期五",
-        "6": "星期六"
+        "delete": "删除"
     },
     "error": {
         "code": "错误{}",
@@ -80,14 +55,8 @@
     },
     "tiles": {
         "upload": "发送报告…",
-        "text_size_auto": "自动：电视上较大",
         "text_size": "文字大小",
-        "start_tab": "启动时显示",
-        "themes": {
-            "system": "跟随系统",
-            "light": "浅色",
-            "dark": "深色"
-        }
+        "start_tab": "启动时显示"
     },
     "tools": {
         "section_diag": "诊断",
@@ -105,31 +74,8 @@
         "logs_keep_mb": "报告占用空间",
         "logs_note": "适用于 {} 中的诊断报告、崩溃文件、会话日志和在线发送的报告链接，各自分别计算，在启动时和更改限制时执行。最新的一份始终保留。",
         "language": "语言",
-        "languages": {
-            "system": "系统语言",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "主题",
         "start_tab": "启动时显示",
-        "themes": {
-            "system": "跟随系统",
-            "light": "浅色",
-            "dark": "深色"
-        },
         "storage_emummc": "SD卡上的副本（emuMMC）",
         "storage_sysmmc": "主机内部存储（sysMMC）",
         "storage_unknown": "未知（未检测到Atmosphère）",
@@ -184,12 +130,6 @@
         "intro": "显示开场画面 2 秒",
         "support_reminder": "每月提醒一次支持 PlayShelf",
         "help": "帮助与诊断",
-        "text_size": "文字大小",
-        "text_sizes": {
-            "normal": "标准",
-            "large": "较大",
-            "auto": "自动：电视上较大"
-        },
         "effects": "视觉效果",
         "effects_values": {
             "full": "始终完整",
@@ -367,13 +307,6 @@
         "find_hint": "搜索",
         "cancelled": "已取消下载。"
     },
-    "markdown": {
-        "note": "注意",
-        "tip": "提示",
-        "important": "重要",
-        "warning": "警告",
-        "caution": "小心"
-    },
     "github": {
         "account": "GitHub 账户",
         "not_signed_in": "未登录",
@@ -395,8 +328,7 @@
         "config_err": "无法将偏好设置保存到SD卡"
     },
     "quick": {
-        "hint": "语言和主题",
-        "title_text": "语言、主题和文字大小"
+        "hint": "语言和主题"
     },
     "notices": {
         "installed": "已安装 PlayShelf {}",
@@ -411,24 +343,6 @@
         "upload_show": "显示链接"
     },
     "cadran": {
-        "date": "{3}{2}日 {0}",
-        "months": {
-            "1": "1月",
-            "2": "2月",
-            "3": "3月",
-            "4": "4月",
-            "5": "5月",
-            "6": "6月",
-            "7": "7月",
-            "8": "8月",
-            "9": "9月",
-            "10": "10月",
-            "11": "11月",
-            "12": "12月"
-        },
-        "pill": {
-            "read_only": "只读"
-        },
         "about": {
             "tagline": "主机上的游戏库 · 自由软件（GPLv3）",
             "version": "版本 {}"

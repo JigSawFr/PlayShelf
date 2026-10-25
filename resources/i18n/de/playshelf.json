@@ -17,36 +17,11 @@
         "exit_again": "Zum Beenden erneut B drücken"
     },
     "common": {
-        "yes": "Ja",
-        "no": "Nein",
         "unavailable": "Nicht verfügbar",
         "no_limit": "Kein Limit",
         "line": "{}: {}",
-        "minutes": "{} min",
-        "hours": "{} h",
-        "hours_minutes": "{} h {}",
         "later": "Später",
-        "delete": "Löschen",
-        "hold_hint": "Halte „{}“ 2 Sekunden lang gedrückt",
-        "less_than_minute": "< 1 min"
-    },
-    "days": {
-        "0": "Sonntag",
-        "1": "Montag",
-        "2": "Dienstag",
-        "3": "Mittwoch",
-        "4": "Donnerstag",
-        "5": "Freitag",
-        "6": "Samstag"
-    },
-    "days_lower": {
-        "0": "Sonntag",
-        "1": "Montag",
-        "2": "Dienstag",
-        "3": "Mittwoch",
-        "4": "Donnerstag",
-        "5": "Freitag",
-        "6": "Samstag"
+        "delete": "Löschen"
     },
     "error": {
         "code": "Fehler {}",
@@ -80,14 +55,8 @@
     },
     "tiles": {
         "upload": "Bericht senden…",
-        "text_size_auto": "Auto: größer am TV",
         "text_size": "Textgröße",
-        "start_tab": "Start-Tab",
-        "themes": {
-            "system": "System",
-            "light": "Hell",
-            "dark": "Dunkel"
-        }
+        "start_tab": "Start-Tab"
     },
     "tools": {
         "section_diag": "Diagnose",
@@ -105,31 +74,8 @@
         "logs_keep_mb": "Speicherplatz für Berichte",
         "logs_note": "Gilt für die Diagnoseberichte, die Absturzdateien, die Sitzungsprotokolle und die Links der online gesendeten Berichte in {}, jeweils für sich, beim Start und wenn sich eine Grenze ändert. Der neueste bleibt immer erhalten.",
         "language": "Sprache",
-        "languages": {
-            "system": "Systemsprache",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "Design",
         "start_tab": "Start-Tab",
-        "themes": {
-            "system": "System",
-            "light": "Hell",
-            "dark": "Dunkel"
-        },
         "storage_emummc": "Kopie auf der SD-Karte (emuMMC)",
         "storage_sysmmc": "Interner Speicher (sysMMC)",
         "storage_unknown": "Unbekannt (Atmosphère nicht erkannt)",
@@ -184,12 +130,6 @@
         "intro": "Intro 2 Sekunden lang zeigen",
         "support_reminder": "Einmal im Monat daran erinnern, PlayShelf zu unterstützen",
         "help": "Hilfe & Diagnose",
-        "text_size": "Textgröße",
-        "text_sizes": {
-            "normal": "Normal",
-            "large": "Größer",
-            "auto": "Automatisch: größer am Fernseher"
-        },
         "effects": "Visuelle Effekte",
         "effects_values": {
             "full": "Immer vollständig",
@@ -367,13 +307,6 @@
         "find_hint": "Suchen",
         "cancelled": "Download abgebrochen."
     },
-    "markdown": {
-        "note": "Hinweis",
-        "tip": "Tipp",
-        "important": "Wichtig",
-        "warning": "Warnung",
-        "caution": "Vorsicht"
-    },
     "github": {
         "account": "GitHub-Konto",
         "not_signed_in": "Nicht angemeldet",
@@ -395,8 +328,7 @@
         "config_err": "Optionen konnten nicht auf der SD-Karte gespeichert werden"
     },
     "quick": {
-        "hint": "Sprache & Design",
-        "title_text": "Sprache, Design und Textgröße"
+        "hint": "Sprache & Design"
     },
     "notices": {
         "installed": "PlayShelf {} installiert",
@@ -411,24 +343,6 @@
         "upload_show": "Link anzeigen"
     },
     "cadran": {
-        "date": "{0}, {2}. {3}",
-        "months": {
-            "1": "Januar",
-            "2": "Februar",
-            "3": "März",
-            "4": "April",
-            "5": "Mai",
-            "6": "Juni",
-            "7": "Juli",
-            "8": "August",
-            "9": "September",
-            "10": "Oktober",
-            "11": "November",
-            "12": "Dezember"
-        },
-        "pill": {
-            "read_only": "Schreibgeschützt"
-        },
         "about": {
             "tagline": "Deine Spielebibliothek auf der Konsole · freie Software (GPLv3)",
             "version": "Version {}"

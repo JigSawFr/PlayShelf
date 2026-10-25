@@ -17,36 +17,11 @@
         "exit_again": "B를 한 번 더 누르면 종료합니다"
     },
     "common": {
-        "yes": "예",
-        "no": "아니요",
         "unavailable": "사용 불가",
         "no_limit": "제한 없음",
         "line": "{}: {}",
-        "minutes": "{}분",
-        "hours": "{}시간",
-        "hours_minutes": "{}시간 {}분",
         "later": "나중에",
-        "delete": "삭제",
-        "hold_hint": "“{}”을(를) 2초간 누르고 계세요",
-        "less_than_minute": "1분 미만"
-    },
-    "days": {
-        "0": "일요일",
-        "1": "월요일",
-        "2": "화요일",
-        "3": "수요일",
-        "4": "목요일",
-        "5": "금요일",
-        "6": "토요일"
-    },
-    "days_lower": {
-        "0": "일요일",
-        "1": "월요일",
-        "2": "화요일",
-        "3": "수요일",
-        "4": "목요일",
-        "5": "금요일",
-        "6": "토요일"
+        "delete": "삭제"
     },
     "error": {
         "code": "오류 {}",
@@ -80,14 +55,8 @@
     },
     "tiles": {
         "upload": "보고서 보내기…",
-        "text_size_auto": "자동: TV에서는 크게",
         "text_size": "글자 크기",
-        "start_tab": "시작 탭",
-        "themes": {
-            "system": "시스템",
-            "light": "밝게",
-            "dark": "어둡게"
-        }
+        "start_tab": "시작 탭"
     },
     "tools": {
         "section_diag": "진단",
@@ -105,31 +74,8 @@
         "logs_keep_mb": "보고서 공간",
         "logs_note": "{}의 진단 보고서, 충돌 파일, 세션 로그, 온라인으로 보낸 보고서의 링크에 각각 따로, 시작할 때와 제한을 바꿀 때 적용됩니다. 가장 최근 것은 항상 남습니다.",
         "language": "언어",
-        "languages": {
-            "system": "시스템 언어",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "테마",
         "start_tab": "시작 탭",
-        "themes": {
-            "system": "시스템",
-            "light": "밝게",
-            "dark": "어둡게"
-        },
         "storage_emummc": "SD 카드의 복사본 (emuMMC)",
         "storage_sysmmc": "본체 저장 메모리 (sysMMC)",
         "storage_unknown": "알 수 없음 (Atmosphère 감지 안 됨)",
@@ -184,12 +130,6 @@
         "intro": "인트로를 2초 동안 표시",
         "support_reminder": "한 달에 한 번 PlayShelf 후원 알림 표시",
         "help": "도움말 및 진단",
-        "text_size": "글자 크기",
-        "text_sizes": {
-            "normal": "보통",
-            "large": "크게",
-            "auto": "자동: TV에서는 크게"
-        },
         "effects": "시각 효과",
         "effects_values": {
             "full": "항상 전체",
@@ -367,13 +307,6 @@
         "find_hint": "검색",
         "cancelled": "다운로드를 취소했습니다."
     },
-    "markdown": {
-        "note": "참고",
-        "tip": "팁",
-        "important": "중요",
-        "warning": "경고",
-        "caution": "주의"
-    },
     "github": {
         "account": "GitHub 계정",
         "not_signed_in": "로그인 안 됨",
@@ -395,8 +328,7 @@
         "config_err": "SD 카드에 환경 설정을 저장할 수 없습니다"
     },
     "quick": {
-        "hint": "언어 및 테마",
-        "title_text": "언어, 테마, 글자 크기"
+        "hint": "언어 및 테마"
     },
     "notices": {
         "installed": "PlayShelf {} 설치됨",
@@ -411,24 +343,6 @@
         "upload_show": "링크 보기"
     },
     "cadran": {
-        "date": "{3} {2}일 {0}",
-        "months": {
-            "1": "1월",
-            "2": "2월",
-            "3": "3월",
-            "4": "4월",
-            "5": "5월",
-            "6": "6월",
-            "7": "7월",
-            "8": "8월",
-            "9": "9월",
-            "10": "10월",
-            "11": "11월",
-            "12": "12월"
-        },
-        "pill": {
-            "read_only": "읽기 전용"
-        },
         "about": {
             "tagline": "콘솔 속 나만의 게임 라이브러리 · 자유 소프트웨어 (GPLv3)",
             "version": "버전 {}"

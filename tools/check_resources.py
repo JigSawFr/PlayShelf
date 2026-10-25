@@ -157,22 +157,22 @@ for lang, cat in sorted(catalogs.items()):
             if width > TAB_WIDTH:
                 errors.append(f"{lang}: tab name {k} \"{v}\" is {width} columns wide, more than {TAB_WIDTH}")
 
-# The language picker's list (config::LANGUAGES) and the catalogs agree.
-config_hpp = open(f"{ROOT}/source/util/config.hpp", encoding="utf-8").read()
-m = re.search(r"LANGUAGES\[\]\s*=\s*\{([^}]*)\}", config_hpp)
+# The language picker's list (Aurore's ui::LANGUAGES, which config::LANGUAGES
+# names) and the catalogs agree; the languages' names are Aurore's
+# (cadran/tools/languages/).
+PREFS_HPP = "extern/borealis/library/include/borealis/cadran/ui/prefs.hpp"
+prefs_hpp = open(f"{ROOT}/{PREFS_HPP}", encoding="utf-8").read()
+m = re.search(r"LANGUAGES\[\]\s*=\s*\{([^}]*)\}", prefs_hpp)
 if not m:
-    errors.append("source/util/config.hpp: config::LANGUAGES not found")
+    errors.append(f"{PREFS_HPP}: ui::LANGUAGES not found")
 else:
     listed = re.findall(r'"([^"]+)"', m.group(1))
     if not listed or listed[0] != "system":
-        errors.append('config::LANGUAGES must start with "system"')
+        errors.append('ui::LANGUAGES must start with "system"')
     for lang in sorted(set(listed) - {"system"} - set(catalogs)):
-        errors.append(f"config::LANGUAGES lists {lang}, which has no resources/i18n/{lang}/playshelf.json")
+        errors.append(f"ui::LANGUAGES lists {lang}, which has no resources/i18n/{lang}/playshelf.json")
     for lang in sorted(set(catalogs) - set(listed)):
-        errors.append(f"resources/i18n/{lang} is not in config::LANGUAGES (the language picker)")
-    for lang in listed:
-        if f"tools/languages/{lang}" not in base:
-            errors.append(f"no language name playshelf/tools/languages/{lang}")
+        errors.append(f"resources/i18n/{lang} is not in ui::LANGUAGES (the language picker)")
 
 en_keys = set(base)
 prefixes = {k.rsplit("/", 1)[0] + "/" for k in en_keys}
@@ -266,18 +266,11 @@ def numbers(n):
 # out here, next to where the code counts them. A new prefix, or a value the
 # list gains, needs its keys; a key no value names is reported unused.
 DYNAMIC_KEYS = {
-    # Loops over 0..N-1 (the week).
-    "days/": numbers(7),
-    "days_lower/": numbers(7),
-    "cadran/months/": [str(m) for m in range(1, 13)],   # cadran_kit.cpp, long_date: 1..12
-    # The code's lists.
+    # The code's lists (the days, months, languages, themes and text sizes
+    # are Aurore's Cadran's, in its own cadran.json).
     "error/": strings_of(re.sub(r"//[^\n]*", "", function_of("source/kit/action/error_hint_logic.cpp", "hint_key"))),
     "tabs/": array_of("source/util/config.hpp", "START_TABS"),
-    "tools/languages/": array_of("source/util/config.hpp", "LANGUAGES"),
-    "tools/themes/": array_of("source/util/config.hpp", "THEMES"),
-    "tiles/themes/": array_of("source/util/config.hpp", "THEMES"),
-    "prefs/text_sizes/": array_of("source/util/config.hpp", "TEXT_SIZES"),
-    "prefs/effects_values/": array_of("source/util/config.hpp", "EFFECTS"),
+    "prefs/effects_values/": array_of(PREFS_HPP, "EFFECTS"),
     "tools/update_via_values/": array_of("source/kit/action/update_flow.cpp", "METHODS"),
 }
 for prefix, values in sorted(DYNAMIC_KEYS.items()):
@@ -480,6 +473,10 @@ for path, text in code_text.items():
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv|sim_net::value)\(\s*"(PLAYSHELF_SIM_\w+)"', text))
 for path in glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv)\(\s*"(PLAYSHELF_SIM_\w+)"', read(path)))
+# Aurore's Cadran reads its flags through ui::env_flag("NAME"), which
+# activity/screen_hooks.cpp answers with PLAYSHELF_SIM_NAME.
+for path in glob.glob(f"{ROOT}/extern/borealis/library/lib/cadran/**/*.cpp", recursive=True):
+    sim_read |= {"PLAYSHELF_SIM_" + n for n in re.findall(r'env_flag\(\s*"(\w+)"', read(path))}
 sim_documented = set(re.findall(r"`(PLAYSHELF_SIM_\w+)", simulator_page))
 if not sim_read or not sim_documented:
     errors.append(f"no PLAYSHELF_SIM_* variable found in the code or in {SIMULATOR_PAGE}")

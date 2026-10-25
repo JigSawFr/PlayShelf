@@ -17,36 +17,11 @@
         "exit_again": "Prima B novamente para sair"
     },
     "common": {
-        "yes": "Sim",
-        "no": "Não",
         "unavailable": "Indisponível",
         "no_limit": "Sem limite",
         "line": "{}: {}",
-        "minutes": "{} min",
-        "hours": "{} h",
-        "hours_minutes": "{} h {}",
         "later": "Mais tarde",
-        "delete": "Eliminar",
-        "hold_hint": "Mantenha «{}» premido durante 2 segundos",
-        "less_than_minute": "< 1 min"
-    },
-    "days": {
-        "0": "Domingo",
-        "1": "Segunda-feira",
-        "2": "Terça-feira",
-        "3": "Quarta-feira",
-        "4": "Quinta-feira",
-        "5": "Sexta-feira",
-        "6": "Sábado"
-    },
-    "days_lower": {
-        "0": "domingo",
-        "1": "segunda-feira",
-        "2": "terça-feira",
-        "3": "quarta-feira",
-        "4": "quinta-feira",
-        "5": "sexta-feira",
-        "6": "sábado"
+        "delete": "Eliminar"
     },
     "error": {
         "code": "erro {}",
@@ -80,14 +55,8 @@
     },
     "tiles": {
         "upload": "Enviar um relatório…",
-        "text_size_auto": "Auto: maior na TV",
         "text_size": "Texto",
-        "start_tab": "Abrir em",
-        "themes": {
-            "system": "Sistema",
-            "light": "Claro",
-            "dark": "Escuro"
-        }
+        "start_tab": "Abrir em"
     },
     "tools": {
         "section_diag": "Diagnóstico",
@@ -105,31 +74,8 @@
         "logs_keep_mb": "Espaço para relatórios",
         "logs_note": "Aplica-se aos relatórios de diagnóstico, aos ficheiros de falha, aos registos de sessão e às ligações dos relatórios enviados online em {}, cada um por si, ao iniciar e quando um limite muda. O mais recente fica sempre.",
         "language": "Idioma",
-        "languages": {
-            "system": "Idioma do sistema",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "Tema",
         "start_tab": "Abrir em",
-        "themes": {
-            "system": "Sistema",
-            "light": "Claro",
-            "dark": "Escuro"
-        },
         "storage_emummc": "Cópia no cartão SD (emuMMC)",
         "storage_sysmmc": "Memória interna (sysMMC)",
         "storage_unknown": "Desconhecido (Atmosphère não encontrado)",
@@ -184,12 +130,6 @@
         "intro": "Mostrar a introdução durante 2 segundos",
         "support_reminder": "Lembrar-me todos os meses de apoiar o PlayShelf",
         "help": "Ajuda e diagnóstico",
-        "text_size": "Tamanho do texto",
-        "text_sizes": {
-            "normal": "Normal",
-            "large": "Maior",
-            "auto": "Automático: maior na TV"
-        },
         "effects": "Efeitos visuais",
         "effects_values": {
             "full": "Sempre completos",
@@ -367,13 +307,6 @@
         "find_hint": "Procurar",
         "cancelled": "Transferência cancelada."
     },
-    "markdown": {
-        "note": "Nota",
-        "tip": "Dica",
-        "important": "Importante",
-        "warning": "Aviso",
-        "caution": "Cuidado"
-    },
     "github": {
         "account": "Conta GitHub",
         "not_signed_in": "Sem sessão",
@@ -395,8 +328,7 @@
         "config_err": "Não foi possível guardar as preferências no cartão SD"
     },
     "quick": {
-        "hint": "Idioma e tema",
-        "title_text": "Idioma, tema e tamanho do texto"
+        "hint": "Idioma e tema"
     },
     "notices": {
         "installed": "PlayShelf {} instalado",
@@ -411,24 +343,6 @@
         "upload_show": "Mostrar a ligação"
     },
     "cadran": {
-        "date": "{1}, {2} de {3}",
-        "months": {
-            "1": "janeiro",
-            "2": "fevereiro",
-            "3": "março",
-            "4": "abril",
-            "5": "maio",
-            "6": "junho",
-            "7": "julho",
-            "8": "agosto",
-            "9": "setembro",
-            "10": "outubro",
-            "11": "novembro",
-            "12": "dezembro"
-        },
-        "pill": {
-            "read_only": "Só de leitura"
-        },
         "about": {
             "tagline": "A sua biblioteca de jogos na consola · software livre (GPLv3)",
             "version": "Versão {}"

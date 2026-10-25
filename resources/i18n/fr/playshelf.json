@@ -17,36 +17,11 @@
         "exit_again": "Appuyez de nouveau sur B pour quitter"
     },
     "common": {
-        "yes": "Oui",
-        "no": "Non",
         "unavailable": "Indisponible",
         "no_limit": "Pas de limite",
         "line": "{} : {}",
-        "minutes": "{} min",
-        "hours": "{} h",
-        "hours_minutes": "{} h {}",
         "later": "Plus tard",
-        "delete": "Supprimer",
-        "hold_hint": "Maintenez « {} » pendant 2 secondes",
-        "less_than_minute": "< 1 min"
-    },
-    "days": {
-        "0": "Dimanche",
-        "1": "Lundi",
-        "2": "Mardi",
-        "3": "Mercredi",
-        "4": "Jeudi",
-        "5": "Vendredi",
-        "6": "Samedi"
-    },
-    "days_lower": {
-        "0": "dimanche",
-        "1": "lundi",
-        "2": "mardi",
-        "3": "mercredi",
-        "4": "jeudi",
-        "5": "vendredi",
-        "6": "samedi"
+        "delete": "Supprimer"
     },
     "error": {
         "code": "erreur {}",
@@ -80,14 +55,8 @@
     },
     "tiles": {
         "upload": "Envoyer un rapport…",
-        "text_size_auto": "Auto : grande sur TV",
         "text_size": "Taille du texte",
-        "start_tab": "Ouvrir sur",
-        "themes": {
-            "system": "Console",
-            "light": "Clair",
-            "dark": "Sombre"
-        }
+        "start_tab": "Ouvrir sur"
     },
     "tools": {
         "section_diag": "Diagnostic",
@@ -105,31 +74,8 @@
         "logs_keep_mb": "Place pour les rapports",
         "logs_note": "S'applique aux rapports de diagnostic, aux fichiers de plantage, aux journaux de session et aux liens des rapports envoyés en ligne dans {}, chacun de son côté, au démarrage et quand une limite change. Le plus récent est toujours gardé.",
         "language": "Langue",
-        "languages": {
-            "system": "Langue de la console",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "Thème",
         "start_tab": "Ouvrir sur",
-        "themes": {
-            "system": "Console",
-            "light": "Clair",
-            "dark": "Sombre"
-        },
         "storage_emummc": "Copie sur la carte SD (emuMMC)",
         "storage_sysmmc": "Mémoire interne (sysMMC)",
         "storage_unknown": "Inconnu (Atmosphère non détecté)",
@@ -184,12 +130,6 @@
         "intro": "Afficher l'intro pendant 2 secondes",
         "support_reminder": "Me rappeler une fois par mois de soutenir PlayShelf",
         "help": "Aide et diagnostic",
-        "text_size": "Taille du texte",
-        "text_sizes": {
-            "normal": "Normale",
-            "large": "Plus grande",
-            "auto": "Automatique : plus grande sur la TV"
-        },
         "effects": "Effets visuels",
         "effects_values": {
             "full": "Toujours complets",
@@ -367,13 +307,6 @@
         "find_hint": "Rechercher",
         "cancelled": "Téléchargement annulé."
     },
-    "markdown": {
-        "note": "Remarque",
-        "tip": "Astuce",
-        "important": "Important",
-        "warning": "Attention",
-        "caution": "Prudence"
-    },
     "github": {
         "account": "Compte GitHub",
         "not_signed_in": "Non connecté",
@@ -395,8 +328,7 @@
         "config_err": "Impossible d'enregistrer les préférences sur la carte SD"
     },
     "quick": {
-        "hint": "Langue et thème",
-        "title_text": "Langue, thème et taille du texte"
+        "hint": "Langue et thème"
     },
     "notices": {
         "installed": "PlayShelf {} installé",
@@ -411,24 +343,6 @@
         "upload_show": "Afficher le lien"
     },
     "cadran": {
-        "date": "{1} {2} {3}",
-        "months": {
-            "1": "janvier",
-            "2": "février",
-            "3": "mars",
-            "4": "avril",
-            "5": "mai",
-            "6": "juin",
-            "7": "juillet",
-            "8": "août",
-            "9": "septembre",
-            "10": "octobre",
-            "11": "novembre",
-            "12": "décembre"
-        },
-        "pill": {
-            "read_only": "Lecture seule"
-        },
         "about": {
             "tagline": "Votre ludothèque sur la console · logiciel libre (GPLv3)",
             "version": "Version {}"
