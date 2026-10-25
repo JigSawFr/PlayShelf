@@ -101,9 +101,13 @@ TEST_CXXFLAGS   := -std=c++17 -Isource -Isource/kit -isystem extern/borealis/lib
 CALENDAR_C      := source/kit/core/calendar.c
 CALENDAR_CFLAGS := -std=gnu11 -Isource/kit/core
 K := source/kit
+# A secret sealed for this console: AES and HMAC, and the console's key
+# (the desktop build's random one: sim/sim_device_key.cpp).
+SECRET_BOX := $(K)/util/secret_box.cpp $(K)/util/aes.cpp $(K)/sim/sim_device_key.cpp
+secret_box_SRC := $(SECRET_BOX) $(K)/util/sha256.cpp $(K)/util/paths.cpp tests/secret_box/test.cpp
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
-INSTALL_FORMATS := source/install/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
+INSTALL_FORMATS := $(K)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
                    source/install/nca.cpp $(K)/util/sha256.cpp
 install_SRC := $(INSTALL_FORMATS) tests/install/test.cpp
 # A content (.nca or .ncz) as it arrives, made the bytes of its NCA; zstd
@@ -144,7 +148,7 @@ launcher_SRC   := $(K)/util/paths.cpp $(K)/util/launcher.cpp tests/launcher/test
 markdown_SRC   := $(K)/util/safe_text.cpp $(K)/util/markdown.cpp tests/markdown/test.cpp
 rollback_SRC   := $(K)/util/paths.cpp $(K)/util/rollback.cpp tests/rollback/test.cpp
 log_upload_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/log_upload.cpp tests/log_upload/test.cpp
-dev_builds_SRC   := $(K)/util/paths.cpp $(K)/util/sha256.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(K)/util/safe_text.cpp $(K)/util/dev_builds.cpp $(K)/util/zip_read.cpp $(K)/util/github_auth.cpp tests/dev_builds/test.cpp
+dev_builds_SRC   := $(K)/util/paths.cpp $(K)/util/sha256.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(K)/util/safe_text.cpp $(K)/util/dev_builds.cpp $(K)/util/zip_read.cpp $(K)/util/github_auth.cpp $(SECRET_BOX) tests/dev_builds/test.cpp
 dev_builds_LIBS  := -lz
 # The download and its resume: without PLAYSHELF_SIM_DEV_BUILDS the desktop
 # build takes the console's path, here against a fake http::download and

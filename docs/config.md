@@ -29,4 +29,4 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `logs_keep_days` | `0`, `7`, `30`, `90`, `365` | `0` | …by age in days |
 | `logs_keep_mb` | `0`, `1`, `5`, `20` | `0` | …by size in MB |
 
-The GitHub sign-in of the developer tools is kept apart, in `sd:/config/playshelf/github_token`.
+The GitHub sign-in of the developer tools is kept apart, in `sd:/config/playshelf/github_token`, sealed for this console: encrypted (AES-128-CTR) and authenticated (HMAC-SHA256) with keys derived from the console's own key (`source/kit/util/secret_box.hpp`), so a copy of the SD card opens nothing on another console. A token an older version kept as it is is sealed the first time it is read.

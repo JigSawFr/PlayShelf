@@ -90,6 +90,7 @@ for rel, allowed in sorted(ACTION_SCREENS.items()):
 # (source/kit/sim/), or the desktop has no use for them.
 CONSOLE_ONLY = {
     "crash_handler.c": "the console's exception handler",
+    "device_key.c": "sim_device_key.cpp",
     "local_time.c": "sim_local_time.c",
     "nacp.c": "a homebrew's control data, read on the console only for now",
     "nacp_read.c": "the same",

@@ -8,7 +8,7 @@ PlayShelf is built on the technical base of [PlayGuard](https://github.com/JigSa
 |---|---|
 | `source/kit/core/` | The C layer over libnx (platform, system information, local time, crash handler, start-up timing, the read-only switch). Each module has a plain-C header; the desktop build replaces the console's ones with `source/kit/sim/` |
 | `source/kit/sim/` | The simulated console of the desktop build, driven by `PLAYSHELF_SIM_*` variables ([the simulator](simulator.md)) |
-| `source/kit/util/` | Plain C++, most of it host-tested: HTTP (libcurl, TLS verified), JSON, SHA-256, zip, paths and atomic writes, migrations, session logs and crash reports, updates, development builds, GitHub sign-in, diagnostics |
+| `source/kit/util/` | Plain C++, most of it host-tested: HTTP (libcurl, TLS verified; byte ranges streamed), JSON, SHA-256, AES-128, secrets sealed for this console (`secret_box`, with `core/device_key.h`), zip, paths and atomic writes, migrations, session logs and crash reports, updates, development builds, GitHub sign-in, diagnostics |
 | `source/kit/action/` | Flows: `*_logic` files are plain C++ (host-tested), `*_flow` files drive the dialogs and screens |
 | `source/kit/ui/`, `source/kit/view/` | The Cadran look over borealis: the frame (header, rail), dialogs and pickers, lists, palettes, icons, effects |
 | `source/kit/activity/`, `source/kit/tab/` | The shared screens (loading, update, development builds, diagnostics, changelog, what's new) and the base of every tab |

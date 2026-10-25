@@ -9,6 +9,7 @@
 
 #include "util/json_util.hpp"
 #include "util/paths.hpp"
+#include "util/secret_box.hpp"
 #include "util/text.hpp"
 
 namespace github_auth
@@ -79,6 +80,14 @@ std::string token()
     std::string t;
     if (!paths::read_file(token_file(), t)) return "";
     t = text::trim_space_end(t);
+    if (secret_box::is_sealed(t)) {
+        // Sealed for this console (util/secret_box): another's reads as none.
+        const auto opened = secret_box::open(t);
+        t = opened ? *opened : "";
+    } else if (!t.empty() && token_chars(t) && !text::starts_with(t, "gho_")) {
+        // One an older PlayShelf kept as it is: sealed now, where it lies.
+        save_token(t, nullptr);
+    }
     // The earlier OAuth app's token: refused the artifacts, signed in again.
     if (text::starts_with(t, "gho_")) return "";
     return token_chars(t) ? t : "";
@@ -94,7 +103,12 @@ bool save_token(const std::string& t, std::string* error)
         if (error) *error = "cannot create " + paths::data_dir();
         return false;
     }
-    return paths::atomic_write(token_file(), t + "\n", error);
+    const auto sealed = secret_box::seal(t);
+    if (!sealed) {
+        if (error) *error = "the console's key cannot be had: the token is not kept";
+        return false;
+    }
+    return paths::atomic_write(token_file(), *sealed + "\n", error);
 }
 
 void forget_token()
