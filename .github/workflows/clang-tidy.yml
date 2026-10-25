@@ -97,7 +97,9 @@ jobs:
           else
             find source -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) | sort > changed.txt
           fi
-          python3 tools/ci_summary.py tidy-files changed.txt build-tidy/compile_commands.json > files.txt
+          # No blank line: an empty list must leave files.txt empty, or the
+          # next step hands run-clang-tidy no file, and it checks them all.
+          python3 tools/ci_summary.py tidy-files changed.txt build-tidy/compile_commands.json | sed '/^$/d' > files.txt
           echo "$(wc -l < files.txt) file(s) to check"
       - name: clang-tidy
         run: |
