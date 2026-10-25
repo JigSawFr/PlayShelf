@@ -11,7 +11,7 @@ using namespace brls::literals;
 namespace
 {
 // "2 h 30" with no-break spaces: a line never ends on "2 h" before its "30"
-// (borealis fork, patch 0010).
+// (Aurore, patch 0010).
 std::string glued(std::string text)
 {
     for (size_t at = text.find(' '); at != std::string::npos; at = text.find(' ', at + 2)) text.replace(at, 1, " ");

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Borealis lives in extern/ as a git submodule: JigSawFr/borealis, wiliwili
-# branch (xfangfang/borealis with PlayGuard's fixes and some from its forks).
+# Borealis lives in extern/ as a git submodule: Aurore (JigSawFr/Aurore, main),
+# xfangfang/borealis with our fixes and some from its other forks.
 set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/extern/borealis/library)
 
 # On the Switch, draw with deko3d (devkitPro's own GPU API) rather than mesa's

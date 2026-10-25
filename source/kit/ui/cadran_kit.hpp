@@ -148,7 +148,7 @@ void wrap(brls::View* row);
 // A button of such a row laid out by its text at the normal size: the row
 // breaks only where it would at that size, and with the larger text
 // (ui/text_size) the button's text is drawn smaller again, down to its size,
-// rather than pushing the button to a line of its own (borealis fork, patch 0007).
+// rather than pushing the button to a line of its own (Aurore, patch 0007).
 // Again after its text changes.
 void fit_button(brls::Button* button);
 

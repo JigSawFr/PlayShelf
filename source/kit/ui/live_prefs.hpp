@@ -1,9 +1,9 @@
 // live_prefs — Preferences › Theme and Language applied at once, without
 // restarting: the theme's variant set, the language's strings loaded again
-// (borealis fork, patch 0012), then the main screen built again on the tab that
+// (Aurore, patch 0012), then the main screen built again on the tab that
 // was shown, the focus on the line it was on (every view takes its colours,
 // words and font when it is made; Chinese has its own font, ui::use_font_for
-// and borealis fork, patch 0013).
+// and Aurore, patch 0013).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 

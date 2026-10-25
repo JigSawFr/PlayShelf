@@ -1,5 +1,5 @@
-// Host tests for borealis' string tables (library/lib/core/i18n.cpp, with the
-// borealis fork's patches 0001, 0012, 0018, 0019): a string looked up in the
+// Host tests for borealis' string tables (library/lib/core/i18n.cpp, with
+// Aurore's patches 0001, 0012, 0018, 0019): a string looked up in the
 // current language, else in English, else its name; another language loaded
 // while the app runs; and strings read from other threads (the background
 // tasks, the worker threads) while the UI thread loads another language,

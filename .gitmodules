@@ -1,4 +1,4 @@
 [submodule "extern/borealis"]
 	path = extern/borealis
-	url = https://github.com/JigSawFr/borealis.git
-	branch = wiliwili
+	url = https://github.com/JigSawFr/Aurore.git
+	branch = main
