@@ -1,0 +1,98 @@
+diff --git a/library/lib/platforms/desktop/desktop_font.cpp b/library/lib/platforms/desktop/desktop_font.cpp
+index b6f2d72..cacbcf4 100644
+--- a/library/lib/platforms/desktop/desktop_font.cpp
++++ b/library/lib/platforms/desktop/desktop_font.cpp
+@@ -118,6 +118,13 @@ void DesktopFontLoader::loadFonts()
+     std::vector<std::string> simplifiedChineseFonts = {
+         prefix+"msyh",
+     };
++#elif defined(__EMSCRIPTEN__)
++    // A browser has no system font to read: the page's build packages one
++    // with the han, kana and hangul PlayShelf's catalogs use.
++    std::vector<std::string> koreanFonts;
++    std::vector<std::string> simplifiedChineseFonts = {
++        BRLS_ASSET("font/cjk"),
++    };
+ #elif defined(ANDROID)
+     std::vector<std::string> koreanFonts;
+     std::vector<std::string> simplifiedChineseFonts = {
+diff --git a/library/lib/platforms/sdl/sdl_input.cpp b/library/lib/platforms/sdl/sdl_input.cpp
+index 52b31e1..2c4ca78 100644
+--- a/library/lib/platforms/sdl/sdl_input.cpp
++++ b/library/lib/platforms/sdl/sdl_input.cpp
+@@ -18,6 +18,9 @@
+ #include <borealis/core/application.hpp>
+ #include <borealis/core/logger.hpp>
+ #include <borealis/platforms/sdl/sdl_input.hpp>
++#ifdef __EMSCRIPTEN__
++#include <emscripten.h>
++#endif
+ 
+ namespace brls
+ {
+@@ -318,6 +321,23 @@ static const size_t SDL_BUTTONS_MAPPING[SDL_GAMEPAD_BUTTON_MAX] = {
+ 
+ static std::unordered_map<SDL_Scancode, int> keyboardKeys {};
+ 
++#ifdef __EMSCRIPTEN__
++// In a browser, the page presses buttons itself (the keys it maps by their
++// meaning, so on any layout, and its on-screen pad). A press seen by no
++// frame (down and up before the next one) still counts for one.
++static bool webButtonsHeld[_BUTTON_MAX] {};
++static bool webButtonsPressed[_BUTTON_MAX] {};
++
++extern "C" EMSCRIPTEN_KEEPALIVE void brls_web_button(int button, int down)
++{
++    if (button < 0 || button >= _BUTTON_MAX)
++        return;
++    webButtonsHeld[button] = down != 0;
++    if (down)
++        webButtonsPressed[button] = true;
++}
++#endif
++
+ static const size_t SDL_AXIS_MAPPING[SDL_GAMEPAD_AXIS_MAX] = {
+     LEFT_X,
+     LEFT_Y,
+@@ -404,7 +424,7 @@ SDLInputManager::SDLInputManager(SDL_Window* window)
+ {
+ 
+     int32_t flags = SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
+-#ifndef __WINRT__
++#if !defined(__WINRT__) && !defined(__EMSCRIPTEN__)
+     flags |= SDL_INIT_HAPTIC;
+ #endif
+     if (SDL_Init(flags) < 0)
+@@ -501,6 +521,14 @@ void SDLInputManager::updateUnifiedControllerState(ControllerState* state)
+     state->buttons[BUTTON_DOWN] |= getKeyboardKeys(SDL_SCANCODE_DOWN);
+     state->buttons[BUTTON_LEFT] |= getKeyboardKeys(SDL_SCANCODE_LEFT);
+ 
++#ifdef __EMSCRIPTEN__
++    for (int i = 0; i < _BUTTON_MAX; i++)
++    {
++        state->buttons[i] |= webButtonsHeld[i] || webButtonsPressed[i];
++        webButtonsPressed[i] = false;
++    }
++#endif
++
+     state->buttons[BUTTON_NAV_UP] |= state->buttons[BUTTON_UP];
+     state->buttons[BUTTON_NAV_RIGHT] |= state->buttons[BUTTON_RIGHT];
+     state->buttons[BUTTON_NAV_DOWN] |= state->buttons[BUTTON_DOWN];
+diff --git a/library/lib/platforms/sdl/sdl_video.cpp b/library/lib/platforms/sdl/sdl_video.cpp
+index 61193b3..da100f5 100644
+--- a/library/lib/platforms/sdl/sdl_video.cpp
++++ b/library/lib/platforms/sdl/sdl_video.cpp
+@@ -174,7 +174,13 @@ SDLVideoContext::SDLVideoContext(std::string windowTitle, uint32_t windowWidth,
+     }
+ 
+     // Create window
++#ifdef __EMSCRIPTEN__
++    // In a browser the page scales the canvas with CSS: the window keeps the
++    // console's 1280x720, which a resizable one would follow the page out of.
++    Uint32 windowFlags = SDL_WINDOW_SHOWN;
++#else
+     Uint32 windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
++#endif
+ #ifdef BOREALIS_USE_OPENGL
+ #ifdef __SWITCH__
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);

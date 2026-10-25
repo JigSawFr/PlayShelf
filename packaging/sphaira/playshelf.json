@@ -1,0 +1,10 @@
+{
+    "name": "PlayShelf",
+    "url": "https://github.com/JigSawFr/PlayShelf",
+    "assets": [
+        {
+            "name": "playshelf.nro",
+            "path": "/switch/playshelf/playshelf.nro"
+        }
+    ]
+}

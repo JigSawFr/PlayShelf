@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The full list of changes in the running version (the bundled
+     CHANGELOG.md), opened from the highlights on "What's new".
+     Filled by changelog_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingTop="@style/brls/sidebar/padding_top"
+            paddingRight="@style/brls/sidebar/padding_right"
+            paddingBottom="@style/brls/sidebar/padding_bottom"
+            paddingLeft="@style/brls/sidebar/padding_left">
+
+            <brls:Header id="cl_header" marginBottom="8"/>
+            <brls:Box id="cl_notes" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <brls:Label id="cl_note" text="" fontSize="20" marginTop="16" textColor="@theme/cadran/text3"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:AppletFrame>

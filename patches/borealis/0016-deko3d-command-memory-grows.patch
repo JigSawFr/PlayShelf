@@ -1,0 +1,89 @@
+diff --git a/library/include/borealis/extern/nanovg/dk_renderer.hpp b/library/include/borealis/extern/nanovg/dk_renderer.hpp
+index 93e4095e..9b550803 100644
+--- a/library/include/borealis/extern/nanovg/dk_renderer.hpp
++++ b/library/include/borealis/extern/nanovg/dk_renderer.hpp
+@@ -151,6 +151,7 @@ namespace nvg {
+             };
+         private:
+             static constexpr size_t DynamicCmdSize = 0x20000;
++            static constexpr size_t ExtraCmdSize = 0x10000;
+             static constexpr size_t FragmentUniformSize = sizeof(DKNVGfragUniforms) + 4 - sizeof(DKNVGfragUniforms) % 4;
+             static constexpr size_t MaxImages = 0x1000;
+ 
+@@ -166,6 +167,9 @@ namespace nvg {
+             /* State. */
+             dk::UniqueCmdBuf m_dyn_cmd_buf;
+             CCmdMemRing<1> m_dyn_cmd_mem;
++            /* PlayShelf: what a frame took past DynamicCmdSize (AddCmdMemory),
++               given back at the start of the next one. */
++            std::vector<CMemPool::Handle> m_dyn_cmd_extra;
+             std::optional<CMemPool::Handle> m_vertex_buffer;
+             CShader m_vertex_shader;
+             CShader m_fragment_shader;
+@@ -182,6 +186,8 @@ namespace nvg {
+             int AcquireImageDescriptor(std::shared_ptr<Texture> texture, int image);
+             void FreeImageDescriptor(int image);
+             void SetUniforms(const DKNVGcontext &ctx, int offset, int image);
++            static void AddCmdMemory(void *user_data, DkCmdBuf cmdbuf, size_t min_size);
++            void ReleaseExtraCmdMemory();
+ 
+             void UpdateVertexBuffer(const void *data, size_t size);
+ 
+diff --git a/library/lib/extern/nanovg/deko3d/dk_renderer.cpp b/library/lib/extern/nanovg/deko3d/dk_renderer.cpp
+index 9b3d8dc6..01eaf3b8 100644
+--- a/library/lib/extern/nanovg/deko3d/dk_renderer.cpp
++++ b/library/lib/extern/nanovg/deko3d/dk_renderer.cpp
+@@ -1,5 +1,6 @@
+ #include <nanovg/dk_renderer.hpp>
+ 
++#include <algorithm>
+ #include <stdarg.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+@@ -110,7 +111,9 @@ namespace nvg {
+     {
+         printf("DkRenderer create\n");
+         /* Create a dynamic command buffer and allocate memory for it. */
+-        m_dyn_cmd_buf = dk::CmdBufMaker{m_device}.create();
++        /* PlayShelf: a frame of more draws than DynamicCmdSize holds asks for
++           more memory (AddCmdMemory) instead of aborting the app. */
++        m_dyn_cmd_buf = dk::CmdBufMaker{m_device}.setUserData(this).setCbAddMem(AddCmdMemory).create();
+         m_dyn_cmd_mem.allocate(m_data_mem_pool, DynamicCmdSize);
+ 
+         m_image_descriptor_set.allocate(m_data_mem_pool);
+@@ -151,7 +154,25 @@ namespace nvg {
+         init_cmd_buf.destroy();
+     }
+ 
++    void DkRenderer::AddCmdMemory(void *user_data, DkCmdBuf cmdbuf, size_t min_size) {
++        DkRenderer *self = static_cast<DkRenderer *>(user_data);
++        const size_t size = std::max(min_size, ExtraCmdSize);
++        CMemPool::Handle mem = self->m_data_mem_pool.allocate(size, DK_CMDMEM_ALIGNMENT);
++        /* Left without memory, deko3d raises DkResult_OutOfMemory itself. */
++        if (!mem) return;
++        dkCmdBufAddMemory(cmdbuf, mem.getMemBlock(), mem.getOffset(), mem.getSize());
++        self->m_dyn_cmd_extra.push_back(mem);
++    }
++
++    void DkRenderer::ReleaseExtraCmdMemory() {
++        for (CMemPool::Handle &mem : m_dyn_cmd_extra) {
++            mem.destroy();
++        }
++        m_dyn_cmd_extra.clear();
++    }
++
+     DkRenderer::~DkRenderer() {
++        ReleaseExtraCmdMemory();
+         if (m_vertex_buffer) {
+             m_vertex_buffer->destroy();
+         }
+@@ -529,6 +550,9 @@ namespace nvg {
+         if (ctx.ncalls > 0) {
+             /* Prepare dynamic command buffer. */
+             m_dyn_cmd_mem.begin(m_dyn_cmd_buf);
++            /* PlayShelf: begin() waited for the last frame's commands, so the
++               memory they took past DynamicCmdSize is free again. */
++            ReleaseExtraCmdMemory();
+ 
+             /* Update buffers with data. */
+             this->UpdateVertexBuffer(ctx.verts, ctx.nverts * sizeof(NVGvertex));

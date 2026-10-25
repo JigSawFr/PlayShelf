@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "console_lock": false,
+  "console_lock_prev": [],
+  "console_lock_since": "",
+  "extra_weekday": -1,
+  "extra_date": "",
+  "extra_base": 0,
+  "extra_value": 0,
+  "fw_gate_fw": "",
+  "fw_gate_app": "",
+  "fw_gate_choice": "",
+  "relock_pending": false
+}

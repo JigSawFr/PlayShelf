@@ -1,0 +1,1 @@
+{"console_lock": true, "console_lock_prev": [60, 60, 60, 60, 60, 60, 65535], "console_lock_since": "2026-10-01", "extra_weekday": 3, "extra_date": "2026-10-16", "extra_base": 120, "extra_value": 150, "fw_gate_fw": "23.0.1", "fw_gate_app": "1.1.0", "fw_gate_choice": "probe", "relock_pending": true}

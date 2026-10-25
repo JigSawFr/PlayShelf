@@ -1,0 +1,102 @@
+// config — small persistent settings in sd:/config/playshelf/config.json.
+// Every key, its values and default: docs/config.md (keep it in step).
+// Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
+#pragma once
+
+#include <string>
+#include <vector>
+
+namespace config
+{
+
+struct Config
+{
+    std::string language = "system";   // "system" or one of LANGUAGES
+    std::string theme    = "dark";     // "dark" (the default), "system", "light"
+    // The text: "auto" (larger while docked), "normal" or "large"
+    // (ui/text_size).
+    std::string text_size = "auto";
+    // "auto" (the default: lighter effects off the dock), "full" or
+    // "reduced" (no decorative movement) (ui/effects).
+    std::string effects = "auto";
+    bool dev_mode = false;             // developer tools (7 presses on About > Version)
+    bool frame_stats = false;          // Developer › frame statistics (action/frame_stats_flow)
+    bool cadran_glow = true;           // Developer › the Cadran screens' background glow
+    // How an update is installed: "" (not chosen yet: asked on the first
+    // update), "inplace" (PlayShelf downloads it and replaces itself),
+    // "auto", "sphaira", "appstore", "manual".
+    std::string update_via;
+    bool update_daily = false;         // check for updates at start-up, once a day
+    std::string update_checked;        // "YYYY-MM-DD" of the last check, any kind
+    // The latest release the last check found ("1.2.0"): a newer one than the
+    // running version is offered at each start-up (action/update_flow) until
+    // installed or postponed. update_snooze_version / _until: "Later" on that
+    // screen, for that version until that day ("YYYY-MM-DD", 30 days at most).
+    std::string update_latest;
+    std::string update_snooze_version;
+    std::string update_snooze_until;
+    std::string start_tab = "library";   // tab shown at start-up (main.xml order: START_TABS)
+    // The saved reports and the crash files kept, each folder on its own
+    // (util/log_files.hpp; 0: no limit): the newest logs_keep, those of the
+    // last logs_keep_days days, the newest that fit in logs_keep_mb MB.
+    int  logs_keep       = 20;
+    int  logs_keep_days  = 0;
+    int  logs_keep_mb    = 0;
+    bool intro = true;                 // the loading screen stays 2 s at start-up (activity/loading_activity.hpp)
+    std::string dev_builds_order = "newest";   // Install another build's pull requests: "newest" or "number"
+
+    // "Support PlayShelf" once a month at start-up (Preferences; off stays
+    // off, updates included), and "What's new" once after each update. See
+    // util/support.hpp. support_reminded: "YYYY-MM-DD" of the last reminder
+    // (or of when the month started); seen_version: the version whose
+    // "What's new" was handled.
+    bool        support_reminder = true;
+    std::string support_reminded;
+    std::string seen_version;
+    // The newest crash file (logs/crashes/) already said: a newer one means
+    // PlayShelf closed unexpectedly since.
+    std::string crash_seen;
+};
+
+constexpr int    SCHEMA             = 1;    // "schema" in config.json
+// The languages PlayShelf is translated into, after "system" (the console's
+// own): each has resources/i18n/<code>/playshelf.json and a name under
+// playshelf/tools/languages/. tools/check_resources.py checks both.
+constexpr const char* LANGUAGES[] = { "system", "en-US", "fr", "fr-CA", "de", "es", "es-419", "it", "nl", "pt", "pt-BR", "ru", "ja", "ko", "zh-Hans", "zh-Hant" };
+// What theme may be, in the pickers' order: the console's own, then the two
+// forced ones. Dark unless chosen otherwise (Config::theme).
+constexpr const char* THEMES[] = { "system", "light", "dark" };
+// What text_size may be: the default first.
+constexpr const char* TEXT_SIZES[] = { "auto", "normal", "large" };
+// What effects may be: the default first.
+constexpr const char* EFFECTS[] = { "auto", "full", "reduced" };
+// What start_tab may be, in the sidebar's order.
+constexpr const char* START_TABS[] = { "library", "preferences", "about" };
+// What About › Help & diagnostics offers for the reports and crash files kept.
+constexpr int LOGS_KEEP[]      = { 0, 5, 10, 20, 50 };
+constexpr int LOGS_KEEP_DAYS[] = { 0, 7, 30, 90, 365 };
+constexpr int LOGS_KEEP_MB[]   = { 0, 1, 5, 20 };
+
+// What the last load() found. A config.json that is there but cannot be read
+// or parsed (not one wrong field: those keep their default alone) is put
+// aside as config.json.bad (paths::put_aside: the previous .bad is kept as
+// .bad.1), and the defaults are used. When it cannot be moved, snapshot()
+// refuses to write for the rest of the session rather than replace it.
+enum class Loaded { Missing, Read, PutAside, Stuck };
+
+Config& get();
+void    load();          // never throws; missing / broken file => defaults, per field
+Loaded  loaded();
+// A save in two steps, so the write can be left to another thread: the
+// file's content now (false: Loaded::Stuck, nothing may be written), then
+// writing it. write() touches no config state: callable from any thread.
+struct Snapshot
+{
+    std::string shared;
+};
+bool    snapshot(Snapshot& snap);
+bool    write(const Snapshot& snap);
+// Puts every out-of-range value back to its default (load() calls it).
+void    sanitize(Config& c);
+
+}   // namespace config

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- One build of Install another build, before it is installed: tags (its
+     kind, its checks, installed or new), its title, a card of facts (built,
+     size, commit, branch, checksum, when GitHub deletes it), what installing
+     does, Install and See on GitHub (a QR code), then its notes or
+     description. Filled by dev_build_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        title="@i18n/playshelf/dev_build/open"
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingTop="@style/brls/sidebar/padding_top"
+            paddingRight="@style/brls/sidebar/padding_right"
+            paddingBottom="@style/brls/sidebar/padding_bottom"
+            paddingLeft="@style/brls/sidebar/padding_left">
+
+            <brls:Box id="dbd_tags" width="auto" height="auto" axis="row" marginBottom="10"/>
+            <brls:Label id="dbd_headline" text="" fontSize="26" marginBottom="16"/>
+            <brls:Box id="dbd_facts" width="auto" height="auto" axis="column" alignItems="stretch"
+                paddingTop="6" paddingBottom="6" paddingLeft="24" paddingRight="24"
+                marginBottom="14"/>
+            <brls:Label id="dbd_warning" text="" fontSize="18" marginBottom="18" textColor="@theme/cadran/text3"/>
+            <brls:Box width="auto" height="auto" axis="row">
+                <brls:Button id="dbd_install" style="primary" text="@i18n/playshelf/dev_build/install" grow="1.0" marginRight="12"/>
+                <brls:Button id="dbd_github" style="default" text="@i18n/playshelf/dev_build/open_github"/>
+            </brls:Box>
+            <brls:Header id="dbd_notes_header" marginTop="32" marginBottom="8"/>
+            <brls:Box id="dbd_notes" width="auto" height="auto" axis="column" alignItems="stretch"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:AppletFrame>

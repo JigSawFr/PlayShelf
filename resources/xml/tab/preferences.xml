@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Preferences: only what sets PlayShelf itself up — the app (language,
+     theme, text size and start tab as tiles first, the effects, the intro),
+     the monthly "Support PlayShelf" reminder and how it updates. A setting
+     that shapes one feature sits with it; Help & diagnostics is in About. -->
+
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+            <brls:Header title="@i18n/playshelf/prefs/section_app" marginBottom="8"/>
+            <brls:DetailCell id="pf_language" title="@i18n/playshelf/tools/language"/>
+            <brls:DetailCell id="pf_theme" title="@i18n/playshelf/tools/theme"/>
+            <brls:DetailCell id="pf_text_size" title="@i18n/playshelf/tiles/text_size"/>
+            <brls:DetailCell id="pf_start_tab" title="@i18n/playshelf/tiles/start_tab"/>
+            <brls:DetailCell id="pf_effects" title="@i18n/playshelf/prefs/effects"/>
+            <brls:BooleanCell id="pf_intro"/>
+            <brls:BooleanCell id="pf_support_reminder"/>
+            <brls:Header title="@i18n/playshelf/tools/section_update" marginTop="24" marginBottom="8"/>
+            <brls:BooleanCell id="pf_update_daily"/>
+            <brls:DetailCell id="pf_update_via" title="@i18n/playshelf/tools/update_via"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:Box>
