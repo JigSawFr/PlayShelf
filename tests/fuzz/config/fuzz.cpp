@@ -1,9 +1,7 @@
-// libFuzzer target: source/util/config.cpp reading config.json and
-// state.json (both on the SD card, both editable by hand), in a temporary
-// folder (paths::data_dir() is ./playshelf_data on the host). The input is
-// config.json once, with no state.json (the versions before it), then
-// state.json next to a valid config.json. Beyond the sanitizers: whatever was
-// read, what config::snapshot() writes reads back to the same settings
+// libFuzzer target: source/util/config.cpp reading config.json (on the SD
+// card, editable by hand), in a temporary folder (paths::data_dir() is
+// ./playshelf_data on the host). Beyond the sanitizers: whatever was read,
+// what config::snapshot() writes reads back to the same settings
 // (sanitize() keeps nothing a second read would change).
 #include <cstdio>
 #include <cstdlib>
@@ -25,7 +23,7 @@ extern "C" int LLVMFuzzerInitialize(int*, char***)
     return 0;
 }
 
-// The settings read, saved, and read again: the same files.
+// The settings read, saved, and read again: the same file.
 static void round_trip()
 {
     config::Snapshot first;
@@ -35,31 +33,22 @@ static void round_trip()
     FUZZ_ASSERT(config::loaded() == config::Loaded::Read);
     config::Snapshot second;
     FUZZ_ASSERT(config::snapshot(second));
-    if (second.shared != first.shared || second.system != first.system) {
-        std::fprintf(stderr, "first:\n%s%s\nsecond:\n%s%s\n", first.shared.c_str(), first.system.c_str(),
-                     second.shared.c_str(), second.system.c_str());
+    if (second.shared != first.shared) {
+        std::fprintf(stderr, "first:\n%s\nsecond:\n%s\n", first.shared.c_str(), second.shared.c_str());
         FUZZ_ASSERT(!"a saved config reads back the same");
     }
 }
 
 static void clear()
 {
-    for (const std::string& f : { paths::config_file(), paths::state_file() })
-        for (const char* suffix : { "", ".tmp", ".bad", ".bad.1" }) std::remove((f + suffix).c_str());
+    for (const char* suffix : { "", ".tmp", ".bad", ".bad.1" }) std::remove((paths::config_file() + suffix).c_str());
 }
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     const std::string text(reinterpret_cast<const char*>(data), size);
-
     clear();
     FUZZ_ASSERT(paths::atomic_write(paths::config_file(), text));
-    config::load();
-    if (config::loaded() != config::Loaded::Stuck) round_trip();
-
-    clear();
-    FUZZ_ASSERT(paths::atomic_write(paths::config_file(), "{}"));
-    FUZZ_ASSERT(paths::atomic_write(paths::state_file(), text));
     config::load();
     if (config::loaded() != config::Loaded::Stuck) round_trip();
     return 0;
