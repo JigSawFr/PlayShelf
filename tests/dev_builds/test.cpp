@@ -7,6 +7,7 @@
 // byte, a cut archive), the replacement of the running file, and the
 // device-flow answers and the token file.
 #include "check.h"
+#include "fs.hpp"
 #include "temp_dir.hpp"
 #include <cstdio>
 #include <cstdlib>
@@ -603,6 +604,17 @@ static void test_auth()
     CHECK(github_auth::save_token("ghu_abc123", &error));
     CHECK(!github_auth::save_token("gho abc", &error));
     CHECK(github_auth::token() == "ghu_abc123");
+    // Sealed on the SD card, never as it is; an older version's plain file
+    // reads, and is sealed where it lies.
+    CHECK(fs::read(github_auth::token_file()).find("ghu_abc123") == std::string::npos);
+    fs::write(github_auth::token_file(), "ghu_plain42\n");
+    CHECK(github_auth::token() == "ghu_plain42");
+    CHECK(fs::read(github_auth::token_file()).compare(0, 3, "v1:") == 0);
+    CHECK(github_auth::token() == "ghu_plain42");
+    // Another console's box (another key): no token.
+    fs::write(github_auth::token_file(), "v1:EBESExQVFhcYGRobHB0eHzn0brSqJ5yDZT1qqcAHWbx15YzOV3BxNLyuym/x/ChxO5CWhbskRkKgfpLreaRBzXZtpw==\n");
+    CHECK(github_auth::token().empty());
+    CHECK(github_auth::save_token("ghu_abc123", &error));
     CHECK(paths::atomic_write(github_auth::token_file(), "not a token!\n"));
     CHECK(github_auth::token().empty());
     github_auth::forget_token();

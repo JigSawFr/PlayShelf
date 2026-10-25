@@ -1,9 +1,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
-#include "install/aes.hpp"
+#include "util/aes.hpp"
 
 #include <cstring>
 
-namespace install
+namespace aes
 {
 namespace
 {
@@ -224,4 +224,4 @@ void Aes128Ctr::crypt(uint8_t* data, size_t size, uint64_t offset) const
     }
 }
 
-}   // namespace install
+}   // namespace aes

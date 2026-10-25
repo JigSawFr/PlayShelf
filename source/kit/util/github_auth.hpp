@@ -16,6 +16,8 @@
 // reads one as none, so the next opening asks to sign in again.
 //
 // The token is kept in its own file, sd:/config/playshelf/github_token,
+// sealed for this console (util/secret_box: one an older version kept as it
+// is gets sealed when it is read),
 // never in config.json, which "Send a report online" sends. It does not
 // expire (the app has token expiry off: docs/contributing/releases.md), so GitHub hands
 // no refresh token; one GitHub answers 401 (revoked, or the app's
