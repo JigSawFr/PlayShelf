@@ -28,6 +28,8 @@ class CoreConsole : public Console
     bool     write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size,
                                std::string* why) override;
     bool     register_placeholder(const ContentId& id, std::string* why) override;
+    bool     has_placeholder(const ContentId& id) override;
+    std::vector<ContentId> placeholders() override;
     void     delete_placeholder(const ContentId& id) override;
     void     delete_content(const ContentId& id) override;
     uint64_t free_space() override;

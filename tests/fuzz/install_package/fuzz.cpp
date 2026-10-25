@@ -19,6 +19,8 @@ struct Empty : install::Console
     bool write_placeholder(const install::ContentId&, uint64_t, const uint8_t*, size_t, std::string*) override { abort(); }
     bool register_placeholder(const install::ContentId&, std::string*) override { abort(); }
     void delete_placeholder(const install::ContentId&) override {}
+    bool has_placeholder(const install::ContentId&) override { return false; }
+    std::vector<install::ContentId> placeholders() override { return {}; }
     void delete_content(const install::ContentId&) override {}
     uint64_t free_space() override { return ~0ull; }
     std::optional<std::vector<uint8_t>> get_meta(const install::MetaKey&) override { return std::nullopt; }

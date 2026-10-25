@@ -345,12 +345,94 @@ void test_ncz()
     bad[blk + 20] ^= 0xff;
     CHECK(!run(bad, hash, 0).ok);
 }
+// A .nca stopped after `cut` bytes of the file, then taken up again by a
+// new stream from its checkpoint: the NCA comes out whole, its hash right.
+void test_resume()
+{
+    // The hash's state, saved and taken back halfway through a block.
+    {
+        const Bytes data = stream(1000, "sha");
+        Sha256      whole;
+        whole.update(data.data(), data.size());
+        Sha256 first;
+        first.update(data.data(), 333);
+        const auto state = first.save();
+        Sha256     second;
+        CHECK(second.restore(state.data(), state.size()));
+        second.update(data.data() + 333, data.size() - 333);
+        CHECK(second.digest() == whole.digest());
+        auto broken = state;
+        broken[Sha256::STATE_SIZE - 1] ^= 1;   // a total that no longer matches what is held
+        CHECK(!Sha256().restore(broken.data(), broken.size()));
+        CHECK(!Sha256().restore(state.data(), state.size() - 1));
+    }
+
+    for (const uint8_t distribution : {0, 1}) {
+        const Built b = build(distribution);
+        const auto  hash = sha(b.nca);
+        const Result whole = run(b.nca, hash, b.nca.size());
+        if (!CHECK(whole.ok)) return;
+        for (const size_t cut : {(size_t)NCA_FULL_HEADER + 8, (size_t)0x7123, b.nca.size() - 1, b.nca.size()}) {
+            Bytes out(b.nca.size());
+            auto  write = [&](uint64_t offset, const uint8_t* data, size_t size) {
+                std::memcpy(out.data() + offset, data, size);
+                return true;
+            };
+            ContentStream first(HEADER_KEY, hash, b.nca.size(), nullptr, write);
+            CHECK(!first.checkpoint());   // nothing of the body yet
+            CHECK(first.feed(b.nca.data(), cut));
+            const auto at = first.checkpoint();
+            if (!CHECK(at && at->offset == cut && at->nca_size == b.nca.size())) continue;
+
+            ContentStream again(HEADER_KEY, hash, b.nca.size(), nullptr, write);
+            CHECK(again.resume_at(*at));
+            CHECK(again.feed(b.nca.data() + cut, b.nca.size() - cut));
+            CHECK(again.finish());
+            CHECK(out == whole.out);
+        }
+        // What cannot be this content's: refused, the stream left as it was.
+        ContentStream first(HEADER_KEY, hash, b.nca.size(), nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
+        CHECK(first.feed(b.nca.data(), 0x6000));
+        const auto at = first.checkpoint();
+        if (!CHECK(at)) return;
+        auto check = [&](ContentStream::Checkpoint c, uint64_t size) {
+            ContentStream s(HEADER_KEY, hash, size, nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
+            return s.resume_at(c);
+        };
+        CHECK(check(*at, b.nca.size()));
+        CHECK(check(*at, 0));   // no size to check against
+        CHECK(!check(*at, b.nca.size() + 0x200));
+        auto past = *at;
+        past.offset = past.nca_size + 1;
+        CHECK(!check(past, 0));
+        auto early = *at;
+        early.offset = 0x200;
+        CHECK(!check(early, 0));
+        auto other = *at;
+        other.sha[0] ^= 1;   // a state, but not this content's: its hash fails at the end
+        ContentStream wrong(HEADER_KEY, hash, b.nca.size(), nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
+        CHECK(wrong.resume_at(other));
+        CHECK(wrong.feed(b.nca.data() + at->offset, b.nca.size() - at->offset));
+        CHECK(!wrong.finish() && wrong.error().find("SHA-256") != std::string::npos);
+    }
+
+    // A .ncz has no checkpoint: it starts again from its beginning.
+    const Built b = build();
+    Bytes       ncz(b.nca.begin(), b.nca.begin() + NCA_FULL_HEADER);
+    const Bytes head = sections(b);
+    ncz.insert(ncz.end(), head.begin(), head.end());
+    ContentStream z(HEADER_KEY, std::nullopt, 0, nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
+    CHECK(z.feed(ncz.data(), ncz.size()));
+    CHECK(!z.checkpoint());
+}
+
 }   // namespace
 
 int main()
 {
     test_plain();
+    test_resume();
     test_game_card();
     test_ncz();
-    CHECK_DONE("content stream: NCA, NCZ (stream and blocks), game card header and refusals passed");
+    CHECK_DONE("content stream: NCA, NCZ (stream and blocks), game card header, a .nca taken up again, refusals passed");
 }

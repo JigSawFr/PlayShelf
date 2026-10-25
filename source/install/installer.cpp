@@ -37,6 +37,13 @@ bool ends_with(const std::string& s, const std::string& suffix)
 uint32_t as_hos_version(uint32_t v) { return (v >> 26) << 16 | ((v >> 20) & 0x3f) << 8 | ((v >> 16) & 0xf); }
 }   // namespace
 
+bool Journal::operator==(const Journal& o) const
+{
+    const bool same_at = at.has_value() == o.at.has_value() &&
+                         (!at || (at->offset == o.at->offset && at->nca_size == o.at->nca_size && at->sha == o.at->sha));
+    return registered == o.registered && writing == o.writing && same_at;
+}
+
 Installer::Installer(Source& src_, Package pkg_, Console& console_, NcaKeys keys_, InstallOptions options_,
                      InstallCallbacks callbacks)
     : src(src_), pkg(std::move(pkg_)), console(console_), keys(std::move(keys_)), options(options_), cb(std::move(callbacks))
@@ -126,16 +133,28 @@ bool Installer::write_meta_content(const TitlePlan& t, std::string* why)
     if (!console.write_placeholder(id, 0, t.meta_nca.data(), t.meta_nca.size(), why)) return false;
     if (!console.register_placeholder(id, why)) return false;
     console.delete_placeholder(id);
+    state.registered.push_back(id);
+    save_journal();
     done += t.meta_nca.size();
     if (cb.progress) cb.progress(done, total, content_id_hex(id) + ".cnmt.nca");
     return true;
+}
+
+void Installer::save_journal()
+{
+    journaled = done;
+    if (cb.journal) cb.journal(state);
 }
 
 bool Installer::write_content(const ContentInfo& c, std::string* why)
 {
     const PackageFile* f = pkg.content(c.id);
     if (!f) return fail(why, content_id_hex(c.id) + ": a content the package lacks");
-    console.delete_placeholder(c.id);
+    // Taken up where an earlier run left it: its placeholder still there,
+    // its stream's checkpoint kept (a plain .nca).
+    const auto& r = resume;
+    const bool  resuming = r && r->writing == c.id && r->at && r->at->offset <= f->size && console.has_placeholder(c.id);
+    if (!resuming) console.delete_placeholder(c.id);
     std::string where;
     ContentStream cs(
         keys.header_key.data(), c.hash, c.size,
@@ -150,6 +169,8 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
             }
             if (!console.create_placeholder(c.id, h.size, refuse)) return false;
             made.push_back(c.id);
+            state.writing = c.id;
+            state.at.reset();
             return true;
         },
         [&](uint64_t offset, const uint8_t* data, size_t size) {
@@ -158,15 +179,49 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
             if (cb.progress) cb.progress(done, total, f->name);
             return true;
         });
-    const bool streamed = src.stream(f->offset, f->size,
+    uint64_t from = 0;
+    if (resuming && cs.resume_at(*r->at)) {
+        from = r->at->offset;
+        made.push_back(c.id);
+        state.writing = c.id;
+        state.at = r->at;
+        done += from;
+        resumed += from;
+        journaled = done;
+    } else if (resuming) {
+        console.delete_placeholder(c.id);   // a checkpoint not this content's: from the start
+    }
+    const bool streamed = src.stream(f->offset + from, f->size - from,
                                      [&](const uint8_t* data, size_t size) {
                                          if (cancelled()) {
                                              where = "cancelled";
                                              return false;
                                          }
-                                         return cs.feed(data, size);
+                                         if (pausing()) {
+                                             where = "paused";
+                                             return false;
+                                         }
+                                         if (!cs.feed(data, size)) return false;
+                                         if (done - journaled >= JOURNAL_EVERY && cs.checkpoint()) {
+                                             state.at = cs.checkpoint();
+                                             save_journal();
+                                         }
+                                         return true;
                                      },
                                      &where);
+    if (where == "paused") {
+        // Kept to go on later when its stream can be taken up (a .nca);
+        // a .ncz's placeholder is of no use: it starts again.
+        state.at = cs.checkpoint();
+        if (!state.at) {
+            console.delete_placeholder(c.id);
+            made.erase(std::remove(made.begin(), made.end(), c.id), made.end());
+            state.writing.reset();
+        }
+        was_paused = true;
+        save_journal();
+        return fail(why, where);
+    }
     if (!streamed || !cs.finish()) {
         if (where == "cancelled") return fail(why, where);
         // The console's own reason when a write failed, else the stream's.
@@ -175,6 +230,10 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
     }
     if (!console.register_placeholder(c.id, why)) return false;
     console.delete_placeholder(c.id);
+    state.registered.push_back(c.id);
+    state.writing.reset();
+    state.at.reset();
+    save_journal();
     return true;
 }
 
@@ -214,17 +273,35 @@ void Installer::undo()
 bool Installer::run(std::string* why)
 {
     done = 0;
+    resumed = 0;
+    journaled = 0;
+    was_paused = false;
     made.clear();
     metas.clear();
+    state = Journal{};
+    // The contents earlier runs registered: undone with this run's.
+    if (resume) {
+        state.registered = resume->registered;
+        made = state.registered;
+        // Its placeholder too, should this run end before it is taken up.
+        if (resume->writing) made.push_back(*resume->writing);
+    }
     std::string err;
     auto        stop = [&](const std::string& reason) {
         undo();
         return fail(why, reason);
     };
+    auto pause = [&]() {
+        was_paused = true;
+        save_journal();
+        return fail(why, "paused");
+    };
     for (const TitlePlan& t : titles)
         for (const ContentInfo& c : t.to_write) {
             if (cancelled()) return stop("cancelled");
+            if (pausing()) return pause();
             const bool ok = c.id == t.meta_content.id ? write_meta_content(t, &err) : write_content(c, &err);
+            if (!ok && was_paused) return fail(why, err);
             if (!ok) return stop(err);
         }
     if (cancelled()) return stop("cancelled");
