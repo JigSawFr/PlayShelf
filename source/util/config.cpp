@@ -159,6 +159,7 @@ static void load_shared()
     read_bool(j, "intro", c.intro);
     read_string(j, "dev_builds_order", c.dev_builds_order);
     read_bool(j, "support_reminder", c.support_reminder);
+    read_bool(j, "keep_awake", c.keep_awake);
     read_string(j, "support_reminded", c.support_reminded);
     read_string(j, "seen_version", c.seen_version);
     read_string(j, "crash_seen", c.crash_seen);
@@ -205,6 +206,7 @@ bool snapshot(Snapshot& snap)
     j["intro"]           = s_config.intro;
     j["dev_builds_order"] = s_config.dev_builds_order;
     j["support_reminder"] = s_config.support_reminder;
+    j["keep_awake"] = s_config.keep_awake;
     j["support_reminded"] = s_config.support_reminded;
     j["seen_version"]    = s_config.seen_version;
     j["crash_seen"]      = s_config.crash_seen;

@@ -4,6 +4,7 @@
 // CyberFoil call them (Adubbz's Tinfoil, MIT).
 #include "core/install.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <switch.h>
 
@@ -139,6 +140,27 @@ void core_placeholder_delete(const u8 id[16])
 {
     const NcmPlaceHolderId p = as_placeholder(id);
     ncmContentStorageDeletePlaceHolder(&s_storage, &p);
+}
+
+Result core_placeholder_has(const u8 id[16], bool *out)
+{
+    const NcmPlaceHolderId p = as_placeholder(id);
+    return ncmContentStorageHasPlaceHolder(&s_storage, out, &p);
+}
+
+Result core_placeholder_list(u8 (*out)[16], int max, int *count)
+{
+    *count = 0;
+    if (max <= 0) return 0;
+    NcmPlaceHolderId *ids = (NcmPlaceHolderId *)calloc((size_t)max, sizeof(NcmPlaceHolderId));
+    if (!ids) return MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
+    s32          n = 0;
+    const Result rc = ncmContentStorageListPlaceHolder(&s_storage, ids, (s32)max, &n);
+    if (R_SUCCEEDED(rc))
+        for (s32 i = 0; i < n && i < max; i++) memcpy(out[i], ids[i].uuid.uuid, 16);
+    if (R_SUCCEEDED(rc)) *count = n < max ? n : max;
+    free(ids);
+    return rc;
 }
 
 void core_content_delete(const u8 id[16])

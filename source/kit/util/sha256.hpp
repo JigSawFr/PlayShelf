@@ -21,6 +21,13 @@ class Sha256
     // The 32 bytes. The object is spent afterwards.
     std::array<uint8_t, 32> digest();
 
+    // Where it stands, to go on later from there (an install resumed
+    // after a pause or a restart): STATE_SIZE bytes. restore() takes them
+    // back; false, the object unchanged, for bytes that are not a state.
+    static constexpr size_t STATE_SIZE = 32 + 64 + 8 + 8;
+    std::array<uint8_t, STATE_SIZE> save() const;
+    bool                            restore(const uint8_t* state, size_t size);
+
   private:
     void block(const uint8_t* p);
 

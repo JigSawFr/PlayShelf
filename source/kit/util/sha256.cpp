@@ -52,6 +52,35 @@ void Sha256::block(const uint8_t* p)
     h[4] += e; h[5] += f; h[6] += g; h[7] += k;
 }
 
+std::array<uint8_t, Sha256::STATE_SIZE> Sha256::save() const
+{
+    std::array<uint8_t, STATE_SIZE> out{};
+    uint8_t*                        p = out.data();
+    for (uint32_t v : h)
+        for (int s = 24; s >= 0; s -= 8) *p++ = (uint8_t)(v >> s);
+    std::memcpy(p, buf, sizeof(buf));
+    p += sizeof(buf);
+    for (int s = 56; s >= 0; s -= 8) *p++ = (uint8_t)((uint64_t)used >> s);
+    for (int s = 56; s >= 0; s -= 8) *p++ = (uint8_t)(total >> s);
+    return out;
+}
+
+bool Sha256::restore(const uint8_t* state, size_t size)
+{
+    if (!state || size != STATE_SIZE) return false;
+    uint64_t u = 0, t = 0;
+    for (int i = 0; i < 8; i++) u = u << 8 | state[96 + i];
+    for (int i = 0; i < 8; i++) t = t << 8 | state[104 + i];
+    // A block is never left full, and the bytes taken add up.
+    if (u >= sizeof(buf) || t % sizeof(buf) != u) return false;
+    for (size_t i = 0; i < h.size(); i++)
+        h[i] = (uint32_t)state[4 * i] << 24 | (uint32_t)state[4 * i + 1] << 16 | (uint32_t)state[4 * i + 2] << 8 | state[4 * i + 3];
+    std::memcpy(buf, state + 32, sizeof(buf));
+    used = (size_t)u;
+    total = t;
+    return true;
+}
+
 void Sha256::update(const void* data, size_t size)
 {
     const uint8_t* p = static_cast<const uint8_t*>(data);

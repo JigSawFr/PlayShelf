@@ -7,7 +7,9 @@
 #include <borealis/cadran/ui/cadran_kit.hpp>
 #include <borealis/cadran/ui/cadran_modal.hpp>
 
+#include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
+#include "activity/downloads_activity.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "view/game_tile.hpp"
@@ -26,15 +28,6 @@ std::string   s_section;
 
 const char* const SORTS[] = { "name", "newest", "largest" };
 
-std::string size_text(uint64_t bytes)
-{
-    const double mb = (double)bytes / (1024.0 * 1024.0);
-    std::string  text = mb >= 1024.0 ? fmt::format("{:.1f}", mb / 1024.0) : fmt::format("{:.0f}", mb);
-    const size_t dot = text.find('.');
-    if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
-    return brls::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
-}
-
 std::string sort_text(library::Sort s)
 {
     return brls::getStr(std::string("playshelf/library/sort_values/") + SORTS[(int)s]);
@@ -52,7 +45,7 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
         return;
     }
     tile->set_detail_color(cadran::kit::color("cadran/text3"));
-    std::string text = size_text(t.size);
+    std::string text = library_flow::size_text(t.size);
     if (t.base < 0) text += " · " + "playshelf/library/no_base"_i18n;
     else if (t.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
     else if (!t.dlcs.empty()) text += " · " + brls::getStr("playshelf/library/dlc_count", t.dlcs.size());
@@ -105,6 +98,14 @@ LibraryTab::LibraryTab()
     empty.box->setMarginTop(40);
     empty_box->addView(empty.box);
 
+    downloads_cell->registerClickAction([](brls::View*) {
+        brls::Application::pushActivity(new DownloadsActivity());
+        return true;
+    });
+    // The queue's changes: its line, and the covers once an install ended.
+    this->downloads_listener = download_flow::listen(ui::guarded(this->alive, [this]() {
+        if (this->shown()) this->refresh();
+    }));
     server_cell->registerClickAction([this](brls::View*) {
         this->server_sheet();
         return true;
@@ -141,7 +142,7 @@ LibraryTab::LibraryTab()
     });
     cadran::style_button(more);
 
-    this->list.apply({ { "lb_server", "server" }, { "lb_search", "eye" }, { "lb_sort", "list" }, { "lb_section", "folder" } });
+    this->list.apply({ { "lb_downloads", "download" }, { "lb_server", "server" }, { "lb_search", "eye" }, { "lb_sort", "list" }, { "lb_section", "folder" } });
 }
 
 const library::Server* LibraryTab::server() const
@@ -150,9 +151,17 @@ const library::Server* LibraryTab::server() const
     return this->servers.empty() ? nullptr : &this->servers.front();
 }
 
+LibraryTab::~LibraryTab()
+{
+    download_flow::unlisten(this->downloads_listener);
+}
+
 void LibraryTab::refresh()
 {
     cadran::set_pill("");
+    const std::string queue = download_flow::summary();
+    ui::set_visible(downloads_cell, !queue.empty() || !download_flow::jobs().empty());
+    ui::set_detail(downloads_cell, queue.empty() ? "playshelf/downloads/summary_none"_i18n : queue);
     this->servers = library::load_servers();
     const library::Server* s = this->server();
     if (s) s_server_id = s->id;
@@ -297,15 +306,18 @@ void LibraryTab::open_title(size_t index)
     using Choice = ui::Choice;
     std::vector<Choice> choices;
     const auto installed = library_flow::installed();
-    auto       install = [this, data](const std::vector<size_t>& chosen) {
-        auto after = ui::guarded(this->alive, [this]() { this->refresh(); });
-        return [data, chosen, after]() { library_flow::install(*data, chosen, after); };
+    auto       install = [data](const std::vector<size_t>& chosen) {
+        return [data, chosen]() {
+            const size_t added = library_flow::install(*data, chosen);
+            if (added) ui::notify(brls::getStr("playshelf/downloads/added", added));
+            else if (!chosen.empty()) ui::notify("playshelf/downloads/already"_i18n);
+        };
     };
     const library::TitleState st = library::state_of(t, data->fetch.catalog, *installed);
     // Its line's end: its size, or that the console has it.
     auto line = [&](size_t i, const char* icon, const std::string& label, const std::string& group) {
         const bool has = library::is_installed(items[i], *installed);
-        choices.emplace_back(label, install({ i }), icon, has ? "playshelf/library/installed"_i18n : size_text(items[i].size),
+        choices.emplace_back(label, install({ i }), icon, has ? "playshelf/library/installed"_i18n : library_flow::size_text(items[i].size),
                              group, has ? Choice::Tone::ON : Choice::Tone::PLAIN);
     };
 
@@ -324,13 +336,13 @@ void LibraryTab::open_title(size_t index)
     for (size_t i : missing) missing_size += items[i].size;
     if (missing.size() > 1 || (st.base && !missing.empty()))
         choices.emplace_back(st.base ? "playshelf/library/install_missing"_i18n : "playshelf/library/install_all"_i18n,
-                             install(missing), "download", size_text(missing_size));
+                             install(missing), "download", library_flow::size_text(missing_size));
 
     if (t.base >= 0) line((size_t)t.base, "gamepad", "playshelf/library/base"_i18n, "playshelf/library/group_base"_i18n);
     for (size_t i : t.updates)
         line(i, "refresh", brls::getStr("playshelf/library/update", items[i].version), "playshelf/library/group_updates"_i18n);
     for (size_t i : t.dlcs) line(i, "plus", library::clean_name(items[i].name), "playshelf/library/group_dlcs"_i18n);
-    std::string subtitle = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
+    std::string subtitle = t.id ? fmt::format("{:016X} · {}", t.id, library_flow::size_text(t.size)) : library_flow::size_text(t.size);
     if (st.base) subtitle += " · " + brls::getStr("playshelf/library/installed_version", st.version);
     ui::pick_actions(t.name, choices, subtitle);
 }

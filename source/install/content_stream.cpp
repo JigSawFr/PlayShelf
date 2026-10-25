@@ -436,6 +436,34 @@ bool ContentStream::finish()
     return true;
 }
 
+std::optional<ContentStream::Checkpoint> ContentStream::checkpoint() const
+{
+    if (impl->phase != Impl::Phase::Raw || impl->ncz) return std::nullopt;
+    Checkpoint at;
+    at.offset = impl->out;
+    at.nca_size = impl->nca;
+    at.sha = impl->sha.save();
+    return at;
+}
+
+bool ContentStream::resume_at(const Checkpoint& at)
+{
+    if (impl->phase != Impl::Phase::Header || !impl->buf.empty()) return false;
+    // Within the body: past the header and the 8 bytes that told it from a .ncz.
+    if (at.offset < NCA_FULL_HEADER + 8 || at.offset > at.nca_size) return false;
+    if (impl->expected_size && at.nca_size != impl->expected_size) return false;
+    // The hash covers every NCA byte written (the header as published).
+    uint64_t hashed = 0;
+    for (size_t i = Sha256::STATE_SIZE - 8; i < Sha256::STATE_SIZE; i++) hashed = hashed << 8 | at.sha[i];
+    Sha256 sha;
+    if (hashed != at.offset || !sha.restore(at.sha.data(), at.sha.size())) return false;
+    impl->sha = sha;
+    impl->nca = at.nca_size;
+    impl->out = at.offset;
+    impl->phase = Impl::Phase::Raw;
+    return true;
+}
+
 bool     ContentStream::compressed() const { return impl->ncz; }
 uint64_t ContentStream::written() const { return impl->out; }
 uint64_t ContentStream::nca_size() const { return impl->nca; }

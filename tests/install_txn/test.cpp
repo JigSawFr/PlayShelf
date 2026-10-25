@@ -8,6 +8,8 @@
 // With PLAYSHELF_WRITE_SEEDS=<dir>, the packages are written there as the
 // fuzzer's seeds (tests/fuzz/install_package/corpus).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <fstream>
 #include <map>
@@ -34,7 +36,7 @@ void write_seed(const std::string& name, const Bytes& b)
 
 struct FakeConsole : Console
 {
-    std::map<ContentId, Bytes>        placeholders, contents;
+    std::map<ContentId, Bytes>        held, contents;   // placeholders, contents
     std::map<std::string, Bytes>      meta;   // committed
     std::map<std::string, Bytes>      meta_pending;
     std::set<std::string>             meta_removed;
@@ -59,31 +61,41 @@ struct FakeConsole : Console
     bool create_placeholder(const ContentId& id, uint64_t size, std::string* why) override
     {
         if (inject("create", why)) return false;
-        if (placeholders.count(id)) {
+        if (held.count(id)) {
             *why = "placeholder exists";
             return false;
         }
-        placeholders[id].reserve(size);
+        held[id].reserve(size);
         return true;
     }
     bool write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size, std::string* why) override
     {
         if (inject("write", why)) return false;
-        Bytes& p = placeholders.at(id);
-        if (offset != p.size()) {
+        Bytes& p = held.at(id);
+        // In order, or again over what was written last (a resumed install
+        // goes on from its journal's offset, which may be behind).
+        if (offset > p.size()) {
             *why = "write out of order";
             return false;
         }
+        p.resize(offset);
         p.insert(p.end(), data, data + size);
         return true;
     }
     bool register_placeholder(const ContentId& id, std::string* why) override
     {
         if (inject("register", why)) return false;
-        contents[id] = placeholders.at(id);
+        contents[id] = held.at(id);
         return true;
     }
-    void     delete_placeholder(const ContentId& id) override { placeholders.erase(id); }
+    void     delete_placeholder(const ContentId& id) override { held.erase(id); }
+    bool     has_placeholder(const ContentId& id) override { return held.count(id) != 0; }
+    std::vector<ContentId> placeholders() override
+    {
+        std::vector<ContentId> out;
+        for (const auto& kv : held) out.push_back(kv.first);
+        return out;
+    }
     void     delete_content(const ContentId& id) override { contents.erase(id); }
     uint64_t free_space() override { return space; }
     std::optional<Bytes> get_meta(const MetaKey& k) override
@@ -156,7 +168,7 @@ void check_installed(FakeConsole& c, const Title& t)
     CHECK(c.contents[t.program_info.id] == t.program);
     CHECK(c.contents[t.control_info.id] == t.control);
     CHECK(c.contents[t.meta_id] == t.meta_nca);
-    CHECK(c.placeholders.empty());
+    CHECK(c.held.empty());
     const MetaKey key{0x0100000000010000ull, 0, MetaType::Application};
     const auto    rec = c.get_meta(key);
     if (CHECK(rec)) {
@@ -215,7 +227,7 @@ void test_prepare_refuses()
     FakeConsole c1;
     Run         r = install(c1, nsp(missing));
     CHECK(!r.prepared && r.why.find("lacks") != std::string::npos);
-    CHECK(c1.contents.empty() && c1.placeholders.empty());
+    CHECK(c1.contents.empty() && c1.held.empty());
     // ...unless the console has it already.
     FakeConsole c2;
     c2.contents[t.control_info.id] = t.control;
@@ -253,7 +265,7 @@ void test_signatures()
     FakeConsole c1;
     Run         r = install(c1, nsp(t), {SignaturePolicy::Require, false});
     CHECK(!r.ok && r.why.find("not signed by Nintendo") != std::string::npos);
-    CHECK(c1.contents.empty() && c1.placeholders.empty());
+    CHECK(c1.contents.empty() && c1.held.empty());
     // Asked: once yes, the rest of the package is taken.
     int              asked = 0;
     InstallCallbacks yes;
@@ -288,7 +300,7 @@ void test_undo()
             CHECK(r.prepared && !r.ok);
             CHECK(r.why.find("injected") != std::string::npos);
             CHECK(c.contents.empty());
-            CHECK(c.placeholders.empty());
+            CHECK(c.held.empty());
             CHECK(c.meta.size() == 1 && c.meta[FakeConsole::key(key)] == before);
         }
     // Cancelled from the progress callback, midway.
@@ -301,15 +313,157 @@ void test_undo()
     };
     const Run r = install(c, nsp(t), {SignaturePolicy::Off, false}, cb);
     CHECK(!r.ok && r.why == "cancelled");
-    CHECK(c.contents.empty() && c.placeholders.empty() && c.meta.empty());
+    CHECK(c.contents.empty() && c.held.empty() && c.meta.empty());
     // A broken content (a byte changed): its hash says so, the rest undone.
     Title broken = application();
     broken.files[2].data[0x4100] ^= 1;
     FakeConsole cb2;
     const Run   rb = install(cb2, nsp(broken));
     CHECK(!rb.ok && rb.why.find("SHA-256") != std::string::npos);
-    CHECK(cb2.contents.empty() && cb2.placeholders.empty());
+    CHECK(cb2.contents.empty() && cb2.held.empty());
 }
+// Paused halfway through the program, then started again from the journal
+// (as after a restart): the contents registered are kept, a .nca goes on
+// where it stood, a .ncz starts again; cancelled then, every run is undone.
+void test_pause_resume()
+{
+    for (bool compressed : {false, true}) {
+        const Title t = application(compressed);
+        const Bytes pkg = nsp(t);
+        const std::string program = content_id_hex(t.program_info.id);
+
+        FakeConsole       c;
+        std::atomic<bool> pause{false};
+        Journal           journal;
+        int               journals = 0;
+        uint64_t          program_start = UINT64_MAX;
+        InstallCallbacks  cb;
+        cb.pause = &pause;
+        cb.journal = [&](const Journal& j) {
+            journal = j;
+            journals++;
+        };
+        cb.progress = [&](uint64_t done, uint64_t, const std::string& content) {
+            if (content.compare(0, program.size(), program) != 0) return;
+            if (program_start == UINT64_MAX) program_start = done;
+            if (done - program_start >= 0x5000) pause = true;
+        };
+        MemorySource src(pkg, 0x1000);
+        auto         opened = package_open(src);
+        if (!CHECK(opened)) return;
+        std::string why;
+        Installer   first(src, *opened, c, test_keys(), {SignaturePolicy::Off, false}, cb);
+        CHECK(first.prepare(&why));
+        CHECK(!first.run(&why) && first.paused() && why == "paused");
+        CHECK(journals >= 2);   // the meta content registered, then the pause
+        // What came before the program is registered (the meta content first).
+        const auto& reg = journal.registered;
+        CHECK(!reg.empty() && reg[0] == t.meta_id);
+        // (A small .ncz's program may come out in one piece, before the pause.)
+        CHECK(compressed || std::find(reg.begin(), reg.end(), t.program_info.id) == reg.end());
+        CHECK(c.contents.size() == reg.size() && c.meta.empty() && c.app_records.empty());
+        if (!compressed) {
+            // The .nca is kept where it stood.
+            CHECK(journal.writing == t.program_info.id && journal.at && journal.at->offset >= 0x5000);
+            CHECK(c.held.count(t.program_info.id) == 1);
+        } else {
+            // A .ncz's placeholder is of no use: gone, written again from its start.
+            CHECK(!journal.writing && !journal.at && c.held.empty());
+        }
+
+        // Started again, from a journal kept on the SD card: done.
+        InstallCallbacks cb2;
+        uint64_t         last = 0, total = 0;
+        cb2.progress = [&](uint64_t done, uint64_t all, const std::string&) {
+            CHECK(done >= last);
+            last = done;
+            total = all;
+        };
+        MemorySource src2(pkg, 0x1000);
+        Installer    second(src2, *package_open(src2), c, test_keys(), {SignaturePolicy::Off, false}, cb2);
+        second.resume_from(journal);
+        CHECK(second.prepare(&why));
+        why.clear();
+        if (!CHECK(second.run(&why))) fprintf(stderr, "  %s\n", why.c_str());
+        check_installed(c, t);
+        CHECK(last == total);
+        CHECK(compressed ? second.resumed_bytes() == 0 : second.resumed_bytes() == journal.at->offset);
+
+        // Paused, then cancelled: what both runs did goes.
+        FakeConsole       c3;
+        std::atomic<bool> pause3{false}, cancel3{false};
+        Journal           j3;
+        InstallCallbacks  cb3;
+        cb3.pause = &pause3;
+        cb3.journal = [&](const Journal& j) { j3 = j; };
+        program_start = UINT64_MAX;
+        cb3.progress = [&](uint64_t done, uint64_t, const std::string& content) {
+            if (content.compare(0, program.size(), program) != 0) return;
+            if (program_start == UINT64_MAX) program_start = done;
+            if (done - program_start >= 0x5000) pause3 = true;
+        };
+        MemorySource src3(pkg, 0x1000);
+        Installer    third(src3, *package_open(src3), c3, test_keys(), {SignaturePolicy::Off, false}, cb3);
+        CHECK(third.prepare(&why) && !third.run(&why) && third.paused());
+        InstallCallbacks cancelling;
+        cancel3 = true;
+        cancelling.cancel = &cancel3;
+        MemorySource src4(pkg, 0x1000);
+        Installer    fourth(src4, *package_open(src4), c3, test_keys(), {SignaturePolicy::Off, false}, cancelling);
+        fourth.resume_from(j3);
+        CHECK(fourth.prepare(&why) && !fourth.run(&why) && !fourth.paused() && why == "cancelled");
+        CHECK(c3.contents.empty() && c3.held.empty() && c3.meta.empty());
+    }
+
+    // A source that stops by itself on the pause (a download cut at once):
+    // paused, nothing undone.
+    {
+        struct Stopping : MemorySource
+        {
+            using MemorySource::MemorySource;
+            std::atomic<bool>* pause = nullptr;
+            bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
+                        std::string* why) override
+            {
+                if (length > 0x3000) {
+                    *pause = true;
+                    *why = "aborted";
+                    return false;
+                }
+                return MemorySource::stream(offset, length, sink, why);
+            }
+        };
+        const Title       t = application();
+        const Bytes       pkg = nsp(t);
+        FakeConsole       c;
+        std::atomic<bool> pause{false};
+        Stopping          src(pkg, 0x1000);
+        src.pause = &pause;
+        InstallCallbacks cb;
+        cb.pause = &pause;
+        Installer   inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false}, cb);
+        std::string why;
+        CHECK(inst.prepare(&why) && !inst.run(&why) && inst.paused() && why == "paused");
+        CHECK(!c.contents.empty());   // the meta content stays
+    }
+
+    // A journal whose placeholder went meanwhile (cleaned up): the content
+    // is written again from its start.
+    {
+        const Title t = application();
+        Journal     j;
+        j.writing = t.program_info.id;
+        j.at = ContentStream::Checkpoint{0x4100, t.program.size(), {}};
+        FakeConsole  c;
+        MemorySource src(nsp(t), 0x1000);
+        Installer    inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false});
+        inst.resume_from(j);
+        std::string why;
+        CHECK(inst.prepare(&why) && inst.run(&why));
+        check_installed(c, t);
+    }
+}
+
 }   // namespace
 
 int main()
@@ -318,5 +472,6 @@ int main()
     test_prepare_refuses();
     test_signatures();
     test_undo();
-    CHECK_DONE("install transaction: NSP, NSZ and XCI installed; refusals before writing; every failure undone passed");
+    test_pause_resume();
+    CHECK_DONE("install transaction: NSP, NSZ and XCI installed; refusals before writing; every failure undone; paused, resumed, cancelled passed");
 }

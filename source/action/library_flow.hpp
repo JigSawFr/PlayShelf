@@ -5,8 +5,8 @@
 // (its key's fingerprint, to compare with the server's: pin on first use)
 // and the fetch made again once it is; the servers of this network found
 // (library/http_transport's discovery) to add one; and a game's items
-// installed (action/install_flow), the credentials and the pin sent only to
-// the server they are for.
+// added to the downloads (action/download_flow), which send the
+// credentials and the pin only to the server they are for.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -55,8 +55,16 @@ void edit(const library::Server& server, const std::function<void(const std::str
 using Installed = std::map<uint64_t, uint32_t>;
 std::shared_ptr<const Installed> installed();
 
-// Installs these items of `l`'s catalogue (indexes in fetch.catalog.items);
-// `after` once what is installed was read again.
-void install(const Loaded& l, const std::vector<size_t>& items, const std::function<void()>& after = nullptr);
+// What the console has installed, read again (an install ended); `after`
+// then, on the UI thread.
+void reread_installed(const std::function<void()>& after);
+
+// These items of `l`'s catalogue (indexes in fetch.catalog.items) added to
+// the downloads (action/download_flow); how many were (one already
+// waiting or running is not added twice).
+size_t install(const Loaded& l, const std::vector<size_t>& items);
+
+// "734 MB", "4,2 GB" (the language's decimal mark): a package's size.
+std::string size_text(uint64_t bytes);
 
 }   // namespace library_flow

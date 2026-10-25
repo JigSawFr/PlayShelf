@@ -128,6 +128,26 @@ Result core_placeholder_register(const u8 id[16])
 }
 
 void core_placeholder_delete(const u8 id[16]) { std::remove(placeholder(id).c_str()); }
+
+Result core_placeholder_has(const u8 id[16], bool* out)
+{
+    *out = exists(placeholder(id));
+    return 0;
+}
+
+Result core_placeholder_list(u8 (*out)[16], int max, int* count)
+{
+    *count = 0;
+    DIR* dir = ::opendir((root() + "/placeholders").c_str());
+    if (!dir) return 0;
+    while (const dirent* e = ::readdir(dir)) {
+        const auto id = install::content_id_from_hex(e->d_name);
+        if (*count >= max || !id) continue;
+        std::memcpy(out[(*count)++], id->data(), 16);
+    }
+    ::closedir(dir);
+    return 0;
+}
 void core_content_delete(const u8 id[16]) { std::remove(content(id).c_str()); }
 
 Result core_free_space(u64* out)
