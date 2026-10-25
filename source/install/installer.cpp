@@ -209,6 +209,12 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
                                          return true;
                                      },
                                      &where);
+    // The source itself may stop on the same request (a download cut short
+    // at once): the pause or the cancel, not a failure.
+    if (!streamed && where != "paused" && where != "cancelled") {
+        if (cancelled()) where = "cancelled";
+        else if (pausing()) where = "paused";
+    }
     if (where == "paused") {
         // Kept to go on later when its stream can be taken up (a .nca);
         // a .ncz's placeholder is of no use: it starts again.
@@ -226,6 +232,8 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
         if (where == "cancelled") return fail(why, where);
         // The console's own reason when a write failed, else the stream's.
         const std::string& detail = !where.empty() && where != "stopped" ? where : cs.error();
+        // A refusal of its header already names the file.
+        if (detail.compare(0, f->name.size() + 1, f->name + ":") == 0) return fail(why, detail);
         return fail(why, f->name + ": " + detail);
     }
     if (!console.register_placeholder(c.id, why)) return false;

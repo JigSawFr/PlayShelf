@@ -415,6 +415,38 @@ void test_pause_resume()
         CHECK(c3.contents.empty() && c3.held.empty() && c3.meta.empty());
     }
 
+    // A source that stops by itself on the pause (a download cut at once):
+    // paused, nothing undone.
+    {
+        struct Stopping : MemorySource
+        {
+            using MemorySource::MemorySource;
+            std::atomic<bool>* pause = nullptr;
+            bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
+                        std::string* why) override
+            {
+                if (length > 0x3000) {
+                    *pause = true;
+                    *why = "aborted";
+                    return false;
+                }
+                return MemorySource::stream(offset, length, sink, why);
+            }
+        };
+        const Title       t = application();
+        const Bytes       pkg = nsp(t);
+        FakeConsole       c;
+        std::atomic<bool> pause{false};
+        Stopping          src(pkg, 0x1000);
+        src.pause = &pause;
+        InstallCallbacks cb;
+        cb.pause = &pause;
+        Installer   inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false}, cb);
+        std::string why;
+        CHECK(inst.prepare(&why) && !inst.run(&why) && inst.paused() && why == "paused");
+        CHECK(!c.contents.empty());   // the meta content stays
+    }
+
     // A journal whose placeholder went meanwhile (cleaned up): the content
     // is written again from its start.
     {

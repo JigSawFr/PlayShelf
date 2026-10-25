@@ -11,6 +11,8 @@
 // (in amber when the server has a newer update), a line of the sheet when
 // it has that item. The covers' icons come from the server, kept in the
 // cache (action/library_icons).
+// A game's items go to the downloads (action/download_flow), whose line
+// heads the tab while the queue holds jobs (A opens it).
 // Ⓧ reads the catalogue again. What is chosen stays for this run.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -29,6 +31,7 @@ class LibraryTab : public TabBase
 {
   public:
     LibraryTab();
+    ~LibraryTab() override;
     static brls::View* create();
 
   protected:
@@ -65,6 +68,8 @@ class LibraryTab : public TabBase
     std::shared_ptr<const library_flow::Installed> built_installed = std::make_shared<library_flow::Installed>();
 
     BRLS_BIND(brls::Box,        empty_box, "lb_empty");
+    int downloads_listener = 0;
+    BRLS_BIND(brls::DetailCell, downloads_cell, "lb_downloads");
     BRLS_BIND(brls::DetailCell, server_cell, "lb_server");
     BRLS_BIND(brls::DetailCell, search_cell, "lb_search");
     BRLS_BIND(brls::DetailCell, sort_cell,   "lb_sort");
