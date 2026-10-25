@@ -135,6 +135,33 @@ static void test_redirect()
     CHECK(!http_logic::redirect_ok(302, "", nullptr));
 }
 
+static void test_content_range()
+{
+    http_logic::ContentRange r;
+    CHECK(http_logic::parse_content_range("Content-Range: bytes 0-0/1234\r\n", &r));
+    CHECK(r.first == 0 && r.last == 0 && r.total == 1234);
+    CHECK(http_logic::parse_content_range("content-range:bytes 100-199/40000000000", &r));
+    CHECK(r.first == 100 && r.last == 199 && r.total == 40000000000ull);
+    CHECK(http_logic::parse_content_range("CONTENT-RANGE:   bytes 5-5/6  ", &r) && r.last == 5);
+    // Not that header, a size unknown, a range out of the total, junk.
+    CHECK(!http_logic::parse_content_range("Content-Length: 1234", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: bytes 0-0/*", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: bytes 0-1234/1234", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: bytes 9-3/1234", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: bytes -3/1234", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: items 0-1/2", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: bytes 0-1/2 extra", &r));
+    CHECK(!http_logic::parse_content_range("Content-Range: bytes 0-1/99999999999999999999999", &r));
+
+    std::string error;
+    http_logic::ContentRange got{100, 199, 1000};
+    CHECK(http_logic::range_ok(206, &got, 100, 100, &error));
+    CHECK(!http_logic::range_ok(200, &got, 100, 100, &error) && error.find("HTTP 200") != std::string::npos);
+    CHECK(!http_logic::range_ok(206, nullptr, 100, 100, &error));
+    CHECK(!http_logic::range_ok(206, &got, 0, 100, &error));
+    CHECK(!http_logic::range_ok(206, &got, 100, 99, &error));
+}
+
 int main()
 {
     test_fits();
@@ -142,5 +169,6 @@ int main()
     test_outcome();
     test_download_start();
     test_redirect();
-    return CHECK_DONE("http_logic size limit, headers, outcome, download start and redirect tests passed");
+    test_content_range();
+    return CHECK_DONE("http_logic size limit, headers, outcome, download start, redirect and content range tests passed");
 }

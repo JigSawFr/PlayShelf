@@ -179,7 +179,7 @@ endif ()
 # backend from source/kit/sim/ so the UI can be run and screenshotted on a PC.
 file(GLOB_RECURSE PLAYSHELF_SRC CONFIGURE_DEPENDS source/*.cpp source/*.c)
 if (PLATFORM_SWITCH)
-    list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/kit/sim/.*")
+    list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?sim/.*")
     list(APPEND PLAYSHELF_SRC ${BOREALIS_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
 else ()
     list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?core/.*\\.c$")

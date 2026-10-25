@@ -433,5 +433,17 @@
             "tagline": "Je gamebibliotheek op de console · vrije software (GPLv3)",
             "version": "Versie {}"
         }
+    },
+    "install": {
+        "from_url": "Installeren vanaf een URL",
+        "url_header": "Het HTTPS-adres van het pakket (NSP, NSZ, XCI of XCZ)",
+        "https_only": "Alleen een https://-adres: het pakket moet via een gecontroleerde verbinding komen.",
+        "preparing": "Pakket lezen…",
+        "installing": "Installeren",
+        "done": "{} is geïnstalleerd ({}): {} MB geschreven.",
+        "failed": "{} kon niet worden geïnstalleerd",
+        "cancelled": "Installatie geannuleerd: er blijft niets van over op de console.",
+        "unsigned_body": "{}.\n\nDe inhoud is mogelijk gewijzigd of beschadigd. Toch installeren?",
+        "unsigned_confirm": "Toch installeren"
     }
 }

@@ -18,6 +18,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_EMUMMC=1` | Running on emuMMC |
 | `PLAYSHELF_SIM_FOCUS_LOG=1` | Not the console: each line or button that takes the focus logs its words (`focus: Preferences`), so `tools/desktop_smoke.py` reaches a line by its words (`go_to()`), not by counting presses |
 | `PLAYSHELF_SIM_FW=20.5.0` | Another firmware (default 23.0.1) |
+| `PLAYSHELF_SIM_FREE_MB=0` | The simulated console's free space for an install, in MiB (default 32768). Its installs go to `playshelf_data/sim_console/` (`source/sim/sim_install.cpp`), with the host tests' keys: it installs the packages `tests/install/packages.hpp` builds, not a console's |
 | `PLAYSHELF_SIM_GITHUB_LOGIN=ok` | The GitHub device flow of *GitHub account*: `ok` approves at once, `denied` refuses, `offline` fails |
 | `PLAYSHELF_SIM_HBLOADER=1` | A homebrew loader that can hand an update over to a store |
 | `PLAYSHELF_SIM_HOLD_LOADING=1` | Not the console: the start-up stops on the loading screen, at its last step (the `loading` smoke scenario's screenshot) |

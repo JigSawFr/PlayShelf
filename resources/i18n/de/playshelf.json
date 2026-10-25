@@ -433,5 +433,17 @@
             "tagline": "Deine Spielebibliothek auf der Konsole · freie Software (GPLv3)",
             "version": "Version {}"
         }
+    },
+    "install": {
+        "from_url": "Von einer URL installieren",
+        "url_header": "Die HTTPS-Adresse des Pakets (NSP, NSZ, XCI oder XCZ)",
+        "https_only": "Nur eine https://-Adresse: Das Paket muss über eine geprüfte Verbindung kommen.",
+        "preparing": "Paket wird gelesen…",
+        "installing": "Installation",
+        "done": "{} ist installiert ({}): {} MB geschrieben.",
+        "failed": "{} konnte nicht installiert werden",
+        "cancelled": "Installation abgebrochen: Nichts davon bleibt auf der Konsole.",
+        "unsigned_body": "{}.\n\nDer Inhalt wurde vielleicht verändert oder beschädigt. Trotzdem installieren?",
+        "unsigned_confirm": "Trotzdem installieren"
     }
 }

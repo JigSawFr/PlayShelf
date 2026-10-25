@@ -50,6 +50,7 @@
             <brls:DetailCell id="hp_dev_clear_logs" title="@i18n/playshelf/dev/clear_logs"/>
             <brls:DetailCell id="hp_dev_report" title="@i18n/playshelf/dev/report"/>
             <brls:DetailCell id="hp_dev_build" title="@i18n/playshelf/dev_build/open"/>
+            <brls:DetailCell id="hp_dev_install" title="@i18n/playshelf/install/from_url"/>
 
         </brls:Box>
 

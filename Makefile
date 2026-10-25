@@ -114,6 +114,12 @@ install_stream_LIBS := -lzstd
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
 install_txn_LIBS := -lzstd
+# The desktop build's console (sim/sim_install.cpp) behind install::Console.
+install_sim_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/install/console_core.cpp source/sim/sim_install.cpp \
+                    $(K)/util/paths.cpp $(K)/sim/sim_env.cpp tests/install_sim/test.cpp
+install_sim_CSRC := $(K)/sim/sim_sysinfo.c
+install_sim_CFLAGS := -std=gnu11 -Isource/kit/core
+install_sim_LIBS := -lzstd
 date_SRC    := $(K)/util/date.cpp tests/date/test.cpp
 # The header-only helpers: utf8, emoji, text, json_util.
 text_util_SRC   := tests/text_util/test.cpp

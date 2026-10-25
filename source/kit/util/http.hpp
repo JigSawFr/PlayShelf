@@ -56,6 +56,20 @@ bool download(const std::string& url, const std::string& path, std::string* erro
               long timeout_s = 600, std::function<void(uint64_t done, uint64_t total)> progress = nullptr,
               uint64_t resume_from = 0, const std::atomic<bool>* cancel = nullptr);
 
+// GETs bytes [offset, offset + length) of `url` (a Range request,
+// redirects followed) and hands them to `sink` as they arrive, in order.
+// The server must answer 206 with exactly that range: a 200 (no ranges) or
+// another range fails before any byte reaches `sink`. Fails when `sink`
+// returns false ("stopped"), when nothing arrives for 30 s, or when the
+// range comes out short; no overall timeout. `cancel` as for download().
+bool range(const std::string& url, uint64_t offset, uint64_t length,
+           const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers = {},
+           const std::atomic<bool>* cancel = nullptr);
+
+// The size of `url`'s resource, from the Content-Range of a request for its
+// first byte: false when the server does not serve ranges.
+bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers = {});
+
 // At exit: a request still running stops at its next progress tick (about a
 // second), and a new one fails at once, so the threads they run on can end
 // before the app does.
