@@ -62,13 +62,35 @@ bool download(const std::string& url, const std::string& path, std::string* erro
 // another range fails before any byte reaches `sink`. Fails when `sink`
 // returns false ("stopped"), when nothing arrives for 30 s, or when the
 // range comes out short; no overall timeout. `cancel` as for download().
+// `pinned_key` ("sha256//<base64>", library/server.hpp's pin_text): the
+// server must hold that public key, which vouches for it in place of the CA
+// store (a LAN server's own certificate); empty, the CA store does.
 bool range(const std::string& url, uint64_t offset, uint64_t length,
            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers = {},
-           const std::atomic<bool>* cancel = nullptr);
+           const std::atomic<bool>* cancel = nullptr, const std::string& pinned_key = "");
 
 // The size of `url`'s resource, from the Content-Range of a request for its
 // first byte: false when the server does not serve ranges.
-bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers = {});
+bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers = {},
+                   const std::string& pinned_key = "");
+
+// A GET as get() does, its pinned key as range()'s, and whether the TLS
+// handshake failed on the server's certificate or key (tls_failed): a LAN
+// server's own certificate, never vouched for, that a pin may be made for.
+struct Response
+{
+    long        status = 0;
+    std::string body;
+    bool        tls_failed = false;
+};
+bool request(const std::string& url, const Headers& headers, const std::string& pinned_key, Response* response,
+             std::string* error, size_t max_bytes = 4 * 1024 * 1024, long timeout_s = 30);
+
+// The certificate `url`'s server presents, as PEM, without checking it and
+// without sending anything but the request line (no header, no
+// credential): what a pin is made from, which the user is asked about
+// before it is trusted. False when the TLS backend cannot give it.
+bool peer_certificate(const std::string& url, std::string* pem, std::string* error);
 
 // At exit: a request still running stops at its next progress tick (about a
 // second), and a new one fails at once, so the threads they run on can end

@@ -8,14 +8,14 @@
 namespace install
 {
 
-HttpSource::HttpSource(std::string url_, std::vector<std::string> headers_, const std::atomic<bool>* cancel_)
-    : url(std::move(url_)), headers(std::move(headers_)), cancel(cancel_)
+HttpSource::HttpSource(std::string url_, std::vector<std::string> headers_, const std::atomic<bool>* cancel_, std::string pin_)
+    : url(std::move(url_)), headers(std::move(headers_)), cancel(cancel_), pin(std::move(pin_))
 {
 }
 
 bool HttpSource::open(std::string* why)
 {
-    return http::resource_size(url, &total, why, headers);
+    return http::resource_size(url, &total, why, headers, pin);
 }
 
 bool HttpSource::read(uint64_t offset, uint8_t* out, size_t n, std::string* why)
@@ -32,7 +32,7 @@ bool HttpSource::read(uint64_t offset, uint8_t* out, size_t n, std::string* why)
             got += size;
             return true;
         },
-        why, headers, cancel);
+        why, headers, cancel, pin);
     return ok && got == n;
 }
 
@@ -43,7 +43,7 @@ bool HttpSource::stream(uint64_t offset, uint64_t length, const std::function<bo
         if (why) *why = "read past the package's end";
         return false;
     }
-    return http::range(url, offset, length, sink, why, headers, cancel);
+    return http::range(url, offset, length, sink, why, headers, cancel, pin);
 }
 
 }   // namespace install
