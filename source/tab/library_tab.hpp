@@ -9,7 +9,8 @@
 // everything the console does not have of it at once (the base game, its
 // newest update, its add-ons). A cover says when the console has the game
 // (in amber when the server has a newer update), a line of the sheet when
-// it has that item.
+// it has that item. The covers' icons come from the server, kept in the
+// cache (action/library_icons).
 // Ⓧ reads the catalogue again. What is chosen stays for this run.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -56,6 +57,8 @@ class LibraryTab : public TabBase
     size_t      built = 0;            // how many of them have a cover
     brls::Box*  grid_row = nullptr;
     std::vector<GameTile*> tiles;     // the covers built, in the selection's order
+    int         generation = 0;       // the covers' build: an icon arriving for an older one is freed
+    std::string password;             // the server's, for its icons
     // What the grid was built for.
     const void* built_data = nullptr;
     std::string built_key;

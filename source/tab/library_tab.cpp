@@ -3,6 +3,8 @@
 
 #include <fmt/format.h>
 
+#include "action/library_icons.hpp"
+#include "library/servers.hpp"
 #include "ui/cadran_frame.hpp"
 #include "ui/cadran_kit.hpp"
 #include "ui/cadran_modal.hpp"
@@ -81,7 +83,7 @@ LibraryTab::LibraryTab()
     auto* row = new brls::Box(brls::Axis::ROW);
     row->setMarginTop(20);
     row->setJustifyContent(brls::JustifyContent::CENTER);
-    auto button = [row](const std::string& text, std::function<void()> run) {
+    auto button = [row](const std::string& text, const std::function<void()>& run) {
         auto* b = new brls::Button();
         b->setText(text);
         cadran::style_button(b);
@@ -180,7 +182,7 @@ void LibraryTab::load(bool again)
     this->why_failed.clear();
     this->shown_data = nullptr;
     const std::string asked = s->id;
-    library_flow::load(*s, ui::guarded(this->alive, [this, asked](std::shared_ptr<const library_flow::Loaded> l, std::string why) {
+    library_flow::load(*s, ui::guarded(this->alive, [this, asked](const std::shared_ptr<const library_flow::Loaded>& l, const std::string& why) {
         // Another server shown meanwhile: its catalogue read now (this one's
         // stays for when it comes back).
         if (asked == s_server_id) this->why_failed = l ? "" : why.empty() ? "playshelf/library/not_trusted"_i18n : why;
@@ -240,6 +242,11 @@ void LibraryTab::build_grid(bool force)
     if (inside(brls::Application::getCurrentFocus(), grid)) brls::Application::giveFocus(search_cell);
     grid->clearViews(true);
     this->tiles.clear();
+    // The icons of the covers gone are not wanted; one already on its way
+    // finds its cover gone (the generation changed) and is freed.
+    library_icons::drop_pending();
+    this->generation++;
+    this->password = data ? library::password_of(data->server) : "";
     this->grid_row = nullptr;
     this->built = 0;
     this->selection = data ? library::select_titles(data->titles, s_query, s_sort, sections ? s_section : "")
@@ -269,6 +276,13 @@ void LibraryTab::add_page()
         });
         this->grid_row->addView(tile);
         this->tiles.push_back(tile);
+        const size_t at = this->tiles.size() - 1;
+        const int    gen = this->generation;
+        library_icons::get(this->shown_data, this->password, t.icon_url, [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+            const ui::Alive held = weak.lock();
+            if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
+            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+        });
     }
     ui::set_visible(more, data && this->built < this->selection.size());
 }
@@ -282,7 +296,7 @@ void LibraryTab::open_title(size_t index)
     using Choice = ui::Choice;
     std::vector<Choice> choices;
     const auto installed = library_flow::installed();
-    auto       install = [this, data](std::vector<size_t> chosen) {
+    auto       install = [this, data](const std::vector<size_t>& chosen) {
         auto after = ui::guarded(this->alive, [this]() { this->refresh(); });
         return [data, chosen, after]() { library_flow::install(*data, chosen, after); };
     };
@@ -356,6 +370,7 @@ void LibraryTab::server_sheet()
 void LibraryTab::pick_sort()
 {
     std::vector<std::string> labels;
+    labels.reserve(3);
     for (int i = 0; i < 3; i++) labels.push_back(sort_text((library::Sort)i));
     ui::pick("playshelf/library/sort"_i18n, labels, (int)s_sort, ui::guarded(this->alive, [this](int i) {
                  s_sort = (library::Sort)i;

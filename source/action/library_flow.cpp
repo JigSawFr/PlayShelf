@@ -49,7 +49,7 @@ bool trust(library::Server& server, const std::string& pin)
     return true;
 }
 
-void fetched(library::Server server, std::shared_ptr<Loaded> l, std::shared_ptr<const Installed> now, Done done)
+void fetched(const library::Server& server, const std::shared_ptr<Loaded>& l, std::shared_ptr<const Installed> now, const Done& done)
 {
     s_loading = false;
     s_installed = std::move(now);
@@ -64,12 +64,12 @@ void fetched(library::Server server, std::shared_ptr<Loaded> l, std::shared_ptr<
         const std::string pin = f.offered_pin;
         ui::confirm(
             body, "playshelf/library/trust"_i18n,
-            [server, pin, done]() mutable {
-                if (ui::refuse_read_only() || !trust(server, pin)) {
+            [copy = server, pin, done]() mutable {
+                if (ui::refuse_read_only() || !trust(copy, pin)) {
                     done(nullptr, "");
                     return;
                 }
-                load(server, done);
+                load(copy, done);
             },
             [done]() { done(nullptr, ""); });
         return;
@@ -78,7 +78,7 @@ void fetched(library::Server server, std::shared_ptr<Loaded> l, std::shared_ptr<
     done(nullptr, f.why);
 }
 
-void open_editor(const library::Server& server, bool is_new, std::function<void(const std::string&)> saved)
+void open_editor(const library::Server& server, bool is_new, const std::function<void(const std::string&)>& saved)
 {
     brls::Application::pushActivity(new ServerActivity(server, is_new, [saved](const std::string& id) {
         forget(id);
@@ -108,7 +108,7 @@ bool loading()
     return s_loading;
 }
 
-void load(const library::Server& server, Done done)
+void load(const library::Server& server, const Done& done)
 {
     if (s_loading) return;
     s_loading = true;
@@ -124,20 +124,20 @@ void load(const library::Server& server, Done done)
     });
 }
 
-void add(std::function<void(const std::string&)> saved)
+void add(const std::function<void(const std::string&)>& saved)
 {
     if (ui::refuse_read_only()) return;
     library::Server s;
     s.id = library::new_server_id();
-    open_editor(s, true, std::move(saved));
+    open_editor(s, true, saved);
 }
 
-void edit(const library::Server& server, std::function<void(const std::string&)> saved)
+void edit(const library::Server& server, const std::function<void(const std::string&)>& saved)
 {
-    open_editor(server, false, std::move(saved));
+    open_editor(server, false, saved);
 }
 
-void discover(std::function<void(const std::string&)> saved)
+void discover(const std::function<void(const std::string&)>& saved)
 {
     if (ui::refuse_read_only()) return;
     auto          cancel = std::make_shared<std::atomic<bool>>(false);
@@ -173,7 +173,7 @@ void discover(std::function<void(const std::string&)> saved)
     });
 }
 
-void install(const Loaded& l, const std::vector<size_t>& items, std::function<void()> after)
+void install(const Loaded& l, const std::vector<size_t>& items, const std::function<void()>& after)
 {
     const std::string              password = library::password_of(l.server);
     const std::vector<std::string> auth = library::auth_headers(l.server.username, password);

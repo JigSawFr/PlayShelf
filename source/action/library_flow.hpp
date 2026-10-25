@@ -40,15 +40,15 @@ void forget(const std::string& server_id);
 // pin is saved with the server and the fetch made again; refused, `done`
 // gets nullptr and "" (nothing to show). Only one fetch at a time: another
 // one asked meanwhile is refused (`done` not run).
-void load(const library::Server& server, std::function<void(std::shared_ptr<const Loaded>, std::string)> done);
+void load(const library::Server& server, const std::function<void(std::shared_ptr<const Loaded>, std::string)>& done);
 bool loading();
 
 // The servers that answer on this network, in a list to add one from
 // (activity/server_activity, its address filled); `saved` as the editor's.
-void discover(std::function<void(const std::string& id)> saved);
+void discover(const std::function<void(const std::string& id)>& saved);
 // The editor, for a new server or `server`.
-void add(std::function<void(const std::string& id)> saved);
-void edit(const library::Server& server, std::function<void(const std::string& id)> saved);
+void add(const std::function<void(const std::string& id)>& saved);
+void edit(const library::Server& server, const std::function<void(const std::string& id)>& saved);
 
 // What the console has installed (install::installed_versions), read with
 // each catalogue and again after an install; empty until then.
@@ -57,6 +57,6 @@ std::shared_ptr<const Installed> installed();
 
 // Installs these items of `l`'s catalogue (indexes in fetch.catalog.items);
 // `after` once what is installed was read again.
-void install(const Loaded& l, const std::vector<size_t>& items, std::function<void()> after = nullptr);
+void install(const Loaded& l, const std::vector<size_t>& items, const std::function<void()>& after = nullptr);
 
 }   // namespace library_flow

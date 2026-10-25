@@ -161,15 +161,18 @@ Result core_installed_list(CoreMetaKey* out, int max, int* count)
     DIR* dir = ::opendir((root() + "/meta").c_str());
     if (!dir) return 0;
     while (const dirent* e = ::readdir(dir)) {
-        unsigned long long id = 0;
-        unsigned           version = 0;
-        char               ext[8] = {};
-        if (*count >= max || std::sscanf(e->d_name, "%16llx-%u.%3s", &id, &version, ext) != 3 || std::strcmp(ext, "bin") != 0)
-            continue;
+        // "<16 hex digits>-<version>.bin"
+        const char* name = e->d_name;
+        char*       end = nullptr;
+        if (*count >= max || std::strlen(name) < 22 || name[16] != '-') continue;
+        const unsigned long long id = std::strtoull(name, &end, 16);
+        if (end != name + 16) continue;
+        const unsigned long version = std::strtoul(name + 17, &end, 10);
+        if (end == name + 17 || std::strcmp(end, ".bin") != 0) continue;
         CoreMetaKey& k = out[(*count)++];
         k = CoreMetaKey{};
         k.id = id;
-        k.version = version;
+        k.version = (u32)version;
         k.type = (id & 0x1000) ? 0x82 : (id & 0x800) ? 0x81 : 0x80;
         k.install_type = 0;
     }

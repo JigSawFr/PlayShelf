@@ -32,6 +32,6 @@ struct Package
 // a content not signed by Nintendo asks, and installed anyway, the ones
 // after it are too. `after`, once the dialog has closed (whatever came
 // of it): what was installed changed.
-void install(const std::vector<Package>& packages, std::function<void()> after = nullptr);
+void install(const std::vector<Package>& packages, const std::function<void()>& after = nullptr);
 
 }   // namespace install_flow

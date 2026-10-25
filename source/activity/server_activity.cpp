@@ -68,6 +68,7 @@ void ServerActivity::onContentAvailable()
     });
     connection->registerClickAction([this](brls::View*) {
         std::vector<std::string> labels;
+        labels.reserve(3);
         for (int i = 0; i < 3; i++) labels.push_back(connection_text(connection_at(i)));
         ui::pick("playshelf/library/connection"_i18n, labels, connection_index(this->server.connection), [this](int i) {
             this->server.connection = connection_at(i);
@@ -77,6 +78,7 @@ void ServerActivity::onContentAvailable()
     });
     format->registerClickAction([this](brls::View*) {
         std::vector<std::string> labels;
+        labels.reserve(3);
         for (int i = 0; i < 3; i++) labels.push_back(format_text((library::Format)i));
         ui::pick("playshelf/library/format"_i18n, labels, (int)this->server.format, [this](int i) {
             this->server.format = (library::Format)i;

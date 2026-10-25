@@ -172,7 +172,7 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
 }
 
 // packages[first…] in one dialog, `policy` for each.
-void run(std::vector<Package> packages, size_t first, install::SignaturePolicy policy, std::function<void()> after)
+void run(const std::vector<Package>& packages, size_t first, install::SignaturePolicy policy, const std::function<void()>& after)
 {
     if (first >= packages.size()) return;
     const size_t count = packages.size();
@@ -225,10 +225,10 @@ void from_url()
     });
 }
 
-void install(const std::vector<Package>& packages, std::function<void()> after)
+void install(const std::vector<Package>& packages, const std::function<void()>& after)
 {
     if (ui::refuse_read_only()) return;
-    run(packages, 0, install::SignaturePolicy::Require, std::move(after));
+    run(packages, 0, install::SignaturePolicy::Require, after);
 }
 
 }   // namespace install_flow
