@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/servers.hpp"
 
+#include <algorithm>
+#include <array>
 #include <random>
 
 #include <borealis/extern/nlohmann/json.hpp>
@@ -127,6 +129,24 @@ bool set_password(Server& s, const std::string& password)
     if (!box) return false;
     s.password_box = *box;
     return true;
+}
+
+std::string pin_shown(const Server& s)
+{
+    const std::string prefix = "sha256//";
+    if (s.pin.compare(0, prefix.size(), prefix) != 0) return "";
+    const auto raw = unbase64(s.pin.substr(prefix.size()));
+    if (!raw || raw->size() != 32) return "";
+    std::array<uint8_t, 32> h{};
+    std::copy(raw->begin(), raw->end(), h.begin());
+    return pin_short(h);
+}
+
+const Server* find_server(const std::vector<Server>& servers, const std::string& id)
+{
+    for (const Server& s : servers)
+        if (s.id == id) return &s;
+    return nullptr;
 }
 
 std::string check_server(const Server& s)

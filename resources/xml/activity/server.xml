@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Library › a server, added or changed: its name and addresses (on this
+     network, over the Internet), which one to use and how it answers, the
+     account it asks for, the key trusted for its own certificate; Save and
+     Delete. Filled by source/activity/server_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch">
+
+            <brls:Header title="@i18n/playshelf/library/section_server" marginBottom="8"/>
+            <brls:DetailCell id="sv_name" title="@i18n/playshelf/library/name"/>
+            <brls:DetailCell id="sv_lan" title="@i18n/playshelf/library/lan_url"/>
+            <brls:DetailCell id="sv_wan" title="@i18n/playshelf/library/wan_url"/>
+            <brls:DetailCell id="sv_connection" title="@i18n/playshelf/library/connection"/>
+            <brls:DetailCell id="sv_format" title="@i18n/playshelf/library/format"/>
+            <brls:Header title="@i18n/playshelf/library/section_account" marginTop="24" marginBottom="8"/>
+            <brls:DetailCell id="sv_user" title="@i18n/playshelf/library/username"/>
+            <brls:DetailCell id="sv_password" title="@i18n/playshelf/library/password"/>
+            <brls:Header title="@i18n/playshelf/library/section_security" marginTop="24" marginBottom="8"/>
+            <brls:DetailCell id="sv_pin" title="@i18n/playshelf/library/pin"/>
+            <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="8">
+                <brls:Label id="sv_pin_note" text="@i18n/playshelf/library/pin_note" fontSize="16.5"
+                    textColor="@theme/cadran/text3"/>
+            </brls:Box>
+            <brls:DetailCell id="sv_save" title="@i18n/playshelf/library/save" marginTop="24"/>
+            <brls:DetailCell id="sv_delete" title="@i18n/playshelf/library/delete" marginTop="12"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:AppletFrame>
