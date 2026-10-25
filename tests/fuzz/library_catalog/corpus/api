@@ -1,0 +1,19 @@
+{
+  "motd": "Welcome to the shelf\nSecond line",
+  "sections": [
+    {"id": "new", "title": "New", "items": [
+      {"name": "Game One", "url": "/api/get_game/1#Game%20One.nsp", "size": 1234567, "title_id": "0100AAAA00010000",
+       "app_version": 0, "app_type": "BASE", "icon_url": "/api/remote/icon/0100AAAA00010000", "release_date": "2026-03-04"},
+      {"url": "files/Game%20One%20[0100AAAA00010800][v131072].nsp", "size": 2000},
+      {"name": "A cheat", "url": "/cheats/x.txt", "app_type": "CHEAT"}
+    ]},
+    {"id": "dlc", "title": "DLC", "items": [
+      {"url": "https://cdn.example.org/dlc/pack.nsz", "title_id": 81064793292673025, "app_type": 130},
+      {"url": "http://plain.example.org/x.nsp"},
+      {"url": "gdrive:/1AbCdE#x.nsp"},
+      {"url": "/api/get_game/1#Game%20One.nsp"},
+      {"size": 3}
+    ]},
+    {"id": "cheats", "title": "Cheats", "items": [{"url": "/c.txt"}]}
+  ]
+}

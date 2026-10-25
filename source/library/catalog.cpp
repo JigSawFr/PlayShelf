@@ -1,0 +1,474 @@
+// Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include "library/catalog.hpp"
+
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <set>
+
+#include <borealis/extern/nlohmann/json.hpp>
+
+namespace library
+{
+namespace
+{
+using json = nlohmann::json;
+
+constexpr size_t MAX_NAME = 256, MAX_TITLE = 96, MAX_MOTD = 2048, MAX_URL = 2048, MAX_DIRECTORIES = 64;
+
+bool fail(std::string* why, const std::string& text)
+{
+    if (why) *why = text;
+    return false;
+}
+
+// Parsed with a depth limit: a deep answer cannot exhaust the stack.
+bool parse_json(const std::string& body, json* out)
+{
+    bool too_deep = false;
+    *out = json::parse(
+        body,
+        [&](int depth, json::parse_event_t, json&) {
+            if (depth > MAX_DEPTH) too_deep = true;
+            return depth <= MAX_DEPTH;
+        },
+        false);
+    return !too_deep && !out->is_discarded();
+}
+
+std::string str_at(const json& j, const char* key)
+{
+    const auto it = j.find(key);
+    return it != j.end() && it->is_string() ? it->get<std::string>() : std::string();
+}
+
+bool hex_u64(const std::string& text, uint64_t* out)
+{
+    std::string t = text;
+    while (!t.empty() && std::isspace((unsigned char)t.front()))
+        t.erase(t.begin());
+    while (!t.empty() && std::isspace((unsigned char)t.back()))
+        t.pop_back();
+    if (t.size() > 2 && t[0] == '0' && (t[1] == 'x' || t[1] == 'X')) t = t.substr(2);
+    if (t.empty() || t.size() > 16) return false;
+    uint64_t v = 0;
+    for (char c : t) {
+        if (!std::isxdigit((unsigned char)c)) return false;
+        v = v << 4 | (uint64_t)(std::isdigit((unsigned char)c) ? c - '0' : std::tolower((unsigned char)c) - 'a' + 10);
+    }
+    *out = v;
+    return true;
+}
+
+bool u64_at(const json& j, const char* key, uint64_t* out)
+{
+    const auto it = j.find(key);
+    if (it == j.end()) return false;
+    if (it->is_number_unsigned()) {
+        *out = it->get<uint64_t>();
+        return true;
+    }
+    if (it->is_number_integer() && it->get<int64_t>() >= 0) {
+        *out = (uint64_t)it->get<int64_t>();
+        return true;
+    }
+    return false;
+}
+
+bool title_id_at(const json& j, uint64_t* out)
+{
+    for (const char* key : {"title_id", "titleId", "id"}) {
+        const auto it = j.find(key);
+        if (it == j.end()) continue;
+        if (it->is_string() && hex_u64(it->get<std::string>(), out)) return *out != 0;
+        if (it->is_number_unsigned()) {
+            *out = it->get<uint64_t>();
+            return *out != 0;
+        }
+    }
+    return false;
+}
+
+bool version_at(const json& j, uint32_t* out)
+{
+    for (const char* key : {"app_version", "version"}) {
+        uint64_t v;
+        if (u64_at(j, key, &v) && v <= 0xffffffffu) {
+            *out = (uint32_t)v;
+            return true;
+        }
+        const auto it = j.find(key);
+        if (it != j.end() && it->is_string()) {
+            const std::string s = it->get<std::string>();
+            char*             end = nullptr;
+            const unsigned long long n = std::strtoull(s.c_str(), &end, 10);
+            if (!s.empty() && end && *end == '\0' && n <= 0xffffffffu) {
+                *out = (uint32_t)n;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+uint32_t date_at(const json& j)
+{
+    for (const char* key : {"release_date", "releaseDate"}) {
+        uint64_t n;
+        if (u64_at(j, key, &n) && n >= 19000101 && n <= 29991231) return (uint32_t)n;
+        const std::string s = str_at(j, key);
+        std::string       digits;
+        for (char c : s)
+            if (std::isdigit((unsigned char)c)) digits += c;
+        if (digits.size() >= 8) {
+            const unsigned long v = std::strtoul(digits.substr(0, 8).c_str(), nullptr, 10);
+            if (v >= 19000101 && v <= 29991231) return (uint32_t)v;
+        }
+    }
+    return 0;
+}
+
+Kind kind_from_text(std::string t)
+{
+    std::transform(t.begin(), t.end(), t.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+    if (t == "base" || t == "game" || t == "application" || t == "app") return Kind::Base;
+    if (t == "update" || t == "updates" || t == "upd" || t == "patch") return Kind::Update;
+    if (t == "dlc" || t == "dlcs" || t == "addon" || t == "add-on" || t == "aoc") return Kind::Dlc;
+    return Kind::Unknown;
+}
+
+Kind kind_at(const json& j)
+{
+    const auto it = j.find("app_type");
+    if (it == j.end()) return Kind::Unknown;
+    if (it->is_string()) return kind_from_text(it->get<std::string>());
+    if (it->is_number_integer()) {
+        // NcmContentMetaType: 0x80 application, 0x81 patch, 0x82 add-on.
+        switch (it->get<int64_t>()) {
+        case 0x80: return Kind::Base;
+        case 0x81: return Kind::Update;
+        case 0x82: return Kind::Dlc;
+        default: return Kind::Unknown;
+        }
+    }
+    return Kind::Unknown;
+}
+
+// The file name of an address: its last segment, %-decoded, before "?".
+std::string file_name(const std::string& url)
+{
+    std::string s = url;
+    const size_t q = s.find_first_of("?#");
+    if (q != std::string::npos) s.resize(q);
+    const size_t slash = s.find_last_of('/');
+    if (slash != std::string::npos) s = s.substr(slash + 1);
+    std::string out;
+    for (size_t i = 0; i < s.size(); i++) {
+        if (s[i] == '%' && i + 2 < s.size() && std::isxdigit((unsigned char)s[i + 1]) && std::isxdigit((unsigned char)s[i + 2])) {
+            out += (char)std::strtol(s.substr(i + 1, 2).c_str(), nullptr, 16);
+            i += 2;
+        } else {
+            out += s[i] == '+' ? ' ' : s[i];
+        }
+    }
+    return out;
+}
+
+// One item from an entry: an address (a string, or an object's "url"),
+// the rest of its fields when it is an object.
+bool add_item(Catalog& c, const json& entry, const std::string& base, const std::string& section, std::set<std::string>& seen)
+{
+    if (c.items.size() >= MAX_ITEMS) {
+        c.skipped++;
+        return false;
+    }
+    std::string ref;
+    if (entry.is_string())
+        ref = entry.get<std::string>();
+    else if (entry.is_object())
+        for (const char* key : {"url", "path", "file", "download_url"})
+            if ((ref = str_at(entry, key)).size()) break;
+    if (ref.empty() || ref.size() > MAX_URL || ref.rfind("gdrive:", 0) == 0) {
+        c.skipped++;
+        return false;
+    }
+    std::string fragment;
+    const size_t hash = ref.find('#');
+    if (hash != std::string::npos) {
+        fragment = ref.substr(hash + 1);
+        ref.resize(hash);
+    }
+    Item item;
+    item.url = resolve(base, ref);
+    if (item.url.empty() || !seen.insert(item.url).second) {
+        c.skipped++;
+        return false;
+    }
+    item.section = section;
+    std::string name = entry.is_object() ? str_at(entry, "name") : std::string();
+    if (name.empty()) name = !fragment.empty() ? file_name("/" + fragment) : file_name(item.url);
+    item.name = display_text(name, MAX_NAME);
+    if (item.name.empty()) {
+        c.skipped++;
+        return false;
+    }
+    if (entry.is_object()) {
+        u64_at(entry, "size", &item.size);
+        title_id_at(entry, &item.title_id);
+        item.has_version = version_at(entry, &item.version);
+        item.kind = kind_at(entry);
+        item.release_date = date_at(entry);
+        for (const char* key : {"icon_url", "iconUrl"}) {
+            const std::string icon = str_at(entry, key);
+            if (!icon.empty() && icon.size() <= MAX_URL && (item.icon_url = resolve(base, icon)).size()) break;
+        }
+    }
+    // The tags of the name, else of the file's name.
+    uint64_t tid = 0;
+    uint32_t ver = 0;
+    bool     has_ver = false;
+    bool tagged = parse_name_tags(item.name, &tid, &ver, &has_ver);
+    if (!tagged || !has_ver) {
+        uint64_t   ftid = 0;
+        uint32_t   fver = 0;
+        bool       fhas = false;
+        const bool ftagged = parse_name_tags(!fragment.empty() ? fragment : file_name(item.url), &ftid, &fver, &fhas);
+        if (!tagged && ftagged) {
+            tid = ftid;
+            tagged = true;
+        }
+        if (!has_ver && fhas) {
+            ver = fver;
+            has_ver = true;
+        }
+    }
+    if (tagged || has_ver) {
+        if (!item.title_id && tagged) item.title_id = tid;
+        if (!item.has_version && has_ver) {
+            item.version = ver;
+            item.has_version = true;
+        }
+    }
+    if (item.kind == Kind::Unknown && item.title_id) item.kind = kind_of(item.title_id);
+    if (item.kind == Kind::Unknown) item.kind = kind_from_text(section);
+    c.items.push_back(std::move(item));
+    return true;
+}
+}   // namespace
+
+std::string display_text(const std::string& s, size_t max)
+{
+    // Each character decoded: an invalid sequence (a stray continuation
+    // byte, an overlong form, a surrogate, past U+10FFFF, cut short) becomes
+    // U+FFFD, a control character a space; the text stops before the
+    // character that would pass `max` bytes.
+    std::string out;
+    size_t      i = 0;
+    while (i < s.size()) {
+        const unsigned char c = (unsigned char)s[i];
+        size_t              n = c < 0x80 ? 1 : c >= 0xc2 && c <= 0xdf ? 2 : c >= 0xe0 && c <= 0xef ? 3 : c >= 0xf0 && c <= 0xf4 ? 4 : 0;
+        bool                ok = n > 0 && i + n <= s.size();
+        uint32_t            cp = n == 1 ? c : n == 2 ? c & 0x1f : n == 3 ? c & 0x0f : c & 0x07;
+        for (size_t k = 1; ok && k < n; k++) {
+            const unsigned char cc = (unsigned char)s[i + k];
+            if ((cc & 0xc0) != 0x80) ok = false;
+            cp = cp << 6 | (cc & 0x3f);
+        }
+        if (ok && ((n == 3 && (cp < 0x800 || (cp >= 0xd800 && cp <= 0xdfff))) || (n == 4 && (cp < 0x10000 || cp > 0x10ffff))))
+            ok = false;
+        std::string ch;
+        if (!ok) {
+            ch = "\xef\xbf\xbd";
+            n = 1;
+        } else if (cp < 32 || cp == 127) {
+            ch = " ";
+        } else {
+            ch = s.substr(i, n);
+        }
+        if (out.size() + ch.size() > max) break;
+        out += ch;
+        i += n;
+    }
+    return out;
+}
+
+std::string resolve(const std::string& base, const std::string& ref)
+{
+    auto https = [](const std::string& u) { return u.size() > 8 && u.compare(0, 8, "https://") == 0 ? u : std::string(); };
+    if (ref.empty()) return "";
+    // Any scheme of its own: kept only when https.
+    const size_t colon = ref.find(':');
+    const size_t slash = ref.find('/');
+    if (colon != std::string::npos && (slash == std::string::npos || colon < slash)) {
+        std::string scheme = ref.substr(0, colon);
+        std::transform(scheme.begin(), scheme.end(), scheme.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+        return scheme == "https" ? https("https" + ref.substr(colon)) : "";
+    }
+    if (base.compare(0, 8, "https://") != 0) return "";
+    const size_t host_end = base.find_first_of("/?#", 8);
+    const std::string origin = base.substr(0, host_end);
+    if (origin.size() <= 8) return "";
+    if (ref.compare(0, 2, "//") == 0) return https("https:" + ref);
+    std::string path;
+    if (ref[0] == '/') {
+        path = ref;
+    } else {
+        std::string base_path = host_end == std::string::npos ? "/" : base.substr(host_end);
+        const size_t q = base_path.find_first_of("?#");
+        if (q != std::string::npos) base_path.resize(q);
+        if (base_path.empty() || base_path[0] != '/') base_path = "/" + base_path;
+        path = base_path.substr(0, base_path.find_last_of('/') + 1) + ref;
+    }
+    // "." and ".." of the path (its query left as it is).
+    std::string query;
+    const size_t q = path.find_first_of("?#");
+    if (q != std::string::npos) {
+        query = path.substr(q);
+        path.resize(q);
+    }
+    std::vector<std::string> parts;
+    size_t                   at = 1;
+    while (at <= path.size()) {
+        const size_t next = path.find('/', at);
+        const std::string seg = path.substr(at, next == std::string::npos ? std::string::npos : next - at);
+        if (seg == "..") {
+            if (!parts.empty()) parts.pop_back();
+        } else if (seg != ".") {
+            parts.push_back(seg);
+        }
+        if (next == std::string::npos) break;
+        at = next + 1;
+    }
+    std::string out = origin;
+    for (const std::string& p : parts)
+        out += "/" + p;
+    if (parts.empty()) out += "/";
+    return https(out + query);
+}
+
+Kind kind_of(uint64_t title_id)
+{
+    if (!title_id) return Kind::Unknown;
+    if ((title_id >> 12) & 1) return Kind::Dlc;
+    if ((title_id & 0xfff) == 0x800) return Kind::Update;
+    if ((title_id & 0xfff) == 0) return Kind::Base;
+    return Kind::Unknown;
+}
+
+uint64_t base_of(uint64_t title_id)
+{
+    switch (kind_of(title_id)) {
+    case Kind::Update: return title_id & ~0xfffull;
+    case Kind::Dlc: return (title_id & ~0xfffull) ^ 0x1000;
+    default: return title_id;
+    }
+}
+
+bool parse_name_tags(const std::string& name, uint64_t* title_id, uint32_t* version, bool* has_version)
+{
+    bool found = false;
+    *has_version = false;
+    for (size_t open = name.find('['); open != std::string::npos; open = name.find('[', open + 1)) {
+        const size_t close = name.find(']', open);
+        if (close == std::string::npos) break;
+        const std::string tag = name.substr(open + 1, close - open - 1);
+        uint64_t          v;
+        if (tag.size() == 16 && hex_u64(tag, &v) && v) {
+            *title_id = v;
+            found = true;
+        } else if (tag.size() >= 2 && (tag[0] == 'v' || tag[0] == 'V') &&
+                   std::all_of(tag.begin() + 1, tag.end(), [](unsigned char c) { return std::isdigit(c); }) && tag.size() <= 11) {
+            const unsigned long long n = std::strtoull(tag.c_str() + 1, nullptr, 10);
+            if (n <= 0xffffffffu) {
+                *version = (uint32_t)n;
+                *has_version = true;
+            }
+        }
+    }
+    return found;
+}
+
+std::optional<Catalog> parse_api(const std::string& body, const std::string& base_url, std::string* why)
+{
+    json j;
+    if (!parse_json(body, &j) || !j.is_object()) {
+        fail(why, "the server's answer is not a catalogue");
+        return std::nullopt;
+    }
+    const std::string error = str_at(j, "error");
+    if (!error.empty()) {
+        fail(why, display_text(error, MAX_TITLE * 2));
+        return std::nullopt;
+    }
+    const auto sections = j.find("sections");
+    if (sections == j.end() || !sections->is_array()) {
+        fail(why, "the server's answer has no sections");
+        return std::nullopt;
+    }
+    Catalog               c;
+    std::set<std::string> seen;
+    c.motd = display_text(str_at(j, "motd").empty() ? str_at(j, "success") : str_at(j, "motd"), MAX_MOTD);
+    for (const json& s : *sections) {
+        if (!s.is_object()) continue;
+        const auto items = s.find("items");
+        if (items == s.end() || !items->is_array()) continue;
+        Section sec;
+        sec.id = display_text(str_at(s, "id").empty() ? "all" : str_at(s, "id"), MAX_TITLE);
+        sec.title = display_text(str_at(s, "title").empty() ? sec.id : str_at(s, "title"), MAX_TITLE);
+        for (const json& e : *items) {
+            // Cheats, AeroFoil's, are no package to install.
+            if (sec.id == "cheats" || (e.is_object() && str_at(e, "app_type") == "CHEAT")) continue;
+            if (add_item(c, e, base_url, sec.id, seen)) sec.items.push_back(c.items.size() - 1);
+        }
+        c.sections.push_back(std::move(sec));
+    }
+    return c;
+}
+
+std::optional<Catalog> parse_index(const std::string& body, const std::string& base_url, std::string* why)
+{
+    json j;
+    if (!parse_json(body, &j) || !j.is_object()) {
+        fail(why, "the index is not JSON");
+        return std::nullopt;
+    }
+    if (!j.contains("files") && !j.contains("directories") && !j.contains("titledb") && !j.contains("success")) {
+        fail(why, "the index has none of files, directories, titledb, success");
+        return std::nullopt;
+    }
+    Catalog               c;
+    std::set<std::string> seen;
+    c.motd = display_text(str_at(j, "success"), MAX_MOTD);
+    const auto files = j.find("files");
+    if (files != j.end() && files->is_array())
+        for (const json& e : *files)
+            add_item(c, e, base_url, "", seen);
+    const auto dirs = j.find("directories");
+    if (dirs != j.end() && dirs->is_array())
+        for (const json& d : *dirs) {
+            std::string ref = d.is_string() ? d.get<std::string>() : d.is_object() ? str_at(d, "url") : std::string();
+            const std::string url = ref.size() <= MAX_URL ? resolve(base_url, ref) : std::string();
+            if (!url.empty() && c.directories.size() < MAX_DIRECTORIES &&
+                std::find(c.directories.begin(), c.directories.end(), url) == c.directories.end())
+                c.directories.push_back(url);
+        }
+    const auto tdb = j.find("titledb");
+    if (tdb != j.end() && tdb->is_object())
+        for (auto it = tdb->begin(); it != tdb->end() && c.titles.size() < MAX_ITEMS; ++it) {
+            uint64_t id;
+            if (!hex_u64(it.key(), &id) || !id || !it->is_object()) continue;
+            TitleInfo t;
+            t.name = display_text(str_at(*it, "name"), MAX_NAME);
+            version_at(*it, &t.version);
+            c.titles[id] = t;
+        }
+    // A titledb names the items it knows that have no name of their own but
+    // their file's.
+    for (Item& item : c.items) {
+        const auto t = c.titles.find(base_of(item.title_id));
+        if (t != c.titles.end() && !t->second.name.empty() && item.name == file_name(item.url)) item.name = t->second.name;
+    }
+    return c;
+}
+
+}   // namespace library

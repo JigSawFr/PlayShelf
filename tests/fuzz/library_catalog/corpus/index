@@ -1,0 +1,10 @@
+{
+  "files": [
+    "https://files.example.org/games/Alpha%20[0100DDDD00010000][v0].nsp",
+    {"url": "Beta.xci", "size": 777},
+    {"url": "../up/Gamma [0100CCCC00010800][v65536].nsz", "name": "Gamma update"}
+  ],
+  "directories": ["more/index.json", "https://other.example.org/i.json", "http://x/i.json", "more/index.json"],
+  "titledb": {"0100BBBB00010000": {"name": "Beta Quest", "version": 0}, "zz": {"name": "bad"}, "0100CCCC00010000": {"name": "Gamma"}},
+  "success": "Index of the week"
+}
