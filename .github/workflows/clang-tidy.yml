@@ -16,7 +16,6 @@ on:
     paths:
       - source/**
       - extern/**
-      - patches/**
       - .clang-tidy
       - CMakeLists.txt
       - .github/workflows/clang-tidy.yml
@@ -24,7 +23,6 @@ on:
     paths:
       - source/**
       - extern/**
-      - patches/**
       - .clang-tidy
       - CMakeLists.txt
       - .github/workflows/clang-tidy.yml

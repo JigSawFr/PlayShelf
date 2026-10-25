@@ -42,7 +42,7 @@ void MainActivity::onContentAvailable()
 
     // −: the language, the theme and the text size (also a tap on them in
     // the header, which shows them). Left out of the footer first when a
-    // screen's own keys need its room (patches/borealis/0020).
+    // screen's own keys need its room (Aurore, patch 0020).
     brls::setHintsOptionalOwner(this->getContentView());
     this->getContentView()->registerAction("playshelf/quick/hint"_i18n, brls::BUTTON_BACK, [](brls::View*) {
         ui::quick_settings(TabBase::refresh_shown);

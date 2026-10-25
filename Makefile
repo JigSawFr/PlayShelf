@@ -169,18 +169,20 @@ format_text_FLAGS := $(TEST_CXXFLAGS) -isystem extern/borealis/library/lib/exter
 cadran_text_SRC   := $(K)/ui/cadran_text.cpp tests/cadran_text/test.cpp
 contrast_SRC      := tests/contrast/test.cpp
 cadran_text_FLAGS := $(format_text_FLAGS)
-# borealis' own string tables (core/i18n.cpp) with PlayShelf's patches to
-# them, read from other threads while the language changes. A copy of the
-# two files at the submodule's commit, patched here (the submodule's are
-# patched only when CMake configures), first in the include path.
+# borealis' own string tables (core/i18n.cpp), read from other threads while
+# the language changes. A copy of the files at the submodule's commit, first
+# in the include path, made again when that commit changes (the stamp holds
+# it, rewritten only then).
 I18N_COPY    := $(TESTOUT)/borealis_i18n
-I18N_PATCHES := $(sort $(shell grep -l 'core/i18n\.\|core/platform\.hpp' patches/borealis/*.patch))
-$(I18N_COPY)/i18n.cpp: $(I18N_PATCHES) | $(TESTOUT)
+I18N_STAMP   := $(TESTOUT)/borealis_i18n.commit
+I18N_COMMIT  := $(shell git -C extern/borealis rev-parse HEAD 2>/dev/null)
+$(I18N_STAMP): FORCE | $(TESTOUT)
+	@echo '$(I18N_COMMIT)' | cmp -s - $@ || echo '$(I18N_COMMIT)' > $@
+$(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@rm -rf $(I18N_COPY) && mkdir -p $(I18N_COPY)/library/lib/core $(I18N_COPY)/library/include/borealis/core
 	@git -C extern/borealis show HEAD:library/lib/core/i18n.cpp > $(I18N_COPY)/library/lib/core/i18n.cpp
 	@git -C extern/borealis show HEAD:library/include/borealis/core/i18n.hpp > $(I18N_COPY)/library/include/borealis/core/i18n.hpp
 	@git -C extern/borealis show HEAD:library/include/borealis/core/platform.hpp > $(I18N_COPY)/library/include/borealis/core/platform.hpp
-	@for p in $(I18N_PATCHES); do patch -s -p1 -d $(I18N_COPY) -i $(CURDIR)/$$p || exit 1; done
 	@# The suffix without a space, as newer clang wants it (-Wdeprecated-literal-operator),
 	@# in this copy only: borealis itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@

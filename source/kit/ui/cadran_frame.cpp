@@ -130,7 +130,7 @@ void cadran::install_theme()
         t->addColor("brls/notification/text", p == dark ? c(p->text) : nvgRGB(0xEE, 0xF2, 0xF8));
     }
 #ifndef __SWITCH__
-    // And held where it is (patches/borealis/0009). The footer's hints too:
+    // And held where it is (Aurore, patch 0009). The footer's hints too:
     // drawn as once a screen or a dialog has opened, not greyed while its
     // fade blocks the input (0014). A slow frame (the web simulator's
     // software WebGL) could otherwise catch them greyed.
@@ -140,7 +140,7 @@ void cadran::install_theme()
     }
 #endif
     // The footer's hints and clock grow less than the rest with the larger
-    // text: a footer full of hints still has room for them (patches/borealis/0007).
+    // text: a footer full of hints still has room for them (Aurore, patch 0007).
     brls::setHintsFontScaleMax(HINTS_SCALE);
     brls::Style style = brls::getStyle();
     // The corners of the kit, for the XML (@style/cadran/radius/card…).
@@ -192,7 +192,7 @@ namespace
 // The frame (header, rail) with Preferences › Text size's larger text
 // (ui/text_size): at most `scale` times its size, as the room allows, and
 // smaller again, down to its size, where a language's words need it
-// (patches/borealis/0007). The normal text size leaves it as it is.
+// (Aurore, patch 0007). The normal text size leaves it as it is.
 void chrome(brls::Label* label, float size, float scale)
 {
     label->setFontSize(size);
