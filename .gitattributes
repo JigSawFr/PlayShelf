@@ -1,0 +1,12 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Never diffed or normalised as text.
+*.png binary
+*.jpg binary
+*.ttf binary
+*.nro binary
+*.zip binary
+*.dksh binary
+*.mp4 binary
+*.gif binary

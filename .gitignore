@@ -1,0 +1,25 @@
+# Build outputs
+/build
+/build-*
+/out
+/.ccache
+*.o
+*.d
+*.a
+*.elf
+*.nacp
+*.nro
+*.nso
+*.nsp
+*.npdm
+*.map
+*.zip
+
+# Local runtime data (desktop simulator)
+/playshelf_data
+
+# Editor / tool local config
+.vscode/
+.DS_Store
+__pycache__/
+/node_modules
