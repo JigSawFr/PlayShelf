@@ -114,6 +114,10 @@ install_stream_LIBS := -lzstd
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
 install_txn_LIBS := -lzstd
+# The library client's formats (source/library/: catalogues, addresses,
+# discovery, endpoints, certificate pins), with the kit's SHA-256.
+LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp $(K)/util/sha256.cpp
+library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
 # The desktop build's console (sim/sim_install.cpp) behind install::Console.
 install_sim_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/install/console_core.cpp source/sim/sim_install.cpp \
                     $(K)/util/paths.cpp $(K)/sim/sim_env.cpp tests/install_sim/test.cpp
@@ -261,6 +265,8 @@ install_stream_FUZZ      := $(filter-out tests/%,$(install_stream_SRC)) tests/fu
 install_stream_FUZZ_LIBS := -lzstd
 install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz/install_package/fuzz.cpp
 install_package_FUZZ_LIBS := -lzstd
+library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
+library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))
 FUZZ_RUNS := $(addsuffix .run,$(FUZZ_PROGRAMS))
