@@ -2,6 +2,7 @@
 #include "install/console_core.hpp"
 
 #include <cstdio>
+#include <cstring>
 #include <vector>
 
 namespace install
@@ -61,6 +62,28 @@ bool CoreConsole::write_placeholder(const ContentId& id, uint64_t offset, const 
 bool CoreConsole::register_placeholder(const ContentId& id, std::string* why)
 {
     return check(core_placeholder_register(id.data()), "registering a content", why);
+}
+
+bool CoreConsole::has_placeholder(const ContentId& id)
+{
+    bool has = false;
+    return R_SUCCEEDED(core_placeholder_has(id.data(), &has)) && has;
+}
+
+std::vector<ContentId> CoreConsole::placeholders()
+{
+    // An install leaves one at most; a few others' installers may have too.
+    constexpr int              MAX = 256;
+    std::vector<uint8_t>       raw(16 * MAX);
+    int                        count = 0;
+    std::vector<ContentId>     out;
+    if (R_FAILED(core_placeholder_list(reinterpret_cast<u8(*)[16]>(raw.data()), MAX, &count))) return out;
+    for (int i = 0; i < count; i++) {
+        ContentId id;
+        std::memcpy(id.data(), raw.data() + 16 * i, 16);
+        out.push_back(id);
+    }
+    return out;
 }
 
 void CoreConsole::delete_placeholder(const ContentId& id) { core_placeholder_delete(id.data()); }

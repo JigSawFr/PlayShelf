@@ -20,6 +20,12 @@
 // (CTR) is encrypted again with its key and its counter's upper half, as
 // the installers it comes from do; the other types are written as they
 // come.
+//
+// A plain .nca can be stopped and taken up again later (an install paused,
+// or cut by a restart): checkpoint() says where its body stands (the NCA
+// bytes written, the SHA-256 so far), resume_at() starts a new stream
+// there, the file then fed from that offset on (a .nca's bytes are the
+// NCA's, at the same offsets). A .ncz starts again from its beginning.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -33,6 +39,7 @@
 #include <vector>
 
 #include "install/nca.hpp"
+#include "util/sha256.hpp"
 
 namespace install
 {
@@ -54,6 +61,20 @@ class ContentStream
     ~ContentStream();
     ContentStream(const ContentStream&) = delete;
     ContentStream& operator=(const ContentStream&) = delete;
+
+    // Where a plain NCA's body stands; nothing before its body or for a .ncz.
+    struct Checkpoint
+    {
+        uint64_t                                offset = 0;   // the NCA bytes written, and the file's to feed next
+        uint64_t                                nca_size = 0;
+        std::array<uint8_t, Sha256::STATE_SIZE> sha{};
+    };
+    std::optional<Checkpoint> checkpoint() const;
+    // Before any feed(): goes on from `at` (the header already checked and
+    // written by the stream that gave it). False, the stream unchanged,
+    // when `at` cannot be this content's (past its end, a size other than
+    // the content meta's, a hash state that is not one).
+    bool resume_at(const Checkpoint& at);
 
     // The next bytes of the file (.nca or .ncz). False once the stream has
     // stopped: error() says why.
