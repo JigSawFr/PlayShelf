@@ -10,6 +10,6 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `make dist` | `./playshelf.zip` (SD-card layout, reproducible) | as above |
 | `./run.sh [ip]` | Builds in the `devkitpro/devkita64` Docker image, at the digest CI uses (read from `build.yml`), optionally `nxlink`s to a console | Docker |
 
-Clone with submodules (`git clone --recursive`, or `git submodule update --init --recursive`): borealis is pinned at `extern/borealis/`. The fixes PlayShelf needs in it before upstream has them are patches in `patches/borealis/` (its README says why each one), the same as PlayGuard's, applied to the submodule when CMake configures. `.gitmodules` says `ignore = dirty`, so `git status` leaves those changes out; `git -C extern/borealis diff` shows them.
+Clone with submodules (`git clone --recursive`, or `git submodule update --init --recursive`): borealis is pinned at `extern/borealis/`, on [JigSawFr/borealis](https://github.com/JigSawFr/borealis) (`wiliwili` branch): xfangfang/borealis with the fixes PlayGuard and PlayShelf need in it (one commit each, its message says why; those that were patches name theirs, `patch 0007`) and a few taken from borealis' other forks. A change to borealis is a pull request there, then a submodule bump here.
 
 On Debian or Ubuntu, the desktop build needs `cmake libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxkbcommon-dev libwayland-dev wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev libzstd-dev`; its smoke test `xvfb xdotool imagemagick dbus`.

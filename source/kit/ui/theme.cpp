@@ -45,7 +45,7 @@ void use_font_for(const std::string& locale)
     // Chinese system font, the Latin one only filling its gaps. That font has
     // the pinyin letters é, è, ê… as full-width glyphs ("prot é g é e"), and a
     // full-width "·" and "…". Chinese keeps it: the han in its own style. The
-    // default font is looked up for each new label (patches/borealis/0013).
+    // default font is looked up for each new label (borealis fork, patch 0013).
     static const int chinese = brls::Application::getFont(brls::FONT_CHINESE_SIMPLIFIED);   // as loaded
     static bool latin = false;   // what the name holds now (the Chinese font at start)
     const bool want_latin = !text::starts_with(locale, "zh");

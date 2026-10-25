@@ -25,7 +25,7 @@ updates:
         patterns:
           - actions/*-artifact
 
-  # borealis is pinned at extern/borealis and follows the `wiliwili` branch of xfangfang/borealis
+  # borealis is pinned at extern/borealis and follows the `wiliwili` branch of JigSawFr/borealis
   # (.gitmodules). Monthly: each bump changes the whole UI, so it wants a look at the
   # desktop-smoke screenshots before merging, not a weekly stream of them.
   - package-ecosystem: gitsubmodule
