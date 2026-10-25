@@ -1,0 +1,110 @@
+// Host tests for borealis' string tables (library/lib/core/i18n.cpp, with
+// patches/borealis/ applied: 0001, 0012, 0018, 0019): a string looked up in the
+// current language, else in English, else its name; another language loaded
+// while the app runs; and strings read from other threads (the background
+// tasks, the worker threads) while the UI thread loads another language,
+// each read giving one language's string or the other's, never a table half
+// replaced or freed under it (ASan would say so).
+#include "check.h"
+#include "temp_dir.hpp"
+
+#include <atomic>
+#include <filesystem>
+#include <fstream>
+#include <borealis/core/application.hpp>
+#include <borealis/core/i18n.hpp>
+#include <borealis/core/util.hpp>
+#include <string>
+#include <thread>
+#include <vector>
+
+using namespace brls::literals;
+
+// What i18n.cpp needs of the rest of borealis.
+namespace brls
+{
+std::string Application::getLocale() { return LOCALE_FR; }
+bool endsWith(const std::string& data, const std::string& suffix)
+{
+    return data.size() >= suffix.size() && data.compare(data.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+Point::Point() : x(0), y(0) {}
+} // namespace brls
+// The theme colours the headers set up (never drawn here).
+NVGcolor nvgRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+{
+    return NVGcolor{{{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f}}};
+}
+
+namespace
+{
+void write(const std::string& path, const char* text)
+{
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    std::ofstream(path) << text;
+}
+
+void write_catalogs()
+{
+    write("i18n/en-US/main.json", R"({"hello": "Hello", "games": "{} games", "only_en": "English"})");
+    write("i18n/fr/main.json", R"({"hello": "Bonjour", "games": "{} jeux"})");
+    write("i18n/de/main.json", R"({"hello": "Hallo"})");
+}
+
+void test_lookups()
+{
+    brls::loadTranslations();  // the platform's locale: French here
+    CHECK(brls::getStr("main/hello") == "Bonjour");
+    CHECK(brls::getStr("main/games", 3) == "3 jeux");
+    CHECK("main/only_en"_i18n == "English");
+    CHECK("main/missing"_i18n == "main/missing");
+
+    brls::loadTranslations("de");
+    CHECK("main/hello"_i18n == "Hallo");
+    CHECK(brls::getStr("main/games", 2) == "2 games");
+
+    brls::loadTranslations(brls::LOCALE_DEFAULT);
+    CHECK("main/hello"_i18n == "Hello");
+
+    brls::loadTranslations("xx");  // no such folder: English
+    CHECK("main/hello"_i18n == "Hello");
+}
+
+void test_reads_while_the_language_changes()
+{
+    std::atomic<bool> stop{false};
+    std::atomic<int> wrong{0};
+    std::atomic<long> reads{0};
+    std::vector<std::thread> readers;
+    for (int t = 0; t < 4; t++)
+        readers.emplace_back([&] {
+            while (!stop.load()) {
+                std::string s = "main/hello"_i18n;
+                std::string g = brls::getStr("main/games", 5);
+                if (s != "Hello" && s != "Bonjour" && s != "Hallo") wrong++;
+                if (g != "5 games" && g != "5 jeux") wrong++;
+                reads++;
+            }
+        });
+    const char* langs[] = {"fr", "de", "en-US"};
+    for (int i = 0; i < 300; i++) brls::loadTranslations(langs[i % 3]);
+    // Let the readers go on a while with the last table too.
+    while (reads.load() < 1000) std::this_thread::yield();
+    stop = true;
+    for (std::thread& t : readers) t.join();
+    CHECK(wrong.load() == 0);
+    CHECK("main/hello"_i18n == "Hello");
+}
+} // namespace
+
+// A sanitizer's report says where it was reached (as CI shows it).
+extern "C" const char* __ubsan_default_options() { return "print_stacktrace=1"; }
+
+int main()
+{
+    TempDir tmp("i18n_threads", TempDir::Enter);
+    write_catalogs();
+    test_lookups();
+    test_reads_while_the_language_changes();
+    return CHECK_DONE("i18n_threads tests passed");
+}

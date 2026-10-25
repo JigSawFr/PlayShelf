@@ -1,0 +1,36 @@
+diff --git a/library/lib/core/view.cpp b/library/lib/core/view.cpp
+index 59ec77bb..02ac088c 100644
+--- a/library/lib/core/view.cpp
++++ b/library/lib/core/view.cpp
+@@ -896,6 +896,15 @@ void View::setDimensions(float width, float height)
+ 
+ void View::setWidth(float width)
+ {
++    // The same width: nothing to lay out again (invalidate() lays the whole
++    // screen out). Set as below: the width and the minimum in points, or
++    // both automatic.
++    const YGValue current = YGNodeStyleGetWidth(this->ygNode);
++    const YGValue minimum = YGNodeStyleGetMinWidth(this->ygNode);
++    if (width == View::AUTO ? current.unit == YGUnitAuto && minimum.unit == YGUnitUndefined
++                         : current.unit == YGUnitPoint && current.value == width && minimum.unit == YGUnitPoint && minimum.value == width)
++        return;
++
+     YGNodeStyleSetMinWidthPercent(this->ygNode, 0);
+ 
+     if (width == View::AUTO)
+@@ -914,6 +923,15 @@ void View::setWidth(float width)
+ 
+ void View::setHeight(float height)
+ {
++    // The same height: nothing to lay out again (invalidate() lays the whole
++    // screen out). Set as below: the height and the minimum in points, or
++    // both automatic.
++    const YGValue current = YGNodeStyleGetHeight(this->ygNode);
++    const YGValue minimum = YGNodeStyleGetMinHeight(this->ygNode);
++    if (height == View::AUTO ? current.unit == YGUnitAuto && minimum.unit == YGUnitUndefined
++                         : current.unit == YGUnitPoint && current.value == height && minimum.unit == YGUnitPoint && minimum.value == height)
++        return;
++
+     YGNodeStyleSetMinHeightPercent(this->ygNode, 0);
+ 
+     if (height == View::AUTO)

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Library: the catalogue of the library server. Until one can be set up,
+     what is coming instead (an empty state, tab/library_tab.cpp). -->
+
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            id="lb_content"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"/>
+
+    </ScrollView>
+
+</brls:Box>

@@ -1,0 +1,92 @@
+diff --git a/library/lib/core/i18n.cpp b/library/lib/core/i18n.cpp
+index 4ec0c109..3bd177ea 100644
+--- a/library/lib/core/i18n.cpp
++++ b/library/lib/core/i18n.cpp
+@@ -30,6 +30,8 @@ namespace fs = std::experimental::filesystem;
+ #error "Failed to include <filesystem> header!"
+ #endif
+ #include <fstream>
++#include <memory>
++#include <mutex>
+ #include <nlohmann/json.hpp>
+ #include <string>
+ 
+@@ -40,8 +42,22 @@ namespace fs = std::experimental::filesystem;
+ namespace brls
+ {
+ 
+-static nlohmann::json defaultLocale = {};
+-static nlohmann::json currentLocale = {};
++// The strings of the default locale and of the current one, never changed
++// once published: a new language is loaded into a new table, put in place of
++// the old one with an atomic store. getStr may be called from any thread
++// while loadTranslations runs on another: a lookup takes the table with an
++// atomic load and keeps it alive until it has copied its string, so a table
++// replaced meanwhile is freed only after its last reader.
++struct Translations
++{
++    nlohmann::json defaultLocale = nlohmann::json::object();
++    nlohmann::json currentLocale = nlohmann::json::object();
++};
++
++static std::shared_ptr<const Translations> translations;
++
++// One load at a time (each one builds on the table in place).
++static std::mutex loadMutex;
+ 
+ static void loadLocale(std::string locale, nlohmann::json* target)
+ {
+@@ -113,20 +129,28 @@ static void loadLocale(std::string locale, nlohmann::json* target)
+ 
+ void loadTranslations()
+ {
+-    loadLocale(LOCALE_DEFAULT, &defaultLocale);
++    std::lock_guard<std::mutex> lock(loadMutex);
++    auto next = std::make_shared<Translations>();
++    loadLocale(LOCALE_DEFAULT, &next->defaultLocale);
+ 
+     std::string currentLocaleName = Application::getLocale();
+     if (currentLocaleName != LOCALE_DEFAULT)
+-        loadLocale(currentLocaleName, &currentLocale);
++        loadLocale(currentLocaleName, &next->currentLocale);
++    std::atomic_store(&translations, std::shared_ptr<const Translations>(std::move(next)));
+ }
+ 
+ void loadTranslations(const std::string& locale)
+ {
+-    if (defaultLocale.empty())
+-        loadLocale(LOCALE_DEFAULT, &defaultLocale);
+-    currentLocale = nlohmann::json::object();
++    std::lock_guard<std::mutex> lock(loadMutex);
++    auto next                                    = std::make_shared<Translations>();
++    std::shared_ptr<const Translations> previous = std::atomic_load(&translations);
++    if (previous && !previous->defaultLocale.empty())
++        next->defaultLocale = previous->defaultLocale;
++    else
++        loadLocale(LOCALE_DEFAULT, &next->defaultLocale);
+     if (locale != LOCALE_DEFAULT)
+-        loadLocale(locale, &currentLocale);
++        loadLocale(locale, &next->currentLocale);
++    std::atomic_store(&translations, std::shared_ptr<const Translations>(std::move(next)));
+ }
+ 
+ namespace internal
+@@ -145,11 +169,17 @@ namespace internal
+             return stringName;
+         }
+ 
++        // The table as it is now, kept for this lookup even if another
++        // thread loads a new language meanwhile.
++        std::shared_ptr<const Translations> table = std::atomic_load(&translations);
++        if (!table)
++            return stringName;
++
+         // First look for translated string in current locale, then in the
+         // default locale. The current one is empty when it is the default
+         // locale: skipped, not looked up (a lookup that misses throws, and
+         // operator[] added a null to it each time).
+-        for (const nlohmann::json* locale : { &currentLocale, &defaultLocale })
++        for (const nlohmann::json* locale : { &table->currentLocale, &table->defaultLocale })
+         {
+             if (locale->is_null() || locale->empty())
+                 continue;

@@ -1,0 +1,61 @@
+# clang-tidy on PlayShelf's own sources: CI's clang-tidy workflow
+# (.github/workflows/clang-tidy.yml) runs it on the files a pull request
+# changes, on every file of source/ for a push to main, and with the static
+# analyzer's path checks once a week; its findings are a report on the run
+# and annotations on the pull request, never a failure. Locally, with the
+# desktop build's compile commands (clang's, without the precompiled header):
+#   CC=clang CXX=clang++ cmake -B build-tidy -S . -DPLATFORM_DESKTOP=ON \
+#     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON
+#   run-clang-tidy -p build-tidy -quiet "$PWD/source/"
+# The families: bugprone (code that is probably not what was meant), cert
+# (the CERT C and C++ rules), performance (needless copies, containers) and
+# the static analyzer (clang-analyzer-*, slow: CI's weekly run only). Left
+# out, each with its reason:
+# - bugprone-easily-swappable-parameters, bugprone-narrowing-conversions,
+#   bugprone-implicit-widening-of-multiplication-result, bugprone-branch-clone:
+#   on every other line, no bug behind them;
+# - bugprone-assignment-in-if-condition: `if ((p = f()))` is used on purpose;
+# - bugprone-unchecked-optional-access: slow, and its findings are the
+#   analyzer's;
+# - cert-err33-c: every snprintf into a fixed buffer, whose truncation is
+#   the point (bugprone-unused-return-value keeps the calls that matter);
+# - cert-err58-cpp: static objects whose constructors may throw (borealis'
+#   own strings);
+# - performance-enum-size, performance-avoid-endl,
+#   performance-inefficient-string-concatenation: style, nothing to gain;
+# - clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling:
+#   every memcpy and snprintf, for C11 Annex K functions no libc here has;
+# - clang-analyzer-cplusplus.NewDeleteLeaks: borealis' views are `new`ed and
+#   owned by the view they are added to, which the analyzer cannot see;
+# - clang-analyzer-optin.performance.Padding: the order of a struct's fields
+#   is the reader's, not the compiler's.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-branch-clone,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-unchecked-optional-access,
+  cert-*,
+  -cert-err33-c,
+  -cert-err58-cpp,
+  performance-*,
+  -performance-enum-size,
+  -performance-avoid-endl,
+  -performance-inefficient-string-concatenation,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -clang-analyzer-optin.performance.Padding
+CheckOptions:
+  # The feature-test macros a C file defines before its first include (the
+  # cert names are the same check: each alias reads its own option).
+  bugprone-reserved-identifier.AllowedIdentifiers: '_POSIX_C_SOURCE;_GNU_SOURCE;_DEFAULT_SOURCE;_XOPEN_SOURCE'
+  cert-dcl37-c.AllowedIdentifiers: '_POSIX_C_SOURCE;_GNU_SOURCE;_DEFAULT_SOURCE;_XOPEN_SOURCE'
+  cert-dcl51-cpp.AllowedIdentifiers: '_POSIX_C_SOURCE;_GNU_SOURCE;_DEFAULT_SOURCE;_XOPEN_SOURCE'
+# PlayShelf's headers only: borealis' (a system include path) stay out.
+HeaderFilterRegex: '/source/.*\.(h|hpp)$'
+WarningsAsErrors: ''
+FormatStyle: none

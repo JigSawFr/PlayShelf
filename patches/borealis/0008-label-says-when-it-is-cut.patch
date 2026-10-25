@@ -1,0 +1,27 @@
+diff --git a/library/include/borealis/views/label.hpp b/library/include/borealis/views/label.hpp
+--- a/library/include/borealis/views/label.hpp
++++ b/library/include/borealis/views/label.hpp
+@@ -115,6 +115,8 @@
+     NVGcolor getTextColor();
+ 
+     std::string getFullText();
++    // The text as laid out does not fit: it is drawn cut, with an ellipsis.
++    bool isTruncated();
+ 
+     static View* create();
+ 
+diff --git a/library/lib/views/label.cpp b/library/lib/views/label.cpp
+--- a/library/lib/views/label.cpp
++++ b/library/lib/views/label.cpp
+@@ -691,6 +691,11 @@
+     return this->fullText;
+ }
+ 
++bool Label::isTruncated()
++{
++    return this->truncatedText != this->fullText;
++}
++
+ void Label::setRequiredWidth(float requiredWidth)
+ {
+     this->requiredWidth = requiredWidth;

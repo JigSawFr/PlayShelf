@@ -15,10 +15,21 @@ PlayShelf is a Nintendo Switch homebrew that browses a library server you run yo
 It is built on the same technical base and the same *Cadran* look as [PlayGuard](https://github.com/JigSawFr/PlayGuard).
 
 > [!WARNING]
-> **Early development.** Nothing is released yet.
+> **Early development.** Nothing is released yet: the app starts, updates itself and reports its crashes, and its library comes next.
 
 > [!IMPORTANT]
 > PlayShelf installs content you own. It does not support, and will not support, encrypted Tinfoil indexes, Tinfoil's authentication headers or any service that distributes games without the rights to do so.
+
+## Build
+
+```sh
+git clone --recursive https://github.com/JigSawFr/PlayShelf && cd PlayShelf
+make test        # the host tests
+make desktop     # the real UI against a simulated console
+make dist        # playshelf.zip for the SD card (devkitPro)
+```
+
+Everything else: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

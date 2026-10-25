@@ -1,0 +1,272 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  # With a tag (vX.Y.Z), the release's assets built again from that tag and
+  # attached to its release, as release-please.yml does.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build and attach the assets to (empty for a plain build)
+        type: string
+        required: false
+        default: ''
+  # Called by release-please.yml once a release (and its vX.Y.Z tag) exists.
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag to build and attach the assets to
+        type: string
+        required: true
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the run on the commit it replaces.
+concurrency:
+  group: build-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
+# The runner image is pinned (ubuntu-26.04, not ubuntu-latest): the smoke
+# test's screenshots are drawn by the image's mesa.
+jobs:
+  # What is being built: the version (CMakeLists.txt) and a label for the
+  # artifact names, `<version>-<ref>-<commit>`: 0.1.0-pr12-1f0a059,
+  # 0.1.0-main-2bd4996, 0.1.0-release-2bd4996. Development builds are found
+  # by that name (source/kit/util/dev_builds.hpp).
+  meta:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      label: ${{ steps.label.outputs.label }}
+      version: ${{ steps.label.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          sparse-checkout: CMakeLists.txt
+          sparse-checkout-cone-mode: false
+      - name: Build label
+        id: label
+        env:
+          TAG: ${{ inputs.tag }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's/^set(VERSION_\(MAJOR\|MINOR\|ALTER\) "\([0-9]*\)").*/\2/p' CMakeLists.txt | paste -sd.)
+          if [ -n "$TAG" ]; then HEAD_SHA=$(git rev-parse HEAD); fi
+          if [ -n "$TAG" ]; then ref=release
+          elif [ -n "$PR" ]; then ref="pr$PR"
+          else ref=$(printf '%s' "$REF_NAME" | tr -c 'A-Za-z0-9._' '-' | tr -s '-' | cut -c1-40); fi
+          sha7=$(printf '%s' "$HEAD_SHA" | cut -c1-7)
+          { echo "version=$version"; echo "label=$version-$ref-$sha7"; } | tee -a "$GITHUB_OUTPUT"
+
+  # The host tests with gcc (ASan, UBSan), then the static checks of the
+  # resources and the sources.
+  host-tests:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          submodules: true
+      - name: Dependencies
+        run: dpkg -s zlib1g-dev > /dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends zlib1g-dev; }
+      - name: Compiler messages as annotations
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+      - name: Host tests
+        run: make test
+      - name: Resources
+        run: python3 tools/check_resources.py .
+      - name: Sources
+        run: python3 tools/check_sources.py .
+      - name: compat.json
+        run: python3 tools/gen_compat.py . build/compat.json
+      - name: Logs of the suites
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: host-tests-logs
+          path: build/host-tests/*.log
+          if-no-files-found: ignore
+
+  # The same suites built by clang, and each fuzz target for 30 s.
+  host-tests-clang:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          submodules: true
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang libclang-rt-dev zlib1g-dev
+      - name: Host tests (clang)
+        run: make test CC=clang CXX=clang++
+      - name: Fuzz
+        run: make fuzz FUZZ_SECONDS=30
+      - name: What the fuzzers found
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-findings
+          path: |
+            build/fuzz/*-crash-*
+            build/fuzz/*-leak-*
+            build/fuzz/*-timeout-*
+            build/fuzz/*.log
+          if-no-files-found: ignore
+
+  # The real UI against a simulated console, warnings as errors, then the
+  # smoke test through every screen (tools/desktop_smoke.py) and its
+  # screenshots as an artifact.
+  desktop:
+    needs: meta
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          submodules: recursive
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ccache libgl1-mesa-dev libgl1-mesa-dri \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxkbcommon-dev libwayland-dev \
+            wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev xvfb xauth xdotool imagemagick dbus
+      - name: Compiler messages as annotations
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .ccache
+          key: ccache-desktop-${{ github.sha }}
+          restore-keys: ccache-desktop-
+      - name: Build
+        env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_MAXSIZE: 400M
+        run: make desktop CMAKE_ARGS=-DPLAYSHELF_WERROR=ON
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: .ccache
+          key: ccache-desktop-${{ github.sha }}
+      - name: Smoke test
+        run: |
+          Xvfb :99 -screen 0 1280x720x24 &
+          export DISPLAY=:99
+          sleep 1
+          python3 tools/desktop_smoke.py smoke
+          python3 tools/desktop_smoke.py smoke-loading loading
+      - name: Screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playshelf-${{ needs.meta.outputs.label }}-screens
+          path: |
+            smoke/*.png
+            smoke/app.log
+            smoke-loading/*.png
+            smoke-loading/app.log
+          if-no-files-found: ignore
+
+  # The Switch build in devkitPro's image, pinned by digest so a release can
+  # be rebuilt with the same toolchain (./run.sh reads the digest from this
+  # line). With the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets the pull
+  # is made logged in (Docker Hub's anonymous limit is per runner IP). The
+  # image has no bash: the steps are POSIX sh.
+  switch:
+    needs: meta
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    container:
+      image: devkitpro/devkita64@sha256:1fc388c3a0d34bd2045a6dadcb1020e069d5f876a187fd705de14b4440c00282
+      credentials: ${{ (secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '') && fromJSON(format('{{"username":{0},"password":{1}}}', toJSON(secrets.DOCKERHUB_USERNAME), toJSON(secrets.DOCKERHUB_TOKEN))) || fromJSON('{}') }}
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          submodules: true
+      - name: Compiler messages as annotations
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+      - name: Build .nro / .zip
+        env:
+          # The commit the app says it was built from (app::commit()): for a
+          # pull request its head, as the artifacts API names the run.
+          PLAYSHELF_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          PLAYSHELF_PR: ${{ github.event.pull_request.number }}
+          # A release (a vX.Y.Z tag): the header's badge shows it as stable.
+          PLAYSHELF_RELEASE: ${{ inputs.tag && '1' || '0' }}
+        run: |
+          git config --global --add safe.directory '*'
+          make dist CMAKE_ARGS=-DPLAYSHELF_WERROR=ON
+          python3 tools/check_nro.py --romfs playshelf.nro
+          python3 tools/gen_compat.py . compat.json
+          sha256sum playshelf.nro playshelf.zip compat.json > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - name: The .nro
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playshelf-${{ env.LABEL }}-nro
+          path: playshelf.nro
+          if-no-files-found: error
+      - name: The SD-card zip
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playshelf-${{ env.LABEL }}-sdcard
+          path: |
+            playshelf.zip
+            compat.json
+            SHA256SUMS.txt
+          if-no-files-found: error
+
+  # A release: its assets attached to it, with a build provenance
+  # attestation (`gh attestation verify playshelf.nro -R JigSawFr/PlayShelf`).
+  release:
+    needs: [ meta, host-tests, desktop, switch ]
+    if: ${{ inputs.tag }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: playshelf-${{ needs.meta.outputs.label }}-{nro,sdcard}
+          merge-multiple: true
+      - name: The version is the tag's
+        env:
+          TAG: ${{ inputs.tag }}
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: test "$TAG" = "v$VERSION" || { echo "tag $TAG but CMakeLists.txt says $VERSION"; exit 1; }
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            playshelf.nro
+            playshelf.zip
+            compat.json
+            SHA256SUMS.txt
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: gh release upload "$TAG" playshelf.nro playshelf.zip compat.json SHA256SUMS.txt --clobber

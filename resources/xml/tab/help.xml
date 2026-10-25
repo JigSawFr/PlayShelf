@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- About › Help & diagnostics: the diagnostic report (export, send
+     online, and the GitHub account it is sent with) and how many reports are
+     kept, then (once enabled by seven presses on About › Version) the
+     developer tools. -->
+
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+            <brls:Header title="@i18n/playshelf/tools/section_start" marginBottom="8"/>
+            <!-- A tile: sending a report (cadran::List::tiles). -->
+            <brls:DetailCell id="hp_upload" title="@i18n/playshelf/tiles/upload"/>
+            <brls:Label id="hp_upload_note" text="@i18n/playshelf/tools/upload_note" fontSize="20" marginTop="10" marginBottom="6" textColor="@theme/cadran/text3"/>
+            <brls:Header title="@i18n/playshelf/tools/section_diag" marginTop="24" marginBottom="8"/>
+            <brls:DetailCell id="hp_export" title="@i18n/playshelf/tools/export"/>
+            <brls:DetailCell id="hp_github" title="@i18n/playshelf/github/account"/>
+            <brls:DetailCell id="hp_mode" focusable="false" title="@i18n/playshelf/tools/mode"/>
+            <brls:DetailCell id="hp_data" focusable="false" title="@i18n/playshelf/tools/data"/>
+            <brls:Label id="hp_export_note" text="" fontSize="20" marginTop="10" marginBottom="6" textColor="@theme/cadran/text3"/>
+            <brls:Header title="@i18n/playshelf/tools/section_reports" marginTop="24" marginBottom="8"/>
+            <brls:DetailCell id="hp_logs_keep" title="@i18n/playshelf/tools/logs_keep"/>
+            <brls:DetailCell id="hp_logs_keep_days" title="@i18n/playshelf/tools/logs_keep_days"/>
+            <brls:DetailCell id="hp_logs_keep_mb" title="@i18n/playshelf/tools/logs_keep_mb"/>
+            <brls:Label id="hp_logs_note" text="" fontSize="20" marginTop="10" marginBottom="6" textColor="@theme/cadran/text3"/>
+            <brls:Header id="hp_dev_header" title="@i18n/playshelf/dev/section" marginTop="24" marginBottom="8"/>
+            <brls:BooleanCell id="hp_dev_mode"/>
+            <brls:BooleanCell id="hp_dev_read_only"/>
+            <brls:BooleanCell id="hp_dev_frame_stats"/>
+            <brls:Label id="hp_dev_frame_stats_note" text="@i18n/playshelf/dev/frame_stats_note" fontSize="20" marginTop="10" marginBottom="6" textColor="@theme/cadran/text3"/>
+            <brls:Label id="hp_dev_frame_stats_last" fontSize="18" marginBottom="10" textColor="@theme/cadran/text3"/>
+            <brls:BooleanCell id="hp_dev_glow"/>
+            <brls:DetailCell id="hp_dev_clear_cache" title="@i18n/playshelf/dev/clear_cache"/>
+            <brls:DetailCell id="hp_dev_clear_logs" title="@i18n/playshelf/dev/clear_logs"/>
+            <brls:DetailCell id="hp_dev_report" title="@i18n/playshelf/dev/report"/>
+            <brls:DetailCell id="hp_dev_build" title="@i18n/playshelf/dev_build/open"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:Box>

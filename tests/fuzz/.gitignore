@@ -1,0 +1,3 @@
+# The zip archives of the zip_read seed corpus (the top .gitignore leaves out
+# *.zip, the release builds).
+!zip_read/corpus/*.zip

@@ -1,0 +1,12 @@
+diff --git a/library/lib/views/bottom_bar.cpp b/library/lib/views/bottom_bar.cpp
+--- a/library/lib/views/bottom_bar.cpp
++++ b/library/lib/views/bottom_bar.cpp
+@@ -121,7 +121,7 @@ void BottomBar::updateText()
+     auto tm = *std::localtime(&in_time_t);
+ #endif
+     std::stringstream ss;
+-    ss << std::put_time(&tm, "%H:%M:%S");
++    ss << std::put_time(&tm, "%H:%M");
+     if (ss.str() != bottomText)
+     {
+         bottomText = ss.str();

@@ -1,0 +1,18 @@
+diff --git a/library/include/borealis/core/view.hpp b/library/include/borealis/core/view.hpp
+--- a/library/include/borealis/core/view.hpp
++++ b/library/include/borealis/core/view.hpp
+@@ -766,6 +766,14 @@
+     void setId(std::string id);
+ 
+     /**
++     * The view's id (setId, or the XML's id attribute), "" for none.
++     */
++    const std::string& getId() const
++    {
++        return this->id;
++    }
++
++    /**
+      * Overrides align items of the parent box.
+      *
+      * Default is AUTO.

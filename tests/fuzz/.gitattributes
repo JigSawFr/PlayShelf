@@ -1,0 +1,3 @@
+# The seed inputs are bytes, kept as they are (a CRLF, a byte-order mark, a
+# zip archive): never normalised as text.
+*/corpus/* binary

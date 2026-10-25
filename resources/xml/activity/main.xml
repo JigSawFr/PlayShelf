@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Root screen: a rail of tabs (cadran::style_rail gives it its icons:
+     activity/screen_hooks.cpp), each tab a custom view registered in
+     main.cpp and implemented in source/tab/. Their positions:
+     activity/tabs.hpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear"
+    footerHidden="false">
+
+    <brls:TabFrame
+        id="main_tabs"
+        title="@i18n/playshelf/title"
+        icon="@res/img/app_icon.jpg">
+
+        <brls:Tab label="@i18n/playshelf/tabs/library">
+            <LibraryTab/>
+        </brls:Tab>
+
+        <brls:Separator/>
+
+        <brls:Tab label="@i18n/playshelf/tabs/preferences">
+            <PreferencesTab/>
+        </brls:Tab>
+
+        <brls:Tab label="@i18n/playshelf/tabs/about">
+            <AboutTab/>
+        </brls:Tab>
+
+    </brls:TabFrame>
+
+</brls:AppletFrame>

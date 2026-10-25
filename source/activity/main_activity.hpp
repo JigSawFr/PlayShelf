@@ -1,0 +1,26 @@
+// MainActivity — root screen: a TabFrame (sidebar of tabs) described in
+// resources/xml/activity/main.xml. The tabs live in source/tab/.
+// Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
+#pragma once
+
+#include <borealis.hpp>
+
+class MainActivity : public brls::Activity
+{
+  public:
+    // activity/main.xml.
+    brls::View* createContentView() override;
+
+    void onContentAvailable() override;
+    void onResume() override;
+
+    ~MainActivity() override;
+
+    // "PlayShelf", and the header's pill again (read-only says so on every
+    // tab).
+    void update_title();
+
+    // Shows tab `position` (tabs.hpp) and focuses its content: the view
+    // with id `row` when given and shown, else its first one.
+    void open_tab(int position, const std::string& row = "");
+};

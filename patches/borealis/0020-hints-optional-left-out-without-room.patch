@@ -1,0 +1,153 @@
+--- a/library/include/borealis/views/hint.hpp
++++ b/library/include/borealis/views/hint.hpp
+@@ -37,6 +37,9 @@
+     Hint(std::shared_ptr<Action> action, bool allowAButtonTouch = false);
+     static std::string getKeyIcon(ControllerButton button, bool ignoreKeysSwap = false);
+ 
++    // Its width with its key and text at their full size.
++    float fullWidth();
++
+   private:
+     std::shared_ptr<Action> action;
+ 
+@@ -72,8 +75,12 @@
+ 
+     static View* create();
+ 
++    void onLayout() override;
++
+   private:
+     void refillHints(View* focusView);
++    float room();
++    bool roomUnknown            = false;
+     bool addUnableAButtonAction = true;
+     bool allowAButtonTouch      = false;
+     bool forceShown             = false;
+@@ -86,4 +93,11 @@
+ // by the screen's fade. So a screenshot does not depend on when it was taken.
+ void setHintsSteady(bool steady);
+ 
++// The actions of `owner` (but A and B) are the footer's optional hints: keys
++// that work from any screen, which a screen with its own keys may need the
++// room of. When the hints do not all fit at their full size, the optional
++// ones are left out, the last one first. nullptr (the default): none.
++void setHintsOptionalOwner(View* owner);
++View* getHintsOptionalOwner();
++
+ } // namespace brls
+--- a/library/lib/views/hint.cpp
++++ b/library/lib/views/hint.cpp
+@@ -19,6 +19,7 @@
+ #include <borealis/core/logger.hpp>
+ #include <borealis/core/touch/tap_gesture.hpp>
+ #include <borealis/core/util.hpp>
++#include <borealis/core/thread.hpp>
+ #include <borealis/views/applet_frame.hpp>
+ #include <borealis/views/hint.hpp>
+ 
+@@ -54,6 +55,33 @@
+ )xml";
+ 
+ static bool hintsSteady = false;
++static View* hintsOptionalOwner = nullptr;
++
++void setHintsOptionalOwner(View* owner)
++{
++    hintsOptionalOwner = owner;
++}
++
++View* getHintsOptionalOwner()
++{
++    return hintsOptionalOwner;
++}
++
++static float textFullWidth(Label* label)
++{
++    NVGcontext* vg = Application::getNVGContext();
++    nvgFontFaceId(vg, label->getFont());
++    nvgFontSize(vg, label->getFullFontSize());
++    float bounds[4];
++    nvgTextBounds(vg, 0, 0, label->getFullText().c_str(), nullptr, bounds);
++    return bounds[2] - bounds[0];
++}
++
++float Hint::fullWidth()
++{
++    // As hintXML lays it out: 16 on each side, 8 between the key and the text.
++    return 16 + textFullWidth(icon) + 8 + textFullWidth(hint) + 16;
++}
+ 
+ void setHintsSteady(bool steady)
+ {
+@@ -217,6 +245,7 @@
+ 
+     std::set<ControllerButton> addedButtons; // we only ever want one action per key
+     std::vector<std::shared_ptr<Action> > actions;
++    std::set<Action*> optional;
+ 
+     while (focusView != nullptr)
+     {
+@@ -238,6 +267,8 @@
+ 
+             addedButtons.insert(static_cast<ControllerButton>(action->getButton()));
+             actions.push_back(action);
++            if (focusView == hintsOptionalOwner && action->getButton() != BUTTON_A && action->getButton() != BUTTON_B)
++                optional.insert(action.get());
+         }
+ 
+         focusView = focusView->getParent();
+@@ -256,11 +287,52 @@
+     // Sort the actions
+     std::stable_sort(actions.begin(), actions.end(), actionsSortFunc);
+ 
++    std::vector<Hint*> hints;
++    float need = 0;
+     for (auto action : actions)
+     {
+-        Hint* hint = new Hint(action, allowAButtonTouch);
+-        addView(hint);
++        hints.push_back(new Hint(action, allowAButtonTouch));
++        need += hints.back()->fullWidth();
++    }
++
++    // Without room for them all, the optional hints out, the last one first
++    // (before the footer is laid out, once it is: onLayout).
++    const float available = room();
++    roomUnknown           = available <= 0;
++    for (size_t i = actions.size(); i-- > 0 && !roomUnknown && need > available;)
++    {
++        if (optional.count(actions[i].get()) == 0)
++            continue;
++        need -= hints[i]->fullWidth();
++        delete hints[i];
++        hints[i] = nullptr;
+     }
++
++    for (Hint* hint : hints)
++        if (hint)
++            addView(hint);
++}
++
++// The width the hints have in the footer: its row but the clock, and a gap.
++float Hints::room()
++{
++    Box* row = getParent();
++    if (!row || row->getWidth() <= 0)
++        return 0;
++    float width = row->getWidth() - 16;
++    for (View* view : row->getChildren())
++        if (view != this)
++            width -= view->getWidth();
++    return width;
++}
++
++void Hints::onLayout()
++{
++    // Filled before the footer had its size: again, once laid out.
++    if (!roomUnknown || !hintsOptionalOwner || room() <= 0)
++        return;
++    roomUnknown = false;
++    brls::sync([]() { Application::getGlobalHintsUpdateEvent()->fire(); });
+ }
+ 
+ View* Hints::create()
