@@ -198,11 +198,18 @@ void test_store()
     CHECK(set_password(s, "hunter2"));
     CHECK(s.password_box.compare(0, 3, "v1:") == 0 && s.password_box.find("hunter2") == std::string::npos);
     CHECK(password_of(s) == "hunter2");
+    CHECK(pin_shown(s).empty());
     s.pin = CERT_EC_PIN;
+    CHECK(pin_shown(s) == "B1:14:BD:D8:38:A3:A6:DE");
     s.connection = Connection::Lan;
     s.format = Format::Index;
     std::string why;
     CHECK(save_servers({s}, &why));
+    {
+        const std::vector<Server> list = {s};
+        CHECK(find_server(list, s.id) == &list[0]);
+        CHECK(find_server(list, "0000000000000000") == nullptr);
+    }
     CHECK(fs::read(servers_file()).find("hunter2") == std::string::npos);
     const auto back = load_servers();
     if (!CHECK(back.size() == 1)) return;
@@ -231,8 +238,21 @@ void test_store()
 }
 }   // namespace
 
+void test_same_origin()
+{
+    CHECK(same_origin("https://shelf.example/api/remote", "https://SHELF.example:443/files/a.nsp"));
+    CHECK(same_origin("https://192.168.1.5:8465/", "https://192.168.1.5:8465/files/a.nsp?x=1"));
+    CHECK(!same_origin("https://192.168.1.5:8465/", "https://192.168.1.5/files/a.nsp"));
+    CHECK(!same_origin("https://shelf.example/", "https://shelf.example.evil/a.nsp"));
+    CHECK(!same_origin("https://shelf.example/", "https://evil@other.example/a.nsp"));
+    CHECK(same_origin("https://shelf.example/", "https://me@shelf.example/a.nsp"));
+    CHECK(!same_origin("https://shelf.example/", "http://shelf.example/a.nsp"));
+    CHECK(!same_origin("", ""));
+}
+
 int main()
 {
+    test_same_origin();
     test_api_wan();
     test_lan_pin();
     test_fallbacks();

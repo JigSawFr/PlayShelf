@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <dirent.h>
 #include <map>
 #include <string>
 #include <sys/stat.h>
@@ -149,6 +150,33 @@ Result core_meta_set(const CoreMetaKey* key, const void* record, u64 size)
 {
     s_meta_pending[meta_name(key)].assign((const uint8_t*)record, (const uint8_t*)record + size);
     s_meta_removed.erase(meta_name(key));
+    return 0;
+}
+
+Result core_installed_list(CoreMetaKey* out, int max, int* count)
+{
+    // meta/<id>-<version>.bin, as core_meta_commit() writes them; the type
+    // told by the id, as a real console's database keeps it.
+    *count = 0;
+    DIR* dir = ::opendir((root() + "/meta").c_str());
+    if (!dir) return 0;
+    while (const dirent* e = ::readdir(dir)) {
+        // "<16 hex digits>-<version>.bin"
+        const char* name = e->d_name;
+        char*       end = nullptr;
+        if (*count >= max || std::strlen(name) < 22 || name[16] != '-') continue;
+        const unsigned long long id = std::strtoull(name, &end, 16);
+        if (end != name + 16) continue;
+        const unsigned long version = std::strtoul(name + 17, &end, 10);
+        if (end == name + 17 || std::strcmp(end, ".bin") != 0) continue;
+        CoreMetaKey& k = out[(*count)++];
+        k = CoreMetaKey{};
+        k.id = id;
+        k.version = (u32)version;
+        k.type = (id & 0x1000) ? 0x82 : (id & 0x800) ? 0x81 : 0x80;
+        k.install_type = 0;
+    }
+    ::closedir(dir);
     return 0;
 }
 

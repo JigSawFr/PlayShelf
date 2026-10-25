@@ -3,6 +3,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <cstdint>
+#include <map>
 #include <optional>
 #include <string>
 
@@ -50,5 +52,10 @@ std::optional<NcaKeys> core_keys(std::string* why = nullptr);
 // "2002-0003 (…)": a Result as the console's error codes read, and what it
 // failed at.
 std::string result_text(Result rc, const char* what);
+
+// What the console has installed (core_installed_list): each title id, base
+// game, update or add-on, with its highest version. Empty, `why` set, when
+// it cannot be read.
+std::map<uint64_t, uint32_t> installed_versions(std::string* why = nullptr);
 
 }   // namespace install
