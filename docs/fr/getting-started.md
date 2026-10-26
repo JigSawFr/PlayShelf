@@ -35,7 +35,7 @@ Le **Catalogue** montre les jeux du serveur en jaquettes, avec leur taille et le
 |---|---|
 | ![Le Catalogue](../../images/screenshots/catalogue.png) | ![La fiche d'un jeu](../../images/screenshots/game_sheet.png) |
 
-Ⓐ sur un jeu ouvre sa fiche : **Tout installer**, ou son jeu de base, l'une de ses mises à jour ou l'un de ses contenus additionnels. Chacun part dans les **Téléchargements**.
+Ⓐ sur un jeu ouvre sa fiche : **Tout installer**, ou son jeu de base, l'une de ses mises à jour ou l'un de ses contenus additionnels. Chacun part dans les **Téléchargements**. Quand la console est en ligne, la fiche montre aussi ce que [Nlib API](https://api.nlib.cc/nx/) sait du jeu dans la langue de PlayShelf : sa bannière, son éditeur, son année et ses catégories, un résumé, ses captures d'écran (Ⓐ en affiche une en plein écran, ◀ ▶ les autres) et sa description. La Bibliothèque ouvre la même fiche pour un jeu de la console.
 
 ## Suivre les téléchargements
 
@@ -49,7 +49,7 @@ Les **Téléchargements** installent les paquets l'un après l'autre, chacun ave
 
 Un jeu que ni la console ni le serveur ne nomment prend son nom et son icône dans la base de titres, gardée sur la carte SD : *Préférences › Base de titres › Télécharger*. Ses sources sont CyberFoil-DB, NXMeta et Ghostland par défaut, et vous pouvez ajouter les vôtres. Voir [`title_sources`](../config.md).
 
-Une icône qu'aucune d'elles n'a est demandée à [Nlib API](https://api.nlib.cc/nx/) par Internet, pour les seuls jeux à l'écran, puis gardée en cache. Jeux de base seulement : une mise à jour ou un contenu additionnel montre l'icône de son jeu. *Préférences › Base de titres › Icônes manquantes depuis Nlib API* la désactive ([`online_icons`](../config.md)).
+Une icône qu'aucune d'elles n'a est demandée à [Nlib API](https://api.nlib.cc/nx/) par Internet, pour les seuls jeux à l'écran, puis gardée en cache. Jeux de base seulement : une mise à jour ou un contenu additionnel montre l'icône de son jeu. *Préférences › Base de titres › Icônes et fiches de jeu depuis Nlib API* la désactive ([`nlib_api`](../config.md)).
 
 ## Préférences
 

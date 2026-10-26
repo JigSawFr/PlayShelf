@@ -66,12 +66,19 @@ void reread_installed(const std::function<void()>& after);
 // waiting or running is not added twice).
 size_t install(const Loaded& l, const std::vector<size_t>& items);
 
-// A game of a catalogue (`index` in data->titles) as a sheet: everything
-// the console does not have of it at once (the base game, its newest update
-// when newer than the one installed, its add-ons), then each item, its size
-// or that the console has it; A on one adds it to the downloads. `more`:
-// lines of the caller's after them (the Library's: delete the game).
-void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more = {});
+// What a game of a catalogue (`index` in data->titles) offers, for its
+// page (activity/game_activity): everything the console does not have of
+// it at once (the base game, its newest update when newer than the one
+// installed, its add-ons), then each item, its size or that the console
+// has it; A on one adds it to the downloads. `more`: lines of the caller's
+// after them (the Library's: delete the game). `facts`: its title id, its
+// size, the version installed.
+struct GameLines
+{
+    std::vector<ui::Choice> lines;
+    std::string             facts;
+};
+GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more = {});
 
 // "734 MB", "4,2 GB" (the language's decimal mark): a package's size.
 std::string size_text(uint64_t bytes);
