@@ -106,7 +106,7 @@ def log_lines():
 
 def focused():
     """The words of the line that has the focus now (PLAYSHELF_SIM_FOCUS_LOG:
-    source/kit/ui/focus_log.cpp), or None."""
+    Aurore's cadran/ui/focus_log.cpp), or None."""
     last = None
     for l in log_lines():
         at = l.find("focus: ")

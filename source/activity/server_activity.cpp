@@ -3,8 +3,9 @@
 
 #include <utility>
 
+#include <borealis/cadran/ui/cadran_list.hpp>
+
 #include "library/servers.hpp"
-#include "ui/cadran_list.hpp"
 #include "ui/ui.hpp"
 
 using namespace brls::literals;

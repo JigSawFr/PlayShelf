@@ -17,7 +17,7 @@ Then a pull request with a conventional title and a scope (`fix(install): …`),
 
 | Page | What it covers |
 |---|---|
-| [Build from source](docs/contributing/build.md) | Every `make` target and what it needs; the borealis submodule and its patches |
+| [Build from source](docs/contributing/build.md) | Every `make` target and what it needs; the borealis submodule (Aurore) |
 | [The desktop simulator](docs/contributing/simulator.md) | `make desktop` against a simulated console, every `PLAYSHELF_SIM_*` variable |
 | [Tests and CI](docs/contributing/tests.md) | The host tests, the fuzz targets, the smoke test, what CI runs |
 | [Code layout](docs/contributing/layout.md) | The kit shared with PlayGuard and its rules, the Cadran look |

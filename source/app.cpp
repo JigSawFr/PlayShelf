@@ -3,13 +3,14 @@
 
 #include <cstdlib>
 
+#include <borealis/cadran/ui/live_prefs.hpp>
+#include <borealis/cadran/util/text.hpp>
+
 #include "core/platform.h"
 #include "core/sim_env.h"
-#include "ui/live_prefs.hpp"
+#include "core/write_guard.h"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
-#include "core/write_guard.h"
-#include "util/text.hpp"
 
 #ifndef APP_VERSION
 #define APP_VERSION "0.0.0-dev"

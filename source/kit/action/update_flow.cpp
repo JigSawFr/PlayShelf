@@ -4,7 +4,7 @@
 #include "action/dev_build_flow.hpp"
 #include "activity/update_activity.hpp"
 #include "app.hpp"
-#include "ui/hooks.hpp"
+#include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/date.hpp"
@@ -79,7 +79,7 @@ void show_result(const Offer& o)
 // newer: none). Information: Later on the update screen does not hide it.
 void note_latest(const std::string& latest)
 {
-    const auto& h = ui::hooks::get();
+    const auto& h = ui::app_hooks::get();
     if (latest.empty() || update::compare_versions(latest, app::version()) <= 0) {
         if (h.notice_clear) h.notice_clear("update");
         return;
@@ -179,7 +179,7 @@ void hand_over(const launcher::Target& target, const std::string& manual)
     const std::string name = store_name(target.store);
     ui::confirm(brls::getStr("playshelf/update/open_body", name), brls::getStr("playshelf/update/open_confirm", name),
                 [target, manual]() {
-                    const auto& may = ui::hooks::get().may_replace_self;
+                    const auto& may = ui::app_hooks::get().may_replace_self;
                     if (may && !may()) return;
                     if (launcher::launch(target)) brls::Application::quit();
                     else ui::info(manual);

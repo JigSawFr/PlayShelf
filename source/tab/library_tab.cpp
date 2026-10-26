@@ -3,13 +3,14 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/ui/cadran_frame.hpp>
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/ui/cadran_modal.hpp>
+
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
 #include "activity/downloads_activity.hpp"
 #include "library/servers.hpp"
-#include "ui/cadran_frame.hpp"
-#include "ui/cadran_kit.hpp"
-#include "ui/cadran_modal.hpp"
 #include "ui/ui.hpp"
 #include "view/game_tile.hpp"
 

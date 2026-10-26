@@ -8,11 +8,12 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/ui/cadran_modal.hpp>
+
 #include "install/console_core.hpp"
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
-#include "ui/cadran_kit.hpp"
-#include "ui/cadran_modal.hpp"
 #include "ui/ui.hpp"
 
 using namespace brls::literals;

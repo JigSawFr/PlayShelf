@@ -17,36 +17,11 @@
         "exit_again": "Druk nogmaals op B om af te sluiten"
     },
     "common": {
-        "yes": "Ja",
-        "no": "Nee",
         "unavailable": "Niet beschikbaar",
         "no_limit": "Geen limiet",
         "line": "{}: {}",
-        "minutes": "{} min",
-        "hours": "{} u",
-        "hours_minutes": "{} u {}",
         "later": "Later",
-        "delete": "Verwijderen",
-        "hold_hint": "Houd “{}” 2 seconden ingedrukt",
-        "less_than_minute": "< 1 min"
-    },
-    "days": {
-        "0": "Zondag",
-        "1": "Maandag",
-        "2": "Dinsdag",
-        "3": "Woensdag",
-        "4": "Donderdag",
-        "5": "Vrijdag",
-        "6": "Zaterdag"
-    },
-    "days_lower": {
-        "0": "zondag",
-        "1": "maandag",
-        "2": "dinsdag",
-        "3": "woensdag",
-        "4": "donderdag",
-        "5": "vrijdag",
-        "6": "zaterdag"
+        "delete": "Verwijderen"
     },
     "error": {
         "code": "fout {}",
@@ -160,14 +135,8 @@
     },
     "tiles": {
         "upload": "Rapport versturen…",
-        "text_size_auto": "Auto: groter op de tv",
         "text_size": "Tekstgrootte",
-        "start_tab": "Starttabblad",
-        "themes": {
-            "system": "Systeem",
-            "light": "Licht",
-            "dark": "Donker"
-        }
+        "start_tab": "Starttabblad"
     },
     "tools": {
         "section_diag": "Diagnose",
@@ -185,31 +154,8 @@
         "logs_keep_mb": "Ruimte voor rapporten",
         "logs_note": "Geldt voor de diagnoserapporten, de crashbestanden, de sessielogs en de links van de online verstuurde rapporten in {}, elk apart, bij het starten en wanneer een limiet verandert. Het nieuwste blijft altijd staan.",
         "language": "Taal",
-        "languages": {
-            "system": "Systeemtaal",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "Thema",
         "start_tab": "Starttabblad",
-        "themes": {
-            "system": "Systeem",
-            "light": "Licht",
-            "dark": "Donker"
-        },
         "storage_emummc": "Kopie op de SD-kaart (emuMMC)",
         "storage_sysmmc": "Intern geheugen (sysMMC)",
         "storage_unknown": "Onbekend (Atmosphère niet gedetecteerd)",
@@ -264,12 +210,6 @@
         "intro": "De intro 2 seconden tonen",
         "support_reminder": "Herinner me één keer per maand om PlayShelf te steunen",
         "help": "Hulp en diagnose",
-        "text_size": "Tekstgrootte",
-        "text_sizes": {
-            "normal": "Normaal",
-            "large": "Groter",
-            "auto": "Automatisch: groter op de tv"
-        },
         "effects": "Visuele effecten",
         "effects_values": {
             "full": "Altijd volledig",
@@ -447,13 +387,6 @@
         "find_hint": "Zoeken",
         "cancelled": "Download geannuleerd."
     },
-    "markdown": {
-        "note": "Opmerking",
-        "tip": "Tip",
-        "important": "Belangrijk",
-        "warning": "Waarschuwing",
-        "caution": "Voorzichtig"
-    },
     "github": {
         "account": "GitHub-account",
         "not_signed_in": "Niet aangemeld",
@@ -475,8 +408,7 @@
         "config_err": "Kan de voorkeuren niet op de SD-kaart opslaan"
     },
     "quick": {
-        "hint": "Taal en thema",
-        "title_text": "Taal, thema en tekstgrootte"
+        "hint": "Taal en thema"
     },
     "notices": {
         "installed": "PlayShelf {} geïnstalleerd",
@@ -491,24 +423,6 @@
         "upload_show": "Link tonen"
     },
     "cadran": {
-        "date": "{1} {2} {3}",
-        "months": {
-            "1": "januari",
-            "2": "februari",
-            "3": "maart",
-            "4": "april",
-            "5": "mei",
-            "6": "juni",
-            "7": "juli",
-            "8": "augustus",
-            "9": "september",
-            "10": "oktober",
-            "11": "november",
-            "12": "december"
-        },
-        "pill": {
-            "read_only": "Alleen-lezen"
-        },
         "about": {
             "tagline": "Je gamebibliotheek op de console · vrije software (GPLv3)",
             "version": "Versie {}"

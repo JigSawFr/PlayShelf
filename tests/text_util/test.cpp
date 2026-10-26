@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
-#include "util/emoji.hpp"
+#include <borealis/cadran/util/emoji.hpp>
 #include "util/json_util.hpp"
-#include "util/text.hpp"
-#include "util/utf8.hpp"
+#include <borealis/cadran/util/text.hpp>
+#include <borealis/cadran/util/utf8.hpp>
 
 static void test_utf8()
 {

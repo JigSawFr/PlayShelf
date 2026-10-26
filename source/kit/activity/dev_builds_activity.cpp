@@ -3,13 +3,14 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/view/cadran_icon.hpp>
+
 #include "action/dev_build_flow.hpp"
 #include "action/rollback_flow.hpp"
 #include "app.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "view/build_cell.hpp"
-#include "view/cadran_icon.hpp"
 
 using namespace brls::literals;
 

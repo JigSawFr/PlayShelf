@@ -9,12 +9,13 @@
 
 #include <borealis/extern/nlohmann/json.hpp>
 
+#include <borealis/cadran/util/safe_text.hpp>
+#include <borealis/cadran/util/text.hpp>
+
 #include "util/date.hpp"
 #include "util/json_util.hpp"
 #include "util/paths.hpp"
-#include "util/safe_text.hpp"
 #include "util/sha256.hpp"
-#include "util/text.hpp"
 #include "util/update.hpp"
 
 namespace dev_builds

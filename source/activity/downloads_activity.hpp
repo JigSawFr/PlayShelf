@@ -17,7 +17,8 @@
 #include <borealis.hpp>
 #include <vector>
 
-#include "ui/cadran_kit.hpp"
+#include <borealis/cadran/ui/cadran_kit.hpp>
+
 #include "view/timeline.hpp"
 
 class DownloadsActivity : public brls::Activity

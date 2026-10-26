@@ -3,16 +3,17 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <borealis/cadran/util/markdown.hpp>
+#include <borealis/cadran/view/markdown_view.hpp>
+
 #include "action/dev_build_flow.hpp"
 #include "action/rollback_flow.hpp"
 #include "app.hpp"
-#include "ui/cadran_kit.hpp"
-#include "ui/cadran_modal.hpp"
 #include "ui/ui.hpp"
 #include "util/changelog.hpp"
-#include "util/markdown.hpp"
 #include "view/build_cell.hpp"
-#include "view/markdown_view.hpp"
 #include "view/release_notes.hpp"
 
 using namespace brls::literals;

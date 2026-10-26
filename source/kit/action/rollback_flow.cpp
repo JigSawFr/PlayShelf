@@ -8,7 +8,7 @@
 #include "action/upload_flow.hpp"
 #include "app.hpp"
 #include "core/platform.h"
-#include "ui/hooks.hpp"
+#include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/launcher.hpp"
 #include "util/migrations.hpp"
@@ -101,8 +101,8 @@ void started()
     if (rollback::read_check(check_file(), &check) && !check.label.empty()) {
         std::string previous;
         if (!rollback::read_label(label_file(), &previous)) previous = "?";
-        if (ui::hooks::get().notice_set)
-            ui::hooks::get().notice_set("installed", brls::getStr("playshelf/notices/installed", check.label),
+        if (ui::app_hooks::get().notice_set)
+            ui::app_hooks::get().notice_set("installed", brls::getStr("playshelf/notices/installed", check.label),
                                         brls::getStr("playshelf/notices/installed_detail", previous), "", nullptr);
     }
     std::remove(check_file().c_str());
@@ -114,13 +114,13 @@ void note_went_back()
     if (!rollback::read_check(back_file(), &back)) return;
     std::remove(back_file().c_str());
     const std::string from = back.label.empty() ? "?" : back.label;
-    const auto& h = ui::hooks::get();
+    const auto& h = ui::app_hooks::get();
     if (!h.notice_set) return;
     h.notice_set("went_back", "playshelf/notices/went_back"_i18n,
                  brls::getStr(back.starts ? "playshelf/notices/went_back_crash" : "playshelf/notices/went_back_detail",
                               from, running_label()),
                  back.starts ? "playshelf/notices/send_report"_i18n : "", []() {
-                     if (ui::hooks::get().notice_clear) ui::hooks::get().notice_clear("went_back");
+                     if (ui::app_hooks::get().notice_clear) ui::app_hooks::get().notice_clear("went_back");
                      upload_flow::choose();
                  });
 }

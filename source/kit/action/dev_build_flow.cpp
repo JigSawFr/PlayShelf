@@ -13,16 +13,18 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <borealis/cadran/util/text.hpp>
+
 #include "action/github_login_flow.hpp"
-#include "ui/hooks.hpp"
 #include "action/rollback_flow.hpp"
 #include "activity/dev_build_activity.hpp"
 #include "activity/dev_builds_activity.hpp"
 #include "app.hpp"
 #include "core/platform.h"
 #include "core/sim_env.h"
-#include "ui/cadran_kit.hpp"
-#include "ui/cadran_modal.hpp"
+#include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/dev_builds.hpp"
 #include "util/github_auth.hpp"
@@ -30,7 +32,6 @@
 #include "util/migrations.hpp"
 #include "util/paths.hpp"
 #include "util/rollback.hpp"
-#include "util/text.hpp"
 
 using namespace brls::literals;
 
@@ -401,7 +402,7 @@ void install_now(const dev_builds::Build& b)
         ui::info("playshelf/dev_build/no_digest"_i18n);
         return;
     }
-    const auto& may = ui::hooks::get().may_replace_self;
+    const auto& may = ui::app_hooks::get().may_replace_self;
     if (may && !may()) return;
     install(b);
 }
@@ -418,7 +419,7 @@ void go_back()
     const std::string running = rollback_flow::running_label();
     ui::confirm(brls::getStr("playshelf/dev_build/back_body", running, previous), "playshelf/dev_build/back_confirm"_i18n,
                 []() {
-                    const auto& may = ui::hooks::get().may_replace_self;
+                    const auto& may = ui::app_hooks::get().may_replace_self;
                     if (may && !may()) return;
                     rollback_flow::go_back_now();
                 });

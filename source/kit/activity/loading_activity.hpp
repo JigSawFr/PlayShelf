@@ -14,7 +14,8 @@
 
 #include <borealis.hpp>
 
-#include "view/loading_bar.hpp"
+#include <borealis/cadran/view/loading_bar.hpp>
+
 #include "view/loading_dial.hpp"
 
 class LoadingActivity : public brls::Activity
