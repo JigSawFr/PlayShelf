@@ -3,6 +3,7 @@
 // data_dir()/titledb/. At start-up their folders are tidied (a removed
 // source's taken away) and the packs opened, off the UI thread; Preferences
 // › Title database fetches them again (each manifest over HTTPS, each pack
+// over the connections config connections sets, as a download is, and
 // checked by its SHA-256 before it is used), one source after the other.
 // Names and icons for the games a console or a server does not name: the
 // Library's, the Catalogue's.

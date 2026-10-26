@@ -4,11 +4,14 @@
 #include <borealis.hpp>
 #include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <cstdio>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <sys/statvfs.h>
 
+#include "install/split_stream.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
@@ -20,7 +23,8 @@ namespace titledb_flow
 {
 namespace
 {
-constexpr long PACK_TIMEOUT = 3 * 3600;   // a pack's transfer at most (126 MB on a slow link)
+constexpr long   PACK_TIMEOUT = 3 * 3600;   // a pack's transfer at most (126 MB on a slow link)
+constexpr double TARGET_AGE = 120;         // seconds a signed address is used for
 
 std::mutex                                   s_lock;   // s_db
 std::shared_ptr<const titledb::Database>     s_db;
@@ -82,18 +86,76 @@ void reopen(const std::vector<std::string>& sources)
     });
 }
 
+// A pack fetched as the downloads are (install/split_stream): over the
+// connections Downloads › Connections per download sets, each taking the
+// next 4 MB piece, the bytes appended in order to the part that a cut left.
+// A server that serves no ranges: one request (http::download).
+bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, uint64_t from,
+                const std::function<void(uint64_t)>& progress, std::string* why)
+{
+    auto whole = [&]() {
+        return http::download(url, path, why, (size_t)size, PACK_TIMEOUT,
+                              [from, progress](uint64_t done, uint64_t) { progress(done > from ? done - from : 0); }, from,
+                              &s_stop);
+    };
+    const int connections = config::get().connections;
+    if (connections < 2 || size - from < 2 * install::SPLIT_CHUNK) return whole();
+    // A release's asset redirects to a signed address, which expires after
+    // a few minutes: asked again every TARGET_AGE, not for every piece.
+    std::mutex  target_lock;
+    std::string target;
+    double      target_at = -TARGET_AGE;
+    auto        target_now = [&]() {
+        const std::lock_guard<std::mutex> g(target_lock);
+        const double now = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        if (now - target_at >= TARGET_AGE) {
+            std::string to, unused;
+            target = http::redirect(url, &to, &unused) && to.rfind("https://", 0) == 0 ? to : url;
+            target_at = now;
+        }
+        return target;
+    };
+    FILE* f = std::fopen(path.c_str(), from ? "ab" : "wb");
+    if (!f) {
+        if (why) *why = "cannot create " + path;
+        return false;
+    }
+    uint64_t   got = 0;
+    bool       write_failed = false;
+    const auto range = [&target_now](uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
+                                 std::string* w, const std::atomic<bool>* stop) {
+        return http::range(target_now(), offset, length, sink, w, {}, stop);
+    };
+    bool ok = install::split_stream(
+        from, size - from, connections, range,
+        [&](const uint8_t* data, size_t n) {
+            if (std::fwrite(data, 1, n, f) != n) return !(write_failed = true);
+            got += n;
+            progress(got);
+            return true;
+        },
+        why, &s_stop);
+    if (std::fclose(f) != 0 && ok) write_failed = true, ok = false;
+    if (write_failed && why) *why = "cannot write the file";
+    if (s_stop) {
+        if (why) *why = "cancelled";
+        return false;
+    }
+    // Nothing came: no ranges there, the whole file in one request.
+    if (!ok && !got && !write_failed) {
+        brls::Logger::info("titledb: {} in one request ({})", url, why ? *why : "");
+        return whole();
+    }
+    return ok;
+}
+
 titledb::Net console_net()
 {
     titledb::Net n;
     n.text = [](const std::string& url, std::string* body, std::string* why) {
         return http::get(url, body, why, 64 * 1024, 20);
     };
-    n.file = [](const std::string& url, const std::string& path, uint64_t size, uint64_t from,
-                const std::function<void(uint64_t)>& progress, std::string* why) {
-        return http::download(url, path, why, (size_t)size, PACK_TIMEOUT,
-                              [from, progress](uint64_t done, uint64_t) { progress(done > from ? done - from : 0); }, from,
-                              &s_stop);
-    };
+    n.file = fetch_pack;
     n.free_space = []() -> uint64_t {
         paths::ensure_dir(root());
         struct statvfs fs;
