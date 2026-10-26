@@ -125,7 +125,7 @@ void test_lan_pin()
     Script w;
     Answer bad;
     bad.tls_failed = true;
-    w.answers["https://shelf.example.org/api/remote"] = bad;
+    w.answers["https://shelf.example.org/api/remote/sections"] = bad;
     f = fetch(shelf(), "", w);
     CHECK(f.status == FetchStatus::Failed && f.why.find("recognized authority") != std::string::npos);
     // Lan only: the LAN address even when it does not answer the probe.
@@ -139,10 +139,19 @@ void test_lan_pin()
 
 void test_fallbacks()
 {
+    // The newer /sections paths, each on its own.
+    Script sec;
+    sec.answers["https://shelf.example.org/api/remote/sections"] = ok(API);
+    Fetch f = fetch(shelf(), "", sec);
+    CHECK(f.status == FetchStatus::Ok && f.format == Format::Api && f.catalog.items.size() == 1);
+    Script shop_sec;
+    shop_sec.answers["https://shelf.example.org/api/shop/sections"] = ok(API);
+    f = fetch(shelf(), "", shop_sec);
+    CHECK(f.status == FetchStatus::Ok && f.format == Format::Api);
     // The older path.
     Script t;
     t.answers["https://shelf.example.org/api/shop"] = ok(API);
-    Fetch f = fetch(shelf(), "", t);
+    f = fetch(shelf(), "", t);
     CHECK(f.status == FetchStatus::Ok && f.format == Format::Api);
     // Neither: the address read as an index, its directories followed (a
     // cycle once), merged.
@@ -156,6 +165,8 @@ void test_fallbacks()
     CHECK(f.catalog.items.size() == 2);
     // Its API paths tried first, then the index itself once (the cycle back to it not followed).
     CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url) == 1);
+    CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/remote/sections") == 1);
+    CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/shop/sections") == 1);
     CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/remote") == 1);
     CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/shop") == 1);
     // A chain deeper than the limit stops there.
