@@ -310,10 +310,10 @@ void CatalogueTab::open_title(size_t index)
     page.facts = std::move(lines.facts);
     page.lines = std::move(lines.lines);
     // The server's icon, else the title database's, else Nlib API's.
-    const std::string password = this->password, url = t.icon_url;
+    const std::string pass = this->password, url = t.icon_url;
     const uint64_t    id = t.id;
-    page.icon = [data, password, url, id](std::function<void(int)> shown) {
-        if (!url.empty()) library_icons::get(data, password, url, std::move(shown), id);
+    page.icon = [data, pass, url, id](std::function<void(int)> shown) {
+        if (!url.empty()) library_icons::get(data, pass, url, std::move(shown), id);
         else library_icons::local(id, std::move(shown));
     };
     GameActivity::show(std::move(page));
