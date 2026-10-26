@@ -1,0 +1,207 @@
+{
+  "ui": {
+    "title": "Simulator",
+    "nav_features": "Features",
+    "nav_install": "Install",
+    "nav_docs": "Documentation",
+    "loading": "Loading…",
+    "downloading": "Downloading PlayShelf…",
+    "starting": "Starting…",
+    "start": "Start",
+    "save_data": "Data saver is on: PlayShelf is a few megabytes to download.",
+    "tools": "Tools",
+    "settings": "Settings",
+    "log": "Log",
+    "language": "Language",
+    "theme": "Theme",
+    "theme_auto": "Auto",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_changed": "The theme changed: restart to give it to the console too.",
+    "restart": "Restart",
+    "preset": "Preset",
+    "preset_none": "Choose a preset…",
+    "other": "Other parameters",
+    "other_help": "Any other PLAYSHELF_SIM_* variable, by its name in lower case without the prefix: one this page does not know yet (from a newer build) still reaches PlayShelf.",
+    "add": "Add",
+    "remove": "Remove",
+    "apply": "Apply",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "reset": "Reset",
+    "pad": "Pad",
+    "version": "Version",
+    "version_dev": "In development",
+    "fullscreen": "Full screen",
+    "fullscreen_exit": "Exit full screen",
+    "screenshot": "Screenshot",
+    "note": "Apply restarts PlayShelf from a fresh state with these settings; what you change inside it is not kept, unless “Keep the state” is on. The console takes the page's language and theme.",
+    "keys": "<kbd>↑↓←→</kbd> move · <kbd>Enter</kbd> A · <kbd>Esc</kbd> B · <kbd>X</kbd> <kbd>Y</kbd> · <kbd>L</kbd> <kbd>R</kbd> · <kbd>⇧L</kbd> ZL · <kbd>⇧R</kbd> ZR · <kbd>+</kbd> <kbd>−</kbd> · a click is a touch",
+    "error": "PlayShelf stopped:",
+    "reload": "Reload",
+    "no_isolation": "This browser does not let the page run threads (no cross-origin isolation). Try a recent Chrome, Edge or Firefox, outside a private window.",
+    "no_webgl": "This browser has no WebGL 2, which PlayShelf draws with.",
+    "unknown_build": "local build",
+    "record": "Record",
+    "stop_recording": "Stop",
+    "forget": "Forget the kept state",
+    "live_applied": "Changed without a restart",
+    "stop": "Stop",
+    "steps_copy": "Steps link",
+    "steps_help": "A link that starts PlayShelf as it started here and replays what you did since",
+    "steps_copied": "Link with the steps copied",
+    "replaying": "Replaying the steps: {n} of {total}",
+    "tour": "Tour",
+    "report": "Report a problem",
+    "tour_library": "Library: the games on this console, their versions, and what a server has that is newer.",
+    "tour_catalogue": "Catalogue: a library server's games, here the demo shelf's made-up ones.",
+    "tour_game": "A game's sheet: its base game, its updates and add-ons, each one to install.",
+    "tour_download": "Install everything: its packages go to the downloads and are installed one after the other.",
+    "tour_downloads": "Downloads: the queue, each game's timeline, and how the packages are fetched.",
+    "tour_preferences": "Preferences: the language, the theme and the title database.",
+    "tour_end": "Your turn: the arrows move, Enter is A, Esc is B. The panel sets any state."
+  },
+  "groups": {
+    "app": "PlayShelf",
+    "library": "Library server",
+    "console": "Console",
+    "updates": "Updates and GitHub",
+    "capture": "Screenshots"
+  },
+  "params": {
+    "tab": {
+      "label": "Opens on",
+      "options": {
+        "": "Library",
+        "catalogue": "Catalogue",
+        "preferences": "Preferences",
+        "about": "About"
+      }
+    },
+    "keep": {
+      "label": "Keep the state between visits",
+      "help": "PlayShelf's data (its settings, servers and downloads) and what the simulated console has installed stay in this browser; the console settings of this panel then count for a first start only."
+    },
+    "fw": {
+      "label": "Firmware",
+      "help": "Above the newest verified one, the firmware screen."
+    },
+    "no_cfw": {
+      "label": "No Atmosphère"
+    },
+    "emummc": {
+      "label": "emuMMC"
+    },
+    "blank": {
+      "label": "Serial number blanked"
+    },
+    "region": {
+      "label": "Region",
+      "options": {
+        "": "Default",
+        "0": "Japan",
+        "1": "Americas",
+        "2": "Europe",
+        "3": "Australia",
+        "4": "Hong Kong, Taiwan, Korea",
+        "5": "China"
+      }
+    },
+    "applet": {
+      "label": "Applet mode (from the album)"
+    },
+    "background": {
+      "label": "PlayShelf out of focus"
+    },
+    "hbloader": {
+      "label": "A loader that can hand an update to a store"
+    },
+    "docked": {
+      "label": "On the dock (on the TV)"
+    },
+    "battery": {
+      "label": "On the battery (no charger)"
+    },
+    "boot_choice": {
+      "label": "Answer to \"previous build?\" at start-up",
+      "options": {
+        "": "B",
+        "a": "A"
+      }
+    },
+    "now": {
+      "label": "Console time, frozen",
+      "help": "In your browser's time zone."
+    },
+    "latest": {
+      "label": "Latest release : newest firmware it supports"
+    },
+    "store": {
+      "label": "The Homebrew App Store's version (with its record on the SD card)"
+    },
+    "dev_builds": {
+      "label": "Development builds (GitHub API)",
+      "options": {
+        "": "Unreachable",
+        "offline": "Offline"
+      }
+    },
+    "dev_builds_delay": {
+      "label": "Each GitHub answer delayed by (ms)"
+    },
+    "github_login": {
+      "label": "GitHub sign-in",
+      "options": {
+        "": "Unreachable",
+        "ok": "Approved",
+        "denied": "Refused",
+        "offline": "Offline"
+      }
+    },
+    "paste": {
+      "label": "\"Send a report online\" answers"
+    },
+    "still_focus": {
+      "label": "Still focus highlight"
+    },
+    "version": {
+      "label": "Version shown in the header"
+    },
+    "hold_loading": {
+      "label": "Stop on the loading screen"
+    },
+    "cadran_noglow": {
+      "label": "No background glow"
+    },
+    "no_game": {
+      "label": "Nothing open behind PlayShelf"
+    },
+    "no_demo": {
+      "label": "No library server (a first start)"
+    },
+    "signed": {
+      "label": "Demo packages taken as signed by Nintendo",
+      "help": "On by default with the demo server. Off: each install asks first, as a package not signed by Nintendo does on a console."
+    },
+    "speed": {
+      "label": "Demo server speed (KB/s)",
+      "help": "96 by default; 0: at once."
+    },
+    "free_mb": {
+      "label": "Free space for installs (MB)",
+      "help": "0: the SD card is full, and an install stops on it."
+    }
+  },
+  "presets": {
+    "default": "Default",
+    "slow_network": "A slow network",
+    "fast_network": "A fast network",
+    "sd_full": "SD card full",
+    "no_server": "No library server yet",
+    "offline": "Console without Internet",
+    "applet": "Applet mode (from the album)",
+    "no_cfw": "Without Atmosphère",
+    "fw_old": "An older firmware",
+    "updates": "Updates to install"
+  }
+}

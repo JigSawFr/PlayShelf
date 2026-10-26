@@ -43,7 +43,7 @@ class LibraryTab : public TabBase
         std::string                           name;
     };
 
-    void show(std::shared_ptr<const std::vector<installed_flow::Game>> games);
+    void show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
     void open(size_t i);
     void set_hints();

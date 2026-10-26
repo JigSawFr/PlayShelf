@@ -103,7 +103,7 @@ LibraryTab::LibraryTab()
         const int opened = titledb_flow::status().opened;
         if (opened == this->titledb_opened) return;
         this->titledb_opened = opened;
-        if (this->shown_games) this->show(this->shown_games);
+        if (this->shown_games) this->show_games(this->shown_games);
     }));
 }
 
@@ -122,21 +122,21 @@ void LibraryTab::refresh()
 {
     download_flow::show_pill();
     // What the last read had, at once; this read's when it ends.
-    if (const auto known = installed_flow::games(); known && known != this->shown_games) this->show(known);
+    if (const auto known = installed_flow::games(); known && known != this->shown_games) this->show_games(known);
     else if (!this->shown_games) ui::set_detail(summary, "playshelf/installed/reading"_i18n);
     // A catalogue to compare the games with: the first server's when none
     // is read yet.
     const std::vector<library::Server> servers = library::load_servers();
     if (!servers.empty() && catalogues().empty() && !library_flow::loading())
         library_flow::load(servers.front(), ui::guarded(this->alive, [this](const std::shared_ptr<const library_flow::Loaded>& l, const std::string&) {
-            if (l && this->shown_games) this->show(this->shown_games);
+            if (l && this->shown_games) this->show_games(this->shown_games);
         }));
     installed_flow::read(ui::guarded(this->alive, [this](const std::shared_ptr<const std::vector<installed_flow::Game>>& games) {
-        this->show(games);
+        this->show_games(games);
     }));
 }
 
-void LibraryTab::show(std::shared_ptr<const std::vector<installed_flow::Game>> games)
+void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games)
 {
     this->shown_games = std::move(games);
     const auto all = catalogues();
@@ -263,7 +263,7 @@ void LibraryTab::set_hints()
         // On the next frame: the actions being run are this view's own,
         // registered again by set_hints().
         brls::sync(ui::guarded(this->alive, [this]() {
-            if (this->shown_games) this->show(this->shown_games);
+            if (this->shown_games) this->show_games(this->shown_games);
             this->set_hints();
         }));
         return true;
@@ -292,7 +292,7 @@ void LibraryTab::open(size_t i)
                                              ui::guarded(this->alive, [this, game_id, name]() {
                                                  installed_flow::remove(game_id, name, ui::guarded(this->alive,
                                                      [this](const std::shared_ptr<const std::vector<installed_flow::Game>>& games) {
-                                                         this->show(games);
+                                                         this->show_games(games);
                                                      }));
                                              }));
                       }),

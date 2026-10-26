@@ -14,6 +14,7 @@
 
 #include "action/library_flow.hpp"
 #include "core/awake.h"
+#include "core/sim_env.h"
 #include "download/recovery.hpp"
 #include "install/console_core.hpp"
 #include "install/http_source.hpp"
@@ -249,8 +250,12 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
             }
         });
     };
-    Installer inst(src, *pkg, console, *keys,
-                   InstallOptions{job.accept_unsigned ? SignaturePolicy::Off : SignaturePolicy::Require, false}, cb);
+    // The simulators' packages are signed with the host tests' key: with
+    // PLAYSHELF_SIM_SIGNED (the web simulator's demo server), taken as
+    // Nintendo's. Never set on the console.
+    const bool unsigned_ok = job.accept_unsigned || sim_env_flag("PLAYSHELF_SIM_SIGNED");
+    Installer  inst(src, *pkg, console, *keys,
+                    InstallOptions{unsigned_ok ? SignaturePolicy::Off : SignaturePolicy::Require, false}, cb);
     if (job.journal) inst.resume_from(*job.journal);
     if (!inst.prepare(&o.why)) return ctl->stop ? stopped() : o;
     o.total = inst.bytes_to_write();

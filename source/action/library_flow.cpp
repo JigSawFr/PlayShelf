@@ -129,7 +129,7 @@ void load(const library::Server& server, const Done& done)
     if (s_loading) return;
     s_loading = true;
     // Each one asked meanwhile told too.
-    const Done all = [](std::shared_ptr<const Loaded> l, std::string why) {
+    const Done all = [](const std::shared_ptr<const Loaded>& l, const std::string& why) {
         auto waiting = std::move(s_waiting);
         s_waiting.clear();
         for (const Done& d : waiting) d(l, why);

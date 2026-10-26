@@ -1,0 +1,117 @@
+name: web
+
+# The web simulator (web/README.md): PlayShelf built with Emscripten, with its
+# demo library server (tools/web_demo.cpp), then played in headless Chromium
+# (tools/web_smoke.py). For main and for each pull request; the simulator and
+# its smoke test's screens are the run's artifacts. Publishing it on GitHub
+# Pages comes with the website.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the build of the commit it replaces.
+concurrency:
+  group: web-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Emscripten, pinned: a new one is a pull request of its own (its ports, its
+  # threads and its file packager can change).
+  EMSDK_VERSION: 6.0.12
+  # The emsdk tool itself, at that version's tag, checked against the commit
+  # the tag pointed to when pinned: a tag can be moved, a commit cannot.
+  EMSDK_COMMIT: 35ff8a6d150541276abbc6bae512ca90bcfbe220
+  # Playwright, pinned, for the smoke test.
+  PLAYWRIGHT_VERSION: 1.64.0
+
+jobs:
+  simulator:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      # Emscripten's cache: its system libraries and ports (SDL2, zlib), built
+      # for threads and exceptions on first use, which takes minutes.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.emscripten_cache
+          key: emscripten-${{ env.EMSDK_VERSION }}
+      # The compiler's own cache: main's, saved by main's builds only (a pull
+      # request's would only serve itself).
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ccache
+          key: ccache-web-${{ env.EMSDK_VERSION }}-${{ github.sha }}
+          restore-keys: ccache-web-${{ env.EMSDK_VERSION }}-
+      - name: Emscripten ${{ env.EMSDK_VERSION }}
+        run: |
+          git clone --depth 1 --branch "$EMSDK_VERSION" https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          test "$(git -C "$RUNNER_TEMP/emsdk" rev-parse HEAD)" = "$EMSDK_COMMIT" \
+            || { echo "::error::emsdk's $EMSDK_VERSION tag is not $EMSDK_COMMIT any more"; exit 1; }
+          "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
+      # The demo server's packages are made on the host (libzstd, zlib);
+      # Japanese, Korean and Chinese drawn with a CJK font cut out of Noto
+      # Sans CJK with fontTools (tools/web_cjk_font.py).
+      - name: Dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools ccache
+      - name: The simulator
+        env:
+          PLAYSHELF_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          PLAYSHELF_PR: ${{ github.event.pull_request.number }}
+        run: |
+          # After emsdk_env.sh, which unsets EM_CACHE: set before, the ports
+          # were built in emsdk's own folder and the cache above stayed empty.
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          export EM_CACHE="$HOME/.emscripten_cache"
+          make web JOBS="$(nproc)" CMAKE_ARGS="-DPLAYSHELF_WERROR=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+          ccache --show-stats || true
+          test -f build-web/simulator/cjk.otf || { echo "::error::no CJK font in the web build"; exit 1; }
+          {
+            echo "### The web simulator"
+            echo
+            echo "| File | Size | Compressed |"
+            echo "|---|---|---|"
+            for f in playshelf.wasm playshelf.data playshelf.js cjk.otf; do
+              echo "| \`$f\` | $(du -k "build-web/simulator/$f" | cut -f1) KB | $(gzip -9c "build-web/simulator/$f" | wc -c | awk '{print int($1/1024)}') KB |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: ~/.cache/ccache
+          key: ccache-web-${{ env.EMSDK_VERSION }}-${{ github.sha }}
+      # The simulator in headless Chromium (tools/web_smoke.py): every kind
+      # of start, every tab, a game of the demo server installed, a live
+      # setting, the steps link, the tour, the CJK font, keep=1, a phone, the
+      # service worker. Its scenarios a few at once; one that hangs is
+      # stopped and fails, rather than the job's timeout.
+      - name: The simulator in a browser
+        timeout-minutes: 15
+        run: |
+          python3 -m venv "$RUNNER_TEMP/playwright"
+          "$RUNNER_TEMP/playwright/bin/pip" install -q "playwright==$PLAYWRIGHT_VERSION"
+          sudo "$RUNNER_TEMP/playwright/bin/python" -m playwright install-deps chromium
+          "$RUNNER_TEMP/playwright/bin/python" -m playwright install chromium
+          "$RUNNER_TEMP/playwright/bin/python" -u tools/web_smoke.py build-web/simulator build-web/shots
+          if [ -f build-web/shots/timings.json ]; then
+            { echo; echo "Starts (s): $(python3 -c 'import json; print(", ".join(f"{k} {v}" for k, v in json.load(open("build-web/shots/timings.json")).items()))')"; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: simulator
+          path: |
+            build-web/simulator
+            build-web/shots
+          if-no-files-found: ignore
+          retention-days: 14
