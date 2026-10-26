@@ -18,6 +18,10 @@
             <LibraryTab/>
         </brls:Tab>
 
+        <brls:Tab label="@i18n/playshelf/tabs/catalogue">
+            <CatalogueTab/>
+        </brls:Tab>
+
         <brls:Tab label="@i18n/playshelf/tabs/downloads">
             <DownloadsTab/>
         </brls:Tab>

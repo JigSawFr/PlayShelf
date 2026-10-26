@@ -11,6 +11,7 @@
         "preferences": "Preferences",
         "about": "About",
         "library": "Library",
+        "catalogue": "Catalogue",
         "downloads": "Downloads"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "Update available",
         "install_missing": "Install what is missing",
         "installed_version": "Installed: v{}"
+    },
+    "installed": {
+        "summary": "On this console",
+        "reading": "Reading…",
+        "count": "{} games",
+        "count_one": "1 game",
+        "to_get": "{} with something to get",
+        "version": "v{}",
+        "dlcs_missing": "{} add-ons to get",
+        "dlcs_missing_one": "1 add-on to get",
+        "empty_title": "No game on this console yet",
+        "empty_text": "The games installed on this console are shown here. The Catalogue tab installs more from a library server.",
+        "not_found": "No catalogue read so far has this game: its updates and add-ons show once a server that has it is read in the Catalogue tab."
     },
     "tiles": {
         "upload": "Send a report…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "No download yet",
-        "empty_text": "A game's sheet in the Library adds its packages here; they are installed one after the other.",
+        "empty_text": "A game's sheet in the Catalogue adds its packages here; they are installed one after the other.",
         "added": "Added to the downloads: {}",
         "already": "Already in the downloads",
         "state_waiting": "Waiting",

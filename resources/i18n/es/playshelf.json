@@ -11,6 +11,7 @@
         "preferences": "Preferencias",
         "about": "Acerca de",
         "library": "Biblioteca",
+        "catalogue": "Catálogo",
         "downloads": "Descargas"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "Actualización disponible",
         "install_missing": "Instalar lo que falta",
         "installed_version": "Instalado: v{}"
+    },
+    "installed": {
+        "summary": "En esta consola",
+        "reading": "Leyendo…",
+        "count": "{} juegos",
+        "count_one": "1 juego",
+        "to_get": "{} con novedades",
+        "version": "v{}",
+        "dlcs_missing": "{} contenidos adicionales por obtener",
+        "dlcs_missing_one": "1 contenido adicional por obtener",
+        "empty_title": "Aún no hay juegos en esta consola",
+        "empty_text": "Aquí aparecen los juegos instalados en esta consola. La pestaña Catálogo instala más desde un servidor de biblioteca.",
+        "not_found": "Ningún catálogo leído hasta ahora tiene este juego: sus actualizaciones y contenidos adicionales aparecen cuando se lee en la pestaña Catálogo un servidor que lo tenga."
     },
     "tiles": {
         "upload": "Enviar un informe…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "Aún no hay descargas",
-        "empty_text": "La ficha de un juego, en la Biblioteca, añade aquí sus paquetes; se instalan uno tras otro.",
+        "empty_text": "La ficha de un juego, en la Catálogo, añade aquí sus paquetes; se instalan uno tras otro.",
         "added": "Añadido a las descargas: {}",
         "already": "Ya está en las descargas",
         "state_waiting": "En espera",

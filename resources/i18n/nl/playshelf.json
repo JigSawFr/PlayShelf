@@ -11,6 +11,7 @@
         "preferences": "Voorkeuren",
         "about": "Info",
         "library": "Bibliotheek",
+        "catalogue": "Catalogus",
         "downloads": "Downloads"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "Update beschikbaar",
         "install_missing": "Installeer wat ontbreekt",
         "installed_version": "Geïnstalleerd: v{}"
+    },
+    "installed": {
+        "summary": "Op deze console",
+        "reading": "Bezig met lezen…",
+        "count": "{} games",
+        "count_one": "1 game",
+        "to_get": "{} met iets nieuws",
+        "version": "v{}",
+        "dlcs_missing": "{} extra content op te halen",
+        "dlcs_missing_one": "1 extra content op te halen",
+        "empty_title": "Nog geen game op deze console",
+        "empty_text": "De games die op deze console staan, verschijnen hier. Het tabblad Catalogus installeert er meer vanaf een bibliotheekserver.",
+        "not_found": "Geen tot nu toe gelezen catalogus heeft deze game: de updates en extra content verschijnen zodra in het tabblad Catalogus een server wordt gelezen die hem heeft."
     },
     "tiles": {
         "upload": "Rapport versturen…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "Nog geen downloads",
-        "empty_text": "De pagina van een game in de Bibliotheek voegt hier zijn pakketten toe; ze worden na elkaar geïnstalleerd.",
+        "empty_text": "De pagina van een game in de Catalogus voegt hier zijn pakketten toe; ze worden na elkaar geïnstalleerd.",
         "added": "Toegevoegd aan de downloads: {}",
         "already": "Staat al in de downloads",
         "state_waiting": "Wachtend",

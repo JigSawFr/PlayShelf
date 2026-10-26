@@ -11,6 +11,7 @@
         "preferences": "偏好设置",
         "about": "关于",
         "library": "游戏库",
+        "catalogue": "目录",
         "downloads": "下载"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "有可用更新",
         "install_missing": "安装缺少的内容",
         "installed_version": "已安装：v{}"
+    },
+    "installed": {
+        "summary": "此主机上",
+        "reading": "正在读取…",
+        "count": "{} 款游戏",
+        "count_one": "1 款游戏",
+        "to_get": "{} 款有新内容",
+        "version": "v{}",
+        "dlcs_missing": "{} 个追加内容可获取",
+        "dlcs_missing_one": "1 个追加内容可获取",
+        "empty_title": "此主机上还没有游戏",
+        "empty_text": "此主机上安装的游戏会显示在这里。“目录”标签页可从游戏库服务器安装更多游戏。",
+        "not_found": "目前读取的目录中都没有这款游戏：在“目录”标签页读取拥有它的服务器后，会显示其更新和追加内容。"
     },
     "tiles": {
         "upload": "发送报告…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "还没有下载",
-        "empty_text": "游戏库中游戏的详情页会把它的软件包添加到这里；它们会依次安装。",
+        "empty_text": "目录中游戏的详情页会把它的软件包添加到这里；它们会依次安装。",
         "added": "已添加到下载：{}",
         "already": "已在下载列表中",
         "state_waiting": "等待中",

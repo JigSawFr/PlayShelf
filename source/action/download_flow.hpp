@@ -1,8 +1,8 @@
 // download_flow — the downloads' queue at work (download/queue): the jobs
 // read from queue.json at start-up (one cut short by a restart comes back
-// paused, its journal kept), added from the Library tab, installed one
-// after the other on a worker thread (install::Installer to the SD card,
-// each from the journal of its earlier runs). A library server's
+// paused, its journal kept), added from the Catalogue and Library tabs,
+// installed one after the other on a worker thread (install::Installer to
+// the SD card, each from the journal of its earlier runs). A library server's
 // credentials and pin are taken from its profile when the job starts, and
 // go only to that server's addresses.
 //

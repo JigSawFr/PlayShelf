@@ -11,6 +11,7 @@
         "preferences": "Optionen",
         "about": "Info",
         "library": "Bibliothek",
+        "catalogue": "Katalog",
         "downloads": "Downloads"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "Update verfügbar",
         "install_missing": "Fehlendes installieren",
         "installed_version": "Installiert: v{}"
+    },
+    "installed": {
+        "summary": "Auf dieser Konsole",
+        "reading": "Wird gelesen…",
+        "count": "{} Spiele",
+        "count_one": "1 Spiel",
+        "to_get": "{} mit Neuem",
+        "version": "v{}",
+        "dlcs_missing": "{} Zusatzinhalte zu holen",
+        "dlcs_missing_one": "1 Zusatzinhalt zu holen",
+        "empty_title": "Noch kein Spiel auf dieser Konsole",
+        "empty_text": "Die auf dieser Konsole installierten Spiele erscheinen hier. Der Tab Katalog installiert weitere von einem Bibliotheksserver.",
+        "not_found": "Kein bisher gelesener Katalog hat dieses Spiel: Seine Updates und Zusatzinhalte erscheinen, sobald im Tab Katalog ein Server gelesen wird, der es hat."
     },
     "tiles": {
         "upload": "Bericht senden…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "Noch kein Download",
-        "empty_text": "Die Seite eines Spiels in der Bibliothek fügt seine Pakete hier hinzu; sie werden nacheinander installiert.",
+        "empty_text": "Die Seite eines Spiels in der Katalog fügt seine Pakete hier hinzu; sie werden nacheinander installiert.",
         "added": "Zu den Downloads hinzugefügt: {}",
         "already": "Bereits in den Downloads",
         "state_waiting": "Wartet",

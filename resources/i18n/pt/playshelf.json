@@ -11,6 +11,7 @@
         "preferences": "Preferências",
         "about": "Sobre",
         "library": "Biblioteca",
+        "catalogue": "Catálogo",
         "downloads": "Transferências"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "Atualização disponível",
         "install_missing": "Instalar o que falta",
         "installed_version": "Instalado: v{}"
+    },
+    "installed": {
+        "summary": "Nesta consola",
+        "reading": "A ler…",
+        "count": "{} jogos",
+        "count_one": "1 jogo",
+        "to_get": "{} com novidades",
+        "version": "v{}",
+        "dlcs_missing": "{} conteúdos adicionais por obter",
+        "dlcs_missing_one": "1 conteúdo adicional por obter",
+        "empty_title": "Ainda não há jogos nesta consola",
+        "empty_text": "Os jogos instalados nesta consola aparecem aqui. O separador Catálogo instala mais a partir de um servidor de biblioteca.",
+        "not_found": "Nenhum catálogo lido até agora tem este jogo: as atualizações e conteúdos adicionais aparecem quando, no separador Catálogo, for lido um servidor que o tenha."
     },
     "tiles": {
         "upload": "Enviar um relatório…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "Ainda não há transferências",
-        "empty_text": "A ficha de um jogo, na Biblioteca, adiciona aqui os seus pacotes; são instalados um após o outro.",
+        "empty_text": "A ficha de um jogo, na Catálogo, adiciona aqui os seus pacotes; são instalados um após o outro.",
         "added": "Adicionado às transferências: {}",
         "already": "Já está nas transferências",
         "state_waiting": "Em espera",
