@@ -203,7 +203,13 @@ void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& passw
          std::function<void(int)> done, uint64_t title_id)
 {
     if (!l || url.empty()) return;
-    Job  job{ std::move(l), url, password, std::move(done), title_id, config::get().nlib_api };
+    Job job;
+    job.loaded = std::move(l);
+    job.url = url;
+    job.password = password;
+    job.done = std::move(done);
+    job.title_id = title_id;
+    job.online = config::get().nlib_api;
     bool start = false;
     {
         std::lock_guard<std::mutex> hold(s_lock);
