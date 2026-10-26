@@ -210,8 +210,9 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
                                      },
                                      &where);
     // The source itself may stop on the same request (a download cut short
-    // at once): the pause or the cancel, not a failure.
-    if (!streamed && where != "paused" && where != "cancelled") {
+    // at once, saying "cancelled" whichever it was): the pause or the
+    // cancel, not a failure.
+    if (!streamed && where != "paused") {
         if (cancelled()) where = "cancelled";
         else if (pausing()) where = "paused";
     }

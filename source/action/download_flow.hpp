@@ -6,6 +6,13 @@
 // credentials and pin are taken from its profile when the job starts, and
 // go only to that server's addresses.
 //
+// A failed job (download/recovery): a transfer cut short pauses the install
+// rather than undoing it, and PlayShelf tries again from there by itself
+// (10 s, 30 s, 2 min later); what needs the user is offered (the server's
+// other address, its profile, the package found again in its catalogue). A
+// job whose server was removed fails before it starts; one whose package
+// the console has by now is done.
+//
 // Before the first job of a run: whether the console patches signature
 // checks (util/patches; asked to go on when nothing is found). Before each
 // job: the placeholders no job keeps are deleted. While jobs run, the
@@ -23,6 +30,8 @@
 #include <vector>
 
 #include "download/queue.hpp"
+#include "download/recovery.hpp"
+#include "library/servers.hpp"
 
 namespace download_flow
 {
@@ -39,6 +48,7 @@ struct Live
     uint64_t              done = 0, total = 0;
     double                speed = 0;   // bytes a second
     std::optional<double> eta;         // seconds left
+    double                quiet = 0;   // seconds since its last byte
 };
 Live live();
 
@@ -55,6 +65,18 @@ void pause_all();
 void resume_all();
 void clear_finished();
 
+// A failed job PlayShelf tries again by itself (a cut, a busy server; at
+// most download::RETRIES times): the seconds before it does, -1 when not.
+double retry_in(const download::Job& job);
+// What the user can do about a failed job (download/recovery), besides
+// removing it; and those that need the flow:
+std::vector<download::Remedy> remedies(const download::Job& job);
+std::optional<library::Server> server_of(const download::Job& job);   // the job's server, as servers.json has it
+void use_other_address(const std::string& id);   // the server's other address (LAN ↔ WAN), then waiting again
+// Its server's catalogue read again, the package found in it (its title at
+// that version): its new address taken, then waiting again.
+void find_again(const std::string& id);
+
 // The setting changed: the console kept awake or not, while a job runs.
 void keep_awake_changed();
 
@@ -66,7 +88,8 @@ void unlisten(int id);
 // to do.
 std::string summary();
 // The summary in the header's pill, whichever tab is shown (amber when a
-// job failed or waits paused); none when the queue is empty.
+// job failed or waits paused, or the running one stands still); none when
+// the queue is empty.
 void show_pill();
 
 }   // namespace download_flow

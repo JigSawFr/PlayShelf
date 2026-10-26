@@ -117,6 +117,7 @@ std::string queue_to_json(const std::vector<Job>& jobs)
         j["url"] = job.url;
         j["server"] = job.server_id;
         j["title_id"] = job.title_id;
+        if (job.version) j["version"] = *job.version;
         j["size"] = job.size;
         j["state"] = STATES[(int)job.state];
         if (!job.error.empty()) j["error"] = job.error;
@@ -153,6 +154,8 @@ std::vector<Job> queue_from_json(const std::string& text)
         job.url = str(j, "url");
         job.server_id = str(j, "server", 64);
         job.title_id = u64(j, "title_id");
+        if (const auto v = j.find("version"); v != j.end() && v->is_number_unsigned() && v->get<uint64_t>() <= UINT32_MAX)
+            job.version = (uint32_t)v->get<uint64_t>();
         job.size = u64(j, "size");
         const std::string state = str(j, "state", 16);
         for (int i = 0; i < 5; i++)

@@ -224,6 +224,7 @@ size_t install(const Loaded& l, const std::vector<size_t>& items)
         j.url = it.url;
         j.server_id = l.server.id;
         j.title_id = it.title_id;
+        if (it.has_version) j.version = it.version;
         j.size = it.size;
         jobs.push_back(std::move(j));
     }

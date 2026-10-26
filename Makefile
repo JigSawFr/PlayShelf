@@ -133,6 +133,9 @@ library_titles_SRC := source/library/catalog.cpp source/library/titles.cpp tests
 download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp $(K)/util/paths.cpp \
                        tests/download_queue/test.cpp
 download_queue_LIBS := -lzstd
+# What a failed download's error means and what can be done about it.
+download_recovery_SRC  := $(filter-out tests/%,$(download_queue_SRC)) source/download/recovery.cpp tests/download_recovery/test.cpp
+download_recovery_LIBS := -lzstd
 # The desktop build's console (sim/sim_install.cpp) behind install::Console.
 install_sim_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/install/console_core.cpp source/sim/sim_install.cpp \
                     $(K)/util/paths.cpp $(K)/sim/sim_env.cpp tests/install_sim/test.cpp

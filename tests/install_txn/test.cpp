@@ -415,19 +415,20 @@ void test_pause_resume()
         CHECK(c3.contents.empty() && c3.held.empty() && c3.meta.empty());
     }
 
-    // A source that stops by itself on the pause (a download cut at once):
-    // paused, nothing undone.
-    {
+    // A source that stops by itself on the pause (a download cut at once,
+    // HttpSource saying "cancelled"): paused, nothing undone.
+    for (const char* says : { "aborted", "cancelled" }) {
         struct Stopping : MemorySource
         {
             using MemorySource::MemorySource;
             std::atomic<bool>* pause = nullptr;
+            const char*        says = "";
             bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
                         std::string* why) override
             {
                 if (length > 0x3000) {
                     *pause = true;
-                    *why = "aborted";
+                    *why = says;
                     return false;
                 }
                 return MemorySource::stream(offset, length, sink, why);
@@ -439,6 +440,7 @@ void test_pause_resume()
         std::atomic<bool> pause{false};
         Stopping          src(pkg, 0x1000);
         src.pause = &pause;
+        src.says = says;
         InstallCallbacks cb;
         cb.pause = &pause;
         Installer   inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false}, cb);
