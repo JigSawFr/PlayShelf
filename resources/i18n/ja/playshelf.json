@@ -17,36 +17,11 @@
         "exit_again": "もう一度Bで終了"
     },
     "common": {
-        "yes": "はい",
-        "no": "いいえ",
         "unavailable": "取得できません",
         "no_limit": "制限なし",
         "line": "{}：{}",
-        "minutes": "{}分",
-        "hours": "{}時間",
-        "hours_minutes": "{}時間{}分",
         "later": "あとで",
-        "delete": "削除",
-        "hold_hint": "「{}」を2秒間押し続けてください",
-        "less_than_minute": "1分未満"
-    },
-    "days": {
-        "0": "日曜日",
-        "1": "月曜日",
-        "2": "火曜日",
-        "3": "水曜日",
-        "4": "木曜日",
-        "5": "金曜日",
-        "6": "土曜日"
-    },
-    "days_lower": {
-        "0": "日曜日",
-        "1": "月曜日",
-        "2": "火曜日",
-        "3": "水曜日",
-        "4": "木曜日",
-        "5": "金曜日",
-        "6": "土曜日"
+        "delete": "削除"
     },
     "error": {
         "code": "エラー {}",
@@ -160,14 +135,8 @@
     },
     "tiles": {
         "upload": "レポートを送信…",
-        "text_size_auto": "自動：テレビでは大きめ",
         "text_size": "文字の大きさ",
-        "start_tab": "起動時のタブ",
-        "themes": {
-            "system": "本体の設定",
-            "light": "ホワイト",
-            "dark": "ブラック"
-        }
+        "start_tab": "起動時のタブ"
     },
     "tools": {
         "section_diag": "診断",
@@ -185,31 +154,8 @@
         "logs_keep_mb": "レポートの容量",
         "logs_note": "{} の診断レポート、クラッシュファイル、セッションログ、オンラインで送信したレポートのリンクに、それぞれ別々に、起動時と制限を変更したときに適用されます。最新のものは常に残ります。",
         "language": "言語",
-        "languages": {
-            "system": "本体の言語",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "テーマ",
         "start_tab": "起動時のタブ",
-        "themes": {
-            "system": "本体の設定",
-            "light": "ベーシックホワイト",
-            "dark": "ベーシックブラック"
-        },
         "storage_emummc": "SDカード上のコピー（emuMMC）",
         "storage_sysmmc": "本体保存メモリー（sysMMC）",
         "storage_unknown": "不明（Atmosphèreが見つかりません）",
@@ -264,12 +210,6 @@
         "intro": "イントロを2秒間表示する",
         "support_reminder": "月に一度、PlayShelfの応援についてお知らせする",
         "help": "ヘルプと診断",
-        "text_size": "文字の大きさ",
-        "text_sizes": {
-            "normal": "標準",
-            "large": "大きめ",
-            "auto": "自動：テレビでは大きめ"
-        },
         "effects": "視覚効果",
         "effects_values": {
             "full": "常にすべて",
@@ -447,13 +387,6 @@
         "find_hint": "検索",
         "cancelled": "ダウンロードを中止しました。"
     },
-    "markdown": {
-        "note": "注",
-        "tip": "ヒント",
-        "important": "重要",
-        "warning": "警告",
-        "caution": "注意"
-    },
     "github": {
         "account": "GitHub アカウント",
         "not_signed_in": "未ログイン",
@@ -475,8 +408,7 @@
         "config_err": "SDカードにオプションを保存できませんでした"
     },
     "quick": {
-        "hint": "言語とテーマ",
-        "title_text": "言語、テーマ、文字の大きさ"
+        "hint": "言語とテーマ"
     },
     "notices": {
         "installed": "PlayShelf {} をインストールしました",
@@ -491,24 +423,6 @@
         "upload_show": "リンクを表示"
     },
     "cadran": {
-        "date": "{3}{2}日 {0}",
-        "months": {
-            "1": "1月",
-            "2": "2月",
-            "3": "3月",
-            "4": "4月",
-            "5": "5月",
-            "6": "6月",
-            "7": "7月",
-            "8": "8月",
-            "9": "9月",
-            "10": "10月",
-            "11": "11月",
-            "12": "12月"
-        },
-        "pill": {
-            "read_only": "閲覧のみ"
-        },
         "about": {
             "tagline": "本体で使うゲームライブラリ · フリーソフトウェア（GPLv3）",
             "version": "バージョン {}"

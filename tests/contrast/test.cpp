@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cstdio>
 
-#include "ui/cadran_palette.hpp"
+#include <borealis/cadran/ui/cadran_palette.hpp>
 
 using cadran::palette::Palette;
 using cadran::palette::Rgba;

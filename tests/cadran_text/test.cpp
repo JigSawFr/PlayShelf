@@ -1,5 +1,5 @@
 // Host tests for source/ui/cadran_text.cpp, translated by the real catalogs
-// (resources/i18n/<lang>/playshelf.json, read from the repository root `make
+// (Aurore's extern/borealis/resources/i18n/<lang>/cadran.json, read from the repository root `make
 // test` runs in) through ui/tr.hpp's stand-in for borealis: a dialog's table
 // marked and read back, a week's identical lines as one (and a short table
 // left alone), and a failure's title, reason, code and report, in English and
@@ -13,8 +13,8 @@
 #include <utility>
 #include <vector>
 
-#include "ui/cadran_text.hpp"
-#include "ui/tr.hpp"
+#include <borealis/cadran/ui/cadran_text.hpp>
+#include <borealis/cadran/ui/tr.hpp>
 
 static std::map<std::string, std::string> s_catalog;
 static std::set<std::string>              s_missing;   // keys asked for that the catalog lacks
@@ -32,9 +32,9 @@ static void flatten(const nlohmann::json& j, const std::string& prefix)
 static bool load(const std::string& lang)
 {
     s_catalog.clear();
-    std::ifstream in("resources/i18n/" + lang + "/playshelf.json");
+    std::ifstream in("extern/borealis/resources/i18n/" + lang + "/cadran.json");
     if (!in) return false;
-    flatten(nlohmann::json::parse(in), "playshelf/");
+    flatten(nlohmann::json::parse(in), "cadran/");
     return !s_catalog.empty();
 }
 
@@ -102,12 +102,12 @@ static void test_failure()
     cadran_text::Failure f = failure("Could not unlock parental controls", "refused by the service", 0xC88E, false);
     CHECK(f.title == "Could not unlock parental controls");
     CHECK(f.reason == "Refused by the service");
-    CHECK(f.code == brls::getStr("playshelf/error/code", "0x0000C88E"));
+    CHECK(f.code == brls::getStr("cadran/error/code", "0x0000C88E"));
     CHECK(f.report);
 
     // No hint known: the code alone.
     f = failure("Could not save", "", 0x1234, false);
-    CHECK(f.title == "Could not save" && f.reason.empty() && f.code == brls::getStr("playshelf/error/code", "0x00001234"));
+    CHECK(f.title == "Could not save" && f.reason.empty() && f.code == brls::getStr("cadran/error/code", "0x00001234"));
 
     // One of PlayShelf's own results: its words, no code nor report.
     f = failure("", "The SD card is full.", 0x5678, true);
@@ -123,7 +123,7 @@ static void test_french()
     REQUIRE(load("fr"));
     const cadran_text::Failure f = cadran_text::failure("Impossible de d\u00E9verrouiller", "refus\u00E9", 0xC88E, false);
     CHECK(f.title == "Impossible de d\u00E9verrouiller" && f.reason == "Refus\u00E9" && f.report);
-    CHECK(f.code == brls::getStr("playshelf/error/code", "0x0000C88E"));
+    CHECK(f.code == brls::getStr("cadran/error/code", "0x0000C88E"));
     CHECK(f.code.find("0x0000C88E") != std::string::npos);
 }
 

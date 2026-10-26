@@ -3,12 +3,13 @@
 
 #include <fmt/format.h>
 
+#include <borealis/cadran/ui/cadran_list.hpp>
+#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <borealis/cadran/ui/format_text.hpp>
+#include <borealis/cadran/ui/guarded.hpp>
+
 #include "action/download_flow.hpp"
 #include "action/library_flow.hpp"
-#include "ui/cadran_list.hpp"
-#include "ui/cadran_modal.hpp"
-#include "ui/format_text.hpp"
-#include "ui/guarded.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 

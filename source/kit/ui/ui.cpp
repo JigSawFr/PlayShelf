@@ -1,14 +1,16 @@
-// ui — result texts, background tasks, toasts, screen changes and the main
-// screen's state. The other ui/*.cpp hold the rest of ui.hpp by concern.
+// ui — result texts, background tasks, the SD card's writes, config.json and
+// the main screen's state (Aurore's Cadran has the toasts and dialogs). The other ui/*.cpp hold the rest of ui.hpp by concern.
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "ui/ui.hpp"
 
+#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <borealis/cadran/ui/cadran_text.hpp>
+#include <borealis/cadran/ui/effects.hpp>
+#include <borealis/cadran/ui/hooks.hpp>
+
 #include "action/error_hint_logic.hpp"
 #include "action/write_queue_logic.hpp"
-#include "ui/cadran_modal.hpp"
-#include "ui/cadran_text.hpp"
-#include "ui/effects.hpp"
-#include "ui/hooks.hpp"
+#include "ui/app_hooks.hpp"
 #include "util/config.hpp"
 #include "util/worker_threads.hpp"
 
@@ -130,27 +132,12 @@ void settle_writes(const std::string& key)
     s_writes.settle(key);
 }
 
-void notify(const std::string& text, Toast kind)
-{
-    // Logged too: the desktop smoke test checks what the user was told.
-    brls::Logger::info("toast: {}", text);
-    brls::sync([text, kind]() {
-        brls::Application::notify(text, kind == Toast::Info ? nullptr : cadran::toast_icon(kind == Toast::Done));
-    });
-}
-
 // A refusal: the line that asked shakes its head (its focus ring, as the
 // console does at the end of a list), with the toast that says why.
 static void shake_focus()
 {
     if (!effects::motion()) return;
     if (brls::View* focus = brls::Application::getCurrentFocus()) focus->shakeHighlight(brls::FocusDirection::LEFT);
-}
-
-void refuse(const std::string& text)
-{
-    brls::sync([]() { shake_focus(); });
-    notify(text, Toast::Refused);
 }
 
 // The texts of a result are read on the UI thread, in the sync: a language
@@ -175,11 +162,6 @@ static void show_error(const std::string& text)
     show_failure(f);
 }
 
-void error(const std::string& text)
-{
-    brls::sync([text]() { show_error(text); });
-}
-
 void error(const std::string& what, Result rc, const std::string& before)
 {
     brls::sync([what, rc, before]() {
@@ -190,22 +172,6 @@ void error(const std::string& what, Result rc, const std::string& before)
         if (!before.empty()) f.reason = f.reason.empty() ? before : before + "\n\n" + f.reason;
         show_failure(f);
     });
-}
-
-void error(const std::string& what, const std::string& why)
-{
-    brls::Logger::info("error: {}: {}", what, why);
-    cadran_text::Failure f;
-    f.title = what;
-    f.reason = why;
-    brls::sync([f]() { show_failure(f); });
-}
-
-void replace_screen(brls::Activity* next)
-{
-    const auto none = brls::TransitionAnimation::NONE;
-    if (!brls::Application::popActivity(none, [next, none]() { brls::Application::pushActivity(next, none); }))
-        brls::Application::pushActivity(next, none);
 }
 
 // config.json and state.json as they are now, queued (*ticket to wait for). False when it
@@ -225,7 +191,7 @@ static bool queue_config(const std::string& saved_text, const std::string& faile
         const bool saved = config::write(text);
         s_config_saved = saved;
         brls::sync([saved]() {
-            if (hooks::get().note_write) hooks::get().note_write("config", saved);
+            if (app_hooks::get().note_write) app_hooks::get().note_write("config", saved);
         });
         if (!saved) notify(failed, Toast::Refused);
         else if (!saved_text.empty()) notify(saved_text, Toast::Done);
@@ -263,7 +229,7 @@ static void update_title()
 void on_mode_changed()
 {
     // The frame statistics only run in developer mode.
-    if (hooks::get().mode_changed) hooks::get().mode_changed();
+    if (app_hooks::get().mode_changed) app_hooks::get().mode_changed();
     update_title();
     refresh_shown_tab();
 }

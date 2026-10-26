@@ -17,36 +17,11 @@
         "exit_again": "Press B again to quit"
     },
     "common": {
-        "yes": "Yes",
-        "no": "No",
         "unavailable": "Unavailable",
         "no_limit": "No limit",
         "line": "{}: {}",
-        "minutes": "{} min",
-        "hours": "{} h",
-        "hours_minutes": "{} h {}",
         "later": "Later",
-        "delete": "Delete",
-        "hold_hint": "Hold on “{}” for 2 seconds",
-        "less_than_minute": "< 1 min"
-    },
-    "days": {
-        "0": "Sunday",
-        "1": "Monday",
-        "2": "Tuesday",
-        "3": "Wednesday",
-        "4": "Thursday",
-        "5": "Friday",
-        "6": "Saturday"
-    },
-    "days_lower": {
-        "0": "Sunday",
-        "1": "Monday",
-        "2": "Tuesday",
-        "3": "Wednesday",
-        "4": "Thursday",
-        "5": "Friday",
-        "6": "Saturday"
+        "delete": "Delete"
     },
     "error": {
         "code": "error {}",
@@ -160,14 +135,8 @@
     },
     "tiles": {
         "upload": "Send a report…",
-        "text_size_auto": "Auto: larger on TV",
         "text_size": "Text size",
-        "start_tab": "Start on",
-        "themes": {
-            "system": "System",
-            "light": "Light",
-            "dark": "Dark"
-        }
+        "start_tab": "Start on"
     },
     "tools": {
         "section_diag": "Diagnostics",
@@ -185,31 +154,8 @@
         "logs_keep_mb": "Space for reports",
         "logs_note": "Applies to the diagnostic reports, the crash files, the session logs and the links of the reports sent online in {}, each on its own, at start-up and when a limit changes. The newest one always stays.",
         "language": "Language",
-        "languages": {
-            "system": "System language",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "Theme",
         "start_tab": "Start on",
-        "themes": {
-            "system": "System",
-            "light": "Light",
-            "dark": "Dark"
-        },
         "storage_emummc": "A copy on the SD card (emuMMC)",
         "storage_sysmmc": "Internal memory (sysMMC)",
         "storage_unknown": "Unknown (Atmosphère not detected)",
@@ -264,12 +210,6 @@
         "intro": "Show the intro for 2 seconds",
         "support_reminder": "Remind me once a month to support PlayShelf",
         "help": "Help & diagnostics",
-        "text_size": "Text size",
-        "text_sizes": {
-            "normal": "Normal",
-            "large": "Larger",
-            "auto": "Automatic: larger on the TV"
-        },
         "effects": "Visual effects",
         "effects_values": {
             "full": "Always full",
@@ -447,13 +387,6 @@
         "find_hint": "Search",
         "cancelled": "Download cancelled."
     },
-    "markdown": {
-        "note": "Note",
-        "tip": "Tip",
-        "important": "Important",
-        "warning": "Warning",
-        "caution": "Caution"
-    },
     "github": {
         "account": "GitHub account",
         "not_signed_in": "Not signed in",
@@ -475,8 +408,7 @@
         "config_err": "Could not save the preferences on the SD card"
     },
     "quick": {
-        "hint": "Language & theme",
-        "title_text": "Language, theme and text size"
+        "hint": "Language & theme"
     },
     "notices": {
         "installed": "PlayShelf {} installed",
@@ -491,24 +423,6 @@
         "upload_show": "Show the link"
     },
     "cadran": {
-        "date": "{0}, {3} {2}",
-        "months": {
-            "1": "January",
-            "2": "February",
-            "3": "March",
-            "4": "April",
-            "5": "May",
-            "6": "June",
-            "7": "July",
-            "8": "August",
-            "9": "September",
-            "10": "October",
-            "11": "November",
-            "12": "December"
-        },
-        "pill": {
-            "read_only": "Read-only"
-        },
         "about": {
             "tagline": "Your game library on the console · free software (GPLv3)",
             "version": "Version {}"

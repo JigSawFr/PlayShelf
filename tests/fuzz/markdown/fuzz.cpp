@@ -7,8 +7,8 @@
 #include <string>
 
 #include "fuzz.h"
-#include "util/markdown.hpp"
-#include "util/safe_text.hpp"
+#include <borealis/cadran/util/markdown.hpp>
+#include <borealis/cadran/util/safe_text.hpp>
 
 static bool ok(const std::string& s) { return fuzz_utf8_ok(s.data(), s.size()); }
 

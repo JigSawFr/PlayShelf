@@ -5,9 +5,11 @@
 #ifndef __SWITCH__
 #include "sim/sim_net.hpp"
 #endif
+
+#include <borealis/cadran/util/text.hpp>
+
 #include "util/github_auth.hpp"
 #include "util/http.hpp"
-#include "util/text.hpp"
 
 namespace github_auth
 {

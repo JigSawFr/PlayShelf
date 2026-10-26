@@ -101,6 +101,8 @@ TEST_CXXFLAGS   := -std=c++17 -Isource -Isource/kit -isystem extern/borealis/lib
 CALENDAR_C      := source/kit/core/calendar.c
 CALENDAR_CFLAGS := -std=gnu11 -Isource/kit/core
 K := source/kit
+# Aurore's Cadran (extern/borealis): the kit's UI helpers, tested here.
+C := extern/borealis/library/lib/cadran
 # A secret sealed for this console: AES and HMAC, and the console's key
 # (the desktop build's random one: sim/sim_device_key.cpp).
 SECRET_BOX := $(K)/util/secret_box.cpp $(K)/util/aes.cpp $(K)/sim/sim_device_key.cpp
@@ -154,10 +156,10 @@ http_logic_SRC   := $(K)/util/http_logic.cpp tests/http_logic/test.cpp
 update_SRC   := $(K)/util/date.cpp $(K)/util/update.cpp tests/update/test.cpp
 config_SRC   := $(K)/util/paths.cpp $(K)/util/date.cpp source/util/config.cpp tests/config/test.cpp
 launcher_SRC   := $(K)/util/paths.cpp $(K)/util/launcher.cpp tests/launcher/test.cpp
-markdown_SRC   := $(K)/util/safe_text.cpp $(K)/util/markdown.cpp tests/markdown/test.cpp
+markdown_SRC   := $(C)/util/safe_text.cpp $(C)/util/markdown.cpp tests/markdown/test.cpp
 rollback_SRC   := $(K)/util/paths.cpp $(K)/util/rollback.cpp tests/rollback/test.cpp
 log_upload_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/log_upload.cpp tests/log_upload/test.cpp
-dev_builds_SRC   := $(K)/util/paths.cpp $(K)/util/sha256.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(K)/util/safe_text.cpp $(K)/util/dev_builds.cpp $(K)/util/zip_read.cpp $(K)/util/github_auth.cpp $(SECRET_BOX) tests/dev_builds/test.cpp
+dev_builds_SRC   := $(K)/util/paths.cpp $(K)/util/sha256.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(C)/util/safe_text.cpp $(K)/util/dev_builds.cpp $(K)/util/zip_read.cpp $(K)/util/github_auth.cpp $(SECRET_BOX) tests/dev_builds/test.cpp
 dev_builds_LIBS  := -lz
 # The download and its resume: without PLAYSHELF_SIM_DEV_BUILDS the desktop
 # build takes the console's path, here against a fake http::download and
@@ -168,11 +170,11 @@ perf_SRC   := $(K)/util/perf.cpp tests/perf/test.cpp
 # fmt header-only: the report's lines are formatted with it.
 diagnostics_logic_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp $(K)/util/diagnostics_logic.cpp tests/diagnostics_logic/test.cpp
 diagnostics_logic_FLAGS := $(TEST_CXXFLAGS) -isystem extern/borealis/library/lib/extern/fmt/include -DFMT_HEADER_ONLY
-# The text helpers that only translate, over ui/tr.hpp's stand-in for
+# The text helpers that only translate, over Cadran's ui/tr.hpp stand-in for
 # borealis' getStr and fmt header-only (the catalogs read by the test).
-format_text_SRC   := $(K)/ui/format_text.cpp tests/format_text/test.cpp
-format_text_FLAGS := $(TEST_CXXFLAGS) -isystem extern/borealis/library/lib/extern/fmt/include -DFMT_HEADER_ONLY -DPLAYSHELF_HOST_I18N
-cadran_text_SRC   := $(K)/ui/cadran_text.cpp tests/cadran_text/test.cpp
+format_text_SRC   := $(C)/ui/format_text.cpp tests/format_text/test.cpp
+format_text_FLAGS := $(TEST_CXXFLAGS) -isystem extern/borealis/library/lib/extern/fmt/include -DFMT_HEADER_ONLY -DBRLS_CADRAN_HOST_I18N
+cadran_text_SRC   := $(C)/ui/cadran_text.cpp tests/cadran_text/test.cpp
 contrast_SRC      := tests/contrast/test.cpp
 cadran_text_FLAGS := $(format_text_FLAGS)
 # borealis' own string tables (core/i18n.cpp), read from other threads while

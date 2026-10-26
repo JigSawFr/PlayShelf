@@ -2,7 +2,8 @@
 #include "view/build_cell.hpp"
 
 #include "action/dev_build_flow.hpp"
-#include "ui/cadran_kit.hpp"
+#include <borealis/cadran/ui/cadran_kit.hpp>
+
 #include "ui/ui.hpp"
 
 using namespace brls::literals;

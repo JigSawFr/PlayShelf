@@ -17,36 +17,11 @@
         "exit_again": "再按一次B即可結束"
     },
     "common": {
-        "yes": "是",
-        "no": "否",
         "unavailable": "無法使用",
         "no_limit": "無限制",
         "line": "{}：{}",
-        "minutes": "{}分鐘",
-        "hours": "{}小時",
-        "hours_minutes": "{}小時{}分",
         "later": "稍後",
-        "delete": "刪除",
-        "hold_hint": "按住「{}」2秒",
-        "less_than_minute": "< 1分鐘"
-    },
-    "days": {
-        "0": "星期日",
-        "1": "星期一",
-        "2": "星期二",
-        "3": "星期三",
-        "4": "星期四",
-        "5": "星期五",
-        "6": "星期六"
-    },
-    "days_lower": {
-        "0": "星期日",
-        "1": "星期一",
-        "2": "星期二",
-        "3": "星期三",
-        "4": "星期四",
-        "5": "星期五",
-        "6": "星期六"
+        "delete": "刪除"
     },
     "error": {
         "code": "錯誤{}",
@@ -160,14 +135,8 @@
     },
     "tiles": {
         "upload": "傳送報告…",
-        "text_size_auto": "自動：電視上較大",
         "text_size": "文字大小",
-        "start_tab": "啟動時顯示",
-        "themes": {
-            "system": "依系統",
-            "light": "淺色",
-            "dark": "深色"
-        }
+        "start_tab": "啟動時顯示"
     },
     "tools": {
         "section_diag": "診斷",
@@ -185,31 +154,8 @@
         "logs_keep_mb": "報告佔用空間",
         "logs_note": "適用於 {} 中的診斷報告、當機檔案、工作階段記錄和線上傳送的報告連結，各自分別計算，在啟動時和變更限制時執行。最新的一份一律保留。",
         "language": "語言",
-        "languages": {
-            "system": "系統語言",
-            "en-US": "English",
-            "fr": "Français (France)",
-            "fr-CA": "Français (Canada)",
-            "de": "Deutsch",
-            "es": "Español (España)",
-            "es-419": "Español (Latinoamérica)",
-            "it": "Italiano",
-            "nl": "Nederlands",
-            "pt": "Português (Portugal)",
-            "pt-BR": "Português (Brasil)",
-            "ru": "Русский",
-            "ja": "日本語",
-            "ko": "한국어",
-            "zh-Hans": "简体中文",
-            "zh-Hant": "繁體中文"
-        },
         "theme": "主題",
         "start_tab": "啟動時顯示",
-        "themes": {
-            "system": "依系統",
-            "light": "淺色",
-            "dark": "深色"
-        },
         "storage_emummc": "SD卡上的副本（emuMMC）",
         "storage_sysmmc": "主機內部儲存空間（sysMMC）",
         "storage_unknown": "不明（未偵測到Atmosphère）",
@@ -264,12 +210,6 @@
         "intro": "顯示開場畫面 2 秒",
         "support_reminder": "每月提醒一次支持 PlayShelf",
         "help": "說明與診斷",
-        "text_size": "文字大小",
-        "text_sizes": {
-            "normal": "標準",
-            "large": "較大",
-            "auto": "自動：電視上較大"
-        },
         "effects": "視覺效果",
         "effects_values": {
             "full": "始終完整",
@@ -447,13 +387,6 @@
         "find_hint": "搜尋",
         "cancelled": "已取消下載。"
     },
-    "markdown": {
-        "note": "注意",
-        "tip": "提示",
-        "important": "重要",
-        "warning": "警告",
-        "caution": "小心"
-    },
     "github": {
         "account": "GitHub 帳戶",
         "not_signed_in": "未登入",
@@ -475,8 +408,7 @@
         "config_err": "無法將偏好設定儲存至SD卡"
     },
     "quick": {
-        "hint": "語言和主題",
-        "title_text": "語言、主題和文字大小"
+        "hint": "語言和主題"
     },
     "notices": {
         "installed": "已安裝 PlayShelf {}",
@@ -491,24 +423,6 @@
         "upload_show": "顯示連結"
     },
     "cadran": {
-        "date": "{3}{2}日 {0}",
-        "months": {
-            "1": "1月",
-            "2": "2月",
-            "3": "3月",
-            "4": "4月",
-            "5": "5月",
-            "6": "6月",
-            "7": "7月",
-            "8": "8月",
-            "9": "9月",
-            "10": "10月",
-            "11": "11月",
-            "12": "12月"
-        },
-        "pill": {
-            "read_only": "唯讀"
-        },
         "about": {
             "tagline": "主機上的遊戲庫 · 自由軟體（GPLv3）",
             "version": "版本 {}"

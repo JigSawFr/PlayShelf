@@ -3,7 +3,7 @@
 
 #include "activity/whats_new_activity.hpp"
 #include "app.hpp"
-#include "ui/hooks.hpp"
+#include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/support.hpp"
@@ -37,8 +37,8 @@ void at_start(brls::Activity* main)
     // Another version than the last one started: the bell says it was
     // installed (an update in place says it with the previous build).
     const std::string seen = config::get().seen_version;
-    if (!seen.empty() && seen != app::version() && ui::hooks::get().notice_set)
-        ui::hooks::get().notice_set("installed", brls::getStr("playshelf/notices/installed", app::version()),
+    if (!seen.empty() && seen != app::version() && ui::app_hooks::get().notice_set)
+        ui::app_hooks::get().notice_set("installed", brls::getStr("playshelf/notices/installed", app::version()),
                                     brls::getStr("playshelf/notices/updated_from", seen), "playshelf/notices/whats_new"_i18n,
                                     []() { brls::Application::pushActivity(new WhatsNewActivity()); });
 

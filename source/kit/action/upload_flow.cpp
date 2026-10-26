@@ -7,10 +7,12 @@
 #include <memory>
 #include <vector>
 
+#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <borealis/cadran/util/text.hpp>
+
 #include "action/github_login_flow.hpp"
 #include "app.hpp"
-#include "ui/cadran_kit.hpp"
-#include "ui/hooks.hpp"
+#include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/diagnostics.hpp"
@@ -19,7 +21,6 @@
 #include "util/log_upload.hpp"
 #include "util/paths.hpp"
 #include "util/session_log.hpp"
-#include "util/text.hpp"
 
 using namespace brls::literals;
 
@@ -131,8 +132,8 @@ void send_gist(const Parts& parts, const Kind& kind)
                 remember(r);
                 show_link(r, kind.report);
                 // A report's link stays in the app's notifications, for later.
-                if (!kind.report || !ui::hooks::get().notice_set) return;
-                ui::hooks::get().notice_set("upload", "playshelf/notices/upload"_i18n, text::short_url(r.url),
+                if (!kind.report || !ui::app_hooks::get().notice_set) return;
+                ui::app_hooks::get().notice_set("upload", "playshelf/notices/upload"_i18n, text::short_url(r.url),
                                             "playshelf/notices/upload_show"_i18n, [r]() { show_link(r, true); });
             });
         });

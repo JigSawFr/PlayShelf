@@ -20,10 +20,11 @@
 #include <memory>
 #include <vector>
 
+#include <borealis/cadran/ui/cadran_list.hpp>
+
 #include "action/library_flow.hpp"
 #include "library/servers.hpp"
 #include "tab/tab_base.hpp"
-#include "ui/cadran_list.hpp"
 
 class GameTile;
 

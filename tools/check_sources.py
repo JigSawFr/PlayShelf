@@ -5,7 +5,7 @@ Errors:
 - the kit (source/kit) including the app: a file of the kit includes only
   the kit, the standard library, borealis and the vendored libraries, plus
   the app's identity and settings (APP_CONTRACT below); it asks the app's
-  screens through ui::hooks (ui/hooks.hpp). The kit is what PlayShelf shares
+  screens through ui::app_hooks (ui/app_hooks.hpp) or Aurore's ui::hooks. The kit is what PlayShelf shares
   with PlayGuard: it must stay ready to become a library of its own;
 - an include going up the layers: ui/, view/ and util/ (the kit's and the
   app's) never include activity/ or tab/; a flow of action/ includes only
@@ -52,7 +52,7 @@ for rel, text in sources("source/kit"):
         if inc.startswith(("borealis", "nanovg", "yoga", "fmt/")) or inc in ("qrcodegen.hpp", "check.h"):
             continue
         errors.append(f'{rel} includes "{inc}", which is the app\'s: the kit includes only itself, '
-                      f'{" and ".join(sorted(APP_CONTRACT))} (ask the app through ui/hooks.hpp)')
+                      f'{" and ".join(sorted(APP_CONTRACT))} (ask the app through ui/app_hooks.hpp)')
 
 # --------------------------------------------------------------- layers
 # Below the screens: never activity/ nor tab/.
@@ -72,7 +72,7 @@ ACTION_SCREENS = {
 for folder in LOWER:
     for rel, text in sources(folder):
         for inc in UPWARD.findall(text):
-            errors.append(f'{rel} includes "{inc}": {folder}/ is below the screens (ask them through ui/hooks.hpp)')
+            errors.append(f'{rel} includes "{inc}": {folder}/ is below the screens (ask them through ui/app_hooks.hpp)')
 seen = set()
 for folder in ("source/kit/action", "source/action"):
     for rel, text in sources(folder):
@@ -81,7 +81,7 @@ for folder in ("source/kit/action", "source/action"):
             seen.add((rel, inc))
             if inc not in allowed:
                 errors.append(f'{rel} includes "{inc}": a flow includes only a screen it opens '
-                              "(else through ui/hooks.hpp; or list it in tools/check_sources.py, ACTION_SCREENS)")
+                              "(else through ui/app_hooks.hpp; or list it in tools/check_sources.py, ACTION_SCREENS)")
 for rel, allowed in sorted(ACTION_SCREENS.items()):
     for inc in sorted(allowed - {i for r, i in seen if r == rel}):
         errors.append(f'tools/check_sources.py: ACTION_SCREENS lists "{inc}" for {rel}, which does not include it')
