@@ -1,7 +1,8 @@
 // PreferencesTab — PlayShelf itself: language, theme, text size and start
 // tab as tiles, visual effects and the intro; the monthly "Support
 // PlayShelf" reminder; how PlayShelf updates; the title database
-// (action/titledb_flow: fetched, its sources in their order). A setting that shapes one
+// (action/titledb_flow: fetched, its sources in their order; the icons it
+// lacks asked of Nlib API or not). A setting that shapes one
 // feature lives in that feature's tab; checking for updates now and Help &
 // diagnostics are in About.
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
@@ -40,4 +41,5 @@ class PreferencesTab : public TabBase
     BRLS_BIND(brls::DetailCell,  update_via,     "pf_update_via");
     BRLS_BIND(brls::DetailCell,  titledb,        "pf_titledb");
     BRLS_BIND(brls::DetailCell,  title_sources,  "pf_title_sources");
+    BRLS_BIND(brls::BooleanCell, online_icons,   "pf_online_icons");
 };

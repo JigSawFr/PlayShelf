@@ -585,6 +585,7 @@
         "remove_body": "{} uit de bronnen verwijderen? De namen en pictogrammen ervan worden van de SD-kaart gewist.",
         "source_line_list": "{} · {} titels · alleen namen, geen SHA-256 gepubliceerd",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "Ontbrekende pictogrammen van Nlib API"
     }
 }

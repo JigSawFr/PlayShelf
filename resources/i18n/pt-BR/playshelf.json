@@ -585,6 +585,7 @@
         "remove_body": "Remover {} das fontes? Os nomes e ícones dela são apagados do cartão SD.",
         "source_line_list": "{} · {} títulos · só nomes, sem SHA-256 publicado",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "Ícones ausentes pela Nlib API"
     }
 }

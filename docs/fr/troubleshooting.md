@@ -33,7 +33,7 @@ Le paquet dit pourquoi, et quoi faire : voir [Quand un téléchargement s'arrêt
 
 ## Des noms ou des icônes manquent
 
-Un jeu connu seulement par son nom de fichier prend son nom et son icône dans la base de titres : *Préférences › Base de titres › Télécharger*, puis **Mettre à jour** de temps en temps. Une source en échec le dit sous *Sources*, avec la raison.
+Un jeu connu seulement par son nom de fichier prend son nom et son icône dans la base de titres : *Préférences › Base de titres › Télécharger*, puis **Mettre à jour** de temps en temps. Une source en échec le dit sous *Sources*, avec la raison. Une icône toujours absente vient de Nlib API quand la console est en ligne et que *Icônes manquantes depuis Nlib API* est activé ; un jeu qu'elle ne connaît pas n'est redemandé qu'au prochain lancement de PlayShelf.
 
 ## Envoyer un rapport
 

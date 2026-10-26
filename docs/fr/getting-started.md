@@ -49,6 +49,8 @@ Les **Téléchargements** installent les paquets l'un après l'autre, chacun ave
 
 Un jeu que ni la console ni le serveur ne nomment prend son nom et son icône dans la base de titres, gardée sur la carte SD : *Préférences › Base de titres › Télécharger*. Ses sources sont CyberFoil-DB, NXMeta et Ghostland par défaut, et vous pouvez ajouter les vôtres. Voir [`title_sources`](../config.md).
 
+Une icône qu'aucune d'elles n'a est demandée à [Nlib API](https://api.nlib.cc/nx/) par Internet, pour les seuls jeux à l'écran, puis gardée en cache. Jeux de base seulement : une mise à jour ou un contenu additionnel montre l'icône de son jeu. *Préférences › Base de titres › Icônes manquantes depuis Nlib API* la désactive ([`online_icons`](../config.md)).
+
 ## Préférences
 
 Les *Préférences* règlent la langue (celle de la console, ou l'une des 15), le thème, la taille du texte, l'onglet de démarrage, les mises à jour et la base de titres. Chaque réglage est aussi dans [`config.json`](../config.md).

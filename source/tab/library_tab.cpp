@@ -246,7 +246,8 @@ void LibraryTab::add_page()
                                                   (int)e.game->icon->size());
             if (texture > 0) this->icons[at](texture);
         } else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty())
-            library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url, shown);
+            library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url, shown,
+                               e.game->game.id);
         else
             library_icons::local(e.game->game.id, shown);
     }

@@ -585,6 +585,7 @@
         "remove_body": "{} aus den Quellen entfernen? Seine Namen und Symbole werden von der SD-Karte gelöscht.",
         "source_line_list": "{} · {} Titel · nur Namen, kein SHA-256 veröffentlicht",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "Fehlende Symbole von Nlib API"
     }
 }

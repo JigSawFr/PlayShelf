@@ -585,6 +585,7 @@
         "remove_body": "{} をソースから削除しますか？その名前とアイコンはSDカードから削除されます。",
         "source_line_list": "{} · {} タイトル · 名前のみ、SHA-256の公開なし",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "足りないアイコンを Nlib API から取得"
     }
 }

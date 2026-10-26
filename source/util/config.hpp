@@ -69,6 +69,9 @@ struct Config
     // knows a title naming it: HTTPS addresses, MAX_TITLE_SOURCES at most;
     // DEFAULT_TITLE_SOURCES unless changed, none for no database.
     std::vector<std::string> title_sources{ std::begin(DEFAULT_TITLE_SOURCES), std::end(DEFAULT_TITLE_SOURCES) };
+    // The icons neither a server nor the title databases have, asked of Nlib
+    // API (titledb/nlib), one game at a time (action/library_icons).
+    bool online_icons = true;
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means
