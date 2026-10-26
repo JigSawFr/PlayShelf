@@ -180,12 +180,16 @@ void CatalogueTab::refresh()
 void CatalogueTab::load(bool again)
 {
     const library::Server* s = this->server();
-    if (!s || library_flow::loading()) return;
+    // A fetch already running (this tab made again meanwhile): told when
+    // it ends, once.
+    if (!s || this->waiting || (again && library_flow::loading())) return;
     if (again) library_flow::forget(s->id);
     this->why_failed.clear();
     this->shown_data = nullptr;
+    this->waiting = true;
     const std::string asked = s->id;
     library_flow::load(*s, ui::guarded(this->alive, [this, asked](const std::shared_ptr<const library_flow::Loaded>& l, const std::string& why) {
+        this->waiting = false;
         // Another server shown meanwhile: its catalogue read now (this one's
         // stays for when it comes back).
         if (asked == s_server_id) this->why_failed = l ? "" : why.empty() ? "playshelf/library/not_trusted"_i18n : why;

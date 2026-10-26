@@ -25,6 +25,7 @@ namespace
 // The UI thread's only.
 std::map<std::string, std::shared_ptr<const Loaded>> s_loaded;
 bool                                                 s_loading = false;
+std::vector<std::function<void(std::shared_ptr<const Loaded>, std::string)>> s_waiting;   // the fetch's `done`s
 std::shared_ptr<const Installed>                     s_installed = std::make_shared<Installed>();
 
 // On a worker thread: what is installed, read now.
@@ -124,10 +125,17 @@ bool loading()
 
 void load(const library::Server& server, const Done& done)
 {
+    s_waiting.push_back(done);
     if (s_loading) return;
     s_loading = true;
+    // Each one asked meanwhile told too.
+    const Done all = [](std::shared_ptr<const Loaded> l, std::string why) {
+        auto waiting = std::move(s_waiting);
+        s_waiting.clear();
+        for (const Done& d : waiting) d(l, why);
+    };
     const std::string password = library::password_of(server);
-    ui::in_background("library", [server, password, done]() {
+    ui::in_background("library", [server, password, all]() {
         library::HttpTransport transport;
         auto                   l = std::make_shared<Loaded>();
         l->server = server;
@@ -144,7 +152,7 @@ void load(const library::Server& server, const Done& done)
             }
         }
         const auto now = read_installed();
-        brls::sync([server, l, now, done]() { fetched(server, l, now, done); });
+        brls::sync([server, l, now, all]() { fetched(server, l, now, all); });
     });
 }
 

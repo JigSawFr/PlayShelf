@@ -56,6 +56,7 @@ class CatalogueTab : public TabBase
     cadran::List list;
     std::vector<library::Server> servers;
     std::shared_ptr<const library_flow::Loaded> shown_data;
+    bool                                        waiting = false;   // a fetch asked, its answer not come yet
     std::string why_failed;
     std::vector<size_t> selection;   // the games shown, as indexes in shown_data->titles
     size_t      built = 0;            // how many of them have a cover
