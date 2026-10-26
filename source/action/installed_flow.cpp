@@ -87,6 +87,23 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
     });
 }
 
+void remove(uint64_t id, const std::string& name, const std::function<void(std::shared_ptr<const std::vector<Game>>)>& done)
+{
+    ui::in_background("delete game", [id, name, done]() {
+        const Result rc = core_game_delete(id);
+        brls::sync([id, name, done, rc]() {
+            if (R_FAILED(rc)) {
+                brls::Logger::warning("library: {:016X} could not be deleted: 0x{:X}", id, rc);
+                ui::notify(brls::getStr("playshelf/installed/delete_failed", name), ui::Toast::Refused);
+            } else {
+                brls::Logger::info("library: {:016X} deleted", id);
+                ui::notify(brls::getStr("playshelf/installed/deleted", name), ui::Toast::Done);
+            }
+            read(done);
+        });
+    });
+}
+
 std::shared_ptr<const std::vector<Game>> games()
 {
     return s_games;

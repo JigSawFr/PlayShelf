@@ -128,14 +128,14 @@ static void test_fields()
     // Out of range: back to the default, one field at a time.
     write_config(R"({"language": "xx", "theme": "blue", "text_size": "huge", "effects": "wild",
                     "start_tab": "dashboard", "logs_keep": 7, "logs_keep_days": 2, "logs_keep_mb": 3,
-                    "update_via": "ftp", "dev_builds_order": "random", "update_checked": "yesterday",
+                    "update_via": "ftp", "dev_builds_order": "random", "library_view": "wall", "update_checked": "yesterday",
                     "update_snooze_version": "1.2.0", "update_snooze_until": "soon",
                     "support_reminded": "2026-13", "seen_version": "1234567890123456789012345678901234567890",
                     "connections": 9})");
     config::load();
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
     CHECK(c.start_tab == "library" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
-    CHECK(c.update_via.empty() && c.dev_builds_order == "newest" && c.update_checked.empty());
+    CHECK(c.update_via.empty() && c.dev_builds_order == "newest" && c.library_view == "grid" && c.update_checked.empty());
     CHECK(c.update_snooze_version.empty() && c.update_snooze_until.empty());
     CHECK(c.support_reminded.empty() && c.seen_version.empty() && c.connections == 4);
 
@@ -169,6 +169,7 @@ static void test_round_trip()
     c.logs_keep_mb = 5;
     c.intro = false;
     c.dev_builds_order = "number";
+    c.library_view = "list";
     c.support_reminder = false;
     c.support_reminded = "2026-10-01";
     c.seen_version = "1.1.0";
@@ -183,7 +184,7 @@ static void test_round_trip()
     CHECK(c.update_via == "inplace" && c.update_daily && c.update_checked == "2026-10-24");
     CHECK(c.update_latest == "1.2.0" && c.update_snooze_version == "1.2.0" && c.update_snooze_until == "2026-11-01");
     CHECK(c.start_tab == "preferences" && c.logs_keep == 50 && c.logs_keep_days == 30 && c.logs_keep_mb == 5);
-    CHECK(!c.intro && c.dev_builds_order == "number" && !c.support_reminder && c.support_reminded == "2026-10-01");
+    CHECK(!c.intro && c.dev_builds_order == "number" && c.library_view == "list" && !c.support_reminder && c.support_reminded == "2026-10-01");
     CHECK(c.seen_version == "1.1.0" && c.crash_seen == "crash_20261024_101010.txt" && c.connections == 2);
     std::string text;
     CHECK(paths::read_file(paths::config_file(), text) && text.find("\"schema\": 1") != std::string::npos);

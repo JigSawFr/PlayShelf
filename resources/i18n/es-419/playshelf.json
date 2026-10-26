@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 contenido adicional por obtener",
         "empty_title": "Aún no hay juegos en esta consola",
         "empty_text": "Aquí aparecen los juegos instalados en esta consola. La pestaña Catálogo instala más desde un servidor de biblioteca.",
-        "not_found": "Ningún catálogo leído hasta ahora tiene este juego: sus actualizaciones y contenidos adicionales aparecen cuando se lee en la pestaña Catálogo un servidor que lo tenga."
+        "not_found": "Ningún catálogo leído hasta ahora tiene este juego: sus actualizaciones y contenidos adicionales aparecen cuando se lee en la pestaña Catálogo un servidor que lo tenga.",
+        "as_list": "Lista",
+        "as_grid": "Portadas",
+        "delete": "Borrar este juego",
+        "delete_body": "¿Borrar {} de esta consola? Se borran el juego, su actualización y sus contenidos adicionales; sus partidas guardadas se quedan.",
+        "deleted": "Borrado: {}",
+        "delete_failed": "No se pudo borrar {}",
+        "group_console": "Esta consola"
     },
     "tiles": {
         "upload": "Enviar un informe…",

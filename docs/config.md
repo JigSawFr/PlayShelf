@@ -26,6 +26,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `dev_mode` | `true`, `false` | `false` | The developer tools (seven presses of Ⓨ on *About › Version*) |
 | `frame_stats` | `true`, `false` | `false` | *Developer › Frame statistics* |
 | `cadran_glow` | `true`, `false` | `true` | *Developer › Background glow* |
+| `library_view` | `grid`, `list` | `grid` | *Library*, Ⓨ: the games as covers or as a list |
 | `dev_builds_order` | `newest`, `number` | `newest` | The order of the pull requests in *Install another build* |
 | `logs_keep` | `0`, `5`, `10`, `20`, `50` | `20` | The reports and crash files kept, by number (`0`: no limit) |
 | `logs_keep_days` | `0`, `7`, `30`, `90`, `365` | `0` | …by age in days |

@@ -4,13 +4,17 @@
 //                    (16 hex digits, the base game's)
 //   <title id>.jpg   its icon
 // A game without them has no control data: the Library tab names it from
-// a catalogue, else by its title id.
+// a catalogue, else by its title id. A game deleted: its content meta
+// records (meta/) gone, its base game's, its update's and its add-ons'.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstdio>
+#include <cstdlib>
+#include <dirent.h>
 #include <cstring>
 #include <string>
 
 #include "core/games.h"
+#include "library/catalog.hpp"
 #include "util/paths.hpp"
 
 bool core_game_control(u64 app_id, char* name, size_t name_size, char* version, size_t version_size, void* icon,
@@ -37,4 +41,19 @@ bool core_game_control(u64 app_id, char* name, size_t name_size, char* version, 
         *icon_size = jpg.size();
     }
     return true;
+}
+
+Result core_game_delete(u64 app_id)
+{
+    const std::string dir = paths::data_dir() + "/sim_console/meta";
+    DIR*              d = ::opendir(dir.c_str());
+    if (!d) return 0;
+    while (const dirent* e = ::readdir(d)) {
+        const std::string name = e->d_name;   // <title id>-<version>.bin
+        if (name.size() < 17 || name[16] != '-') continue;
+        const u64 id = std::strtoull(name.substr(0, 16).c_str(), nullptr, 16);
+        if (library::base_of(id) == app_id) std::remove((dir + "/" + name).c_str());
+    }
+    ::closedir(d);
+    return 0;
 }

@@ -231,7 +231,7 @@ size_t install(const Loaded& l, const std::vector<size_t>& items)
     return download_flow::add(std::move(jobs));
 }
 
-void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index)
+void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more)
 {
     if (!data || index >= data->titles.size()) return;
     const library::Title&             t = data->titles[index];
@@ -275,6 +275,7 @@ void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index)
     for (size_t i : t.updates)
         line(i, "refresh", brls::getStr("playshelf/library/update", items[i].version), "playshelf/library/group_updates"_i18n);
     for (size_t i : t.dlcs) line(i, "plus", library::clean_name(items[i].name), "playshelf/library/group_dlcs"_i18n);
+    choices.insert(choices.end(), more.begin(), more.end());
     std::string subtitle = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
     if (st.base) subtitle += " · " + brls::getStr("playshelf/library/installed_version", st.version);
     ui::pick_actions(t.name, choices, subtitle);

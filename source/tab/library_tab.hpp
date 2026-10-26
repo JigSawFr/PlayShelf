@@ -1,17 +1,19 @@
 // LibraryTab — the games on the console (action/installed_flow), by name, as
-// covers: each one's icon and name from the console (else its catalogue's,
+// covers or as a list (Ⓨ, config library_view): each one's icon and name from the console (else its catalogue's,
 // else its title id), and under it what stands out: an update or add-ons a
 // catalogue read this run has and the console has not (in amber), else the
 // version it runs. A line on top says how many games, and how many have
 // something to get (A reads them again). A on a game: its sheet in the catalogue that has it
 // (library_flow::game_sheet: install its update, its add-ons, everything
-// missing at once), else what the console has of it. The catalogues are the
+// missing at once), else what the console has of it; and to delete it
+// (installed_flow::remove, asked first). The catalogues are the
 // Catalogue tab's (action/library_flow): the shown server's is read when
 // none is yet. Read again when the tab shows and when a download is
 // installed; Ⓧ reads it again.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -44,11 +46,13 @@ class LibraryTab : public TabBase
     void show(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
     void open(size_t i);
+    void set_hints();
 
     std::shared_ptr<const std::vector<installed_flow::Game>> shown_games;
     std::vector<Entry>     entries;   // by name
-    std::vector<GameTile*> tiles;
-    brls::Box*             grid_row = nullptr;
+    std::vector<std::function<void(int)>> icons;   // puts an icon on each entry built, in order
+    brls::Box*             grid_row = nullptr;   // covers: the row being filled
+    brls::Box*             rows = nullptr;       // list: the card of rows (in list_box, made once)
     size_t                 built = 0;
     int                    generation = 0;
     int                    listener = 0;
@@ -57,5 +61,6 @@ class LibraryTab : public TabBase
     BRLS_BIND(brls::Box,    empty_box, "li_empty");
     BRLS_BIND(brls::DetailCell, summary, "li_summary");
     BRLS_BIND(brls::Box,    grid,      "li_grid");
+    BRLS_BIND(brls::Box,    list_box,  "li_list");
     BRLS_BIND(brls::Button, more,      "li_more");
 };

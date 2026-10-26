@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 add-on to get",
         "empty_title": "No game on this console yet",
         "empty_text": "The games installed on this console are shown here. The Catalogue tab installs more from a library server.",
-        "not_found": "No catalogue read so far has this game: its updates and add-ons show once a server that has it is read in the Catalogue tab."
+        "not_found": "No catalogue read so far has this game: its updates and add-ons show once a server that has it is read in the Catalogue tab.",
+        "as_list": "List",
+        "as_grid": "Covers",
+        "delete": "Delete this game",
+        "delete_body": "Delete {} from this console? Its base game, its update and its add-ons go; its saves stay.",
+        "deleted": "Deleted: {}",
+        "delete_failed": "{} could not be deleted",
+        "group_console": "This console"
     },
     "tiles": {
         "upload": "Send a report…",

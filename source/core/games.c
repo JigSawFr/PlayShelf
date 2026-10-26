@@ -43,3 +43,12 @@ bool core_game_control(u64 app_id, char *name, size_t name_size, char *version, 
     nsExit();
     return ok;
 }
+
+Result core_game_delete(u64 app_id)
+{
+    Result rc = nsInitialize();
+    if (R_FAILED(rc)) return rc;
+    rc = nsDeleteApplicationCompletely(app_id);
+    nsExit();
+    return rc;
+}

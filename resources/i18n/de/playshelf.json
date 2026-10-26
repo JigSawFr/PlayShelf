@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 Zusatzinhalt zu holen",
         "empty_title": "Noch kein Spiel auf dieser Konsole",
         "empty_text": "Die auf dieser Konsole installierten Spiele erscheinen hier. Der Tab Katalog installiert weitere von einem Bibliotheksserver.",
-        "not_found": "Kein bisher gelesener Katalog hat dieses Spiel: Seine Updates und Zusatzinhalte erscheinen, sobald im Tab Katalog ein Server gelesen wird, der es hat."
+        "not_found": "Kein bisher gelesener Katalog hat dieses Spiel: Seine Updates und Zusatzinhalte erscheinen, sobald im Tab Katalog ein Server gelesen wird, der es hat.",
+        "as_list": "Liste",
+        "as_grid": "Cover",
+        "delete": "Dieses Spiel löschen",
+        "delete_body": "{} von dieser Konsole löschen? Das Spiel, sein Update und seine Zusatzinhalte werden gelöscht; seine Spielstände bleiben.",
+        "deleted": "Gelöscht: {}",
+        "delete_failed": "{} konnte nicht gelöscht werden",
+        "group_console": "Diese Konsole"
     },
     "tiles": {
         "upload": "Bericht senden…",
