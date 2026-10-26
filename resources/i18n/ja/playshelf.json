@@ -584,6 +584,7 @@
         "failed_toast": "タイトルデータベースは更新されませんでした: {}",
         "remove_body": "{} をソースから削除しますか？その名前とアイコンはSDカードから削除されます。",
         "source_line_list": "{} · {} タイトル · 名前のみ、SHA-256の公開なし",
-        "ghostland": "Ghostland"
+        "ghostland": "Ghostland",
+        "nxmeta": "NXMeta"
     }
 }

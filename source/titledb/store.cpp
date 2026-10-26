@@ -2,6 +2,7 @@
 #include "titledb/store.hpp"
 
 #include <cstdio>
+#include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -95,18 +96,16 @@ bool write_state(const std::string& dir, const State& st, std::string* why)
 
 // A title list's source: its titles pack written from it, named after the
 // list's hash (the same list: nothing written again).
-Outcome from_list(const std::string& url, const std::string& dir, const std::string& text,
+Outcome from_list(const std::string& url, const std::string& dir, const std::string& hash16,
                   const std::vector<ListEntry>& entries, std::string* why)
 {
     if (!paths::ensure_dir(dir)) {
         if (why) *why = "its folder cannot be made";
         return Outcome::Failed;
     }
-    Sha256 h;
-    h.update(text.data(), text.size());
     State next;
     next.url = url;
-    next.version = h.hex().substr(0, 16);
+    next.version = hash16;
     next.titles = "titles-" + next.version + ".pack";
     next.list = true;
     next.count = entries.size();
@@ -156,20 +155,36 @@ std::string source_dir(const std::string& root, const std::string& url)
 Outcome update(const std::string& url, const std::string& dir, const Net& net,
                const std::function<void(uint64_t, uint64_t)>& progress, std::string* why)
 {
-    std::string text, w;
-    if (!net.text(url, &text, &w)) {
+    // The source to a file first: a title list is tens of MB, never held whole.
+    if (!paths::ensure_dir(dir)) {
+        if (why) *why = "its folder cannot be made";
+        return Outcome::Failed;
+    }
+    const std::string got = dir + "/source.part";
+    std::string       w;
+    const bool        fetched = net.save(url, got, MAX_TEXT, progress, &w);
+    const uint64_t    got_size = size_of(got);
+    std::string       text;
+    if (!fetched || !got_size || (got_size <= MAX_MANIFEST && !paths::read_file(got, text))) {
+        std::remove(got.c_str());
         if (why) *why = "manifest: " + (w.empty() ? "not fetched" : w);
         return Outcome::Failed;
     }
     Manifest m;
-    if (text.size() > MAX_MANIFEST || !parse_manifest(text, url, &m, &w)) {
-        // Not a manifest: a title list, perhaps.
+    if (got_size > MAX_MANIFEST || !parse_manifest(text, url, &m, &w)) {
+        // Not a manifest: a title list, perhaps, read as it streams.
         std::string            list_why;
         std::vector<ListEntry> entries;
-        if (parse_title_list(text, &entries, &list_why)) return from_list(url, dir, text, entries, why);
-        if (why) *why = "manifest: " + (text.size() > MAX_MANIFEST ? std::string("too large") : w);
+        std::ifstream          in(got, std::ios::binary);
+        const bool             listed = parse_title_list(in, &entries, &list_why);
+        in.close();
+        const std::string hash = listed ? hash_of(got) : "";
+        std::remove(got.c_str());
+        if (listed && !hash.empty()) return from_list(url, dir, hash.substr(0, 16), entries, why);
+        if (why) *why = "manifest: " + (got_size > MAX_MANIFEST ? std::string("too large") : w);
         return Outcome::Failed;
     }
+    std::remove(got.c_str());
     if (!paths::ensure_dir(dir)) {
         if (why) *why = "its folder cannot be made";
         return Outcome::Failed;

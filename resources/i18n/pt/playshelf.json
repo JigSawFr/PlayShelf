@@ -584,6 +584,7 @@
         "failed_toast": "A base de dados de títulos não foi atualizada: {}",
         "remove_body": "Remover {} das fontes? Os seus nomes e ícones são apagados do cartão SD.",
         "source_line_list": "{} · {} títulos · só nomes, sem SHA-256 publicado",
-        "ghostland": "Ghostland"
+        "ghostland": "Ghostland",
+        "nxmeta": "NXMeta"
     }
 }

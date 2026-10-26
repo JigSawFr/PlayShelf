@@ -145,6 +145,24 @@ void test_list()
     CHECK(t && t->name == "Super Mario Odyssey™" && t->size == 3751207164ull && t->version && *t->version == 0);
     CHECK(p.find(0x0100000000010800)->name == "Mario" && !p.find(0x0100000000020000));
 
+    // A Tinfoil index's "titledb" (NXMeta's): its other keys aside.
+    CHECK(parse_title_list(R"({"files": [{"url": "x"}], "titledb": {
+        "0100FFC01BE60000": {"id": "0100FFC01BE60000", "name": "My Child Lebensborn Remastered", "publisher": "Sarepta Studio",
+                             "releaseDate": "20231220", "description": "long\ntext", "version": 0, "size": 1234,
+                             "iconUrl": "https://api.example/icon", "screenshots": ["https://a", "https://b"]},
+        "0100FFC01BE60800": {"name": "My Child Lebensborn Remastered", "version": "131072", "releaseDate": 20240105}},
+        "success": "hello"})",
+                           &e, &why));
+    if (CHECK(e.size() == 2)) {
+        CHECK(e[0].name == "My Child Lebensborn Remastered" && e[0].publisher == "Sarepta Studio" && e[0].release_date == 20231220 &&
+              e[0].has_version && e[0].version == 0 && e[0].size == 1234);
+        CHECK(e[1].version == 131072 && e[1].release_date == 20240105 && e[1].publisher.empty());
+        write("tinfoil.pack", titles_pack_of(e));
+        TitlePack q;
+        const auto t2 = q.open("tinfoil.pack", &why) ? q.find(0x0100FFC01BE60000) : std::nullopt;
+        CHECK(t2 && t2->publisher == "Sarepta Studio" && t2->release_date == 20231220);
+    }
+
     // Not a list: an array, no title, not JSON.
     CHECK(!parse_title_list(R"([{"Game Name": "x"}])", &e, &why) && e.empty());
     CHECK(!parse_title_list(R"({"readme": {"Game Name": "x"}})", &e, &why));

@@ -35,6 +35,7 @@ std::string tab_name(const std::string& tab)
 std::string source_name(const std::string& url)
 {
     if (url == config::CYBERFOIL_TITLE_SOURCE) return "playshelf/titledb/cyberfoil"_i18n;
+    if (url == config::NXMETA_TITLE_SOURCE) return "playshelf/titledb/nxmeta"_i18n;
     if (url == config::GHOSTLAND_TITLE_SOURCE) return "playshelf/titledb/ghostland"_i18n;
     std::string s = url.substr(url.find("://") + 3);
     const size_t last = s.rfind('/');

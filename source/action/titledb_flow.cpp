@@ -152,9 +152,14 @@ bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, 
 titledb::Net console_net()
 {
     titledb::Net n;
-    n.text = [](const std::string& url, std::string* body, std::string* why) {
-        // A manifest, or a title list of several MB.
-        return http::get(url, body, why, titledb::MAX_TEXT, 300);
+    // A manifest, or a title list of tens of MB.
+    n.save = [](const std::string& url, const std::string& path, uint64_t max, const std::function<void(uint64_t, uint64_t)>& progress,
+                std::string* why) {
+        return http::download(url, path, why, (size_t)max, PACK_TIMEOUT,
+                              [progress](uint64_t done, uint64_t total) {
+                                  if (progress && total) progress(done, total);
+                              },
+                              0, &s_stop);
     };
     n.file = fetch_pack;
     n.free_space = []() -> uint64_t {

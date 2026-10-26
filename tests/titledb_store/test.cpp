@@ -37,10 +37,12 @@ struct Server
     Net net()
     {
         Net n;
-        n.text = [this](const std::string& url, std::string* body, std::string* why) {
+        n.save = [this](const std::string& url, const std::string& path, uint64_t max, const std::function<void(uint64_t, uint64_t)>&,
+                        std::string* why) {
             const auto it = this->files.find(url);
             if (it == this->files.end()) return (*why = "HTTP 404", false);
-            *body = it->second;
+            if (it->second.size() > max) return (*why = "too large", false);
+            std::ofstream(path, std::ios::binary) << it->second;
             return true;
         };
         n.file = [this](const std::string& url, const std::string& path, uint64_t size, uint64_t from,

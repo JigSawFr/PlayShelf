@@ -38,12 +38,14 @@ bool read_state(const std::string& dir, State* out);
 // The folder of the source at `url`, under `root`.
 std::string source_dir(const std::string& root, const std::string& url);
 
-// What an update needs of the network: a text (a manifest, or a title list:
-// titledb/list, MAX_TEXT at most)
-// and a file (`size` bytes: those past `resume_from` appended to `path`).
+// What an update needs of the network: the source's address saved to a
+// file (a manifest, or a title list: titledb/list; `max` bytes at most), and
+// a pack (`size` bytes: those past `resume_from` appended to `path`).
 struct Net
 {
-    std::function<bool(const std::string& url, std::string* body, std::string* why)> text;
+    std::function<bool(const std::string& url, const std::string& path, uint64_t max,
+                       const std::function<void(uint64_t, uint64_t)>& progress, std::string* why)>
+        save;
     std::function<bool(const std::string& url, const std::string& path, uint64_t size, uint64_t resume_from,
                        const std::function<void(uint64_t)>& progress, std::string* why)>
         file;

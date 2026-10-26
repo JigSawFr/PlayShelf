@@ -584,6 +584,7 @@
         "failed_toast": "La base de titres n'a pas été mise à jour : {}",
         "remove_body": "Retirer {} des sources ? Ses noms et icônes sont supprimés de la carte SD.",
         "source_line_list": "{} · {} titres · noms seulement, sans SHA-256 publié",
-        "ghostland": "Ghostland"
+        "ghostland": "Ghostland",
+        "nxmeta": "NXMeta"
     }
 }

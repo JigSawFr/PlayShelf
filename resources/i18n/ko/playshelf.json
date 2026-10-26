@@ -584,6 +584,7 @@
         "failed_toast": "타이틀 데이터베이스를 업데이트하지 못했습니다: {}",
         "remove_body": "{}을(를) 소스에서 삭제할까요? 이름과 아이콘이 SD 카드에서 삭제됩니다.",
         "source_line_list": "{} · {}개 타이틀 · 이름만, 공개된 SHA-256 없음",
-        "ghostland": "Ghostland"
+        "ghostland": "Ghostland",
+        "nxmeta": "NXMeta"
     }
 }
