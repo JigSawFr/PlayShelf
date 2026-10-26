@@ -586,6 +586,11 @@
         "source_line_list": "{} · {} Titel · nur Namen, kein SHA-256 veröffentlicht",
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
-        "online_icons": "Fehlende Symbole von Nlib API"
+        "nlib_api": "Symbole und Spielseiten von Nlib API"
+    },
+    "game": {
+        "screenshots": "Screenshots",
+        "about": "Über dieses Spiel",
+        "source": "Details, Banner und Screenshots: Nlib API"
     }
 }

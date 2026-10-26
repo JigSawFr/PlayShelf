@@ -9,6 +9,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
+#include "activity/game_activity.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "view/game_tile.hpp"
@@ -299,7 +300,23 @@ void CatalogueTab::add_page()
 
 void CatalogueTab::open_title(size_t index)
 {
-    library_flow::game_sheet(this->shown_data, index);
+    const auto data = this->shown_data;
+    if (!data || index >= data->titles.size()) return;
+    const library::Title&   t = data->titles[index];
+    library_flow::GameLines lines = library_flow::game_lines(data, index);
+    GameActivity::Page      page;
+    page.name = t.name;
+    page.title_id = t.id;
+    page.facts = std::move(lines.facts);
+    page.lines = std::move(lines.lines);
+    // The server's icon, else the title database's, else Nlib API's.
+    const std::string password = this->password, url = t.icon_url;
+    const uint64_t    id = t.id;
+    page.icon = [data, password, url, id](std::function<void(int)> shown) {
+        if (!url.empty()) library_icons::get(data, password, url, std::move(shown), id);
+        else library_icons::local(id, std::move(shown));
+    };
+    GameActivity::show(std::move(page));
 }
 
 void CatalogueTab::server_sheet()

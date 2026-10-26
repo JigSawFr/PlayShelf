@@ -5,10 +5,10 @@
 // section when the server has several; a line saying where the catalogue
 // stands (being read, why it could not be, how many games, the server's
 // message); then the games as covers, a page at a time ("Show more"). A on
-// a game: its sheet, to install the base game, an update, an add-on, or
+// a game: its page (activity/game_activity), to install the base game, an update, an add-on, or
 // everything the console does not have of it at once (the base game, its
 // newest update, its add-ons). A cover says when the console has the game
-// (in amber when the server has a newer update), a line of the sheet when
+// (in amber when the server has a newer update), a line of the page when
 // it has that item. The covers' icons come from the server, kept in the
 // cache (action/library_icons).
 // A game's items go to the downloads (action/download_flow, the Downloads

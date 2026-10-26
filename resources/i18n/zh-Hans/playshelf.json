@@ -586,6 +586,11 @@
         "source_line_list": "{} · {} 个游戏 · 仅名称，未公布 SHA-256",
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
-        "online_icons": "从 Nlib API 获取缺失的图标"
+        "nlib_api": "从 Nlib API 获取图标和游戏页面"
+    },
+    "game": {
+        "screenshots": "截图",
+        "about": "关于此游戏",
+        "source": "详情、横幅和截图：Nlib API"
     }
 }

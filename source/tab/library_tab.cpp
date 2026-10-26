@@ -12,6 +12,7 @@
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/titledb_flow.hpp"
+#include "activity/game_activity.hpp"
 #include "library/servers.hpp"
 #include "library/titles.hpp"
 #include "ui/ui.hpp"
@@ -298,14 +299,34 @@ void LibraryTab::open(size_t i)
                                              }));
                       }),
                       "trash", "", "playshelf/installed/group_console"_i18n, ui::Choice::Tone::DANGER);
+    GameActivity::Page page;
+    page.name = name;
+    page.title_id = game_id;
     if (e.data) {
-        library_flow::game_sheet(e.data, (size_t)e.title, lines);
-        return;
+        library_flow::GameLines got = library_flow::game_lines(e.data, (size_t)e.title, lines);
+        page.facts = std::move(got.facts);
+        page.lines = std::move(got.lines);
+    } else {
+        // In no catalogue read: what the console has of it.
+        const library::InstalledGame& g = e.game->game;
+        page.facts = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
+        if (g.dlcs.size() == 1) page.facts += " · " + "playshelf/library/dlc_count_one"_i18n;
+        else if (!g.dlcs.empty()) page.facts += " · " + brls::getStr("playshelf/library/dlc_count", g.dlcs.size());
+        page.note = "playshelf/installed/not_found"_i18n;
+        page.lines = std::move(lines);
     }
-    // In no catalogue read: what the console has of it.
-    const library::InstalledGame& g = e.game->game;
-    std::string                   text = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
-    if (g.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
-    else if (!g.dlcs.empty()) text += " · " + brls::getStr("playshelf/library/dlc_count", g.dlcs.size());
-    ui::pick_actions(name, lines, text + "\n" + "playshelf/installed/not_found"_i18n);
+    // Its cover as the Library shows it: the console's icon, else the
+    // server's, else the title database's or Nlib API's.
+    const std::shared_ptr<const std::vector<uint8_t>> own = e.game->icon;
+    const auto                                        data = e.data;
+    const std::string url = data ? data->titles[(size_t)e.title].icon_url : "";
+    page.icon = [own, data, url, game_id](std::function<void(int)> shown) {
+        if (own) {
+            const int texture = nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)own->data(), (int)own->size());
+            if (texture > 0) return shown(texture);
+        }
+        if (data && !url.empty()) library_icons::get(data, library::password_of(data->server), url, std::move(shown), game_id);
+        else library_icons::local(game_id, std::move(shown));
+    };
+    GameActivity::show(std::move(page));
 }

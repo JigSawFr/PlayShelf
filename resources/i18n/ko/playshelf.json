@@ -586,6 +586,11 @@
         "source_line_list": "{} · {}개 타이틀 · 이름만, 공개된 SHA-256 없음",
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
-        "online_icons": "없는 아이콘을 Nlib API에서 가져오기"
+        "nlib_api": "아이콘과 게임 페이지를 Nlib API에서 가져오기"
+    },
+    "game": {
+        "screenshots": "스크린샷",
+        "about": "이 게임에 대하여",
+        "source": "세부 정보, 배너, 스크린샷: Nlib API"
     }
 }

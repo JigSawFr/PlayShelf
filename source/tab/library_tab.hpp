@@ -3,8 +3,9 @@
 // else its title id), and under it what stands out: an update or add-ons a
 // catalogue read this run has and the console has not (in amber), else the
 // version it runs. A line on top says how many games, and how many have
-// something to get (A reads them again). A on a game: its sheet in the catalogue that has it
-// (library_flow::game_sheet: install its update, its add-ons, everything
+// something to get (A reads them again). A on a game: its page
+// (activity/game_activity), with what the catalogue that has it offers
+// (library_flow::game_lines: install its update, its add-ons, everything
 // missing at once), else what the console has of it; and to delete it
 // (installed_flow::remove, asked first). The catalogues are the
 // Catalogue tab's (action/library_flow): the shown server's is read when
