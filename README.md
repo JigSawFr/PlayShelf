@@ -1,6 +1,6 @@
 <div align="center">
 
-# PlayShelf
+<img src=".github/readme/banner.png" alt="PlayShelf" width="100%">
 
 ### Your game library, on the console
 
