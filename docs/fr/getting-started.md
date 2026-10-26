@@ -1,0 +1,58 @@
+<!-- translated from docs/getting-started.md, sha256 f1b4bb6d6024 -->
+# Prise en main
+
+PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et en installe vos propres sauvegardes et homebrews : le jeu de base, ses mises à jour et ses contenus additionnels, en NSP, NSZ, XCI ou XCZ, en HTTPS. Cette page va de la carte SD au premier jeu installé.
+
+> [!WARNING]
+> **Développement en cours.** Aucune version n'est encore publiée. Le [simulateur web](https://jigsawfr.github.io/PlayShelf/simulator/) montre où en est PlayShelf, face à un serveur de démonstration aux jeux inventés.
+
+## Ce qu'il faut
+
+- Une Nintendo Switch avec [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere).
+- [sys-patch](https://github.com/impeeza/sys-patch) ou des sigpatches, pour que les jeux installés démarrent. PlayShelf les cherche avant d'installer, et demande s'il faut continuer quand il ne trouve ni l'un ni les autres.
+- Votre propre serveur de bibliothèque, accessible en HTTPS : [AeroFoil](https://github.com/luketanti/AeroFoil), Ownfoil, ou n'importe quel serveur web avec un index JSON de vos fichiers. Voir [Serveurs de bibliothèque](servers.md).
+
+## Installer PlayShelf
+
+1. Téléchargez `playshelf.zip` depuis la [dernière version](https://github.com/JigSawFr/PlayShelf/releases).
+2. Extrayez-le à la racine de la carte SD : il met en place `switch/playshelf/playshelf.nro`.
+3. Lancez PlayShelf depuis le menu homebrew. Lancé par-dessus un jeu (R maintenu en lançant un jeu), il dispose de toute la mémoire de la console ; depuis l'album, il tourne en applet, avec moins.
+
+PlayShelf garde ses réglages et ses données dans `sd:/config/playshelf/` : ses serveurs, ses téléchargements, sa base de titres et ses rapports.
+
+## Ajouter votre serveur
+
+Le premier démarrage s'ouvre sur la **Bibliothèque**, qui indique qu'il n'y a pas encore de serveur.
+
+- **Ajouter un serveur** : son nom, son adresse `https://` sur votre réseau, sur Internet ou les deux, et son nom d'utilisateur et son mot de passe s'il a un compte. Voir [Ajouter un serveur](servers.md#ajouter-un-serveur).
+- **Chercher sur ce réseau** : liste les serveurs AeroFoil et Ownfoil qui répondent sur le réseau de la console, pour en choisir un.
+
+## Installer un jeu
+
+Le **Catalogue** montre les jeux du serveur en jaquettes, avec leur taille et leurs contenus additionnels. **Rechercher** et **Ordre** l'affinent ; un serveur organisé en sections les montre aussi.
+
+| Catalogue | La fiche d'un jeu |
+|---|---|
+| ![Le Catalogue](../../images/screenshots/catalogue.png) | ![La fiche d'un jeu](../../images/screenshots/game_sheet.png) |
+
+Ⓐ sur un jeu ouvre sa fiche : **Tout installer**, ou son jeu de base, l'une de ses mises à jour ou l'un de ses contenus additionnels. Chacun part dans les **Téléchargements**.
+
+## Suivre les téléchargements
+
+Les **Téléchargements** installent les paquets l'un après l'autre, chacun avec sa progression, sa vitesse et le temps restant. Ⓐ sur un jeu ou un paquet propose de le mettre en pause, de le reprendre, de le réessayer ou de le retirer. Une fois installé, le jeu est dans la **Bibliothèque**. Voir [Téléchargements](downloads.md).
+
+| Téléchargements | Bibliothèque |
+|---|---|
+| ![Les Téléchargements](../../images/screenshots/downloads.png) | ![La Bibliothèque](../../images/screenshots/library.png) |
+
+## Noms et icônes
+
+Un jeu que ni la console ni le serveur ne nomment prend son nom et son icône dans la base de titres, gardée sur la carte SD : *Préférences › Base de titres › Télécharger*. Ses sources sont CyberFoil-DB, NXMeta et Ghostland par défaut, et vous pouvez ajouter les vôtres. Voir [`title_sources`](../config.md).
+
+## Préférences
+
+Les *Préférences* règlent la langue (celle de la console, ou l'une des 15), le thème, la taille du texte, l'onglet de démarrage, les mises à jour et la base de titres. Chaque réglage est aussi dans [`config.json`](../config.md).
+
+![Les Préférences](../../images/screenshots/preferences.png)
+
+Retour au [README](../../README.md).

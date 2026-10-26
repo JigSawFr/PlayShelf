@@ -46,7 +46,7 @@ ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindep
 CMAKE_ARGS ?=
 JSON_HPP := library/aurore/library/include/borealis/extern/nlohmann/json.hpp
 
-.PHONY: all clean dist nxlink desktop web web-serve test fuzz check FORCE
+.PHONY: all clean dist nxlink desktop web web-serve site test fuzz check FORCE
 
 RENDERER := $(if $(GL),-DUSE_DEKO3D=OFF,-DUSE_DEKO3D=ON)
 
@@ -87,6 +87,15 @@ web: $(WEB)/demo/index.json
 
 web-serve: web
 	@python3 web/serve.py $(WEB)/simulator 8000
+
+# The website (site/README.md), the simulator in it when built: served at
+# http://localhost:8000/.
+site:
+	@rm -rf build-site
+	@SITE_SIMULATOR=$(WEB)/simulator python3 tools/build_site.py build-site .
+	@python3 tools/check_site_links.py build-site
+	@if [ -d $(WEB)/simulator ]; then cp -r $(WEB)/simulator build-site/simulator; fi
+	@python3 web/serve.py build-site 8000
 
 desktop:
 	@cmake -B $(DESKTOP) -S . -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release $(CMAKE_ARGS)
