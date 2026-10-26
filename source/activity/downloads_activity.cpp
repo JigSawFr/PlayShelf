@@ -10,6 +10,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_flow.hpp"
+#include "action/library_icons.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 
@@ -17,6 +18,8 @@ using namespace brls::literals;
 
 namespace
 {
+constexpr float ICON = 72;
+
 const download::Job* job_of(const std::string& id)
 {
     for (const download::Job& j : download_flow::jobs())
@@ -58,6 +61,9 @@ void DownloadsActivity::onContentAvailable()
         download_flow::keep_awake_changed();
     });
     cadran::List::row(keep_awake, "bolt", true);
+    // The margins of the screens the skin dresses (this one dresses itself).
+    const cadran::List margins(this->getContentView(), true);
+    (void)margins;
 
     this->listener = download_flow::listen(ui::guarded(this->alive, [this]() { this->update(); }));
     this->set_hints();
@@ -93,8 +99,12 @@ void DownloadsActivity::set_hints()
 void DownloadsActivity::update()
 {
     const auto& jobs = download_flow::jobs();
-    bool        same = jobs.size() == this->rows.size();
-    for (size_t i = 0; same && i < jobs.size(); i++) same = jobs[i].id == this->rows[i].id;
+    const auto  groups = download::groups(jobs);
+    bool        same = groups.size() == this->rows.size();
+    for (size_t i = 0; same && i < groups.size(); i++) {
+        same = groups[i].jobs.size() == this->rows[i].ids.size();
+        for (size_t k = 0; same && k < groups[i].jobs.size(); k++) same = jobs[groups[i].jobs[k]].id == this->rows[i].ids[k];
+    }
     if (!same) {
         // The focus moves off the cards first: they are made again.
         brls::View* focus = brls::Application::getCurrentFocus();
@@ -105,28 +115,67 @@ void DownloadsActivity::update()
             }
         list->clearViews(true);
         this->rows.clear();
-        for (const download::Job& j : jobs) {
+        this->generation++;
+        for (const download::Group& g : groups) {
             Row r;
-            r.id = j.id;
+            for (size_t i : g.jobs) r.ids.push_back(jobs[i].id);
             r.card = cadran::kit::card(true, false);
-            r.card->setAxis(brls::Axis::COLUMN);
-            r.card->setPadding(18, 24, 18, 24);
+            r.card->setAxis(brls::Axis::ROW);
+            r.card->setAlignItems(brls::AlignItems::CENTER);
+            r.card->setPadding(16, 24, 16, 16);
             r.card->setMarginBottom(12);
-            r.name = cadran::kit::label(j.name, cadran::kit::TEXT_BODY);
+            // The game's icon, on the well until (and unless) the cache has it.
+            auto* cover = new brls::Box(brls::Axis::ROW);
+            cover->setWidth(ICON);
+            cover->setHeight(ICON);
+            cover->setShrink(0);
+            cover->setCornerRadius(cadran::kit::RADIUS_ICON);
+            cover->setBackgroundColor(cadran::kit::color("cadran/well"));
+            cover->setAlignItems(brls::AlignItems::CENTER);
+            cover->setJustifyContent(brls::JustifyContent::CENTER);
+            cover->setMarginRight(20);
+            cover->addView(cadran::kit::icon("gamepad", 36, "cadran/text3"));
+            r.icon = new brls::Image();
+            r.icon->setWidth(ICON);
+            r.icon->setHeight(ICON);
+            r.icon->setCornerRadius(cadran::kit::RADIUS_ICON);
+            r.icon->setScalingType(brls::ImageScalingType::FIT);
+            r.icon->setVisibility(brls::Visibility::GONE);
+            cover->addView(r.icon);
+            r.card->addView(cover);
+            auto* text = new brls::Box(brls::Axis::COLUMN);
+            text->setGrow(1.0f);
+            text->setWidth(0);
+            r.name = cadran::kit::label(g.game, cadran::kit::TEXT_BODY);
             r.name->setSingleLine(true);
-            r.card->addView(r.name);
+            text->addView(r.name);
             r.state = cadran::kit::label(" ", cadran::kit::TEXT_NOTE, "cadran/text3");
+            r.state->setSingleLine(true);
             r.state->setMarginTop(6);
-            r.card->addView(r.state);
-            r.bar = new cadran::kit::Bar();
-            r.bar->setMarginTop(10);
-            r.card->addView(r.bar);
-            const std::string id = j.id;
-            r.card->registerClickAction([this, id](brls::View*) {
-                this->open_job(id);
+            text->addView(r.state);
+            r.timeline = new Timeline();
+            r.timeline->setMarginTop(10);
+            text->addView(r.timeline);
+            r.card->addView(text);
+            const std::vector<std::string> ids = r.ids;
+            r.card->registerClickAction([this, ids](brls::View*) {
+                this->open_game(ids);
                 return true;
             });
             list->addView(r.card);
+            const size_t at = this->rows.size();
+            const int    gen = this->generation;
+            library_icons::cached(g.icon_url, ui::guarded(this->alive, [this, at, gen](int texture) {
+                if (gen != this->generation || at >= this->rows.size() || !texture) {
+                    if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+                    return;
+                }
+                Row& row = this->rows[at];
+                row.icon->innerSetImage(texture);
+                row.icon->setFreeTexture(true);
+                row.icon->setVisibility(brls::Visibility::VISIBLE);
+                row.icon->getParent()->getChildren()[0]->setVisibility(brls::Visibility::GONE);
+            }));
             this->rows.push_back(r);
         }
         if (!this->rows.empty() && !brls::Application::getCurrentFocus()->isFocusable())
@@ -139,41 +188,116 @@ void DownloadsActivity::update()
 
 void DownloadsActivity::fill(Row& row)
 {
-    const download::Job* j = job_of(row.id);
-    if (!j) return;
-    std::string text;
-    const char* color = "cadran/text3";
-    float       part = j->total ? (float)((double)j->done / (double)j->total) : 0.0f;
-    switch (j->state) {
-    case download::State::Waiting:
-        text = "playshelf/downloads/state_waiting"_i18n;
-        break;
-    case download::State::Running: {
-        const download_flow::Live l = download_flow::live();
-        text = l.total ? running_text(l) : "playshelf/downloads/state_starting"_i18n;
-        part = l.total ? (float)((double)l.done / (double)l.total) : 0.0f;
+    const auto& jobs = download_flow::jobs();
+    download::Group g;
+    uint64_t        size = 0;
+    for (const std::string& id : row.ids)
+        for (size_t i = 0; i < jobs.size(); i++)
+            if (jobs[i].id == id) {
+                g.jobs.push_back(i);
+                size += jobs[i].size;
+            }
+    if (g.jobs.empty()) return;
+    const download_flow::Live live = download_flow::live();
+    row.timeline->set(download::timeline(g, jobs, live.id, live.done, live.total));
+
+    // Where the game stands: the package being installed, else the line's state.
+    std::string  text;
+    const char*  color = "cadran/text3";
+    const size_t count = g.jobs.size();
+    const std::string packages = count == 1 ? "playshelf/downloads/packages_one"_i18n
+                                            : brls::getStr("playshelf/downloads/packages", count);
+    switch (download::group_state(g, jobs)) {
+    case download::State::Running:
+        for (size_t i : g.jobs)
+            if (jobs[i].id == live.id) {
+                const std::string what = jobs[i].label.empty() ? jobs[i].name : jobs[i].label;
+                text = what + " · " + (live.total ? running_text(live) : "playshelf/downloads/state_starting"_i18n);
+            }
         color = "cadran/teal";
         break;
-    }
+    case download::State::Waiting:
+        text = "playshelf/downloads/state_waiting"_i18n + " · " + packages;
+        break;
     case download::State::Paused:
-        text = "playshelf/downloads/state_paused"_i18n;
+        text = "playshelf/downloads/state_paused"_i18n + " · " + packages;
         color = "cadran/amber";
         break;
     case download::State::Done:
-        text = "playshelf/downloads/state_done"_i18n;
+        text = "playshelf/downloads/state_done"_i18n + " · " + packages;
         color = "cadran/teal";
-        part = 1.0f;
         break;
     case download::State::Failed:
-        text = j->unsigned_content ? "playshelf/downloads/state_unsigned"_i18n
-                                   : brls::getStr("playshelf/downloads/state_failed", j->error);
+        for (size_t i : g.jobs)
+            if (jobs[i].state == download::State::Failed && text.empty()) {
+                const std::string what = jobs[i].label.empty() ? jobs[i].name : jobs[i].label;
+                text = what + " · " + (jobs[i].unsigned_content ? "playshelf/downloads/state_unsigned"_i18n
+                                                               : brls::getStr("playshelf/downloads/state_failed", jobs[i].error));
+            }
         color = "cadran/coral";
         break;
     }
-    if (j->size && j->state != download::State::Running) text += " · " + library_flow::size_text(j->size);
+    if (size && download::group_state(g, jobs) != download::State::Running) text += " · " + library_flow::size_text(size);
     row.state->setTextColor(cadran::kit::color(color));
     ui::set_text(row.state, text);
-    row.bar->set(part);
+}
+
+void DownloadsActivity::open_game(const std::vector<std::string>& ids)
+{
+    std::vector<const download::Job*> pkgs;
+    for (const std::string& id : ids)
+        if (const download::Job* j = job_of(id)) pkgs.push_back(j);
+    if (pkgs.empty()) return;
+    if (pkgs.size() == 1) {
+        this->open_job(pkgs[0]->id);
+        return;
+    }
+    using Choice = ui::Choice;
+    std::vector<Choice> choices;
+    const download_flow::Live live = download_flow::live();
+    bool                      active = false, stopped = false;
+    for (const download::Job* j : pkgs) {
+        active = active || j->state == download::State::Waiting || j->state == download::State::Running;
+        stopped = stopped || j->state == download::State::Paused || j->state == download::State::Failed;
+    }
+    if (active)
+        choices.emplace_back("playshelf/downloads/pause_game"_i18n, [ids]() {
+            for (const std::string& id : ids) download_flow::pause(id);
+        }, "pause");
+    if (stopped)
+        choices.emplace_back("playshelf/downloads/resume_game"_i18n, [ids]() {
+            for (const std::string& id : ids) download_flow::resume(id);
+        }, "download");
+    // Each package, its state at the end; A: its own actions.
+    for (const download::Job* j : pkgs) {
+        std::string state;
+        Choice::Tone tone = Choice::Tone::PLAIN;
+        switch (j->state) {
+        case download::State::Waiting: state = "playshelf/downloads/state_waiting"_i18n; break;
+        case download::State::Running:
+            state = live.total ? fmt::format("{} %", (int)std::min<uint64_t>(100, live.done * 100 / live.total))
+                               : "playshelf/downloads/state_starting"_i18n;
+            tone = Choice::Tone::ON;
+            break;
+        case download::State::Paused: state = "playshelf/downloads/state_paused"_i18n; tone = Choice::Tone::WARN; break;
+        case download::State::Done: state = "playshelf/downloads/state_done"_i18n; tone = Choice::Tone::ON; break;
+        case download::State::Failed: state = "playshelf/downloads/failed_short"_i18n; tone = Choice::Tone::DANGER; break;
+        }
+        const std::string id = j->id;
+        choices.emplace_back(j->label.empty() ? j->name : j->label,
+                             ui::guarded(this->alive, [this, id]() { this->open_job(id); }), "file", state,
+                             "playshelf/downloads/group_packages"_i18n, tone);
+    }
+    const std::string game = pkgs[0]->game.empty() ? pkgs[0]->name : pkgs[0]->game;
+    choices.emplace_back("playshelf/downloads/remove_game"_i18n, [ids, game]() {
+        ui::confirm_danger(brls::getStr("playshelf/downloads/remove_game_body", game), "playshelf/downloads/remove"_i18n,
+                           [ids]() {
+                               for (const std::string& id : ids) download_flow::cancel(id);
+                           });
+    }, "trash", "", "", Choice::Tone::DANGER);
+    uint64_t size = 0;
+    for (const download::Job* j : pkgs) size += j->size;
+    ui::pick_actions(game, choices, size ? library_flow::size_text(size) : "");
 }
 
 void DownloadsActivity::open_job(const std::string& id)

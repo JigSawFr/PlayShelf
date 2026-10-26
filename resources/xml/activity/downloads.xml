@@ -28,6 +28,8 @@
             paddingBottom="@style/brls/sidebar/padding_bottom"
             paddingLeft="@style/brls/sidebar/padding_left">
 
+            <!-- Dressed by its own code: the screens' skin leaves it alone. -->
+            <brls:Box id="cadran_list" width="auto" height="auto" visibility="gone"/>
             <brls:Box id="dl_empty" width="auto" height="auto" axis="column" alignItems="stretch"/>
             <brls:Box id="dl_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
             <brls:BooleanCell id="dl_keep_awake" marginTop="12"/>

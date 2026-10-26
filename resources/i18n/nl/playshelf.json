@@ -474,6 +474,14 @@
         "summary_paused": "{} gepauzeerd",
         "summary_none": "Niets te installeren",
         "no_patches_body": "PlayShelf vindt sys-patch noch sigpatches op deze console: een game die zonder geïnstalleerd is, start misschien niet.\n\nToch installeren?",
-        "no_patches_go": "Toch installeren"
+        "no_patches_go": "Toch installeren",
+        "packages": "{} pakketten",
+        "packages_one": "1 pakket",
+        "pause_game": "Dit spel pauzeren",
+        "resume_game": "Dit spel hervatten",
+        "remove_game": "Dit spel verwijderen",
+        "remove_game_body": "{} en al zijn pakketten uit de downloads verwijderen? Wat al geïnstalleerd is, wordt gewist.",
+        "failed_short": "Mislukt",
+        "group_packages": "Pakketten"
     }
 }

@@ -474,6 +474,14 @@
         "summary_paused": "{} paused",
         "summary_none": "Nothing to install",
         "no_patches_body": "PlayShelf finds neither sys-patch nor sigpatches on this console: a game installed without them may not start.\n\nInstall anyway?",
-        "no_patches_go": "Install anyway"
+        "no_patches_go": "Install anyway",
+        "packages": "{} packages",
+        "packages_one": "1 package",
+        "pause_game": "Pause this game",
+        "resume_game": "Resume this game",
+        "remove_game": "Remove this game",
+        "remove_game_body": "Remove {} and all its packages from the downloads? What they installed so far is deleted.",
+        "failed_short": "Failed",
+        "group_packages": "Packages"
     }
 }

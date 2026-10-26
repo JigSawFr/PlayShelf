@@ -110,6 +110,10 @@ std::string queue_to_json(const std::vector<Job>& jobs)
         json j;
         j["id"] = job.id;
         j["name"] = job.name;
+        if (!job.game.empty()) j["game"] = job.game;
+        if (!job.label.empty()) j["label"] = job.label;
+        if (job.game_id) j["game_id"] = job.game_id;
+        if (!job.icon_url.empty()) j["icon"] = job.icon_url;
         j["url"] = job.url;
         j["server"] = job.server_id;
         j["title_id"] = job.title_id;
@@ -141,6 +145,11 @@ std::vector<Job> queue_from_json(const std::string& text)
         Job job;
         job.id = str(j, "id", 64);
         job.name = str(j, "name", 256);
+        job.game = str(j, "game", 256);
+        job.label = str(j, "label", 256);
+        job.game_id = u64(j, "game_id");
+        job.icon_url = str(j, "icon");
+        if (job.icon_url.compare(0, 8, "https://") != 0) job.icon_url.clear();
         job.url = str(j, "url");
         job.server_id = str(j, "server", 64);
         job.title_id = u64(j, "title_id");
@@ -223,6 +232,67 @@ std::vector<install::ContentId> orphans(const std::vector<install::ContentId>& p
         if (!kept) out.push_back(id);
     }
     return out;
+}
+
+std::vector<Group> groups(const std::vector<Job>& jobs)
+{
+    std::vector<Group> out;
+    for (size_t i = 0; i < jobs.size(); i++) {
+        const Job& j = jobs[i];
+        Group*     g = nullptr;
+        if (j.game_id)
+            for (Group& o : out) {
+                const Job& first = jobs[o.jobs.front()];
+                if (first.game_id == j.game_id && first.server_id == j.server_id) g = &o;
+            }
+        if (!g) {
+            out.emplace_back();
+            g = &out.back();
+            g->game = j.game.empty() ? j.name : j.game;
+        }
+        if (g->icon_url.empty()) g->icon_url = j.icon_url;
+        g->jobs.push_back(i);
+    }
+    return out;
+}
+
+std::vector<Segment> timeline(const Group& g, const std::vector<Job>& jobs, const std::string& running_id,
+                              uint64_t running_done, uint64_t running_total)
+{
+    std::vector<Segment> out;
+    double               sum = 0;
+    for (size_t i : g.jobs) {
+        const Job& j = jobs[i];
+        Segment    s;
+        // A package of unknown size counts as the smallest known one's.
+        s.weight = (double)(j.size ? j.size : j.total);
+        s.state = j.state;
+        if (j.state == State::Done) s.filled = 1;
+        else if (j.id == running_id && running_total) s.filled = std::min(1.0, (double)running_done / (double)running_total);
+        else if (j.total) s.filled = std::min(1.0, (double)j.done / (double)j.total);
+        out.push_back(s);
+    }
+    double smallest = 0;
+    for (const Segment& s : out)
+        if (s.weight > 0 && (smallest == 0 || s.weight < smallest)) smallest = s.weight;
+    for (Segment& s : out) {
+        if (s.weight <= 0) s.weight = smallest > 0 ? smallest : 1;
+        sum += s.weight;
+    }
+    for (Segment& s : out) s.weight /= sum;
+    return out;
+}
+
+State group_state(const Group& g, const std::vector<Job>& jobs)
+{
+    auto any = [&](State st) {
+        return std::any_of(g.jobs.begin(), g.jobs.end(), [&](size_t i) { return jobs[i].state == st; });
+    };
+    if (any(State::Running)) return State::Running;
+    if (any(State::Failed)) return State::Failed;
+    if (any(State::Waiting)) return State::Waiting;
+    if (any(State::Paused)) return State::Paused;
+    return State::Done;
 }
 
 void Rate::add(uint64_t bytes, double seconds)

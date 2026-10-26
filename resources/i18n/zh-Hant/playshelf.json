@@ -474,6 +474,14 @@
         "summary_paused": "{} 個已暫停",
         "summary_none": "沒有要安裝的內容",
         "no_patches_body": "PlayShelf 在此主機上既找不到 sys-patch 也找不到 sigpatches：在沒有它們的情況下安裝的遊戲可能無法啟動。\n\n仍要安裝嗎？",
-        "no_patches_go": "仍要安裝"
+        "no_patches_go": "仍要安裝",
+        "packages": "{} 個套件",
+        "packages_one": "1 個套件",
+        "pause_game": "暫停此遊戲",
+        "resume_game": "繼續此遊戲",
+        "remove_game": "移除此遊戲",
+        "remove_game_body": "要從下載中移除{}及其所有套件嗎？已安裝的部分將被刪除。",
+        "failed_short": "失敗",
+        "group_packages": "套件"
     }
 }

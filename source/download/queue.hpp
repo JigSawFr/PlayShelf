@@ -31,7 +31,11 @@ enum class State : uint8_t { Waiting, Running, Paused, Done, Failed };
 struct Job
 {
     std::string id;          // 16 hex digits, made once
-    std::string name;        // shown: the item's name
+    std::string name;        // shown alone: "Game · Update v65536"
+    std::string game;        // its game's name ("" for none known)
+    std::string label;       // which package of it: "Base game", "Update v65536", an add-on's name
+    uint64_t    game_id = 0; // its base game's title id (0: unknown, a line of its own)
+    std::string icon_url;    // the game's icon on its server ("" for none)
     std::string url;         // https://
     std::string server_id;   // the library server's (library/servers), "" for none
     uint64_t    title_id = 0;
@@ -61,6 +65,30 @@ long next_job(const std::vector<Job>& jobs);
 size_t pending(const std::vector<Job>& jobs);
 // A package already in the queue and not finished: the same address.
 bool queued(const std::vector<Job>& jobs, const std::string& url);
+
+// The jobs of one game from one server, in the queue's order.
+struct Group
+{
+    std::string         game;       // the first job's game, else its name
+    std::string         icon_url;
+    std::vector<size_t> jobs;       // indexes in the queue
+};
+std::vector<Group> groups(const std::vector<Job>& jobs);
+
+// A package of a group's timeline: its share of the line (by size) and
+// how much of it is done (the running one's `done` of `total`, given).
+struct Segment
+{
+    double weight = 0;   // 0..1, the segments' add up to 1
+    State  state = State::Waiting;
+    double filled = 0;   // 0..1
+};
+std::vector<Segment> timeline(const Group& g, const std::vector<Job>& jobs, const std::string& running_id = "",
+                              uint64_t running_done = 0, uint64_t running_total = 0);
+
+// The group's state, the jobs' put together: running when one runs, else
+// failed when one did, else waiting, paused, and done when all are.
+State group_state(const Group& g, const std::vector<Job>& jobs);
 
 // The placeholders of `present` that no job's journal keeps.
 std::vector<install::ContentId> orphans(const std::vector<install::ContentId>& present, const std::vector<Job>& jobs);

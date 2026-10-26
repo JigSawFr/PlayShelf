@@ -474,6 +474,14 @@
         "summary_paused": "{} 个已暂停",
         "summary_none": "没有要安装的内容",
         "no_patches_body": "PlayShelf 在此主机上既找不到 sys-patch 也找不到 sigpatches：在没有它们的情况下安装的游戏可能无法启动。\n\n仍要安装吗？",
-        "no_patches_go": "仍要安装"
+        "no_patches_go": "仍要安装",
+        "packages": "{} 个包",
+        "packages_one": "1 个包",
+        "pause_game": "暂停此游戏",
+        "resume_game": "继续此游戏",
+        "remove_game": "移除此游戏",
+        "remove_game_body": "要从下载中移除{}及其所有包吗？已安装的部分将被删除。",
+        "failed_short": "失败",
+        "group_packages": "包"
     }
 }
