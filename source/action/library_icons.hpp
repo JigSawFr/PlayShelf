@@ -23,6 +23,10 @@ namespace library_icons
 void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& password, const std::string& url,
          std::function<void(int)> done);
 
+// An icon from the cache only (one a cover showed before), as get() gives
+// it; `done(0)` when it is not there.
+void cached(const std::string& url, const std::function<void(int)>& done);
+
 // The icons asked and not fetched yet are not wanted any more (the covers
 // were built again).
 void drop_pending();

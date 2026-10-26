@@ -39,6 +39,10 @@ void test_file()
     a.size = 123456789;
     a.done = 1000;
     a.total = 5000;
+    a.game = "Zelda";
+    a.label = "Update v65536";
+    a.game_id = 0x0100000000010000ull;
+    a.icon_url = "https://shelf.example/icon/1.jpg";
     install::Journal jn;
     jn.registered = {cid(1), cid(2)};
     jn.writing = cid(3);
@@ -60,6 +64,8 @@ void test_file()
     CHECK(back[0].name == a.name && back[0].url == a.url && back[0].server_id == a.server_id);
     CHECK(back[0].title_id == a.title_id && back[0].size == a.size && back[0].done == 1000 && back[0].total == 5000);
     CHECK(back[0].journal && *back[0].journal == jn);
+    CHECK(back[0].game == "Zelda" && back[0].label == "Update v65536" && back[0].game_id == a.game_id &&
+          back[0].icon_url == a.icon_url);
     CHECK(back[1].state == State::Failed && back[1].error == b.error && back[1].unsigned_content && back[1].accept_unsigned);
     CHECK(!back[1].journal);
     // Nothing secret in it: only the server's id.
@@ -101,6 +107,50 @@ void test_queue()
     CHECK(lost == std::vector<install::ContentId>({cid(8), cid(9)}));
 }
 
+void test_groups()
+{
+    auto of = [](const char* id, uint64_t game, const char* server, uint64_t size, State st) {
+        Job j = job(id, st, (std::string("https://a/") + id).c_str());
+        j.game_id = game;
+        j.game = game ? "Game " + std::to_string(game) : "";
+        j.server_id = server;
+        j.size = size;
+        return j;
+    };
+    std::vector<Job> jobs = {of("1", 1, "s", 300, State::Done),    of("2", 2, "s", 100, State::Waiting),
+                             of("3", 1, "s", 100, State::Running), of("4", 0, "s", 50, State::Waiting),
+                             of("5", 0, "s", 0, State::Paused),    of("6", 1, "t", 100, State::Failed),
+                             of("7", 1, "s", 0, State::Waiting)};
+    jobs[0].icon_url = "";
+    jobs[2].icon_url = "https://a/icon.jpg";
+    const auto g = groups(jobs);
+    // Game 1 of server s (jobs 1, 3, 7), game 2, two of no game, game 1 of server t.
+    if (!CHECK(g.size() == 5)) return;
+    CHECK(g[0].jobs == std::vector<size_t>({0, 2, 6}) && g[0].game == "Game 1" && g[0].icon_url == "https://a/icon.jpg");
+    CHECK(g[1].jobs == std::vector<size_t>({1}));
+    CHECK(g[2].jobs == std::vector<size_t>({3}) && g[2].game == "Game 4");   // no game: the job's name
+    CHECK(g[3].jobs == std::vector<size_t>({4}));
+    CHECK(g[4].jobs == std::vector<size_t>({5}));
+
+    CHECK(group_state(g[0], jobs) == State::Running);
+    CHECK(group_state(g[4], jobs) == State::Failed);
+    CHECK(group_state(g[3], jobs) == State::Paused);
+    std::vector<Job> done = jobs;
+    for (Job& j : done) j.state = State::Done;
+    CHECK(group_state(g[0], done) == State::Done);
+
+    // By size: 300, 100 and an unknown one counted as the smallest (100).
+    const auto t = timeline(g[0], jobs, "3", 25, 100);
+    if (!CHECK(t.size() == 3)) return;
+    CHECK(t[0].weight == 0.6 && t[1].weight == 0.2 && t[2].weight == 0.2);
+    CHECK(t[0].state == State::Done && t[0].filled == 1);
+    CHECK(t[1].state == State::Running && t[1].filled == 0.25);
+    CHECK(t[2].state == State::Waiting && t[2].filled == 0);
+    // Nothing known of any size: equal shares.
+    const auto alone = timeline(g[3], jobs);
+    CHECK(alone.size() == 1 && alone[0].weight == 1);
+}
+
 void test_rate()
 {
     Rate r;
@@ -124,6 +174,7 @@ int main()
 {
     test_file();
     test_queue();
+    test_groups();
     test_rate();
-    return CHECK_DONE("download queue: its file and journals, a restart, the next job, orphan placeholders, the speed passed");
+    return CHECK_DONE("download queue: its file and journals, a restart, the next job, orphan placeholders, jobs by game and their timeline, the speed passed");
 }

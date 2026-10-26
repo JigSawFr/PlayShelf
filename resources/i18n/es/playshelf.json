@@ -560,6 +560,14 @@
         "summary_paused": "{} en pausa",
         "summary_none": "Nada que instalar",
         "no_patches_body": "PlayShelf no encuentra ni sys-patch ni sigpatches en esta consola: puede que un juego instalado sin ellos no se inicie.\n\n¿Instalar de todos modos?",
-        "no_patches_go": "Instalar de todos modos"
+        "no_patches_go": "Instalar de todos modos",
+        "packages": "{} paquetes",
+        "packages_one": "1 paquete",
+        "pause_game": "Pausar este juego",
+        "resume_game": "Reanudar este juego",
+        "remove_game": "Quitar este juego",
+        "remove_game_body": "¿Quitar {} y todos sus paquetes de las descargas? Lo que ya se ha instalado se elimina.",
+        "failed_short": "Error",
+        "group_packages": "Paquetes"
     }
 }

@@ -101,6 +101,24 @@ void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& passw
     if (start) ui::in_background("library icons", drain);
 }
 
+void cached(const std::string& url, const std::function<void(int)>& done)
+{
+    if (url.empty()) {
+        done(0);
+        return;
+    }
+    const std::string file = file_of(url);
+    ui::in_background("cached icon", [file, done]() {
+        auto data = std::make_shared<std::string>();
+        if (!paths::read_file(file, *data)) data->clear();
+        brls::sync([data, done]() {
+            const int texture = data->empty() ? 0
+                : nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)data->data(), (int)data->size());
+            done(texture);
+        });
+    });
+}
+
 void drop_pending()
 {
     std::lock_guard<std::mutex> hold(s_lock);

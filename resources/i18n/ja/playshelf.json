@@ -560,6 +560,14 @@
         "summary_paused": "一時停止中 {}件",
         "summary_none": "インストールするものはありません",
         "no_patches_body": "PlayShelf はこの本体で sys-patch も sigpatches も見つけられませんでした。これらなしでインストールしたゲームは起動しない可能性があります。\n\nそれでもインストールしますか？",
-        "no_patches_go": "それでもインストール"
+        "no_patches_go": "それでもインストール",
+        "packages": "{}個のパッケージ",
+        "packages_one": "1個のパッケージ",
+        "pause_game": "このゲームを一時停止",
+        "resume_game": "このゲームを再開",
+        "remove_game": "このゲームを削除",
+        "remove_game_body": "{}とそのすべてのパッケージをダウンロードから削除しますか？すでにインストールされた分も削除されます。",
+        "failed_short": "失敗",
+        "group_packages": "パッケージ"
     }
 }

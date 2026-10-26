@@ -17,6 +17,7 @@
         grow="1.0">
 
         <brls:Box
+            id="cadran_list"
             width="auto"
             height="auto"
             axis="column"

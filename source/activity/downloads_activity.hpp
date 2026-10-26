@@ -1,9 +1,13 @@
-// DownloadsActivity — Library › Downloads (action/download_flow): every job
-// of the queue as a card, its name, its state (waiting, installing with
-// its percent, speed and time left, paused, installed, why it failed) and
-// a bar. A on a card: pause or resume it, try a failed one again, install
-// one refused for a content not signed by Nintendo anyway, remove it (what
-// it installed so far deleted). Ⓧ pauses or resumes them all, Ⓨ clears the
+// DownloadsActivity — Library › Downloads (action/download_flow): the queue
+// by game, a card each (download::groups: a base game, its updates and its
+// add-ons from one server), its icon (from the Library's cache), its name,
+// where it stands (the package being installed with its percent, speed and
+// time left; waiting, paused, installed, why one failed) and a timeline of
+// its packages (view/timeline). A on a card: the game's packages, each
+// with its state (A on one: pause or resume it, try a failed one again,
+// install one refused for a content not signed by Nintendo anyway, remove
+// it, what it installed so far deleted), and the game's own pause, resume
+// and remove. Ⓧ pauses or resumes them all, Ⓨ clears the
 // installed ones. Last, whether the console stays awake while they run
 // (config keep_awake). Updated as the queue changes, the running job's line
 // twice a second.
@@ -14,6 +18,7 @@
 #include <vector>
 
 #include "ui/cadran_kit.hpp"
+#include "view/timeline.hpp"
 
 class DownloadsActivity : public brls::Activity
 {
@@ -26,21 +31,24 @@ class DownloadsActivity : public brls::Activity
   private:
     struct Row
     {
-        std::string          id;
-        brls::Box*           card = nullptr;
-        brls::Label*         name = nullptr;
-        brls::Label*         state = nullptr;
-        cadran::kit::Bar*    bar = nullptr;
+        std::vector<std::string> ids;   // its jobs
+        brls::Box*               card = nullptr;
+        brls::Image*             icon = nullptr;
+        brls::Label*             name = nullptr;
+        brls::Label*             state = nullptr;
+        Timeline*                timeline = nullptr;
     };
 
-    // The cards made again when the jobs changed (added, removed), else
-    // their lines set in place (the focus stays where it is).
+    // The cards made again when the games or their jobs changed (added,
+    // removed), else their lines set in place (the focus stays where it is).
     void update();
     void fill(Row& row);
+    void open_game(const std::vector<std::string>& ids);
     void open_job(const std::string& id);
     void set_hints();
 
     std::vector<Row> rows;
+    int              generation = 0;   // the cards' build: an icon arriving for an older one is freed
     int              listener = 0;
     std::shared_ptr<bool> alive = std::make_shared<bool>(true);
 

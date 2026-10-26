@@ -560,6 +560,14 @@
         "summary_paused": "{} pausiert",
         "summary_none": "Nichts zu installieren",
         "no_patches_body": "PlayShelf findet auf dieser Konsole weder sys-patch noch sigpatches: Ein ohne sie installiertes Spiel startet möglicherweise nicht.\n\nTrotzdem installieren?",
-        "no_patches_go": "Trotzdem installieren"
+        "no_patches_go": "Trotzdem installieren",
+        "packages": "{} Pakete",
+        "packages_one": "1 Paket",
+        "pause_game": "Dieses Spiel pausieren",
+        "resume_game": "Dieses Spiel fortsetzen",
+        "remove_game": "Dieses Spiel entfernen",
+        "remove_game_body": "{} und alle seine Pakete aus den Downloads entfernen? Was davon bereits installiert ist, wird gelöscht.",
+        "failed_short": "Fehlgeschlagen",
+        "group_packages": "Pakete"
     }
 }

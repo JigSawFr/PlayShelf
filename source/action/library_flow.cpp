@@ -208,11 +208,19 @@ size_t install(const Loaded& l, const std::vector<size_t>& items)
         // Its game's name, and which item of it ("Update v131072", an
         // add-on's own name).
         j.name = library::clean_name(it.name);
-        for (const library::Title& t : l.titles)
-            if (std::find(t.updates.begin(), t.updates.end(), i) != t.updates.end())
-                j.name = t.name + " · " + brls::getStr("playshelf/library/update", it.version);
-            else if ((long)i == t.base)
-                j.name = t.name;
+        j.label = j.name;
+        for (const library::Title& t : l.titles) {
+            const bool update = std::find(t.updates.begin(), t.updates.end(), i) != t.updates.end();
+            const bool dlc = std::find(t.dlcs.begin(), t.dlcs.end(), i) != t.dlcs.end();
+            if (!update && !dlc && (long)i != t.base) continue;
+            j.game = t.name;
+            j.game_id = t.id;
+            j.icon_url = t.icon_url;
+            j.label = update ? brls::getStr("playshelf/library/update", it.version)
+                    : dlc    ? library::clean_name(it.name)
+                             : "playshelf/library/base"_i18n;
+            j.name = update || dlc ? t.name + " · " + j.label : t.name;
+        }
         j.url = it.url;
         j.server_id = l.server.id;
         j.title_id = it.title_id;
