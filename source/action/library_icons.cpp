@@ -5,6 +5,9 @@
 #include <deque>
 #include <mutex>
 
+#include <webp/decode.h>
+
+#include "action/titledb_flow.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/http.hpp"
@@ -23,7 +26,43 @@ struct Job
     std::string                                 url;
     std::string                                 password;
     std::function<void(int)>                    done;
+    uint64_t                                    title_id = 0;   // an icon of the title database's
 };
+
+// An image's pixels, decoded off the UI thread when NanoVG cannot (WebP):
+// made a texture on it.
+struct Image
+{
+    std::string          bytes;   // PNG, JPEG: NanoVG's to read
+    std::vector<uint8_t> rgba;
+    int                  width = 0, height = 0;
+};
+
+Image image_of(std::string bytes, const std::string& ext)
+{
+    Image out;
+    if (ext != "webp") {
+        out.bytes = std::move(bytes);
+        return out;
+    }
+    int      w = 0, h = 0;
+    uint8_t* px = WebPDecodeRGBA((const uint8_t*)bytes.data(), bytes.size(), &w, &h);
+    if (px && w > 0 && h > 0 && w <= 1024 && h <= 1024) {
+        out.rgba.assign(px, px + (size_t)w * (size_t)h * 4);
+        out.width = w;
+        out.height = h;
+    }
+    WebPFree(px);
+    return out;
+}
+
+int texture_of(const Image& img)
+{
+    NVGcontext* vg = brls::Application::getNVGContext();
+    if (!img.rgba.empty()) return nvgCreateImageRGBA(vg, img.width, img.height, 0, img.rgba.data());
+    if (img.bytes.empty()) return 0;
+    return nvgCreateImageMem(vg, 0, (unsigned char*)img.bytes.data(), (int)img.bytes.size());
+}
 
 std::mutex       s_lock;
 std::deque<Job>  s_jobs;
@@ -74,15 +113,17 @@ void drain()
             job = std::move(s_jobs.front());
             s_jobs.pop_front();
         }
-        auto data = std::make_shared<std::string>(bytes_of(job));
+        std::shared_ptr<Image> img;
+        if (job.title_id) {
+            std::vector<uint8_t> bytes;
+            std::string          ext;
+            img = std::make_shared<Image>(titledb_flow::icon(job.title_id, &bytes, &ext)
+                                              ? image_of(std::string(bytes.begin(), bytes.end()), ext)
+                                              : Image{});
+        } else
+            img = std::make_shared<Image>(image_of(bytes_of(job), ""));
         auto done = job.done;
-        brls::sync([data, done]() {
-            int texture = 0;
-            if (!data->empty())
-                texture = nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)data->data(),
-                                            (int)data->size());
-            done(texture);
-        });
+        brls::sync([img, done]() { done(texture_of(*img)); });
     }
 }
 }   // namespace
@@ -92,6 +133,21 @@ void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& passw
 {
     if (!l || url.empty()) return;
     Job  job{ std::move(l), url, password, std::move(done) };
+    bool start = false;
+    {
+        std::lock_guard<std::mutex> hold(s_lock);
+        s_jobs.push_back(std::move(job));
+        if (!s_running) start = s_running = true;
+    }
+    if (start) ui::in_background("library icons", drain);
+}
+
+void local(uint64_t title_id, std::function<void(int)> done)
+{
+    if (!title_id) return;
+    Job job;
+    job.title_id = title_id;
+    job.done = std::move(done);
     bool start = false;
     {
         std::lock_guard<std::mutex> hold(s_lock);

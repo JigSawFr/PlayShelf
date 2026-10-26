@@ -550,5 +550,38 @@
             "corrupt": "Un contenido del paquete no es lo que debería: puede que el archivo del servidor esté dañado.",
             "server_gone": "El servidor de biblioteca de esta descarga se eliminó de PlayShelf: quita la descarga o vuelve a añadir el servidor."
         }
+    },
+    "titledb": {
+        "section": "Base de datos de títulos",
+        "row": "Nombres e íconos",
+        "none": "No descargada",
+        "reading": "Leyendo…",
+        "checking": "Comprobando…",
+        "fetching": "Descargando… {} %",
+        "count": "{} títulos",
+        "download": "Descargar",
+        "update": "Actualizar ahora",
+        "stop": "Detener",
+        "sources": "Fuentes",
+        "info": "Los nombres e íconos de los juegos que la consola y los servidores no nombran, guardados en la tarjeta SD. Cada paquete se verifica por su SHA-256 antes de usarse.",
+        "source_line": "{} · versión {} · {} títulos",
+        "failed": "La última actualización falló: {}",
+        "cyberfoil": "CyberFoil-DB",
+        "no_sources": "Ninguna fuente",
+        "sources_count": "{} fuentes",
+        "add": "Agregar una fuente",
+        "add_header": "La dirección del manifiesto (https://…)",
+        "not_https": "Solo una dirección HTTPS puede ser una fuente.",
+        "duplicate": "Esta fuente ya está en la lista.",
+        "added": "Fuente agregada: actualiza la base de datos para descargarla.",
+        "restore": "Volver a agregar CyberFoil-DB",
+        "sources_info": "La primera fuente que conoce un juego le da nombre.",
+        "up": "Subir",
+        "down": "Bajar",
+        "remove": "Quitar esta fuente",
+        "updated": "Base de datos de títulos actualizada",
+        "current": "La base de datos de títulos está al día",
+        "failed_toast": "La base de datos de títulos no se actualizó: {}",
+        "remove_body": "¿Quitar {} de las fuentes? Sus nombres e íconos se borran de la tarjeta SD."
     }
 }

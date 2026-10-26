@@ -56,6 +56,8 @@ class LibraryTab : public TabBase
     size_t                 built = 0;
     int                    generation = 0;
     int                    listener = 0;
+    int                    titledb_listener = 0;
+    int                    titledb_opened = 0;   // titledb_flow::Status::opened when its names were read
     size_t                 done_jobs = 0;   // the downloads installed when last read: one more, read again
 
     BRLS_BIND(brls::Box,    empty_box, "li_empty");

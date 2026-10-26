@@ -550,5 +550,38 @@
             "corrupt": "Un contenu du paquet n'est pas ce qu'il devrait être : le fichier sur le serveur est peut-être endommagé.",
             "server_gone": "Le serveur de bibliothèque de ce téléchargement a été supprimé de PlayShelf : retirez le téléchargement, ou ajoutez le serveur de nouveau."
         }
+    },
+    "titledb": {
+        "section": "Base de titres",
+        "row": "Noms et icônes",
+        "none": "Pas téléchargée",
+        "reading": "Lecture…",
+        "checking": "Vérification…",
+        "fetching": "Téléchargement… {} %",
+        "count": "{} titres",
+        "download": "Télécharger",
+        "update": "Mettre à jour",
+        "stop": "Arrêter",
+        "sources": "Sources",
+        "info": "Les noms et icônes des jeux que la console et les serveurs ne nomment pas, gardés sur la carte SD. Chaque pack est vérifié par son SHA-256 avant d'être utilisé.",
+        "source_line": "{} · version {} · {} titres",
+        "failed": "La dernière mise à jour a échoué : {}",
+        "cyberfoil": "CyberFoil-DB",
+        "no_sources": "Aucune source",
+        "sources_count": "{} sources",
+        "add": "Ajouter une source",
+        "add_header": "L'adresse du manifeste (https://…)",
+        "not_https": "Seule une adresse HTTPS peut être une source.",
+        "duplicate": "Cette source est déjà dans la liste.",
+        "added": "Source ajoutée : mettez la base à jour pour la télécharger.",
+        "restore": "Remettre CyberFoil-DB",
+        "sources_info": "La première source qui connaît un jeu le nomme.",
+        "up": "Monter",
+        "down": "Descendre",
+        "remove": "Retirer cette source",
+        "updated": "Base de titres mise à jour",
+        "current": "La base de titres est à jour",
+        "failed_toast": "La base de titres n'a pas été mise à jour : {}",
+        "remove_body": "Retirer {} des sources ? Ses noms et icônes sont supprimés de la carte SD."
     }
 }

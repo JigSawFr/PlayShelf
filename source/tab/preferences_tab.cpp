@@ -1,11 +1,15 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "tab/preferences_tab.hpp"
 
+#include <algorithm>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include <borealis/cadran/ui/cadran_frame.hpp>
 
 #include "action/download_flow.hpp"
+#include "action/titledb_flow.hpp"
 #include "action/update_flow.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -25,6 +29,35 @@ int index_of(const char* const (&list)[N], const std::string& value)
 std::string tab_name(const std::string& tab)
 {
     return brls::getStr("playshelf/tabs/" + tab);
+}
+
+// A source as the list names it: CyberFoil-DB, else its host and path.
+std::string source_name(const std::string& url)
+{
+    if (url == config::DEFAULT_TITLE_SOURCE) return "playshelf/titledb/cyberfoil"_i18n;
+    std::string s = url.substr(url.find("://") + 3);
+    const size_t last = s.rfind('/');
+    if (last != std::string::npos && last > 0) s = s.substr(0, last);
+    return s;
+}
+
+// "63,880 titles · 20261013" for the sources open, in the config's order.
+std::string state_line(const titledb::State& st)
+{
+    return brls::getStr("playshelf/titledb/source_line", source_name(st.url), st.version, st.count);
+}
+
+size_t titles_known()
+{
+    size_t n = 0;
+    for (const titledb::State& st : titledb_flow::status().sources) n = std::max(n, st.count);
+    return n;
+}
+
+void save_sources()
+{
+    ui::save_config();
+    titledb_flow::sources_changed();
 }
 }   // namespace
 
@@ -89,10 +122,142 @@ PreferencesTab::PreferencesTab()
         return true;
     });
 
+    // The title database: fetched, its sources.
+    titledb->registerClickAction([this](brls::View*) {
+        this->titledb_sheet();
+        return true;
+    });
+    title_sources->registerClickAction([this](brls::View*) {
+        this->sources_sheet();
+        return true;
+    });
+    this->titledb_listener = titledb_flow::listen(ui::guarded(this->alive, [this]() { this->show_titledb(); }));
+
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_effects", "sparkle" }, { "pf_intro", "bolt" }, { "pf_support_reminder", "heart" },
-                       { "pf_update_daily", "calendar" }, { "pf_update_via", "server" } });
+                       { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
+                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" } });
+}
+
+PreferencesTab::~PreferencesTab()
+{
+    titledb_flow::unlisten(this->titledb_listener);
+}
+
+void PreferencesTab::show_titledb()
+{
+    const titledb_flow::Status& st = titledb_flow::status();
+    std::string                 line;
+    if (st.running)
+        line = st.total ? brls::getStr("playshelf/titledb/fetching", (int)(100 * st.done / st.total)) : "playshelf/titledb/checking"_i18n;
+    else if (!st.open) line = "playshelf/titledb/reading"_i18n;
+    else if (st.sources.empty()) line = "playshelf/titledb/none"_i18n;
+    else line = brls::getStr("playshelf/titledb/count", titles_known());
+    titledb->setDetailText(line);
+    const auto& sources = config::get().title_sources;
+    title_sources->setDetailText(sources.empty()       ? "playshelf/titledb/no_sources"_i18n
+                                 : sources.size() == 1 ? source_name(sources.front())
+                                                       : brls::getStr("playshelf/titledb/sources_count", sources.size()));
+}
+
+void PreferencesTab::titledb_sheet()
+{
+    using Choice = ui::Choice;
+    const titledb_flow::Status& st = titledb_flow::status();
+    std::vector<Choice>         lines;
+    if (st.running)
+        lines.emplace_back("playshelf/titledb/stop"_i18n, []() { titledb_flow::stop(); }, "stop");
+    else if (!config::get().title_sources.empty())
+        lines.emplace_back(st.sources.empty() ? "playshelf/titledb/download"_i18n : "playshelf/titledb/update"_i18n, []() {
+            if (ui::refuse_read_only()) return;
+            titledb_flow::update();
+        }, "download");
+    lines.emplace_back("playshelf/titledb/sources"_i18n, ui::guarded(this->alive, [this]() { this->sources_sheet(); }), "list");
+    std::string text = "playshelf/titledb/info"_i18n;
+    for (const titledb::State& s : st.sources) text += "\n" + state_line(s);
+    if (!st.error.empty()) text += "\n" + brls::getStr("playshelf/titledb/failed", st.error);
+    ui::pick_actions("playshelf/titledb/row"_i18n, lines, text);
+}
+
+void PreferencesTab::sources_sheet()
+{
+    using Choice = ui::Choice;
+    const auto&         sources = config::get().title_sources;
+    std::vector<Choice> lines;
+    for (size_t i = 0; i < sources.size(); i++)
+        lines.emplace_back(source_name(sources[i]), ui::guarded(this->alive, [this, i]() { this->source_sheet(i); }), "server",
+                           fmt::format("{}", i + 1));
+    if (sources.size() < config::MAX_TITLE_SOURCES)
+        lines.emplace_back("playshelf/titledb/add"_i18n, ui::guarded(this->alive, [this]() {
+            if (ui::refuse_read_only()) return;
+            ui::prompt_text("playshelf/titledb/add_header"_i18n, "https://", 512, ui::guarded(this->alive, [this](const std::string& url) {
+                auto& urls = config::get().title_sources;
+                if (url.rfind("https://", 0) != 0 || url.size() <= 8) return ui::refuse("playshelf/titledb/not_https"_i18n);
+                if (std::find(urls.begin(), urls.end(), url) != urls.end()) return ui::refuse("playshelf/titledb/duplicate"_i18n);
+                if (urls.size() >= config::MAX_TITLE_SOURCES) return;
+                urls.push_back(url);
+                save_sources();
+                this->show_titledb();
+                ui::notify("playshelf/titledb/added"_i18n, ui::Toast::Done);
+            }));
+        }), "plus");
+    if (std::find(sources.begin(), sources.end(), config::DEFAULT_TITLE_SOURCE) == sources.end() &&
+        sources.size() < config::MAX_TITLE_SOURCES)
+        lines.emplace_back("playshelf/titledb/restore"_i18n, ui::guarded(this->alive, [this]() {
+            if (ui::refuse_read_only()) return;
+            config::get().title_sources.emplace_back(config::DEFAULT_TITLE_SOURCE);
+            save_sources();
+            this->show_titledb();
+        }), "restore");
+    ui::pick_actions("playshelf/titledb/sources"_i18n, lines, "playshelf/titledb/sources_info"_i18n);
+}
+
+void PreferencesTab::source_sheet(size_t index)
+{
+    using Choice = ui::Choice;
+    const auto& sources = config::get().title_sources;
+    if (index >= sources.size()) return;
+    const std::string   url = sources[index];
+    // After a change: the list again, as it now stands.
+    auto moved = [this](std::vector<std::string> next) {
+        config::get().title_sources = std::move(next);
+        save_sources();
+        this->show_titledb();
+    };
+    std::vector<Choice> lines;
+    if (index > 0)
+        lines.emplace_back("playshelf/titledb/up"_i18n, ui::guarded(this->alive, [url, moved]() {
+            if (ui::refuse_read_only()) return;
+            auto       urls = config::get().title_sources;
+            const auto it = std::find(urls.begin(), urls.end(), url);
+            if (it == urls.end() || it == urls.begin()) return;
+            std::iter_swap(it, it - 1);
+            moved(urls);
+        }), "caret-up");
+    if (index + 1 < sources.size())
+        lines.emplace_back("playshelf/titledb/down"_i18n, ui::guarded(this->alive, [url, moved]() {
+            if (ui::refuse_read_only()) return;
+            auto       urls = config::get().title_sources;
+            const auto it = std::find(urls.begin(), urls.end(), url);
+            if (it == urls.end() || it + 1 == urls.end()) return;
+            std::iter_swap(it, it + 1);
+            moved(urls);
+        }), "caret-down");
+    // Asked first: its packs go from the SD card.
+    lines.emplace_back("playshelf/titledb/remove"_i18n, ui::guarded(this->alive, [this, url, moved]() {
+        if (ui::refuse_read_only()) return;
+        ui::confirm_danger(brls::getStr("playshelf/titledb/remove_body", source_name(url)), "playshelf/titledb/remove"_i18n,
+                           ui::guarded(this->alive, [url, moved]() {
+                               auto urls = config::get().title_sources;
+                               urls.erase(std::remove(urls.begin(), urls.end(), url), urls.end());
+                               moved(urls);
+                           }));
+    }), "trash", "", "", Choice::Tone::DANGER);
+    std::string text = url;
+    for (const titledb::State& s : titledb_flow::status().sources)
+        if (s.url == url) text += "\n" + state_line(s);
+    ui::pick_actions(source_name(url), lines, text);
 }
 
 void PreferencesTab::refresh()
@@ -107,6 +272,7 @@ void PreferencesTab::refresh()
     support_reminder->setOn(cfg.support_reminder, false);
     update_daily->setOn(cfg.update_daily, false);
     update_via->setDetailText(update_flow::method_text());
+    this->show_titledb();
     this->list.sync();
     download_flow::show_pill();
 }

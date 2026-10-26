@@ -281,11 +281,14 @@ void CatalogueTab::add_page()
         this->tiles.push_back(tile);
         const size_t at = this->tiles.size() - 1;
         const int    gen = this->generation;
-        library_icons::get(this->shown_data, this->password, t.icon_url, [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+        auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
             const ui::Alive held = weak.lock();
             if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
             else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
-        });
+        };
+        // The server's icon, else the title database's.
+        if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown);
+        else library_icons::local(t.id, shown);
     }
     ui::set_visible(more, data && this->built < this->selection.size());
 }

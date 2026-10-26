@@ -9,6 +9,7 @@
 #include <fmt/format.h>
 
 #include "action/download_flow.hpp"
+#include "action/titledb_flow.hpp"
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
 #include "library/http_transport.hpp"
@@ -131,7 +132,17 @@ void load(const library::Server& server, const Done& done)
         auto                   l = std::make_shared<Loaded>();
         l->server = server;
         l->fetch = library::fetch(server, password, transport);
-        if (l->fetch.status == library::FetchStatus::Ok) l->titles = library::group_titles(l->fetch.catalog);
+        if (l->fetch.status == library::FetchStatus::Ok) {
+            l->titles = library::group_titles(l->fetch.catalog);
+            // A game the server names only by its file: the title
+            // database's name, when it has one.
+            for (library::Title& t : l->titles) {
+                if (!t.id) continue;
+                const auto known = l->fetch.catalog.titles.find(t.id);
+                if (known != l->fetch.catalog.titles.end() && !known->second.name.empty()) continue;
+                if (const auto local = titledb_flow::title(t.id); local && !local->name.empty()) t.name = local->name;
+            }
+        }
         const auto now = read_installed();
         brls::sync([server, l, now, done]() { fetched(server, l, now, done); });
     });

@@ -242,7 +242,9 @@ void DownloadsTab::update()
             list->addView(r.card);
             const size_t at = this->rows.size();
             const int    gen = this->generation;
-            library_icons::cached(g.icon_url, ui::guarded(this->alive, [this, at, gen](int texture) {
+            // The cache's (a cover shown before), else the title database's.
+            const uint64_t game_id = g.jobs.empty() ? 0 : jobs[g.jobs.front()].game_id;
+            auto           shown = ui::guarded(this->alive, [this, at, gen](int texture) {
                 if (gen != this->generation || at >= this->rows.size() || !texture) {
                     if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
                     return;
@@ -252,7 +254,11 @@ void DownloadsTab::update()
                 row.icon->setFreeTexture(true);
                 row.icon->setVisibility(brls::Visibility::VISIBLE);
                 row.icon->getParent()->getChildren()[0]->setVisibility(brls::Visibility::GONE);
-            }));
+            });
+            library_icons::cached(g.icon_url, [shown, game_id](int texture) {
+                if (texture || !game_id) shown(texture);
+                else library_icons::local(game_id, shown);
+            });
             this->rows.push_back(r);
         }
         if (!this->rows.empty() && !brls::Application::getCurrentFocus()->isFocusable())

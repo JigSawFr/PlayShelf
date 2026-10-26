@@ -141,6 +141,11 @@ download_recovery_SRC  := $(filter-out tests/%,$(download_queue_SRC)) source/dow
 download_recovery_LIBS := -lzstd
 # A package's first bytes from a file fetched ahead, the rest from its source.
 prefix_source_SRC := source/install/prefix_source.cpp tests/prefix_source/test.cpp
+# CyberFoil-DB's packs (names, icons) and their manifest.
+titledb_SRC := source/titledb/pack.cpp source/titledb/manifest.cpp tests/titledb/test.cpp
+# Their folders on the SD card: updates checked by their SHA-256, the sources' order.
+titledb_store_SRC := $(filter-out tests/%,$(titledb_SRC)) source/titledb/store.cpp $(K)/util/sha256.cpp $(K)/util/paths.cpp \
+                     tests/titledb_store/test.cpp
 # A range over several connections at once, handed on in order.
 split_stream_SRC  := source/install/split_stream.cpp tests/split_stream/test.cpp
 split_stream_LIBS := -pthread
@@ -295,6 +300,7 @@ install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz
 install_package_FUZZ_LIBS := -lzstd
 library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
 library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
+titledb_FUZZ           := $(filter-out tests/%,$(titledb_SRC)) tests/fuzz/titledb/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))
 FUZZ_RUNS := $(addsuffix .run,$(FUZZ_PROGRAMS))

@@ -11,6 +11,11 @@
 namespace config
 {
 
+// CyberFoil-DB's manifest: the title database's default source.
+constexpr const char* DEFAULT_TITLE_SOURCE =
+    "https://github.com/luketanti/CyberFoil-DB/releases/latest/download/offline_db_manifest.json";
+constexpr size_t MAX_TITLE_SOURCES = 8;
+
 struct Config
 {
     // The look Aurore's Cadran draws (ui::use_prefs): the language, the
@@ -53,6 +58,10 @@ struct Config
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8
     int         prefetch = 0;          // packages fetched ahead while one installs (action/download_flow), 0 to 2
+    // The title databases' manifests (action/titledb_flow), the first that
+    // knows a title naming it: HTTPS addresses, MAX_TITLE_SOURCES at most;
+    // CyberFoil-DB's unless changed, none for no database.
+    std::vector<std::string> title_sources{ DEFAULT_TITLE_SOURCE };
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means

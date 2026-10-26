@@ -7,6 +7,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
@@ -22,6 +23,10 @@ namespace library_icons
 // opened (library::password_of).
 void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& password, const std::string& url,
          std::function<void(int)> done);
+
+// A title's icon from the title database (titledb_flow), as get() gives
+// it (`done(0)`: the database has none).
+void local(uint64_t title_id, std::function<void(int)> done);
 
 // An icon from the cache only (one a cover showed before), as get() gives
 // it; `done(0)` when it is not there.

@@ -550,5 +550,38 @@
             "corrupt": "Ein Inhalt des Pakets ist nicht so, wie er sein sollte: Die Datei auf dem Server ist vielleicht beschädigt.",
             "server_gone": "Der Bibliotheksserver dieses Downloads wurde aus PlayShelf entfernt: Entferne den Download oder füge den Server erneut hinzu."
         }
+    },
+    "titledb": {
+        "section": "Titeldatenbank",
+        "row": "Namen und Symbole",
+        "none": "Nicht heruntergeladen",
+        "reading": "Wird gelesen…",
+        "checking": "Wird geprüft…",
+        "fetching": "Wird heruntergeladen… {} %",
+        "count": "{} Titel",
+        "download": "Herunterladen",
+        "update": "Jetzt aktualisieren",
+        "stop": "Anhalten",
+        "sources": "Quellen",
+        "info": "Die Namen und Symbole der Spiele, die Konsole und Server nicht benennen, auf der SD-Karte gespeichert. Jedes Paket wird vor der Verwendung anhand seines SHA-256 geprüft.",
+        "source_line": "{} · Version {} · {} Titel",
+        "failed": "Die letzte Aktualisierung ist fehlgeschlagen: {}",
+        "cyberfoil": "CyberFoil-DB",
+        "no_sources": "Keine Quelle",
+        "sources_count": "{} Quellen",
+        "add": "Quelle hinzufügen",
+        "add_header": "Die Adresse des Manifests (https://…)",
+        "not_https": "Nur eine HTTPS-Adresse kann eine Quelle sein.",
+        "duplicate": "Diese Quelle ist bereits in der Liste.",
+        "added": "Quelle hinzugefügt: Aktualisiere die Datenbank, um sie zu laden.",
+        "restore": "CyberFoil-DB wieder hinzufügen",
+        "sources_info": "Die erste Quelle, die ein Spiel kennt, benennt es.",
+        "up": "Nach oben",
+        "down": "Nach unten",
+        "remove": "Diese Quelle entfernen",
+        "updated": "Titeldatenbank aktualisiert",
+        "current": "Die Titeldatenbank ist aktuell",
+        "failed_toast": "Die Titeldatenbank wurde nicht aktualisiert: {}",
+        "remove_body": "{} aus den Quellen entfernen? Seine Namen und Symbole werden von der SD-Karte gelöscht."
     }
 }

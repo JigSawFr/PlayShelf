@@ -2,7 +2,8 @@
 
 <!-- Preferences: only what sets PlayShelf itself up — the app (language,
      theme, text size and start tab as tiles first, the effects, the intro),
-     the monthly "Support PlayShelf" reminder and how it updates. A setting
+     the monthly "Support PlayShelf" reminder, how it updates and the title
+     database (the names and icons every tab falls back on). A setting
      that shapes one feature sits with it; Help & diagnostics is in About. -->
 
 <brls:Box
@@ -35,6 +36,9 @@
             <brls:Header title="@i18n/playshelf/tools/section_update" marginTop="24" marginBottom="8"/>
             <brls:BooleanCell id="pf_update_daily"/>
             <brls:DetailCell id="pf_update_via" title="@i18n/playshelf/tools/update_via"/>
+            <brls:Header title="@i18n/playshelf/titledb/section" marginTop="24" marginBottom="8"/>
+            <brls:DetailCell id="pf_titledb" title="@i18n/playshelf/titledb/row"/>
+            <brls:DetailCell id="pf_title_sources" title="@i18n/playshelf/titledb/sources"/>
 
         </brls:Box>
 
