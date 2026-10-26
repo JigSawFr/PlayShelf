@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 extra content op te halen",
         "empty_title": "Nog geen game op deze console",
         "empty_text": "De games die op deze console staan, verschijnen hier. Het tabblad Catalogus installeert er meer vanaf een bibliotheekserver.",
-        "not_found": "Geen tot nu toe gelezen catalogus heeft deze game: de updates en extra content verschijnen zodra in het tabblad Catalogus een server wordt gelezen die hem heeft."
+        "not_found": "Geen tot nu toe gelezen catalogus heeft deze game: de updates en extra content verschijnen zodra in het tabblad Catalogus een server wordt gelezen die hem heeft.",
+        "as_list": "Lijst",
+        "as_grid": "Hoezen",
+        "delete": "Deze game verwijderen",
+        "delete_body": "{} van deze console verwijderen? De game, de update en de extra content gaan weg; de opgeslagen data blijft.",
+        "deleted": "Verwijderd: {}",
+        "delete_failed": "{} kon niet worden verwijderd",
+        "group_console": "Deze console"
     },
     "tiles": {
         "upload": "Rapport versturen…",

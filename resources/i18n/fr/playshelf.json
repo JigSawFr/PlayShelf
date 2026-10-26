@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 contenu additionnel à récupérer",
         "empty_title": "Aucun jeu sur cette console pour l'instant",
         "empty_text": "Les jeux installés sur cette console s'affichent ici. L'onglet Catalogue en installe d'autres depuis un serveur de bibliothèque.",
-        "not_found": "Aucun catalogue lu jusqu'ici n'a ce jeu : ses mises à jour et contenus additionnels s'affichent une fois lu, dans l'onglet Catalogue, un serveur qui l'a."
+        "not_found": "Aucun catalogue lu jusqu'ici n'a ce jeu : ses mises à jour et contenus additionnels s'affichent une fois lu, dans l'onglet Catalogue, un serveur qui l'a.",
+        "as_list": "Liste",
+        "as_grid": "Jaquettes",
+        "delete": "Supprimer ce jeu",
+        "delete_body": "Supprimer {} de cette console ? Le jeu, sa mise à jour et ses contenus additionnels sont supprimés ; ses sauvegardes restent.",
+        "deleted": "Supprimé : {}",
+        "delete_failed": "{} n'a pas pu être supprimé",
+        "group_console": "Cette console"
     },
     "tiles": {
         "upload": "Envoyer un rapport…",

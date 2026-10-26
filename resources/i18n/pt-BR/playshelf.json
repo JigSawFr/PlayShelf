@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 conteúdo adicional para obter",
         "empty_title": "Ainda não há jogos neste console",
         "empty_text": "Os jogos instalados neste console aparecem aqui. A aba Catálogo instala mais a partir de um servidor de biblioteca.",
-        "not_found": "Nenhum catálogo lido até agora tem este jogo: as atualizações e conteúdos adicionais aparecem quando um servidor que o tenha é lido na aba Catálogo."
+        "not_found": "Nenhum catálogo lido até agora tem este jogo: as atualizações e conteúdos adicionais aparecem quando um servidor que o tenha é lido na aba Catálogo.",
+        "as_list": "Lista",
+        "as_grid": "Capas",
+        "delete": "Excluir este jogo",
+        "delete_body": "Excluir {} deste console? O jogo, a atualização e os conteúdos adicionais são excluídos; os dados salvos ficam.",
+        "deleted": "Excluído: {}",
+        "delete_failed": "Não foi possível excluir {}",
+        "group_console": "Este console"
     },
     "tiles": {
         "upload": "Enviar um relatório…",

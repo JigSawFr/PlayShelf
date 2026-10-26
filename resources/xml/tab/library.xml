@@ -28,6 +28,7 @@
             <brls:DetailCell id="li_summary" title="@i18n/playshelf/installed/summary"/>
             <brls:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
             <brls:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
+            <brls:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
             <brls:Button id="li_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
                 width="320" alignSelf="center"/>
 

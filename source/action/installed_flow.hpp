@@ -28,6 +28,11 @@ struct Game
 // A read already under way: `done` comes with its end.
 void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done);
 
+// Deletes the game `id` from the console (core_game_delete: its base game,
+// update and add-ons; its saves stay) on a worker thread, says so, then
+// reads the games again: `done` as read()'s.
+void remove(uint64_t id, const std::string& name, const std::function<void(std::shared_ptr<const std::vector<Game>>)>& done);
+
 // The last read's, nullptr before the first.
 std::shared_ptr<const std::vector<Game>> games();
 

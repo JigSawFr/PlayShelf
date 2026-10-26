@@ -42,6 +42,7 @@ struct Config
     int  logs_keep_mb    = 0;
     bool intro = true;                 // the loading screen stays 2 s at start-up (activity/loading_activity.hpp)
     std::string dev_builds_order = "newest";   // Install another build's pull requests: "newest" or "number"
+    std::string library_view = "grid";         // the Library's games: "grid" (covers) or "list" (Ⓨ switches)
 
     // "Support PlayShelf" once a month at start-up (Preferences; off stays
     // off, updates included), and "What's new" once after each update. See

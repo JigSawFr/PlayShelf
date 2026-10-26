@@ -83,6 +83,7 @@ void sanitize(Config& c)
     one_of(c.look.effects, { "auto", "full", "reduced" }, "auto");
     one_of(c.update_via, { "", "inplace", "auto", "sphaira", "appstore", "manual" }, "");
     one_of(c.dev_builds_order, { "newest", "number" }, "newest");
+    one_of(c.library_view, { "grid", "list" }, "grid");
     bool tab_ok = false;
     for (const char* t : START_TABS) tab_ok |= c.start_tab == t;
     if (!tab_ok) c.start_tab = "library";
@@ -159,6 +160,7 @@ static void load_shared()
     read_int(j, "logs_keep_mb", c.logs_keep_mb);
     read_bool(j, "intro", c.intro);
     read_string(j, "dev_builds_order", c.dev_builds_order);
+    read_string(j, "library_view", c.library_view);
     read_bool(j, "support_reminder", c.support_reminder);
     read_bool(j, "keep_awake", c.keep_awake);
     read_int(j, "connections", c.connections);
@@ -207,6 +209,7 @@ bool snapshot(Snapshot& snap)
     j["logs_keep_mb"]    = s_config.logs_keep_mb;
     j["intro"]           = s_config.intro;
     j["dev_builds_order"] = s_config.dev_builds_order;
+    j["library_view"] = s_config.library_view;
     j["support_reminder"] = s_config.support_reminder;
     j["keep_awake"] = s_config.keep_awake;
     j["connections"] = s_config.connections;

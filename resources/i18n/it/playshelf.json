@@ -146,7 +146,14 @@
         "dlcs_missing_one": "1 contenuto aggiuntivo da ottenere",
         "empty_title": "Ancora nessun gioco su questa console",
         "empty_text": "Qui compaiono i giochi installati su questa console. La scheda Catalogo ne installa altri da un server di libreria.",
-        "not_found": "Nessun catalogo letto finora ha questo gioco: i suoi aggiornamenti e contenuti aggiuntivi compaiono quando nella scheda Catalogo si legge un server che lo ha."
+        "not_found": "Nessun catalogo letto finora ha questo gioco: i suoi aggiornamenti e contenuti aggiuntivi compaiono quando nella scheda Catalogo si legge un server che lo ha.",
+        "as_list": "Elenco",
+        "as_grid": "Copertine",
+        "delete": "Elimina questo gioco",
+        "delete_body": "Eliminare {} da questa console? Vengono eliminati il gioco, il suo aggiornamento e i contenuti aggiuntivi; i salvataggi restano.",
+        "deleted": "Eliminato: {}",
+        "delete_failed": "Impossibile eliminare {}",
+        "group_console": "Questa console"
     },
     "tiles": {
         "upload": "Invia un rapporto…",

@@ -3,7 +3,7 @@
 // cache first, as the HOME menu reads it, then the storage).
 //
 // On the Switch this is libnx (games.c, through the kit's nacp_read); the
-// desktop build reads a folder (sim/sim_games.cpp).
+// desktop build reads a folder (sim/sim_games.cpp). Also a game deleted.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -23,6 +23,10 @@ extern "C" {
 // control data for it.
 bool core_game_control(u64 app_id, char *name, size_t name_size, char *version, size_t version_size, void *icon,
                        size_t *icon_size);
+
+// Deletes the game from the console: its base game, its update, its
+// add-ons and its record (ns' DeleteApplicationCompletely). Its saves stay.
+Result core_game_delete(u64 app_id);
 
 #ifdef __cplusplus
 }

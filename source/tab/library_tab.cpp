@@ -14,6 +14,8 @@
 #include "library/servers.hpp"
 #include "library/titles.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
+#include "view/game_cell.hpp"
 #include "view/game_tile.hpp"
 
 using namespace brls::literals;
@@ -82,6 +84,7 @@ LibraryTab::LibraryTab()
         this->add_page();
         return true;
     });
+    this->set_hints();
     // A tab's margins, as the other tabs' lists have them.
     const cadran::List margins(this);
     (void)margins;
@@ -155,13 +158,18 @@ void LibraryTab::show(std::shared_ptr<const std::vector<installed_flow::Game>> g
 
     // The focus moves off the covers first: they are made again.
     for (brls::View* v = brls::Application::getCurrentFocus(); v; v = v->getParent())
-        if (v == grid || v == more) {
+        if (v == grid || v == list_box || v == more) {
             brls::Application::giveFocus(summary);
             break;
         }
     library_icons::drop_pending();
     grid->clearViews(true);
-    this->tiles.clear();
+    if (!this->rows) this->rows = cadran::List::rows_in(list_box);
+    this->rows->clearViews(true);
+    const bool list = config::get().library_view == "list";
+    ui::set_visible(grid, !list);
+    ui::set_visible(list_box, list && !this->entries.empty());
+    this->icons.clear();
     this->grid_row = nullptr;
     this->built = 0;
     this->generation++;
@@ -171,41 +179,57 @@ void LibraryTab::show(std::shared_ptr<const std::vector<installed_flow::Game>> g
 void LibraryTab::add_page()
 {
     const size_t end = std::min(this->entries.size(), this->built + PAGE);
+    const bool   list = config::get().library_view == "list";
     const int    per_row = columns();
     for (; this->built < end; this->built++) {
-        if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
-            this->grid_row = new brls::Box(brls::Axis::ROW);
-            grid->addView(this->grid_row);
-        }
         const size_t at = this->built;
         const Entry& e = this->entries[at];
-        auto*        tile = new GameTile();
-        tile->set_name(e.name);
         // What stands out: something to get (amber), else its version.
         const library::TitleState st = state_in(e.data, e.title);
-        if (st.update_available) tile->set_detail("playshelf/library/update_available"_i18n);
-        else if (st.dlcs_missing == 1) tile->set_detail("playshelf/installed/dlcs_missing_one"_i18n);
-        else if (st.dlcs_missing) tile->set_detail(brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing));
-        else tile->set_detail(version_text(*e.game));
-        tile->set_detail_color(cadran::kit::color(something_to_get(st) ? "cadran/amber" : "cadran/text3"));
-        tile->registerClickAction([this, at](brls::View*) {
+        std::string               detail = version_text(*e.game);
+        if (st.update_available) detail = "playshelf/library/update_available"_i18n;
+        else if (st.dlcs_missing == 1) detail = "playshelf/installed/dlcs_missing_one"_i18n;
+        else if (st.dlcs_missing) detail = brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing);
+        const NVGcolor color = cadran::kit::color(something_to_get(st) ? "cadran/amber" : "cadran/text3");
+        brls::View*    view = nullptr;
+        if (list) {
+            auto* cell = new GameCell();
+            cell->setText(e.name);
+            cell->setDetailText(detail);
+            cell->setDetailTextColor(color);
+            this->rows->addView(cell);
+            cadran::List::row(cell);
+            this->icons.push_back([cell](int texture) { cell->set_icon_texture(texture, true); });
+            view = cell;
+        } else {
+            if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
+                this->grid_row = new brls::Box(brls::Axis::ROW);
+                grid->addView(this->grid_row);
+            }
+            auto* tile = new GameTile();
+            tile->set_name(e.name);
+            tile->set_detail(detail);
+            tile->set_detail_color(color);
+            this->grid_row->addView(tile);
+            this->icons.push_back([tile](int texture) { tile->set_icon_texture(texture, true); });
+            view = tile;
+        }
+        view->registerClickAction([this, at](brls::View*) {
             this->open(at);
             return true;
         });
-        this->grid_row->addView(tile);
-        this->tiles.push_back(tile);
         // Its icon: the console's, else its catalogue's.
         if (e.game->icon) {
             const int texture = nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)e.game->icon->data(),
                                                   (int)e.game->icon->size());
-            if (texture > 0) tile->set_icon_texture(texture, true);
+            if (texture > 0) this->icons[at](texture);
         } else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty()) {
             const int gen = this->generation;
             library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url,
                                [weak = ui::Weak(this->alive), this, at, gen](int texture) {
                                    const ui::Alive held = weak.lock();
-                                   if (held && *held && gen == this->generation && at < this->tiles.size())
-                                       this->tiles[at]->set_icon_texture(texture, true);
+                                   if (held && *held && gen == this->generation && at < this->icons.size())
+                                       this->icons[at](texture);
                                    else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
                                });
         }
@@ -213,12 +237,52 @@ void LibraryTab::add_page()
     ui::set_visible(more, this->built < this->entries.size());
 }
 
+void LibraryTab::set_hints()
+{
+
+    const bool list = config::get().library_view == "list";
+    auto       toggle = [this](brls::View*) {
+        config::get().library_view = config::get().library_view == "list" ? "grid" : "list";
+        ui::save_config();
+        // On the next frame: the actions being run are this view's own,
+        // registered again by set_hints().
+        brls::sync(ui::guarded(this->alive, [this]() {
+            if (this->shown_games) this->show(this->shown_games);
+            this->set_hints();
+        }));
+        return true;
+    };
+    this->registerAction(list ? "playshelf/installed/as_grid"_i18n : "playshelf/installed/as_list"_i18n, brls::BUTTON_Y, toggle);
+#if !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
+    // The desktop build: the keyboard has no Ⓨ, so the Y key.
+    this->registerAction(brls::BrlsKeyCombination(brls::BRLS_KBD_KEY_Y), toggle);
+#endif
+    brls::Application::getGlobalHintsUpdateEvent()->fire();
+}
+
 void LibraryTab::open(size_t i)
 {
     if (i >= this->entries.size()) return;
-    const Entry& e = this->entries[i];
+    const Entry&      e = this->entries[i];
+    const uint64_t    game_id = e.game->game.id;
+    const std::string name = e.name;
+    // Deleting it, asked first: its base game, update and add-ons; its
+    // saves stay.
+    std::vector<ui::Choice> lines;
+    lines.emplace_back("playshelf/installed/delete"_i18n,
+                      ui::guarded(this->alive, [this, game_id, name]() {
+                          if (ui::refuse_read_only()) return;
+                          ui::confirm_danger(brls::getStr("playshelf/installed/delete_body", name), "playshelf/installed/delete"_i18n,
+                                             ui::guarded(this->alive, [this, game_id, name]() {
+                                                 installed_flow::remove(game_id, name, ui::guarded(this->alive,
+                                                     [this](const std::shared_ptr<const std::vector<installed_flow::Game>>& games) {
+                                                         this->show(games);
+                                                     }));
+                                             }));
+                      }),
+                      "trash", "", "playshelf/installed/group_console"_i18n, ui::Choice::Tone::DANGER);
     if (e.data) {
-        library_flow::game_sheet(e.data, (size_t)e.title);
+        library_flow::game_sheet(e.data, (size_t)e.title, lines);
         return;
     }
     // In no catalogue read: what the console has of it.
@@ -226,5 +290,5 @@ void LibraryTab::open(size_t i)
     std::string                   text = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
     if (g.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
     else if (!g.dlcs.empty()) text += " · " + brls::getStr("playshelf/library/dlc_count", g.dlcs.size());
-    ui::info(e.name + "\n" + text + "\n\n" + "playshelf/installed/not_found"_i18n);
+    ui::pick_actions(name, lines, text + "\n" + "playshelf/installed/not_found"_i18n);
 }
