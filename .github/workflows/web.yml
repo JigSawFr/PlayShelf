@@ -32,7 +32,11 @@ env:
 jobs:
   simulator:
     runs-on: ubuntu-26.04
-    timeout-minutes: 40
+    # A cold start (no Emscripten cache: its system libraries and ports built
+    # for threads, every file compiled, an Ubuntu mirror at a few kB/s now and
+    # then) took 38 minutes before the smoke test; the caches, saved once a
+    # run succeeds, bring the next ones down to minutes.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
