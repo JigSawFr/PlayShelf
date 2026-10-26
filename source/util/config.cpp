@@ -163,6 +163,7 @@ static void load_shared()
     Config& c = s_config;
     read_string(j, "language", c.look.language);
     read_string(j, "theme", c.look.theme);
+    read_string(j, "theme_file", c.look.theme_file);
     read_string(j, "text_size", c.look.text_size);
     read_string(j, "effects", c.look.effects);
     read_bool(j, "dev_mode", c.dev_mode);
@@ -215,6 +216,7 @@ bool snapshot(Snapshot& snap)
     j["schema"]          = SCHEMA;
     j["language"]        = s_config.look.language;
     j["theme"]           = s_config.look.theme;
+    j["theme_file"]      = s_config.look.theme_file;
     j["text_size"]       = s_config.look.text_size;
     j["effects"]         = s_config.look.effects;
     j["dev_mode"]        = s_config.dev_mode;

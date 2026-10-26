@@ -77,6 +77,12 @@ PreferencesTab::PreferencesTab()
         ui::pick_theme(this->refresher());
         return true;
     });
+    // The theme's colours: PlayShelf's own, Aurore's presets or the user's
+    // files (sd:/config/playshelf/themes, docs/themes.md), switched at once.
+    palette->registerClickAction([this](brls::View*) {
+        ui::pick_palette(this->refresher());
+        return true;
+    });
     text_size->registerClickAction([this](brls::View*) {
         ui::pick_text_size(this->refresher());
         return true;
@@ -144,7 +150,8 @@ PreferencesTab::PreferencesTab()
 
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
-    this->list.apply({ { "pf_effects", "sparkle" }, { "pf_intro", "bolt" }, { "pf_support_reminder", "heart" },
+    this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_intro", "bolt" },
+                       { "pf_support_reminder", "heart" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_online_icons", "globe" } });
 }
@@ -277,6 +284,7 @@ void PreferencesTab::refresh()
     const auto& cfg = config::get();
     language->setDetailText(ui::language_name(true));
     theme->setDetailText(ui::theme_name(true));
+    palette->setDetailText(ui::palette_name());
     text_size->setDetailText(ui::text_size_name(true));
     effects->setDetailText(brls::getStr("playshelf/prefs/effects_values/" + std::string(config::EFFECTS[index_of(config::EFFECTS, cfg.look.effects)])));
     start_tab->setDetailText(tab_name(config::START_TABS[index_of(config::START_TABS, cfg.start_tab)]));

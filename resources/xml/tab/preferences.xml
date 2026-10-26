@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Preferences: only what sets PlayShelf itself up — the app (language,
-     theme, text size and start tab as tiles first, the effects, the intro),
+     theme, text size and start tab as tiles first, the palette, the effects,
+     the intro),
      the monthly "Support PlayShelf" reminder, how it updates and the title
      database (the names and icons every tab falls back on). A setting
      that shapes one feature sits with it; Help & diagnostics is in About. -->
@@ -30,6 +31,7 @@
             <brls:DetailCell id="pf_theme" title="@i18n/playshelf/tools/theme"/>
             <brls:DetailCell id="pf_text_size" title="@i18n/playshelf/tiles/text_size"/>
             <brls:DetailCell id="pf_start_tab" title="@i18n/playshelf/tiles/start_tab"/>
+            <brls:DetailCell id="pf_palette" title="@i18n/cadran/tools/palette"/>
             <brls:DetailCell id="pf_effects" title="@i18n/playshelf/prefs/effects"/>
             <brls:BooleanCell id="pf_intro"/>
             <brls:BooleanCell id="pf_support_reminder"/>

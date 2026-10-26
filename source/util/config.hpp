@@ -26,7 +26,7 @@ constexpr size_t MAX_TITLE_SOURCES = 8;
 struct Config
 {
     // The look Aurore's Cadran draws (ui::use_prefs): the language, the
-    // theme, the text size ("auto": larger while docked), the effects ("auto":
+    // theme and its palette (a preset or a theme file, docs/themes.md), the text size ("auto": larger while docked), the effects ("auto":
     // lighter off the dock) and the screens' background glow (Developer ›
     // glow).
     ui::Prefs look;

@@ -350,6 +350,10 @@ int main(int argc, char* argv[])
     config::load();
     startup_mark(StartupStep_Preferences);
 
+    // PlayShelf's own theme keys, before borealis starts: the theme file the
+    // preferences name, read then, knows them.
+    LoadingDial::addColors();
+
     if (!brls::Application::init()) {
         brls::Logger::error("Unable to init borealis Application");
         session_log::end("exit: borealis could not start");
