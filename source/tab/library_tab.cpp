@@ -11,6 +11,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
+#include "action/nlib_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
@@ -197,9 +198,11 @@ void LibraryTab::add_page()
     const size_t end = std::min(this->entries.size(), this->built + PAGE);
     const bool   list = config::get().library_view == "list";
     const int    per_row = columns();
+    std::vector<uint64_t> shown_ids;
     for (; this->built < end; this->built++) {
         const size_t at = this->built;
         const Entry& e = this->entries[at];
+        shown_ids.push_back(e.game->game.id);
         // What stands out: something to get (amber), else its version.
         const library::TitleState st = state_in(e.data, e.title);
         std::string               detail = version_text(*e.game);
@@ -253,6 +256,8 @@ void LibraryTab::add_page()
             library_icons::local(e.game->game.id, shown);
     }
     ui::set_visible(more, this->built < this->entries.size());
+    // What Nlib API knows of the games just shown, gathered meanwhile.
+    nlib_flow::enrich(shown_ids);
 }
 
 void LibraryTab::set_hints()

@@ -43,12 +43,17 @@ std::string nlib_screen_url(uint64_t base_id, int n);
 
 struct Details
 {
-    std::string              name, publisher;
+    std::string              name, publisher, developer;
     std::string              release_date;   // "YYYY-MM-DD", "" when unknown
-    std::vector<std::string> categories;     // 8 at most
+    std::vector<std::string> categories;     // the eShop's genres, in English; 8 at most
     std::string              intro;          // a line or two
     std::string              description;    // paragraphs, "\n" between lines
     int                      screens = 0;    // 0 to NLIB_MAX_SCREENS
+    int                      players = 0;    // the most at once, 0 when unknown
+    std::vector<std::string> languages;      // its languages ("en", "fr", "zh"…), each once; 16 at most
+    std::vector<std::string> rating;         // its age rating's descriptors, in English; 16 at most
+    bool                     demo = false;
+    uint64_t                 nsu_id = 0;     // its eShop id, 0 when unknown
 };
 
 // A details answer for `base_id` read: false when it is not one (not

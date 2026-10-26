@@ -160,6 +160,9 @@ library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
 library_client_SRC := $(filter-out $(K)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
                       $(SECRET_BOX) $(K)/util/sha256.cpp $(K)/util/paths.cpp tests/library_client/test.cpp
 library_titles_SRC := source/library/catalog.cpp source/library/titles.cpp tests/library_titles/test.cpp
+# What is known of the games beyond their catalogue (Nlib API's), kept on
+# the SD card.
+library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # The console's games by title (base game, update, add-ons) and what a
 # catalogue has beyond them.
 library_installed_SRC := source/library/catalog.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp

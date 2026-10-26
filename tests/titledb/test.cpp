@@ -186,7 +186,8 @@ void test_nlib()
     CHECK(nlib_language("fr-CA") == "fr" && nlib_language("pt-BR") == "pt" && nlib_language("zh-Hant") == "zh");
     CHECK(nlib_language("en-US") == "en" && nlib_language("ja") == "ja" && nlib_language("pl") == "en");
     CHECK(nlib_details_url(0x01007EF00011E000, "fr-CA") ==
-          "https://api.nlib.cc/nx/01007EF00011E000?lang=fr&fields=name,publisher,releaseDate,category,intro,description,screens");
+          "https://api.nlib.cc/nx/01007EF00011E000?lang=fr&fields=name,publisher,developer,releaseDate,category,intro,"
+          "description,screens,numberOfPlayers,languages,ratingContent,isDemo,nsuId");
     CHECK(nlib_details_url(0x01007EF00011E800, "fr").empty());
     CHECK(nlib_banner_url(0x01007EF00011E000) == "https://api.nlib.cc/nx/01007EF00011E000/banner/480p");
     CHECK(nlib_screen_url(0x01007EF00011E000, 1) == "https://api.nlib.cc/nx/01007EF00011E000/screen/1");
@@ -204,6 +205,16 @@ void test_nlib()
     CHECK(d.intro == "Dust.\nOne more lap?");
     CHECK(d.description == "Race.\n\nTwelve tracks\nfour seasons");
     CHECK(d.screens == NLIB_MAX_SCREENS);
+    // What else it knows: its players, languages (each once), rating, eShop id.
+    CHECK(parse_nlib_details(R"({"id":"0100000000010000","developer":"Dev","numberOfPlayers":4,
+        "languages":["ja","en","zh","zh",""],"ratingContent":["Fantasy Violence"],"isDemo":true,"nsuId":"70010000000025"})",
+                             0x0100000000010000, &d));
+    CHECK(d.developer == "Dev" && d.players == 4 && d.demo && d.nsu_id == 70010000000025ull);
+    CHECK(d.languages == (std::vector<std::string>{ "ja", "en", "zh" }) && d.rating == (std::vector<std::string>{ "Fantasy Violence" }));
+    // Not what they should be: left unknown.
+    CHECK(parse_nlib_details(R"({"id":"0100000000010000","numberOfPlayers":"two","isDemo":1,"nsuId":"70A","languages":"en"})",
+                             0x0100000000010000, &d));
+    CHECK(d.players == 0 && !d.demo && d.nsu_id == 0 && d.languages.empty());
     // A date that is not one, no screenshots.
     CHECK(parse_nlib_details(R"({"id":"0100000000010000","releaseDate":"soon"})", 0x0100000000010000, &d));
     CHECK(d.release_date.empty() && d.screens == 0 && d.name.empty());

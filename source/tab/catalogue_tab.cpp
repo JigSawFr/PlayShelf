@@ -9,6 +9,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
+#include "action/nlib_flow.hpp"
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
@@ -268,6 +269,7 @@ void CatalogueTab::add_page()
     const auto* data = this->shown_data.get();
     const size_t end = data ? std::min(this->selection.size(), this->built + PAGE) : 0;
     const int    per_row = columns();
+    std::vector<uint64_t> shown_ids;
     for (; this->built < end; this->built++) {
         if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
             this->grid_row = new brls::Box(brls::Axis::ROW);
@@ -275,6 +277,7 @@ void CatalogueTab::add_page()
         }
         const size_t          index = this->selection[this->built];
         const library::Title& t = data->titles[index];
+        if (t.id) shown_ids.push_back(t.id);
         auto*                 tile = new GameTile();
         tile->set_name(t.name);
         show_detail(tile, t, data->fetch.catalog, *this->built_installed);
@@ -296,6 +299,8 @@ void CatalogueTab::add_page()
         else library_icons::local(t.id, shown);
     }
     ui::set_visible(more, data && this->built < this->selection.size());
+    // What Nlib API knows of the games just shown, gathered meanwhile.
+    nlib_flow::enrich(shown_ids);
 }
 
 void CatalogueTab::open_title(size_t index)
