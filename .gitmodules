@@ -1,4 +1,4 @@
-[submodule "extern/borealis"]
-	path = extern/borealis
+[submodule "library/aurore"]
+	path = library/aurore
 	url = https://github.com/JigSawFr/Aurore.git
 	branch = main

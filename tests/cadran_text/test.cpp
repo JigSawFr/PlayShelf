@@ -1,9 +1,9 @@
-// Host tests for source/ui/cadran_text.cpp, translated by the real catalogs
-// (Aurore's extern/borealis/resources/i18n/<lang>/cadran.json, read from the repository root `make
-// test` runs in) through ui/tr.hpp's stand-in for borealis: a dialog's table
-// marked and read back, a week's identical lines as one (and a short table
-// left alone), and a failure's title, reason, code and report, in English and
-// French, with or without each part.
+// Host tests for Aurore's Cadran cadran_text.cpp, translated by the real
+// catalogs (library/aurore/resources/i18n/<lang>/cadran.json, read from the
+// repository root `make test` runs in) through ui/tr.hpp's stand-in for
+// borealis: a dialog's table marked and read back, a week's identical lines as
+// one (and a short table left alone), and a failure's title, reason, code and
+// report, in English and French, with or without each part.
 #include "check.h"
 #include <fstream>
 #include <map>
@@ -32,7 +32,7 @@ static void flatten(const nlohmann::json& j, const std::string& prefix)
 static bool load(const std::string& lang)
 {
     s_catalog.clear();
-    std::ifstream in("extern/borealis/resources/i18n/" + lang + "/cadran.json");
+    std::ifstream in("library/aurore/resources/i18n/" + lang + "/cadran.json");
     if (!in) return false;
     flatten(nlohmann::json::parse(in), "cadran/");
     return !s_catalog.empty();

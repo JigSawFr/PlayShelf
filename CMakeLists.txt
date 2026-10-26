@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Borealis lives in extern/ as a git submodule: Aurore (JigSawFr/Aurore, main),
+# Borealis lives in library/aurore as a git submodule: Aurore (JigSawFr/Aurore, main),
 # xfangfang/borealis with our fixes and some from its other forks.
-set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/extern/borealis/library)
+set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/library/aurore/library)
 
 # On the Switch, draw with deko3d (devkitPro's own GPU API) rather than mesa's
 # OpenGL: mesa (libEGL + libglapi) was ~5 MB of the 9.4 MB .nro and most of

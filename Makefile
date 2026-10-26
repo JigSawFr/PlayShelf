@@ -41,7 +41,7 @@ SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
 # Run inside the tree, the zip file last.
 ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindepth 1 | LC_ALL=C sort | TZ=UTC zip -X -@
 CMAKE_ARGS ?=
-JSON_HPP := extern/borealis/library/include/borealis/extern/nlohmann/json.hpp
+JSON_HPP := library/aurore/library/include/borealis/extern/nlohmann/json.hpp
 
 .PHONY: all clean dist nxlink desktop test fuzz check FORCE
 
@@ -97,12 +97,12 @@ write_guard_FLAGS := -std=gnu11 -Isource/kit/core
 # operators, under -Werror). util/date stands on core/calendar.c: a suite
 # that links it builds that C file too (its <name>_CSRC, without having to
 # say so).
-TEST_CXXFLAGS   := -std=c++17 -Isource -Isource/kit -isystem extern/borealis/library/include
+TEST_CXXFLAGS   := -std=c++17 -Isource -Isource/kit -isystem library/aurore/library/include
 CALENDAR_C      := source/kit/core/calendar.c
 CALENDAR_CFLAGS := -std=gnu11 -Isource/kit/core
 K := source/kit
-# Aurore's Cadran (extern/borealis): the kit's UI helpers, tested here.
-C := extern/borealis/library/lib/cadran
+# Aurore's Cadran (library/aurore): the kit's UI helpers, tested here.
+C := library/aurore/library/lib/cadran
 # A secret sealed for this console: AES and HMAC, and the console's key
 # (the desktop build's random one: sim/sim_device_key.cpp).
 SECRET_BOX := $(K)/util/secret_box.cpp $(K)/util/aes.cpp $(K)/sim/sim_device_key.cpp
@@ -169,11 +169,11 @@ dev_builds_net_LIBS  := -lz
 perf_SRC   := $(K)/util/perf.cpp tests/perf/test.cpp
 # fmt header-only: the report's lines are formatted with it.
 diagnostics_logic_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp $(K)/util/diagnostics_logic.cpp tests/diagnostics_logic/test.cpp
-diagnostics_logic_FLAGS := $(TEST_CXXFLAGS) -isystem extern/borealis/library/lib/extern/fmt/include -DFMT_HEADER_ONLY
+diagnostics_logic_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY
 # The text helpers that only translate, over Cadran's ui/tr.hpp stand-in for
 # borealis' getStr and fmt header-only (the catalogs read by the test).
 format_text_SRC   := $(C)/ui/format_text.cpp tests/format_text/test.cpp
-format_text_FLAGS := $(TEST_CXXFLAGS) -isystem extern/borealis/library/lib/extern/fmt/include -DFMT_HEADER_ONLY -DBRLS_CADRAN_HOST_I18N
+format_text_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY -DBRLS_CADRAN_HOST_I18N
 cadran_text_SRC   := $(C)/ui/cadran_text.cpp tests/cadran_text/test.cpp
 contrast_SRC      := tests/contrast/test.cpp
 cadran_text_FLAGS := $(format_text_FLAGS)
@@ -183,21 +183,21 @@ cadran_text_FLAGS := $(format_text_FLAGS)
 # it, rewritten only then).
 I18N_COPY    := $(TESTOUT)/borealis_i18n
 I18N_STAMP   := $(TESTOUT)/borealis_i18n.commit
-I18N_COMMIT  := $(shell git -C extern/borealis rev-parse HEAD 2>/dev/null)
+I18N_COMMIT  := $(shell git -C library/aurore rev-parse HEAD 2>/dev/null)
 $(I18N_STAMP): FORCE | $(TESTOUT)
 	@echo '$(I18N_COMMIT)' | cmp -s - $@ || echo '$(I18N_COMMIT)' > $@
 $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@rm -rf $(I18N_COPY) && mkdir -p $(I18N_COPY)/library/lib/core $(I18N_COPY)/library/include/borealis/core
-	@git -C extern/borealis show HEAD:library/lib/core/i18n.cpp > $(I18N_COPY)/library/lib/core/i18n.cpp
-	@git -C extern/borealis show HEAD:library/include/borealis/core/i18n.hpp > $(I18N_COPY)/library/include/borealis/core/i18n.hpp
-	@git -C extern/borealis show HEAD:library/include/borealis/core/platform.hpp > $(I18N_COPY)/library/include/borealis/core/platform.hpp
+	@git -C library/aurore show HEAD:library/lib/core/i18n.cpp > $(I18N_COPY)/library/lib/core/i18n.cpp
+	@git -C library/aurore show HEAD:library/include/borealis/core/i18n.hpp > $(I18N_COPY)/library/include/borealis/core/i18n.hpp
+	@git -C library/aurore show HEAD:library/include/borealis/core/platform.hpp > $(I18N_COPY)/library/include/borealis/core/platform.hpp
 	@# The suffix without a space, as newer clang wants it (-Wdeprecated-literal-operator),
 	@# in this copy only: borealis itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp tests/i18n_threads/test.cpp
-i18n_threads_FLAGS := -std=c++17 -isystem $(I18N_COPY)/library/include -isystem extern/borealis/library/include \
-                      -isystem extern/borealis/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
-                      $(addprefix -isystem extern/borealis/library/,include/borealis/extern include/borealis/extern/nanovg \
+i18n_threads_FLAGS := -std=c++17 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
+                      -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
+                      $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \
                         include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga/src) \
                       -DBRLS_RESOURCES='"./"'
 i18n_threads_LIBS  := -pthread
@@ -268,7 +268,7 @@ FUZZ_SECONDS ?= 30
 FUZZ_CC      ?= clang
 FUZZ_CXX     ?= clang++
 FUZZ_SAN     := -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer -g -O1
-FUZZ_CFLAGS  := -Wall -Wextra -Wshadow -Werror -D_GLIBCXX_ASSERTIONS $(FUZZ_SAN) -Itests/fuzz -Isource -Isource/kit -isystem extern/borealis/library/include
+FUZZ_CFLAGS  := -Wall -Wextra -Wshadow -Werror -D_GLIBCXX_ASSERTIONS $(FUZZ_SAN) -Itests/fuzz -Isource -Isource/kit -isystem library/aurore/library/include
 zip_read_FUZZ      := source/kit/util/zip_read.cpp tests/fuzz/zip_read/fuzz.cpp
 zip_read_FUZZ_LIBS := -lz
 markdown_FUZZ      := $(filter-out tests/%,$(markdown_SRC)) tests/fuzz/markdown/fuzz.cpp

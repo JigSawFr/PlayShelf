@@ -16,6 +16,7 @@ on:
     paths:
       - source/**
       - extern/**
+      - library/**
       - .clang-tidy
       - CMakeLists.txt
       - .github/workflows/clang-tidy.yml
@@ -23,6 +24,7 @@ on:
     paths:
       - source/**
       - extern/**
+      - library/**
       - .clang-tidy
       - CMakeLists.txt
       - .github/workflows/clang-tidy.yml
@@ -57,9 +59,9 @@ jobs:
         with:
           submodules: true
       - name: Borealis GLFW fork
-        run: git -C extern/borealis submodule update --init --depth 1 library/lib/extern/glfw
+        run: git -C library/aurore submodule update --init --depth 1 library/lib/extern/glfw
       # A finding becomes an annotation on the file's line (the same matcher
-      # as the compilers': `file:line:col: warning: …`). Not for extern/.
+      # as the compilers': `file:line:col: warning: …`). Not for extern/ nor library/.
       - name: Findings as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
       # The desktop build's -dev packages (what its CMake configure looks

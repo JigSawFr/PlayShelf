@@ -4,7 +4,7 @@
       "owner": "gcc",
       "pattern": [
         {
-          "regexp": "^(?!.*\\bextern/)(.+?):(\\d+):(\\d+):\\s+(?:fatal )?(warning|error):\\s+(.+)$",
+          "regexp": "^(?!.*\\b(?:extern|library)/)(.+?):(\\d+):(\\d+):\\s+(?:fatal )?(warning|error):\\s+(.+)$",
           "file": 1,
           "line": 2,
           "column": 3,

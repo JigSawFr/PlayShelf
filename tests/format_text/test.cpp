@@ -1,6 +1,6 @@
 // Host tests for Aurore's Cadran format_text.cpp, translated by the real
-// catalogs (Aurore's extern/borealis/resources/i18n/<lang>/cadran.json, read from the repository
-// root `make test` runs in) through ui/tr.hpp's stand-in for borealis:
+// catalogs (library/aurore/resources/i18n/<lang>/cadran.json, read from the
+// repository root `make test` runs in) through ui/tr.hpp's stand-in for borealis:
 // minutes ("45 min", "2 h", "2 h 05"), a duration in nanoseconds (rounded to
 // the minute) and in seconds over any length ("< 1 min", "52 h 30", "278 h"),
 // the day names (in a title and inside a sentence, French for the
@@ -33,7 +33,7 @@ static void flatten(const nlohmann::json& j, const std::string& prefix)
 static bool load(const std::string& lang)
 {
     s_catalog.clear();
-    std::ifstream in("extern/borealis/resources/i18n/" + lang + "/cadran.json");
+    std::ifstream in("library/aurore/resources/i18n/" + lang + "/cadran.json");
     if (!in) return false;
     flatten(nlohmann::json::parse(in), "cadran/");
     return !s_catalog.empty();
