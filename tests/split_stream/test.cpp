@@ -122,7 +122,9 @@ void test_failures()
             return true;
         }, &why, nullptr, CHUNK));
         CHECK(why == "Recv failure: Connection reset by peer");
-        CHECK(got.size() < (600u << 10) && std::equal(got.begin(), got.end(), body.begin()));
+        // The failing piece (576 to 640 KiB) may have handed on some of its
+        // bytes first, none past it.
+        CHECK(got.size() < (640u << 10) && std::equal(got.begin(), got.end(), body.begin()));
         CHECK(srv.now == 0);   // every request ended
     }
     // The sink refusing (a pause): "stopped".

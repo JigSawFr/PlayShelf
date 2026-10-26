@@ -14,6 +14,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `support_reminder` | `true`, `false` | `true` | "Support PlayShelf" once a month at start-up |
 | `keep_awake` | `true`, `false` | `true` | *Downloads › Stay awake while downloading*: the console does not go to sleep by itself while downloads run |
 | `connections` | `1` to `8` | `4` | *Downloads › Connections per download*: how many requests a download makes at once, each for a 4 MB piece of the package taken in turn; more help with a server that serves each connection slowly. The packages are still installed one after the other |
+| `prefetch` | `0` to `2` | `0` | *Downloads › Fetch ahead*: while a package installs, the next ones (as many) are fetched into `cache/prefetch/` when the SD card has room for them and their install (1 GiB to spare); their install starts from the file, the rest from the server. A file goes once its package is installed or removed |
 | `support_reminded` | `YYYY-MM-DD` | none | The day of the last reminder |
 | `seen_version` | a version | none | The version whose "What's new" was shown |
 | `crash_seen` | a crash file's name | none | The newest crash file already said |

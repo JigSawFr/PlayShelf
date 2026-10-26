@@ -139,6 +139,8 @@ download_queue_LIBS := -lzstd
 # What a failed download's error means and what can be done about it.
 download_recovery_SRC  := $(filter-out tests/%,$(download_queue_SRC)) source/download/recovery.cpp tests/download_recovery/test.cpp
 download_recovery_LIBS := -lzstd
+# A package's first bytes from a file fetched ahead, the rest from its source.
+prefix_source_SRC := source/install/prefix_source.cpp tests/prefix_source/test.cpp
 # A range over several connections at once, handed on in order.
 split_stream_SRC  := source/install/split_stream.cpp tests/split_stream/test.cpp
 split_stream_LIBS := -pthread

@@ -52,6 +52,7 @@ struct Config
     bool        support_reminder = true;
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8
+    int         prefetch = 0;          // packages fetched ahead while one installs (action/download_flow), 0 to 2
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means

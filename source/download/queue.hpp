@@ -72,6 +72,15 @@ size_t pending(const std::vector<Job>& jobs);
 // A package already in the queue and not finished: the same address.
 bool queued(const std::vector<Job>& jobs, const std::string& url);
 
+// Fetching ahead (config prefetch): the jobs to fetch while one installs,
+// the next `count` waiting ones in the queue's order (indexes), the one
+// that runs aside.
+std::vector<size_t> ahead_jobs(const std::vector<Job>& jobs, const std::string& running_id, int count);
+// Room on the SD card to fetch the rest of a package (`left` bytes) of
+// `size`: what it takes now, the same again once it is installed, what the
+// running install still writes (`reserve`), and 1 GiB to spare.
+bool room_ahead(uint64_t free, uint64_t left, uint64_t size, uint64_t reserve);
+
 // The jobs of one game from one server, in the queue's order.
 struct Group
 {
