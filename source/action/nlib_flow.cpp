@@ -118,6 +118,7 @@ void save()
 void keep(uint64_t base, const titledb::Details& d)
 {
     library::Facts f;
+    f.name = d.name;
     f.publisher = d.publisher;
     f.developer = d.developer;
     f.release_date = library::date_of(d.release_date);
@@ -232,6 +233,16 @@ void enrich(const std::vector<uint64_t>& title_ids)
         if (!s_queue.empty() && !s_running) start_worker = s_running = true;
     }
     if (start_worker) ui::in_background("nlib facts", drain);
+}
+
+std::string genre_name(const std::string& genre)
+{
+    std::string slug;
+    for (char c : genre)
+        slug += (c >= 'A' && c <= 'Z') ? (char)(c - 'A' + 'a') : ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) ? c : '_';
+    const std::string key = "playshelf/genres/" + slug;
+    const std::string s = brls::getStr(key);
+    return s.empty() || s == key ? genre : s;
 }
 
 int listen(std::function<void()> changed)

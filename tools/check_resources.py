@@ -273,6 +273,8 @@ DYNAMIC_KEYS = {
     "prefs/effects_values/": array_of(PREFS_HPP, "EFFECTS"),
     "tools/update_via_values/": array_of("source/kit/action/update_flow.cpp", "METHODS"),
     "library/sort_values/": array_of("source/tab/catalogue_tab.cpp", "SORTS"),
+    "genres/": array_of("source/action/nlib_flow.hpp", "GENRES"),
+    "languages/": array_of("source/titledb/nlib.hpp", "NLIB_LANGUAGES"),
     "library/connection_values/": array_of("source/activity/server_activity.cpp", "CONNECTIONS"),
     "library/format_values/": array_of("source/activity/server_activity.cpp", "FORMATS"),
     # A failed download's cause: every cause's name but those the Downloads

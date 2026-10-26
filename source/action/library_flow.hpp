@@ -67,16 +67,25 @@ void reread_installed(const std::function<void()>& after);
 size_t install(const Loaded& l, const std::vector<size_t>& items);
 
 // What a game of a catalogue (`index` in data->titles) offers, for its
-// page (activity/game_activity): everything the console does not have of
-// it at once (the base game, its newest update when newer than the one
-// installed, its add-ons), then each item, its size or that the console
-// has it; A on one adds it to the downloads. `more`: lines of the caller's
-// after them (the Library's: delete the game). `facts`: its title id, its
-// size, the version installed.
+// page (activity/game_activity), by the page's tabs: everything the console
+// does not have of it at once (the base game, its newest update when newer
+// than the one installed, its add-ons) and the base game; its updates,
+// newest first, and its newest at once when the console has an older one;
+// its add-ons, and the missing ones at once. Each line: its size, or that
+// the console has it; A on one adds it to the downloads. `more`: lines of
+// the caller's (the Library's: delete the game). `facts`: its title id,
+// its size, the version installed.
 struct GameLines
 {
-    std::vector<ui::Choice> lines;
+    std::vector<ui::Choice> main;      // everything missing, then the base game
+    std::vector<ui::Choice> updates;   // the newest at once (when to get), then each
+    std::vector<ui::Choice> dlcs;      // the missing ones at once (two or more), then each
+    std::vector<ui::Choice> more;
     std::string             facts;
+    size_t                  update_count = 0, dlc_count = 0, dlcs_installed = 0;
+    uint64_t                base_size = 0, updates_size = 0, dlcs_size = 0;
+    uint32_t                installed_version = 0, latest_version = 0;   // 0: none
+    bool                    installed = false;   // the base game is on the console
 };
 GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more = {});
 

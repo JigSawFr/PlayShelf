@@ -11,6 +11,7 @@ namespace
 Facts zelda()
 {
     Facts f;
+    f.name = "The Legend of Zelda: Breath of the Wild";
     f.publisher = "Nintendo";
     f.release_date = 20170303;
     f.categories = { "Adventure", "Action" };
@@ -43,7 +44,7 @@ void test_book()
     FactsBook back;
     CHECK(back.from_json(b.to_json()) && back.size() == 2);
     const Facts* z = back.find(0x01007EF00011E000);
-    CHECK(z && z->publisher == "Nintendo" && z->release_date == 20170303 && z->players == 2 && z->nsu_id == 70010000000025ull);
+    CHECK(z && z->name == zelda().name && z->publisher == "Nintendo" && z->release_date == 20170303 && z->players == 2 && z->nsu_id == 70010000000025ull);
     CHECK(z && z->categories == zelda().categories && z->languages == zelda().languages && z->rating == zelda().rating && !z->demo);
     const Facts* s = back.find(0x0100000000010000);
     CHECK(s && s->demo && s->release_date == 0 && s->developer.empty());

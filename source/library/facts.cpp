@@ -74,6 +74,7 @@ std::string FactsBook::to_json() const
         char key[17];
         std::snprintf(key, sizeof key, "%016" PRIX64, id);
         nlohmann::json j = nlohmann::json::object();
+        if (!f.name.empty()) j["name"] = f.name;
         if (!f.publisher.empty()) j["publisher"] = f.publisher;
         if (!f.developer.empty()) j["developer"] = f.developer;
         if (f.release_date) j["date"] = f.release_date;
@@ -102,6 +103,7 @@ bool FactsBook::from_json(const std::string& text)
     for (const auto& [key, j] : list->items()) {
         if (key.size() != 16 || key.find_first_not_of("0123456789ABCDEF") != std::string::npos || !j.is_object()) continue;
         Facts f;
+        f.name = string_of(j, "name", 256);
         f.publisher = string_of(j, "publisher", 128);
         f.developer = string_of(j, "developer", 128);
         f.release_date = number_of<uint32_t>(j, "date", 99991231);

@@ -93,9 +93,8 @@ std::string nlib_icon_url(uint64_t base_id, int size)
 
 std::string nlib_language(const std::string& locale)
 {
-    static const char* const KNOWN[] = { "en", "fr", "ja", "es", "de", "nl", "pt", "it", "zh", "ko", "ru" };
     const std::string base = locale.substr(0, locale.find('-'));
-    for (const char* k : KNOWN)
+    for (const char* k : NLIB_LANGUAGES)
         if (base == k) return k;
     return "en";
 }

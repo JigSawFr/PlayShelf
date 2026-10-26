@@ -1,7 +1,8 @@
 // facts — what is known of a game beyond what its catalogue says, gathered
 // as the games show (Nlib API's details: action/nlib_flow) and kept on the
 // SD card: its publisher and developer, its date, its genres, how many play
-// it, its languages, its age rating, whether it is a demo, its eShop id. The
+// it, its languages, its age rating, whether it is a demo, its eShop id;
+// its name, for a game known only by its title id. The
 // pages show them; the Catalogue and the Library sort and filter by them.
 //
 // Plain C++ for the host tests (tests/library_facts).
@@ -19,6 +20,7 @@ namespace library
 
 struct Facts
 {
+    std::string              name;               // Nlib API's ("" when unknown)
     std::string              publisher, developer;
     uint32_t                 release_date = 0;   // YYYYMMDD, 0 when unknown
     std::vector<std::string> categories;         // the eShop's genres, in English

@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "tab/catalogue_tab.hpp"
 
+#include <algorithm>
+
 #include <fmt/format.h>
 
 #include <borealis/cadran/ui/cadran_frame.hpp>
@@ -66,6 +68,45 @@ bool inside(brls::View* view, brls::View* parent)
     for (brls::View* v = view; v; v = v->getParent())
         if (v == parent) return true;
     return false;
+}
+// A game's page: its lines, its icon (the server's, else the title
+// database's, else Nlib API's), and more of the catalogue's games of its
+// publisher and of its genre (as far as their facts are known yet), each
+// opening its own page.
+void open_game(const std::shared_ptr<const library_flow::Loaded>& data, const std::string& password, size_t index)
+{
+    if (!data || index >= data->titles.size()) return;
+    const library::Title& t = data->titles[index];
+    GameActivity::Page    page;
+    page.name = t.name;
+    page.title_id = t.id;
+    page.lines = library_flow::game_lines(data, index);
+    auto icon_of = [data, password](size_t i) -> GameActivity::IconAsk {
+        const std::string url = data->titles[i].icon_url;
+        const uint64_t    game_id = data->titles[i].id;
+        return [data, password, url, game_id](std::function<void(int)> shown) {
+            if (!url.empty()) library_icons::get(data, password, url, std::move(shown), game_id);
+            else library_icons::local(game_id, std::move(shown));
+        };
+    };
+    page.icon = icon_of(index);
+    auto others = [data, password, index, icon_of](const std::function<bool(const library::Facts&)>& like) {
+        std::vector<GameActivity::Other> out;
+        for (size_t i = 0; i < data->titles.size(); i++) {
+            if (i == index || !data->titles[i].id || !like(nlib_flow::facts(data->titles[i].id))) continue;
+            out.push_back({ data->titles[i].name, icon_of(i), [data, password, i]() { open_game(data, password, i); } });
+        }
+        return out;
+    };
+    page.by_publisher = [others](const std::string& publisher) {
+        return others([&](const library::Facts& f) { return f.publisher == publisher; });
+    };
+    page.by_genre = [others](const std::string& genre) {
+        return others([&](const library::Facts& f) {
+            return std::find(f.categories.begin(), f.categories.end(), genre) != f.categories.end();
+        });
+    };
+    GameActivity::show(std::move(page));
 }
 }   // namespace
 
@@ -305,23 +346,7 @@ void CatalogueTab::add_page()
 
 void CatalogueTab::open_title(size_t index)
 {
-    const auto data = this->shown_data;
-    if (!data || index >= data->titles.size()) return;
-    const library::Title&   t = data->titles[index];
-    library_flow::GameLines lines = library_flow::game_lines(data, index);
-    GameActivity::Page      page;
-    page.name = t.name;
-    page.title_id = t.id;
-    page.facts = std::move(lines.facts);
-    page.lines = std::move(lines.lines);
-    // The server's icon, else the title database's, else Nlib API's.
-    const std::string pass = this->password, url = t.icon_url;
-    const uint64_t    game_id = t.id;
-    page.icon = [data, pass, url, game_id](std::function<void(int)> shown) {
-        if (!url.empty()) library_icons::get(data, pass, url, std::move(shown), game_id);
-        else library_icons::local(game_id, std::move(shown));
-    };
-    GameActivity::show(std::move(page));
+    open_game(this->shown_data, this->password, index);
 }
 
 void CatalogueTab::server_sheet()

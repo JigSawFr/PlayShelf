@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "library/facts.hpp"
@@ -44,6 +45,20 @@ library::Facts facts(uint64_t title_id);
 // The games on screen: those not known yet asked of Nlib API, one after
 // the other, in place of the ones asked before and not done.
 void enrich(const std::vector<uint64_t>& title_ids);
+
+// The eShop's genres PlayShelf has words for, as genre_name() turns Nlib
+// API's into keys (playshelf/genres/<one of them>).
+constexpr const char* GENRES[] = {
+    "action", "adventure", "arcade", "board_game", "communication", "education", "fighting", "first_person",
+    "fitness", "lifestyle", "multiplayer", "music", "other", "party", "platformer", "practical", "puzzle",
+    "racing", "rpg", "role_playing", "shooter", "simulation", "sports", "strategy", "study", "training",
+    "utility", "video"
+};
+
+// A genre (Nlib API's English word) in the language PlayShelf speaks
+// ("Role-Playing" -> playshelf/genres/role_playing), the word itself when
+// it has none.
+std::string genre_name(const std::string& genre);
 
 // Told on the UI thread when facts came (a few at a time); an id for
 // unlisten().

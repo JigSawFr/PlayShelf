@@ -107,12 +107,20 @@ LibraryTab::LibraryTab()
         this->titledb_opened = opened;
         if (this->shown_games) this->show_games(this->shown_games);
     }));
+    // Nlib API's facts came: the names of the games known only by their
+    // title id, once one of them has one.
+    this->nlib_listener = nlib_flow::listen(ui::guarded(this->alive, [this]() {
+        for (const Entry& e : this->entries)
+            if (e.name == fmt::format("{:016X}", e.game->game.id) && !nlib_flow::facts(e.game->game.id).name.empty())
+                return this->show_games(this->shown_games);
+    }));
 }
 
 LibraryTab::~LibraryTab()
 {
     download_flow::unlisten(this->listener);
     titledb_flow::unlisten(this->titledb_listener);
+    nlib_flow::unlisten(this->nlib_listener);
 }
 
 brls::View* LibraryTab::create()
@@ -155,11 +163,13 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
             break;
         }
         // Its name: the console's, else the title database's, else its
-        // catalogue's, else its title id.
+        // catalogue's, else Nlib API's, else its title id.
         e.name = g.name;
         if (e.name.empty())
             if (const auto known = titledb_flow::title(g.game.id)) e.name = known->name;
-        if (e.name.empty()) e.name = e.data ? e.data->titles[(size_t)e.title].name : fmt::format("{:016X}", g.game.id);
+        if (e.name.empty() && e.data) e.name = e.data->titles[(size_t)e.title].name;
+        if (e.name.empty()) e.name = nlib_flow::facts(g.game.id).name;
+        if (e.name.empty()) e.name = fmt::format("{:016X}", g.game.id);
         if (something_to_get(state_in(e.data, e.title))) to_get++;
         this->entries.push_back(std::move(e));
     }
@@ -308,18 +318,60 @@ void LibraryTab::open(size_t i)
     page.name = name;
     page.title_id = game_id;
     if (e.data) {
-        library_flow::GameLines got = library_flow::game_lines(e.data, (size_t)e.title, lines);
-        page.facts = std::move(got.facts);
-        page.lines = std::move(got.lines);
+        page.lines = library_flow::game_lines(e.data, (size_t)e.title, lines);
     } else {
         // In no catalogue read: what the console has of it.
         const library::InstalledGame& g = e.game->game;
-        page.facts = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
-        if (g.dlcs.size() == 1) page.facts += " · " + "playshelf/library/dlc_count_one"_i18n;
-        else if (!g.dlcs.empty()) page.facts += " · " + brls::getStr("playshelf/library/dlc_count", g.dlcs.size());
+        page.lines.facts = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
+        if (g.dlcs.size() == 1) page.lines.facts += " · " + "playshelf/library/dlc_count_one"_i18n;
+        else if (!g.dlcs.empty()) page.lines.facts += " · " + brls::getStr("playshelf/library/dlc_count", g.dlcs.size());
+        page.lines.installed = true;
+        page.lines.installed_version = std::max(e.game->game.version, e.game->game.update);
         page.note = "playshelf/installed/not_found"_i18n;
-        page.lines = std::move(lines);
+        page.lines.more = std::move(lines);
     }
+    // More of the console's games of its publisher and of its genre (as
+    // far as their facts are known yet), each opening its own page.
+    struct Owned
+    {
+        uint64_t                                    id;
+        std::string                                 name;
+        std::shared_ptr<const std::vector<uint8_t>> icon;
+    };
+    std::vector<Owned> console;
+    for (size_t k = 0; k < this->entries.size(); k++)
+        if (k != i) console.push_back({ this->entries[k].game->game.id, this->entries[k].name, this->entries[k].game->icon });
+    auto others = [weak = ui::Weak(this->alive), this, console](const std::function<bool(const library::Facts&)>& like) {
+        std::vector<GameActivity::Other> out;
+        for (const Owned& o : console) {
+            if (!like(nlib_flow::facts(o.id))) continue;
+            const uint64_t other = o.id;
+            const auto     bytes = o.icon;
+            out.push_back({ o.name,
+                            [other, bytes](std::function<void(int)> shown) {
+                                const int texture = bytes ? nvgCreateImageMem(brls::Application::getNVGContext(), 0,
+                                                                              (unsigned char*)bytes->data(), (int)bytes->size())
+                                                          : 0;
+                                if (texture > 0) return shown(texture);
+                                library_icons::local(other, std::move(shown));
+                            },
+                            [weak, this, other]() {
+                                const ui::Alive held = weak.lock();
+                                if (!held || !*held) return;
+                                for (size_t k = 0; k < this->entries.size(); k++)
+                                    if (this->entries[k].game->game.id == other) return this->open(k);
+                            } });
+        }
+        return out;
+    };
+    page.by_publisher = [others](const std::string& publisher) {
+        return others([&](const library::Facts& f) { return f.publisher == publisher; });
+    };
+    page.by_genre = [others](const std::string& genre) {
+        return others([&](const library::Facts& f) {
+            return std::find(f.categories.begin(), f.categories.end(), genre) != f.categories.end();
+        });
+    };
     // Its cover as the Library shows it: the console's icon, else the
     // server's, else the title database's or Nlib API's.
     const std::shared_ptr<const std::vector<uint8_t>> own = e.game->icon;

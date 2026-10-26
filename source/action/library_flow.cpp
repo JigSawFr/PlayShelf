@@ -257,7 +257,6 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     const library::Title&             t = data->titles[index];
     const std::vector<library::Item>& items = data->fetch.catalog.items;
     using Choice = ui::Choice;
-    std::vector<Choice>& choices = out.lines;
     const auto have = installed();
     auto       add = [data](const std::vector<size_t>& chosen) {
         return [data, chosen]() {
@@ -268,34 +267,63 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     };
     const library::TitleState st = library::state_of(t, data->fetch.catalog, *have);
     // Its line's end: its size, or that the console has it.
-    auto line = [&](size_t i, const char* icon, const std::string& label, const std::string& group) {
+    auto line = [&](std::vector<Choice>& to, size_t i, const char* icon, const std::string& label) {
         const bool has = library::is_installed(items[i], *have);
-        choices.emplace_back(label, add({ i }), icon, has ? "playshelf/library/installed"_i18n : size_text(items[i].size),
-                             group, has ? Choice::Tone::ON : Choice::Tone::PLAIN);
+        to.emplace_back(label, add({ i }), icon, has ? "playshelf/library/installed"_i18n : size_text(items[i].size), "",
+                        has ? Choice::Tone::ON : Choice::Tone::PLAIN);
+        return has;
     };
 
     // Everything at once, what the console does not have of it: the base
     // game, its newest update (when newer than the one installed), its
     // add-ons.
-    std::vector<size_t> missing;
+    std::vector<size_t> missing, dlcs_missing;
     if (t.base >= 0 && !st.base) missing.push_back((size_t)t.base);
     const long latest = library::latest_update(t);
-    if (latest >= 0 && !library::is_installed(items[(size_t)latest], *have) &&
-        (!st.base || st.update_available))
-        missing.push_back((size_t)latest);
+    const bool latest_missing = latest >= 0 && !library::is_installed(items[(size_t)latest], *have) &&
+                                (!st.base || st.update_available);
+    if (latest_missing) missing.push_back((size_t)latest);
     for (size_t i : t.dlcs)
-        if (!library::is_installed(items[i], *have)) missing.push_back(i);
-    uint64_t missing_size = 0;
-    for (size_t i : missing) missing_size += items[i].size;
+        if (!library::is_installed(items[i], *have)) dlcs_missing.push_back(i);
+    missing.insert(missing.end(), dlcs_missing.begin(), dlcs_missing.end());
+    auto size_of = [&](const std::vector<size_t>& chosen) {
+        uint64_t n = 0;
+        for (size_t i : chosen) n += items[i].size;
+        return n;
+    };
     if (missing.size() > 1 || (st.base && !missing.empty()))
-        choices.emplace_back(st.base ? "playshelf/library/install_missing"_i18n : "playshelf/library/install_all"_i18n,
-                             add(missing), "download", size_text(missing_size));
+        out.main.emplace_back(st.base ? "playshelf/library/install_missing"_i18n : "playshelf/library/install_all"_i18n,
+                              add(missing), "download", size_text(size_of(missing)));
+    if (t.base >= 0) {
+        line(out.main, (size_t)t.base, "gamepad", "playshelf/library/base"_i18n);
+        out.base_size = items[(size_t)t.base].size;
+    }
 
-    if (t.base >= 0) line((size_t)t.base, "gamepad", "playshelf/library/base"_i18n, "playshelf/library/group_base"_i18n);
-    for (size_t i : t.updates)
-        line(i, "refresh", brls::getStr("playshelf/library/update", items[i].version), "playshelf/library/group_updates"_i18n);
-    for (size_t i : t.dlcs) line(i, "plus", library::clean_name(items[i].name), "playshelf/library/group_dlcs"_i18n);
-    choices.insert(choices.end(), more.begin(), more.end());
+    // Its updates: the newest at once when the console has an older one.
+    if (latest_missing && st.base)
+        out.updates.emplace_back("playshelf/game/install_latest"_i18n, add({ (size_t)latest }), "download",
+                                 size_text(items[(size_t)latest].size));
+    for (size_t i : t.updates) {
+        // Its number (the version's high half) before the version itself.
+        line(out.updates, i, "refresh", brls::getStr("playshelf/game/update_line", items[i].version >> 16, items[i].version));
+        out.updates_size += items[i].size;
+    }
+    out.update_count = t.updates.size();
+    if (latest >= 0) out.latest_version = items[(size_t)latest].version;
+
+    // Its add-ons: the missing ones at once, when there are several.
+    if (dlcs_missing.size() > 1)
+        out.dlcs.emplace_back("playshelf/game/install_missing_dlcs"_i18n, add(dlcs_missing), "download",
+                              size_text(size_of(dlcs_missing)));
+    for (size_t i : t.dlcs) {
+        if (line(out.dlcs, i, "plus", library::clean_name(items[i].name))) out.dlcs_installed++;
+        out.dlcs_size += items[i].size;
+    }
+    out.dlc_count = t.dlcs.size();
+
+    out.more = more;
+    out.installed = st.base;
+    out.installed_version = st.base ? st.version : 0;
     out.facts = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
     if (st.base) out.facts += " · " + brls::getStr("playshelf/library/installed_version", st.version);
     return out;

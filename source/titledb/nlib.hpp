@@ -29,6 +29,9 @@ constexpr int NLIB_MAX_SCREENS = 8;
 // (Nlib API knows no update and no add-on) or a size out of range.
 std::string nlib_icon_url(uint64_t base_id, int size = NLIB_ICON_SIZE);
 
+// The languages Nlib API speaks, and names a game's in.
+constexpr const char* NLIB_LANGUAGES[] = { "en", "fr", "ja", "es", "de", "nl", "pt", "it", "zh", "ko", "ru" };
+
 // Nlib API's language for PlayShelf's (ui::LANGUAGES: "fr-CA" -> "fr",
 // "pt-BR" -> "pt", "zh-Hant" -> "zh"); "en" for one it does not have.
 std::string nlib_language(const std::string& locale);

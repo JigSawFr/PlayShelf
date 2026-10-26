@@ -34,7 +34,7 @@ The **Catalogue** shows the server's games as covers, with their size and their 
 |---|---|
 | ![The Catalogue](../images/screenshots/catalogue.png) | ![A game's page](../images/screenshots/game_sheet.png) |
 
-Press Ⓐ on a game for its page: **Install everything**, or its base game, one of its updates or one of its add-ons. Each one goes to the **Downloads**. When the console is online, the page also shows what [Nlib API](https://api.nlib.cc/nx/) knows of the game in PlayShelf's language: its banner, publisher, year and categories, a summary, its screenshots (Ⓐ shows one on the whole screen, ◀ ▶ the others) and its description. The Library opens the same page for a game on the console.
+Press Ⓐ on a game for its page: **Install everything**, or its base game, one of its updates or one of its add-ons. Each one goes to the **Downloads**. The page has tabs (Ⓐ on one, or Ⓛ and Ⓡ): **Overview**, **Updates** (the version installed and the newest, the newest at once, each update), **Add-ons** (how many the console has, the missing ones at once, each add-on) and **Details** (its ids, sizes, publisher, developer, release date, genres, players, languages, age rating, and its eShop page as a QR code for a phone). When the console is online, it shows what [Nlib API](https://api.nlib.cc/nx/) knows of the game in PlayShelf's language: its banner, publisher and year, its genres, players and whether it is in your language as chips, a summary, its screenshots (Ⓐ shows one on the whole screen, ◀ ▶ the others), its description, and more of the catalogue's games from its publisher and in its genre. The Library opens the same page for a game on the console.
 
 ## Follow the downloads
 
