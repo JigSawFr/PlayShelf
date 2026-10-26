@@ -574,7 +574,7 @@
         "not_https": "Alleen een HTTPS-adres kan een bron zijn.",
         "duplicate": "Deze bron staat al in de lijst.",
         "added": "Bron toegevoegd: werk de database bij om hem op te halen.",
-        "restore": "CyberFoil-DB weer toevoegen",
+        "restore": "{} weer toevoegen",
         "sources_info": "De eerste bron die een game kent, geeft hem zijn naam.",
         "up": "Omhoog",
         "down": "Omlaag",
@@ -582,6 +582,8 @@
         "updated": "Titeldatabase bijgewerkt",
         "current": "De titeldatabase is up-to-date",
         "failed_toast": "De titeldatabase is niet bijgewerkt: {}",
-        "remove_body": "{} uit de bronnen verwijderen? De namen en pictogrammen ervan worden van de SD-kaart gewist."
+        "remove_body": "{} uit de bronnen verwijderen? De namen en pictogrammen ervan worden van de SD-kaart gewist.",
+        "source_line_list": "{} · {} titels · alleen namen, geen SHA-256 gepubliceerd",
+        "ghostland": "Ghostland"
     }
 }

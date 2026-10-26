@@ -1,10 +1,12 @@
 // titledb/: CyberFoil-DB's packs read (a title's name, publisher, version;
 // an icon's bytes), the ones whose index does not hold together refused, a
 // pack's text made safe; its manifest read with its aliases, relative
-// addresses resolved, the ones not HTTPS refused.
+// addresses resolved, the ones not HTTPS refused; a title list (Ghostland's
+// kind) read as it streams and made a titles pack.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "temp_dir.hpp"
+#include "titledb/list.hpp"
 #include "titledb/manifest.hpp"
 #include "titledb/pack.hpp"
 #include "titledb/packs.hpp"
@@ -115,6 +117,39 @@ void test_manifest()
     CHECK(resolve("https://h/a/b.json?x=1", "c.pack") == "https://h/a/c.pack");
     CHECK(resolve("https://h", "c.pack") == "https://h/c.pack");
 }
+void test_list()
+{
+    TempDir                tmp("titledb_list", TempDir::Enter);
+    std::vector<ListEntry> e;
+    std::string            why;
+    // Ghostland's: versions as text, a size; an id twice (the last kept), a
+    // key that is no title id, a name with a control character.
+    CHECK(parse_title_list(R"({"0100000000010800": {"Game Name": "Mario", "Version": "393216", "Size": 306880574},
+        "0100000000010000": {"Game Name": "Super Mario Odyssey™", "Version": "0", "Size": 3751207164},
+        "readme": {"Game Name": "not a game"},
+        "01000000160F6000": {"Game Name": "Old"},
+        "01000000160F6000": {"Game Name": "Bouncy\tBullets 2", "Version": 65536, "extra": [1, {"a": 2}]}})",
+                           &e, &why));
+    if (!CHECK(e.size() == 3)) return;
+    CHECK(e[0].id == 0x0100000000010000 && e[0].name == "Super Mario Odyssey™" && e[0].has_version && e[0].version == 0 &&
+          e[0].size == 3751207164ull);
+    CHECK(e[1].id == 0x0100000000010800 && e[1].version == 393216);
+    CHECK(e[2].id == 0x01000000160F6000 && e[2].name == "Bouncy Bullets 2" && e[2].version == 65536 && !e[2].size);
+
+    // Made a pack, read as CyberFoil-DB's are.
+    write("list.pack", titles_pack_of(e));
+    TitlePack p;
+    if (!CHECK(p.open("list.pack", &why))) return;
+    CHECK(p.count() == 3);
+    const auto t = p.find(0x0100000000010000);
+    CHECK(t && t->name == "Super Mario Odyssey™" && t->size == 3751207164ull && t->version && *t->version == 0);
+    CHECK(p.find(0x0100000000010800)->name == "Mario" && !p.find(0x0100000000020000));
+
+    // Not a list: an array, no title, not JSON.
+    CHECK(!parse_title_list(R"([{"Game Name": "x"}])", &e, &why) && e.empty());
+    CHECK(!parse_title_list(R"({"readme": {"Game Name": "x"}})", &e, &why));
+    CHECK(!parse_title_list("{\"0100000000010000\": {", &e, &why));
+}
 }   // namespace
 
 int main()
@@ -123,5 +158,6 @@ int main()
     test_icons();
     test_safe_text();
     test_manifest();
-    return CHECK_DONE("title database: packs read, broken ones refused, safe text, manifests and their aliases passed");
+    test_list();
+    return CHECK_DONE("title database: packs read, broken ones refused, safe text, manifests and their aliases, title lists passed");
 }

@@ -7,6 +7,7 @@
 
 #include <borealis/extern/nlohmann/json.hpp>
 
+#include "titledb/list.hpp"
 #include "titledb/manifest.hpp"
 #include "util/json_util.hpp"
 #include "util/paths.hpp"
@@ -79,6 +80,51 @@ bool fetch(const char* kind, const PackFile& p, const std::string& dir, const Ne
     }
     return true;
 }
+
+bool write_state(const std::string& dir, const State& st, std::string* why)
+{
+    nlohmann::json j;
+    j["url"] = st.url;
+    j["version"] = st.version;
+    j["titles"] = st.titles;
+    j["icons"] = st.icons;
+    j["count"] = st.count;
+    j["list"] = st.list;
+    return paths::atomic_write(dir + "/state.json", j.dump(2, ' ', false, nlohmann::json::error_handler_t::replace) + "\n", why);
+}
+
+// A title list's source: its titles pack written from it, named after the
+// list's hash (the same list: nothing written again).
+Outcome from_list(const std::string& url, const std::string& dir, const std::string& text,
+                  const std::vector<ListEntry>& entries, std::string* why)
+{
+    if (!paths::ensure_dir(dir)) {
+        if (why) *why = "its folder cannot be made";
+        return Outcome::Failed;
+    }
+    Sha256 h;
+    h.update(text.data(), text.size());
+    State next;
+    next.url = url;
+    next.version = h.hex().substr(0, 16);
+    next.titles = "titles-" + next.version + ".pack";
+    next.list = true;
+    next.count = entries.size();
+    State now;
+    if (read_state(dir, &now) && now.version == next.version && now.titles == next.titles && size_of(dir + "/" + now.titles) > 0)
+        return Outcome::Current;
+    std::string w;
+    if (!paths::atomic_write(dir + "/" + next.titles, titles_pack_of(entries), &w)) {
+        if (why) *why = "titles pack: " + w;
+        return Outcome::Failed;
+    }
+    if (!write_state(dir, next, &w)) {
+        if (why) *why = "state: " + w;
+        return Outcome::Failed;
+    }
+    prune(dir, true);
+    return Outcome::Updated;
+}
 }   // namespace
 
 bool read_state(const std::string& dir, State* out)
@@ -93,6 +139,7 @@ bool read_state(const std::string& dir, State* out)
     out->titles = json_util::string_at(j, "titles");
     out->icons = json_util::string_at(j, "icons");
     out->count = (size_t)json_util::integer_or(j, "count");
+    out->list = json_util::flag_at(j, "list");
     // Names in the folder only.
     for (const std::string* n : { &out->titles, &out->icons })
         if (n->find('/') != std::string::npos || n->find("..") != std::string::npos) return false;
@@ -116,6 +163,10 @@ Outcome update(const std::string& url, const std::string& dir, const Net& net,
     }
     Manifest m;
     if (text.size() > MAX_MANIFEST || !parse_manifest(text, url, &m, &w)) {
+        // Not a manifest: a title list, perhaps.
+        std::string            list_why;
+        std::vector<ListEntry> entries;
+        if (parse_title_list(text, &entries, &list_why)) return from_list(url, dir, text, entries, why);
         if (why) *why = "manifest: " + (text.size() > MAX_MANIFEST ? std::string("too large") : w);
         return Outcome::Failed;
     }
@@ -163,13 +214,7 @@ Outcome update(const std::string& url, const std::string& dir, const Net& net,
         return Outcome::Failed;
     }
     next.count = t.count();
-    nlohmann::json j;
-    j["url"] = next.url;
-    j["version"] = next.version;
-    j["titles"] = next.titles;
-    j["icons"] = next.icons;
-    j["count"] = next.count;
-    if (!paths::atomic_write(dir + "/state.json", j.dump(2, ' ', false, nlohmann::json::error_handler_t::replace) + "\n", &w)) {
+    if (!write_state(dir, next, &w)) {
         if (why) *why = "state: " + w;
         return Outcome::Failed;
     }

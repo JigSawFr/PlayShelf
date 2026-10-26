@@ -2,7 +2,8 @@
 // scripted network (its packs fetched, a cut part resumed, a pack whose
 // SHA-256 differs refused and the one in use kept), the icons pack the same
 // from one version to the next not fetched again, the old packs removed;
-// sources by priority, the first that names a title winning.
+// a title list made a pack, written once per version of it; sources by
+// priority, the first that names a title winning.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "temp_dir.hpp"
@@ -138,6 +139,32 @@ void test_update()
     CHECK(remove_source(dir) && !paths::file_exists(dir + "/state.json"));
 }
 
+void test_list_source()
+{
+    TempDir           tmp("titledb_list_source", TempDir::Enter);
+    const char* const LIST = "https://list.test/owned.json";
+    const std::string dir = source_dir(tmp.path(), LIST);
+    Server            s;
+    s.files[LIST] = R"({"0100000000010000": {"Game Name": "Mario", "Version": "0", "Size": 5}})";
+    std::string why;
+    CHECK(update(LIST, dir, s.net(), nullptr, &why) == Outcome::Updated);
+    State st;
+    CHECK(read_state(dir, &st) && st.list && st.count == 1 && st.icons.empty() && st.version.size() == 16);
+    // Nothing fetched as a pack; the same list again: nothing written.
+    CHECK(s.asked.empty() && update(LIST, dir, s.net(), nullptr, &why) == Outcome::Current);
+    // A new list: its pack, the old one gone.
+    const std::string old = st.titles;
+    s.files[LIST] = R"({"0100000000010000": {"Game Name": "Mario 2"}})";
+    CHECK(update(LIST, dir, s.net(), nullptr, &why) == Outcome::Updated);
+    CHECK(read_state(dir, &st) && st.titles != old && !paths::file_exists(dir + "/" + old));
+    Database db;
+    db.open({ dir });
+    CHECK(db.title(MARIO) && db.title(MARIO)->name == "Mario 2");
+    // Neither a manifest nor a list.
+    s.files[LIST] = R"({"hello": "world"})";
+    CHECK(update(LIST, dir, s.net(), nullptr, &why) == Outcome::Failed && !why.empty());
+}
+
 void test_priority()
 {
     TempDir           tmp("titledb_priority", TempDir::Enter);
@@ -174,6 +201,7 @@ void test_priority()
 int main()
 {
     test_update();
+    test_list_source();
     test_priority();
-    return CHECK_DONE("title database store: updates, resume, a hash refused, no room, priority passed");
+    return CHECK_DONE("title database store: updates, resume, a hash refused, no room, title lists, priority passed");
 }

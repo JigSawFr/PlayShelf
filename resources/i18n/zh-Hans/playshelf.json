@@ -574,7 +574,7 @@
         "not_https": "只有 HTTPS 地址可以作为来源。",
         "duplicate": "此来源已在列表中。",
         "added": "已添加来源：更新数据库即可下载。",
-        "restore": "重新添加 CyberFoil-DB",
+        "restore": "重新添加 {}",
         "sources_info": "最先收录某个游戏的来源决定其名称。",
         "up": "上移",
         "down": "下移",
@@ -582,6 +582,8 @@
         "updated": "游戏信息数据库已更新",
         "current": "游戏信息数据库已是最新",
         "failed_toast": "游戏信息数据库未更新：{}",
-        "remove_body": "要从来源中移除 {} 吗？其名称和图标将从 SD 卡中删除。"
+        "remove_body": "要从来源中移除 {} 吗？其名称和图标将从 SD 卡中删除。",
+        "source_line_list": "{} · {} 个游戏 · 仅名称，未公布 SHA-256",
+        "ghostland": "Ghostland"
     }
 }

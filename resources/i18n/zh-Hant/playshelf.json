@@ -574,7 +574,7 @@
         "not_https": "只有 HTTPS 位址可以作為來源。",
         "duplicate": "此來源已在清單中。",
         "added": "已新增來源：更新資料庫即可下載。",
-        "restore": "重新新增 CyberFoil-DB",
+        "restore": "重新新增 {}",
         "sources_info": "最先收錄某個遊戲的來源決定其名稱。",
         "up": "上移",
         "down": "下移",
@@ -582,6 +582,8 @@
         "updated": "遊戲資訊資料庫已更新",
         "current": "遊戲資訊資料庫已是最新",
         "failed_toast": "遊戲資訊資料庫未更新：{}",
-        "remove_body": "要從來源中移除 {} 嗎？其名稱和圖示將從 SD 卡中刪除。"
+        "remove_body": "要從來源中移除 {} 嗎？其名稱和圖示將從 SD 卡中刪除。",
+        "source_line_list": "{} · {} 個遊戲 · 僅名稱，未公布 SHA-256",
+        "ghostland": "Ghostland"
     }
 }

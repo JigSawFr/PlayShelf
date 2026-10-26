@@ -5,7 +5,9 @@
 // the folder lacks (a part left by a cut resumed), checks its size and its
 // SHA-256 and only then writes state.json: a pack open meanwhile is never
 // overwritten, an icons pack the same from one version to the next not
-// fetched again. The packs state.json no longer names go afterwards.
+// fetched again. The packs state.json no longer names go afterwards. A
+// source that publishes a title list instead (titledb/list): its titles pack
+// made from it, in the same folder.
 //
 // Plain C++ for the host tests (tests/titledb_store).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -29,13 +31,15 @@ struct State
     std::string url, version;
     std::string titles, icons;   // file names in the folder; icons "" for none
     size_t      count = 0;       // the titles pack's entries
+    bool        list = false;    // made from a title list (titledb/list), not fetched as a pack
 };
 bool read_state(const std::string& dir, State* out);
 
 // The folder of the source at `url`, under `root`.
 std::string source_dir(const std::string& root, const std::string& url);
 
-// What an update needs of the network: a text (the manifest, 64 KB at most)
+// What an update needs of the network: a text (a manifest, or a title list:
+// titledb/list, MAX_TEXT at most)
 // and a file (`size` bytes: those past `resume_from` appended to `path`).
 struct Net
 {
@@ -46,6 +50,8 @@ struct Net
     // The bytes free where the folder is; nothing to say when unset.
     std::function<uint64_t()> free_space;
 };
+
+constexpr size_t MAX_TEXT = 64u << 20;
 
 enum class Outcome : uint8_t { Updated, Current, Failed };
 

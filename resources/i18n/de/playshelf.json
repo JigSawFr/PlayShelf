@@ -574,7 +574,7 @@
         "not_https": "Nur eine HTTPS-Adresse kann eine Quelle sein.",
         "duplicate": "Diese Quelle ist bereits in der Liste.",
         "added": "Quelle hinzugefügt: Aktualisiere die Datenbank, um sie zu laden.",
-        "restore": "CyberFoil-DB wieder hinzufügen",
+        "restore": "{} wieder hinzufügen",
         "sources_info": "Die erste Quelle, die ein Spiel kennt, benennt es.",
         "up": "Nach oben",
         "down": "Nach unten",
@@ -582,6 +582,8 @@
         "updated": "Titeldatenbank aktualisiert",
         "current": "Die Titeldatenbank ist aktuell",
         "failed_toast": "Die Titeldatenbank wurde nicht aktualisiert: {}",
-        "remove_body": "{} aus den Quellen entfernen? Seine Namen und Symbole werden von der SD-Karte gelöscht."
+        "remove_body": "{} aus den Quellen entfernen? Seine Namen und Symbole werden von der SD-Karte gelöscht.",
+        "source_line_list": "{} · {} Titel · nur Namen, kein SHA-256 veröffentlicht",
+        "ghostland": "Ghostland"
     }
 }

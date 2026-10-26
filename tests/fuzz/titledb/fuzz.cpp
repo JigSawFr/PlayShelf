@@ -1,12 +1,15 @@
 // libFuzzer target: source/titledb/ on any bytes, read as a titles pack, an
 // icons pack and a manifest. Beyond the sanitizers: a title's text is valid
 // UTF-8 free of control characters and bounded, an icon within its bound,
-// a manifest's addresses https:// and its hashes 64 hex digits.
+// a manifest's addresses https:// and its hashes 64 hex digits; a title
+// list's entries sorted and unique, their names safe, and the pack made of
+// them read back whole.
 #include <cstdio>
 #include <string>
 #include <unistd.h>
 
 #include "fuzz.h"
+#include "titledb/list.hpp"
 #include "titledb/manifest.hpp"
 #include "titledb/pack.hpp"
 
@@ -63,5 +66,22 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             if (!p->known()) continue;
             FUZZ_ASSERT(p->url.compare(0, 8, "https://") == 0 && p->sha256.size() == 64 && p->size > 0);
         }
+    std::vector<titledb::ListEntry> list;
+    if (titledb::parse_title_list(std::string((const char*)data, size), &list, &why)) {
+        for (size_t k = 0; k < list.size(); k++) {
+            FUZZ_ASSERT(list[k].id && (k == 0 || list[k - 1].id < list[k].id));
+            check_text(list[k].name);
+        }
+        char pack[] = "/tmp/playshelf_fuzz_titledb_list_XXXXXX";
+        const int pfd = mkstemp(pack);
+        if (pfd >= 0) {
+            const std::string bytes = titledb::titles_pack_of(list);
+            const bool        ok = write(pfd, bytes.data(), bytes.size()) == (ssize_t)bytes.size();
+            close(pfd);
+            titledb::TitlePack t;
+            if (ok) FUZZ_ASSERT(t.open(pack, &why) && t.count() == list.size());
+            std::remove(pack);
+        }
+    }
     return 0;
 }

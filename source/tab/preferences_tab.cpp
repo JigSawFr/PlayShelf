@@ -34,7 +34,8 @@ std::string tab_name(const std::string& tab)
 // A source as the list names it: CyberFoil-DB, else its host and path.
 std::string source_name(const std::string& url)
 {
-    if (url == config::DEFAULT_TITLE_SOURCE) return "playshelf/titledb/cyberfoil"_i18n;
+    if (url == config::CYBERFOIL_TITLE_SOURCE) return "playshelf/titledb/cyberfoil"_i18n;
+    if (url == config::GHOSTLAND_TITLE_SOURCE) return "playshelf/titledb/ghostland"_i18n;
     std::string s = url.substr(url.find("://") + 3);
     const size_t last = s.rfind('/');
     if (last != std::string::npos && last > 0) s = s.substr(0, last);
@@ -44,6 +45,8 @@ std::string source_name(const std::string& url)
 // "63,880 titles · 20261013" for the sources open, in the config's order.
 std::string state_line(const titledb::State& st)
 {
+    // A title list has no version of its own, and no SHA-256 to check.
+    if (st.list) return brls::getStr("playshelf/titledb/source_line_list", source_name(st.url), st.count);
     return brls::getStr("playshelf/titledb/source_line", source_name(st.url), st.version, st.count);
 }
 
@@ -202,14 +205,17 @@ void PreferencesTab::sources_sheet()
                 ui::notify("playshelf/titledb/added"_i18n, ui::Toast::Done);
             }));
         }), "plus");
-    if (std::find(sources.begin(), sources.end(), config::DEFAULT_TITLE_SOURCE) == sources.end() &&
-        sources.size() < config::MAX_TITLE_SOURCES)
-        lines.emplace_back("playshelf/titledb/restore"_i18n, ui::guarded(this->alive, [this]() {
-            if (ui::refuse_read_only()) return;
-            config::get().title_sources.emplace_back(config::DEFAULT_TITLE_SOURCE);
-            save_sources();
-            this->show_titledb();
-        }), "restore");
+    // A default source removed: offered back.
+    for (const char* d : config::DEFAULT_TITLE_SOURCES)
+        if (std::find(sources.begin(), sources.end(), d) == sources.end() && sources.size() < config::MAX_TITLE_SOURCES)
+            lines.emplace_back(brls::getStr("playshelf/titledb/restore", source_name(d)), ui::guarded(this->alive, [this, d]() {
+                if (ui::refuse_read_only()) return;
+                auto& urls = config::get().title_sources;
+                if (std::find(urls.begin(), urls.end(), d) != urls.end() || urls.size() >= config::MAX_TITLE_SOURCES) return;
+                urls.emplace_back(d);
+                save_sources();
+                this->show_titledb();
+            }), "restore");
     ui::pick_actions("playshelf/titledb/sources"_i18n, lines, "playshelf/titledb/sources_info"_i18n);
 }
 

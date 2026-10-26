@@ -574,7 +574,7 @@
         "not_https": "Solo una dirección HTTPS puede ser una fuente.",
         "duplicate": "Esta fuente ya está en la lista.",
         "added": "Fuente agregada: actualiza la base de datos para descargarla.",
-        "restore": "Volver a agregar CyberFoil-DB",
+        "restore": "Volver a agregar {}",
         "sources_info": "La primera fuente que conoce un juego le da nombre.",
         "up": "Subir",
         "down": "Bajar",
@@ -582,6 +582,8 @@
         "updated": "Base de datos de títulos actualizada",
         "current": "La base de datos de títulos está al día",
         "failed_toast": "La base de datos de títulos no se actualizó: {}",
-        "remove_body": "¿Quitar {} de las fuentes? Sus nombres e íconos se borran de la tarjeta SD."
+        "remove_body": "¿Quitar {} de las fuentes? Sus nombres e íconos se borran de la tarjeta SD.",
+        "source_line_list": "{} · {} títulos · solo nombres, sin SHA-256 publicado",
+        "ghostland": "Ghostland"
     }
 }

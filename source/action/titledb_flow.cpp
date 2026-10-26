@@ -153,7 +153,8 @@ titledb::Net console_net()
 {
     titledb::Net n;
     n.text = [](const std::string& url, std::string* body, std::string* why) {
-        return http::get(url, body, why, 64 * 1024, 20);
+        // A manifest, or a title list of several MB.
+        return http::get(url, body, why, titledb::MAX_TEXT, 300);
     };
     n.file = fetch_pack;
     n.free_space = []() -> uint64_t {

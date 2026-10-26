@@ -124,8 +124,8 @@ static void test_fields()
     CHECK(!c.dev_mode && c.frame_stats && !c.intro && c.start_tab == "about");
     CHECK(c.logs_keep == 5 && c.logs_keep_days == 7 && c.logs_keep_mb == 0);
     CHECK(c.update_daily && c.update_via == "sphaira" && c.connections == 8 && c.prefetch == 2);
-    // No title_sources: CyberFoil-DB's.
-    CHECK(c.title_sources == std::vector<std::string>{ config::DEFAULT_TITLE_SOURCE });
+    // No title_sources: CyberFoil-DB's, then Ghostland's.
+    CHECK(c.title_sources == (std::vector<std::string>{ config::CYBERFOIL_TITLE_SOURCE, config::GHOSTLAND_TITLE_SOURCE }));
 
     // Out of range: back to the default, one field at a time.
     write_config(R"({"language": "xx", "theme": "blue", "text_size": "huge", "effects": "wild",
@@ -185,7 +185,7 @@ static void test_round_trip()
     c.crash_seen = "crash_20261024_101010.txt";
     c.connections = 2;
     c.prefetch = 1;
-    c.title_sources = { "https://mine.test/m.json", config::DEFAULT_TITLE_SOURCE };
+    c.title_sources = { "https://mine.test/m.json", config::CYBERFOIL_TITLE_SOURCE };
     const config::Config before = c;
     CHECK(save_config());
     c = config::Config{};
