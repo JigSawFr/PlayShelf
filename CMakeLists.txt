@@ -35,15 +35,6 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 project(playshelf LANGUAGES CXX C)
 
-# borealis' toolchain.cmake sets CMAKE_C_FLAGS / CMAKE_CXX_FLAGS as normal
-# variables (include paths), which hides the cache values devkitPro's
-# NintendoSwitch platform file initialises: the Cortex-A57 tuning, the crc and
-# crypto extensions and the thread-local model libnx is built with. Put them
-# back for every target (borealis, yoga, fmt, tinyxml2 and the app).
-if (PLATFORM_SWITCH AND NX_ARCH_SETTINGS)
-    string(PREPEND CMAKE_C_FLAGS "${NX_ARCH_SETTINGS} ")
-    string(PREPEND CMAKE_CXX_FLAGS "${NX_ARCH_SETTINGS} ")
-endif ()
 # devkitPro's platform file defaults to Release (-O2 -g; elf2nro keeps no
 # debug data). borealis prints its "Build Type:" line before project() picks
 # that default, so say what is actually used.
