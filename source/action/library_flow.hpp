@@ -40,7 +40,8 @@ void forget(const std::string& server_id);
 // and why not. A LAN certificate not trusted yet asks first: trusted, the
 // pin is saved with the server and the fetch made again; refused, `done`
 // gets nullptr and "" (nothing to show). Only one fetch at a time: another
-// one asked meanwhile is refused (`done` not run).
+// one asked meanwhile waits for it, its `done` given that fetch's result
+// (a tab made again while its catalogue is read: the one shown is told).
 void load(const library::Server& server, const std::function<void(std::shared_ptr<const Loaded>, std::string)>& done);
 bool loading();
 

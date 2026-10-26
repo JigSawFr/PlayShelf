@@ -1,0 +1,207 @@
+{
+  "ui": {
+    "title": "シミュレーター",
+    "nav_features": "機能",
+    "nav_install": "インストール",
+    "nav_docs": "ドキュメント",
+    "loading": "読み込み中…",
+    "downloading": "PlayShelf をダウンロード中…",
+    "starting": "起動中…",
+    "start": "開始",
+    "save_data": "データセーバーがオンです。PlayShelf は数 MB のダウンロードが必要です。",
+    "tools": "ツール",
+    "settings": "設定",
+    "log": "ログ",
+    "language": "言語",
+    "theme": "テーマ",
+    "theme_auto": "自動",
+    "theme_light": "ライト",
+    "theme_dark": "ダーク",
+    "theme_changed": "テーマが変わりました。本体にも反映するには再起動してください。",
+    "restart": "再起動",
+    "preset": "プリセット",
+    "preset_none": "プリセットを選ぶ…",
+    "other": "その他のパラメーター",
+    "other_help": "ほかの PLAYSHELF_SIM_* 変数も、接頭辞なしの小文字の名前で指定できます。このページがまだ知らない変数（新しいビルドのもの）も PlayShelf に届きます。",
+    "add": "追加",
+    "remove": "削除",
+    "apply": "適用",
+    "copy": "リンクをコピー",
+    "copied": "リンクをコピーしました",
+    "reset": "リセット",
+    "pad": "コントローラー",
+    "version": "バージョン",
+    "version_dev": "開発中",
+    "fullscreen": "全画面",
+    "fullscreen_exit": "全画面を終了",
+    "screenshot": "スクリーンショット",
+    "note": "「適用」はこの設定で PlayShelf を最初から起動し直します。中で変更した内容は「状態を保持」がオンでない限り残りません。本体はページの言語とテーマを使います。",
+    "keys": "<kbd>↑↓←→</kbd> 移動 · <kbd>Enter</kbd> A · <kbd>Esc</kbd> B · <kbd>X</kbd> <kbd>Y</kbd> · <kbd>L</kbd> <kbd>R</kbd> · <kbd>⇧L</kbd> ZL · <kbd>⇧R</kbd> ZR · <kbd>+</kbd> <kbd>−</kbd> · クリックはタッチになります",
+    "error": "PlayShelf が停止しました：",
+    "reload": "再読み込み",
+    "no_isolation": "このブラウザーではページがスレッドを使えません（クロスオリジン分離なし）。プライベートウィンドウ以外で、最新の Chrome、Edge、Firefox をお試しください。",
+    "no_webgl": "このブラウザーには、PlayShelf の描画に使う WebGL 2 がありません。",
+    "unknown_build": "ローカルビルド",
+    "record": "録画",
+    "stop_recording": "停止",
+    "forget": "保持した状態を消去",
+    "live_applied": "再起動せずに変更しました",
+    "stop": "停止",
+    "steps_copy": "手順のリンク",
+    "steps_help": "ここと同じ状態で PlayShelf を起動し、その後の操作を再生するリンク",
+    "steps_copied": "手順付きのリンクをコピーしました",
+    "replaying": "手順を再生中：{n} / {total}",
+    "tour": "ツアー",
+    "report": "問題を報告",
+    "tour_library": "ライブラリ：この本体のゲームとそのバージョン、サーバーにある新しいもの。",
+    "tour_catalogue": "カタログ：ライブラリサーバーのゲーム。ここではデモ棚の架空のゲームです。",
+    "tour_game": "ゲームのページ：本編、更新データ、追加コンテンツをそれぞれインストールできます。",
+    "tour_download": "すべてインストール：パッケージがダウンロードに入り、1 つずつインストールされます。",
+    "tour_downloads": "ダウンロード：キュー、ゲームごとのタイムライン、パッケージの取得方法。",
+    "tour_preferences": "設定：言語、テーマ、タイトルデータベース。",
+    "tour_end": "あなたの番です。矢印で移動、Enter が A、Esc が B。パネルでどんな状態にもできます。"
+  },
+  "groups": {
+    "app": "PlayShelf",
+    "library": "ライブラリサーバー",
+    "console": "本体",
+    "updates": "更新と GitHub",
+    "capture": "スクリーンショット"
+  },
+  "params": {
+    "tab": {
+      "label": "最初に開くタブ",
+      "options": {
+        "": "ライブラリ",
+        "catalogue": "カタログ",
+        "preferences": "オプション",
+        "about": "情報"
+      }
+    },
+    "keep": {
+      "label": "訪問をまたいで状態を保持",
+      "help": "PlayShelf のデータ（設定、サーバー、ダウンロード）とシミュレートした本体にインストールしたものがこのブラウザーに残ります。このパネルの本体の設定は初回起動時にだけ使われます。"
+    },
+    "fw": {
+      "label": "システムバージョン",
+      "help": "確認済みの最新より新しいと、システムバージョンの画面になります。"
+    },
+    "no_cfw": {
+      "label": "Atmosphère なし"
+    },
+    "emummc": {
+      "label": "emuMMC"
+    },
+    "blank": {
+      "label": "シリアル番号を非表示"
+    },
+    "region": {
+      "label": "地域",
+      "options": {
+        "": "既定",
+        "0": "日本",
+        "1": "南北アメリカ",
+        "2": "ヨーロッパ",
+        "3": "オーストラリア",
+        "4": "香港・台湾・韓国",
+        "5": "中国"
+      }
+    },
+    "applet": {
+      "label": "アプレットモード（アルバムから起動）"
+    },
+    "background": {
+      "label": "PlayShelf がバックグラウンド"
+    },
+    "hbloader": {
+      "label": "更新をストアに引き継げるローダー"
+    },
+    "docked": {
+      "label": "ドックに挿している（テレビ）"
+    },
+    "battery": {
+      "label": "バッテリーで動作（充電器なし）"
+    },
+    "boot_choice": {
+      "label": "起動時の「前のビルド？」への回答",
+      "options": {
+        "": "B",
+        "a": "A"
+      }
+    },
+    "now": {
+      "label": "本体の時刻を固定",
+      "help": "ブラウザーのタイムゾーンで指定します。"
+    },
+    "latest": {
+      "label": "最新リリース : 対応する最新システムバージョン"
+    },
+    "store": {
+      "label": "Homebrew App Storeのバージョン（SDカード上の記録あり）"
+    },
+    "dev_builds": {
+      "label": "開発ビルド（GitHub API）",
+      "options": {
+        "": "接続できない",
+        "offline": "オフライン"
+      }
+    },
+    "dev_builds_delay": {
+      "label": "GitHub の応答ごとの遅延（ミリ秒）"
+    },
+    "github_login": {
+      "label": "GitHub へのサインイン",
+      "options": {
+        "": "接続できない",
+        "ok": "承認",
+        "denied": "拒否",
+        "offline": "オフライン"
+      }
+    },
+    "paste": {
+      "label": "「レポートをオンラインで送信」の応答"
+    },
+    "still_focus": {
+      "label": "フォーカスの強調を静止"
+    },
+    "version": {
+      "label": "ヘッダーに表示するバージョン"
+    },
+    "hold_loading": {
+      "label": "読み込み画面で止める"
+    },
+    "cadran_noglow": {
+      "label": "背景の光なし"
+    },
+    "no_game": {
+      "label": "PlayShelfの裏で何も開いていない"
+    },
+    "no_demo": {
+      "label": "ライブラリサーバーなし（初回起動）"
+    },
+    "signed": {
+      "label": "デモのパッケージを Nintendo の署名ありとして扱う",
+      "help": "デモサーバーがあるときは既定でオン。オフ：本体で Nintendo の署名がないパッケージと同じく、インストールごとに先に確認します。"
+    },
+    "speed": {
+      "label": "デモサーバーの速度（KB/s）",
+      "help": "既定は 96、0 で即時。"
+    },
+    "free_mb": {
+      "label": "インストール用の空き容量（MB）",
+      "help": "0：SD カードがいっぱいで、インストールはそこで止まります。"
+    }
+  },
+  "presets": {
+    "default": "既定",
+    "slow_network": "遅いネットワーク",
+    "fast_network": "速いネットワーク",
+    "sd_full": "SD カードがいっぱい",
+    "no_server": "まだライブラリサーバーがない",
+    "offline": "インターネットなしの本体",
+    "applet": "アプレットモード（アルバムから）",
+    "no_cfw": "Atmosphère なし",
+    "fw_old": "古いシステムバージョン",
+    "updates": "インストールできる更新"
+  }
+}

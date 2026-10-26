@@ -7,8 +7,6 @@
 //   PLAYSHELF_SIM_HBLOADER=1    started through hbloader: a store can be launched
 //   PLAYSHELF_SIM_APPLET=1      applet (album) mode: no game to close on exit
 //   PLAYSHELF_SIM_NO_GAME=1     no game open (applet mode with nothing behind)
-//   PLAYSHELF_SIM_FROM_FORWARDER=1  started from a forwarder's HOME menu icon,
-//                               not over a game (core/sysinfo.h)
 //   PLAYSHELF_SIM_REGION=2      the console region (SetRegion, 2 = Europe)
 //   PLAYSHELF_SIM_BOOT_CHOICE=a the start-up screen's answer (a: A, else B)
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).

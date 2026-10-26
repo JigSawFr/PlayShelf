@@ -3,6 +3,8 @@
 #   make              -> ./playshelf.nro            (needs devkitPro, DEVKITPRO set)
 #   make dist         -> ./playshelf.zip            (unzip onto the SD card root)
 #   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend; needs GLFW)
+#   make web          -> ./build-web/simulator/     (the web simulator; needs Emscripten's emcmake)
+#   make web-serve    -> make web, served at http://localhost:8000
 #   make test         -> host unit tests (plain gcc/g++, ASan + UBSan + libstdc++'s assertions; parallel, all suites)
 #   make check        -> make test, then the resource and source checks and compat.json
 #   make fuzz         -> libFuzzer runs of the parsers (clang; FUZZ_SECONDS=30 each, parallel)
@@ -23,6 +25,7 @@
 TARGET  := playshelf
 BUILD   := build
 DESKTOP := build-desktop
+WEB     := build-web
 CC      ?= gcc
 CXX     ?= g++
 TESTOUT := $(BUILD)/host-tests
@@ -43,7 +46,7 @@ ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindep
 CMAKE_ARGS ?=
 JSON_HPP := library/aurore/library/include/borealis/extern/nlohmann/json.hpp
 
-.PHONY: all clean dist nxlink desktop test fuzz check FORCE
+.PHONY: all clean dist nxlink desktop web web-serve test fuzz check FORCE
 
 RENDERER := $(if $(GL),-DUSE_DEKO3D=OFF,-DUSE_DEKO3D=ON)
 
@@ -64,6 +67,26 @@ dist: all
 	@cp LICENSE out/switch/$(TARGET)/LICENSE.txt
 	@cp packaging/sphaira/$(TARGET).json out/config/sphaira/github/
 	@cd out && $(ZIP_TREE) ../$(TARGET).zip
+
+# The web simulator (web/README.md): first its demo library server, made on
+# the host by tools/web_demo.cpp (the install suites' package builders, with
+# libzstd and zlib), then PlayShelf with Emscripten.
+WEB_DEMO_SOURCES := tools/web_demo.cpp source/kit/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
+                source/install/cnmt.cpp source/install/nca.cpp source/kit/util/sha256.cpp
+$(WEB)/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
+	@mkdir -p $(WEB)
+	$(CXX) -std=c++17 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
+	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
+$(WEB)/demo/index.json: $(WEB)/web_demo
+	@rm -rf $(WEB)/demo
+	@$(WEB)/web_demo $(WEB)/demo
+
+web: $(WEB)/demo/index.json
+	@emcmake cmake -B $(WEB) -S . -DCMAKE_BUILD_TYPE=Release -DPLAYSHELF_WEB_DEMO=$(abspath $(WEB))/demo $(CMAKE_ARGS)
+	@"$$(command -v cmake)" --build $(WEB) -j $(JOBS)
+
+web-serve: web
+	@python3 web/serve.py $(WEB)/simulator 8000
 
 desktop:
 	@cmake -B $(DESKTOP) -S . -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release $(CMAKE_ARGS)

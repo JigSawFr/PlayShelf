@@ -19,6 +19,7 @@ Then a pull request with a conventional title and a scope (`fix(install): …`),
 |---|---|
 | [Build from source](docs/contributing/build.md) | Every `make` target and what it needs; the borealis submodule (Aurore) |
 | [The desktop simulator](docs/contributing/simulator.md) | `make desktop` against a simulated console, every `PLAYSHELF_SIM_*` variable |
+| [The web simulator](web/README.md) | `make web`: the desktop simulator in a browser, with a demo library server |
 | [Tests and CI](docs/contributing/tests.md) | The host tests, the fuzz targets, the smoke test, what CI runs |
 | [Code layout](docs/contributing/layout.md) | The kit shared with PlayGuard and its rules, the Cadran look |
 | [Pull requests and releases](docs/contributing/releases.md) | Conventional titles, squash merges, release-please, development builds, reproducible zips |

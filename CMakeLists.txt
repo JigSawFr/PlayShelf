@@ -10,6 +10,23 @@ set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/library/aurore/library)
 # Declared before borealis' options so this default wins; ignored on desktop.
 option(USE_DEKO3D "Switch: draw with deko3d instead of OpenGL (mesa)" ON)
 
+# The web simulator (web/README.md): the desktop build, compiled by
+# Emscripten for a browser, with SDL2 and OpenGL ES 3 (WebGL 2) from
+# Emscripten's own ports instead of GLFW and the system's OpenGL. Its
+# toolchain file (emcmake) is only read by project(), below.
+set(PLAYSHELF_WEB OFF)
+if (CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten\\.cmake$")
+    set(PLAYSHELF_WEB ON)
+endif ()
+if (PLAYSHELF_WEB)
+    set(PLATFORM_DESKTOP ON CACHE BOOL "" FORCE)
+    set(USE_SDL2 ON CACHE BOOL "" FORCE)
+    set(USE_SYSTEM_SDL2 ON CACHE BOOL "" FORCE)
+    set(USE_GLES3 ON CACHE BOOL "" FORCE)
+    set(SDL2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/web/cmake)
+    add_compile_options(-pthread -sUSE_SDL=2 -sUSE_ZLIB=1 -fexceptions)
+endif ()
+
 # PLATFORM_SWITCH / PLATFORM_DESKTOP / USE_DEKO3D … options.
 include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
 
@@ -91,8 +108,18 @@ set(CMAKE_C_EXTENSIONS ON)
 
 # On desktop borealis looks for "<BRLS_RESOURCES_DIR>/resources/" at runtime:
 # point it at the merged copy assembled below.
-if (PLATFORM_DESKTOP)
+if (PLAYSHELF_WEB)
+    # Packaged into the page's file system at /app/resources (the web target's
+    # --preload-file, below).
+    set(BRLS_RESOURCES_DIR /app)
+elseif (PLATFORM_DESKTOP)
     set(BRLS_RESOURCES_DIR ${CMAKE_BINARY_DIR})
+endif ()
+
+# borealis links stdc++fs under clang, which Emscripten's libc++ has no
+# need of: an empty stand-in.
+if (PLAYSHELF_WEB)
+    add_library(stdc++fs INTERFACE)
 endif ()
 
 add_subdirectory(${BOREALIS_LIBRARY} ${CMAKE_BINARY_DIR}/borealis_library)
@@ -108,6 +135,36 @@ list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 # (action/library_icons.cpp): switch-libwebp, the system's libwebp.
 if (PLATFORM_SWITCH)
     list(APPEND APP_PLATFORM_LIB curl zstd webp z nx)
+elseif (PLAYSHELF_WEB)
+    # No libcurl in a browser (source/sim/web_http.cpp answers instead);
+    # zstd and libwebp, which Emscripten has no port of, built from their
+    # releases' decoders (the app only reads .ncz contents and WebP icons).
+    include(FetchContent)
+    FetchContent_Declare(zstd
+        URL https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz
+        URL_HASH SHA256=eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3)
+    FetchContent_GetProperties(zstd)
+    if (NOT zstd_POPULATED)
+        FetchContent_Populate(zstd)
+    endif ()
+    file(GLOB PLAYSHELF_ZSTD_SRC ${zstd_SOURCE_DIR}/lib/common/*.c ${zstd_SOURCE_DIR}/lib/decompress/*.c)
+    add_library(playshelf_zstd STATIC ${PLAYSHELF_ZSTD_SRC})
+    target_include_directories(playshelf_zstd PUBLIC ${zstd_SOURCE_DIR}/lib)
+    target_compile_definitions(playshelf_zstd PRIVATE ZSTD_DISABLE_ASM ZSTD_MULTITHREAD=0)
+    target_compile_options(playshelf_zstd PRIVATE -w)
+    FetchContent_Declare(libwebp
+        URL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.5.0.tar.gz
+        URL_HASH SHA256=7d6fab70cf844bf6769077bd5d7a74893f8ffd4dfb42861745750c63c2a5c92c)
+    FetchContent_GetProperties(libwebp)
+    if (NOT libwebp_POPULATED)
+        FetchContent_Populate(libwebp)
+    endif ()
+    file(GLOB PLAYSHELF_WEBP_SRC ${libwebp_SOURCE_DIR}/src/dec/*.c ${libwebp_SOURCE_DIR}/src/dsp/*.c
+         ${libwebp_SOURCE_DIR}/src/utils/*.c)
+    add_library(playshelf_webp STATIC ${PLAYSHELF_WEBP_SRC})
+    target_include_directories(playshelf_webp PUBLIC ${libwebp_SOURCE_DIR}/src PRIVATE ${libwebp_SOURCE_DIR})
+    target_compile_options(playshelf_webp PRIVATE -w)
+    list(APPEND APP_PLATFORM_LIB playshelf_zstd playshelf_webp)
 else ()
     find_package(CURL REQUIRED)
     find_package(ZLIB REQUIRED)   # util/zip_read.cpp (the Switch links z above)
@@ -128,6 +185,11 @@ if (PLATFORM_SWITCH)
     list(APPEND PLAYSHELF_SRC ${BOREALIS_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
 else ()
     list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?core/.*\\.c$")
+    if (PLAYSHELF_WEB)
+        list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/kit/util/http\\.cpp$")
+    else ()
+        list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/sim/web_.*")
+    endif ()
     # The console-free parts are shared with the simulator: one implementation.
     list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/source/kit/core/calendar.c
                               ${CMAKE_CURRENT_SOURCE_DIR}/source/kit/core/write_guard.c)
@@ -213,6 +275,30 @@ get_target_property(BOREALIS_INCLUDES borealis INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${BOREALIS_INCLUDES})
 # On the Switch: a linker map (build/borealis.map) to see what makes the .nro big.
 target_link_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_LINK_OPTION})
+# The web simulator: threads (a pool started with the page: a thread asked
+# for later waits for the browser, which a busy main thread never lets it
+# have), WebGL 2, the resources and the demo library server packaged
+# (playshelf.data), the environment for the page to set the PLAYSHELF_SIM_*
+# variables and write the data folder's files before main() (and run
+# dependencies to make main() wait for them or the CJK font), IDBFS to keep
+# the data folder in the browser, and ccall for what the page calls while
+# PlayShelf runs (source/sim/web_page.cpp, web/simulator.js).
+if (PLAYSHELF_WEB)
+    set(PLAYSHELF_WEB_DEMO ${CMAKE_BINARY_DIR}/demo CACHE PATH "Web simulator: the demo server's files (tools/web_demo.cpp)")
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -pthread -fexceptions -sUSE_SDL=2 -sUSE_ZLIB=1
+        -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sFULL_ES3
+        # Not -sGROWABLE_ARRAYBUFFERS, which Emscripten suggests for threads
+        # with memory growth: WebGL refuses views of a resizable buffer.
+        -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=128MB -sSTACK_SIZE=1MB -sDEFAULT_PTHREAD_STACK_SIZE=1MB
+        -sPTHREAD_POOL_SIZE=16
+        -sEXIT_RUNTIME=0
+        -sEXPORTED_RUNTIME_METHODS=ENV,FS,ccall,addRunDependency,removeRunDependency
+        -lidbfs.js
+        # SHELL: keeps each pair together (CMake drops a repeated option).
+        "SHELL:--preload-file ${CMAKE_BINARY_DIR}/resources@/app/resources"
+        "SHELL:--preload-file ${PLAYSHELF_WEB_DEMO}@/app/samples/demo")
+endif ()
 # On the Switch: borealis' userAppInit, which libnx calls before main, timed
 # for the diagnostic report's start-up section (source/core/startup_hook.c).
 if (PLATFORM_SWITCH)
@@ -245,6 +331,36 @@ set(ASSEMBLE_RESOURCES
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_ICON} ${MERGED_RESOURCES}/img/app_icon.jpg)
 
 set(PLAYSHELF_COPY_SHADERS)
+# The web simulator: Japanese, Korean and Chinese drawn with the characters
+# the catalogs use, cut out of Noto Sans CJK (tools/web_cjk_font.py), as the
+# console draws them with its system fonts. It is served next to the page, not
+# packaged: the page waits for it only in those languages, and fetches it
+# after PlayShelf started in the others (web/README.md). Without the font or
+# fontTools, the build goes on and those languages show boxes.
+if (PLAYSHELF_WEB)
+    set(PLAYSHELF_WEB_CJK_FONT "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc" CACHE FILEPATH
+        "Web simulator: Noto Sans CJK (a .ttc) to take the CJK font from")
+    find_package(Python3 COMPONENTS Interpreter)
+    if (Python3_FOUND)
+        execute_process(COMMAND ${Python3_EXECUTABLE} -c "import fontTools" RESULT_VARIABLE PLAYSHELF_NO_FONTTOOLS
+                        OUTPUT_QUIET ERROR_QUIET)
+    endif ()
+    if (Python3_FOUND AND NOT PLAYSHELF_NO_FONTTOOLS AND EXISTS "${PLAYSHELF_WEB_CJK_FONT}")
+        file(GLOB PLAYSHELF_CJK_CATALOGS ${PROJECT_RESOURCES}/i18n/ja/*.json ${PROJECT_RESOURCES}/i18n/ko/*.json
+             ${PROJECT_RESOURCES}/i18n/zh-Hans/*.json ${PROJECT_RESOURCES}/i18n/zh-Hant/*.json)
+        add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/cjk.otf
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/web_cjk_font.py
+                    ${PLAYSHELF_WEB_CJK_FONT} ${CMAKE_BINARY_DIR}/cjk.otf ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/web_cjk_font.py ${PLAYSHELF_CJK_CATALOGS}
+            COMMENT "Cutting the web simulator's CJK font out of ${PLAYSHELF_WEB_CJK_FONT}")
+        add_custom_target(${PROJECT_NAME}_cjk DEPENDS ${CMAKE_BINARY_DIR}/cjk.otf)
+        set(PLAYSHELF_SITE_CJK COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/cjk.otf ${CMAKE_BINARY_DIR}/simulator/cjk.otf)
+        message(STATUS "Web simulator CJK font: from ${PLAYSHELF_WEB_CJK_FONT}")
+    else ()
+        message(WARNING "Web simulator: no CJK font (needs Python 3 with fontTools and ${PLAYSHELF_WEB_CJK_FONT}): "
+                        "Japanese, Korean and Chinese will show boxes")
+    endif ()
+endif ()
 if (PLATFORM_SWITCH AND USE_DEKO3D)
     set(PLAYSHELF_COPY_SHADERS COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLAYSHELF_DKSH_DIR} ${MERGED_RESOURCES}/shaders)
 endif ()
@@ -263,5 +379,33 @@ if (PLATFORM_SWITCH)
 else ()
     add_custom_target(${PROJECT_NAME}_resources ALL ${ASSEMBLE_RESOURCES})
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_resources)
+endif ()
+
+# The web simulator's site, ready to serve (web/README.md): the page from
+# web/, PlayShelf and its packaged resources, in <build>/simulator/.
+if (PLAYSHELF_WEB)
+    set(PLAYSHELF_SITE ${CMAKE_BINARY_DIR}/simulator)
+    add_custom_target(${PROJECT_NAME}_simulator ALL DEPENDS ${PROJECT_NAME}
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${PLAYSHELF_SITE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PLAYSHELF_SITE}
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/web/index.html ${CMAKE_CURRENT_SOURCE_DIR}/web/theme.js ${CMAKE_CURRENT_SOURCE_DIR}/web/sim_logic.js
+                ${CMAKE_CURRENT_SOURCE_DIR}/web/simulator.js
+                ${CMAKE_CURRENT_SOURCE_DIR}/web/simulator.css ${CMAKE_CURRENT_SOURCE_DIR}/web/params.json
+                ${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js ${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest ${PROJECT_ICON}
+                ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.js ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.wasm
+                ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.data
+                ${CMAKE_CURRENT_SOURCE_DIR}/images/apple-touch-icon.png
+                ${CMAKE_CURRENT_SOURCE_DIR}/images/icon-192.png ${CMAKE_CURRENT_SOURCE_DIR}/images/icon-512.png
+                ${PLAYSHELF_SITE}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/branding/icon.svg ${PLAYSHELF_SITE}/icon.svg
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/branding/mark.svg ${PLAYSHELF_SITE}/mark.svg
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/sora.woff2 ${PLAYSHELF_SITE}/sora.woff2
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/web/i18n ${PLAYSHELF_SITE}/i18n
+        ${PLAYSHELF_SITE_CJK}
+        COMMENT "Assembling the web simulator's site in ${PLAYSHELF_SITE}")
+    if (TARGET ${PROJECT_NAME}_cjk)
+        add_dependencies(${PROJECT_NAME}_simulator ${PROJECT_NAME}_cjk)
+    endif ()
 endif ()
 

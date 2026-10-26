@@ -87,6 +87,10 @@ jobs:
         run: make test
       - name: Resources
         run: python3 tools/check_resources.py .
+      - name: The web simulator's settings and page logic
+        run: |
+          python3 tools/check_web_params.py .
+          node --test tests/web_page/*.test.js
       - name: Sources
         run: python3 tools/check_sources.py .
       - name: compat.json

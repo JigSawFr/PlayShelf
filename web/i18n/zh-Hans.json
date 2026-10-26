@@ -1,0 +1,207 @@
+{
+  "ui": {
+    "title": "模拟器",
+    "nav_features": "功能",
+    "nav_install": "安装",
+    "nav_docs": "文档",
+    "loading": "正在加载…",
+    "downloading": "正在下载 PlayShelf…",
+    "starting": "正在启动…",
+    "start": "开始",
+    "save_data": "已开启省流量模式：PlayShelf 需要下载几 MB。",
+    "tools": "工具",
+    "settings": "设置",
+    "log": "日志",
+    "language": "语言",
+    "theme": "主题",
+    "theme_auto": "自动",
+    "theme_light": "浅色",
+    "theme_dark": "深色",
+    "theme_changed": "主题已更改：重新启动后主机也会使用它。",
+    "restart": "重新启动",
+    "preset": "预设",
+    "preset_none": "选择预设…",
+    "other": "其他参数",
+    "other_help": "其他任何 PLAYSHELF_SIM_* 变量，用去掉前缀的小写名称表示：即使本页面还不认识（来自更新的版本），也会传给 PlayShelf。",
+    "add": "添加",
+    "remove": "移除",
+    "apply": "应用",
+    "copy": "复制链接",
+    "copied": "已复制链接",
+    "reset": "重置",
+    "pad": "手柄",
+    "version": "版本",
+    "version_dev": "开发中",
+    "fullscreen": "全屏",
+    "fullscreen_exit": "退出全屏",
+    "screenshot": "截图",
+    "note": "“应用”会用这些设置从全新状态重新启动 PlayShelf；在其中做的更改不会保留，除非开启“保留状态”。主机使用页面的语言和主题。",
+    "keys": "<kbd>↑↓←→</kbd> 移动 · <kbd>Enter</kbd> A · <kbd>Esc</kbd> B · <kbd>X</kbd> <kbd>Y</kbd> · <kbd>L</kbd> <kbd>R</kbd> · <kbd>⇧L</kbd> ZL · <kbd>⇧R</kbd> ZR · <kbd>+</kbd> <kbd>−</kbd> · 点击即触摸",
+    "error": "PlayShelf 已停止：",
+    "reload": "重新加载",
+    "no_isolation": "此浏览器不允许页面使用线程（没有跨源隔离）。请在非无痕窗口中使用较新的 Chrome、Edge 或 Firefox。",
+    "no_webgl": "此浏览器没有 PlayShelf 绘图所需的 WebGL 2。",
+    "unknown_build": "本地版本",
+    "record": "录制",
+    "stop_recording": "停止",
+    "forget": "清除保留的状态",
+    "live_applied": "已更改，无需重启",
+    "stop": "停止",
+    "steps_copy": "步骤链接",
+    "steps_help": "一个链接：像这里一样启动 PlayShelf，并重放之后的操作",
+    "steps_copied": "已复制带步骤的链接",
+    "replaying": "正在重放步骤：第 {n} 步，共 {total} 步",
+    "tour": "导览",
+    "report": "报告问题",
+    "tour_library": "游戏库：这台主机上的游戏、版本，以及服务器上更新的内容。",
+    "tour_catalogue": "目录：库服务器的游戏，这里是演示书架上虚构的游戏。",
+    "tour_game": "游戏页面：本体、更新和追加内容，每一项都可安装。",
+    "tour_download": "全部安装：其数据包进入下载，逐个安装。",
+    "tour_downloads": "下载：队列、每个游戏的时间线，以及数据包的获取方式。",
+    "tour_preferences": "偏好设置：语言、主题和游戏信息数据库。",
+    "tour_end": "轮到你了：方向键移动，Enter 为 A，Esc 为 B。面板可设置任何状态。"
+  },
+  "groups": {
+    "app": "PlayShelf",
+    "library": "库服务器",
+    "console": "主机",
+    "updates": "更新与 GitHub",
+    "capture": "截图"
+  },
+  "params": {
+    "tab": {
+      "label": "打开时显示",
+      "options": {
+        "": "游戏库",
+        "catalogue": "目录",
+        "preferences": "偏好设置",
+        "about": "关于"
+      }
+    },
+    "keep": {
+      "label": "在访问之间保留状态",
+      "help": "PlayShelf 的数据（设置、服务器、下载）以及模拟主机已安装的内容会保留在此浏览器中；此面板的主机设置届时只在首次启动时生效。"
+    },
+    "fw": {
+      "label": "系统版本",
+      "help": "高于已验证的最新版本时，显示系统版本画面。"
+    },
+    "no_cfw": {
+      "label": "没有 Atmosphère"
+    },
+    "emummc": {
+      "label": "emuMMC"
+    },
+    "blank": {
+      "label": "序列号已隐藏"
+    },
+    "region": {
+      "label": "地区",
+      "options": {
+        "": "默认",
+        "0": "日本",
+        "1": "美洲",
+        "2": "欧洲",
+        "3": "澳大利亚",
+        "4": "香港、台湾、韩国",
+        "5": "中国"
+      }
+    },
+    "applet": {
+      "label": "小程序模式（从相册启动）"
+    },
+    "background": {
+      "label": "PlayShelf 在后台"
+    },
+    "hbloader": {
+      "label": "能把更新交给商店的加载器"
+    },
+    "docked": {
+      "label": "插在底座上（电视）"
+    },
+    "battery": {
+      "label": "电池供电（未接充电器）"
+    },
+    "boot_choice": {
+      "label": "启动时对“上一个版本？”的回答",
+      "options": {
+        "": "B",
+        "a": "A"
+      }
+    },
+    "now": {
+      "label": "固定主机时间",
+      "help": "按浏览器的时区。"
+    },
+    "latest": {
+      "label": "最新版本 : 支持的最新系统版本"
+    },
+    "store": {
+      "label": "Homebrew App Store 中的版本（SD 卡上有其记录）"
+    },
+    "dev_builds": {
+      "label": "开发版本（GitHub API）",
+      "options": {
+        "": "无法访问",
+        "offline": "离线"
+      }
+    },
+    "dev_builds_delay": {
+      "label": "GitHub 每次响应延迟（毫秒）"
+    },
+    "github_login": {
+      "label": "登录 GitHub",
+      "options": {
+        "": "无法访问",
+        "ok": "已批准",
+        "denied": "已拒绝",
+        "offline": "离线"
+      }
+    },
+    "paste": {
+      "label": "“在线发送报告”的响应"
+    },
+    "still_focus": {
+      "label": "焦点高亮静止"
+    },
+    "version": {
+      "label": "标题栏显示的版本"
+    },
+    "hold_loading": {
+      "label": "停在加载画面"
+    },
+    "cadran_noglow": {
+      "label": "无背景光晕"
+    },
+    "no_game": {
+      "label": "PlayShelf 后面没有打开任何内容"
+    },
+    "no_demo": {
+      "label": "没有库服务器（首次启动）"
+    },
+    "signed": {
+      "label": "将演示数据包视为已由 Nintendo 签名",
+      "help": "有演示服务器时默认开启。关闭：每次安装都会先询问，就像主机上未经 Nintendo 签名的数据包一样。"
+    },
+    "speed": {
+      "label": "演示服务器速度（KB/s）",
+      "help": "默认 96；0 表示立即。"
+    },
+    "free_mb": {
+      "label": "可用于安装的空间（MB）",
+      "help": "0：SD 卡已满，安装会在此停止。"
+    }
+  },
+  "presets": {
+    "default": "默认",
+    "slow_network": "慢速网络",
+    "fast_network": "快速网络",
+    "sd_full": "SD 卡已满",
+    "no_server": "尚无库服务器",
+    "offline": "没有互联网的主机",
+    "applet": "小程序模式（从相册启动）",
+    "no_cfw": "没有 Atmosphère",
+    "fw_old": "较旧的系统版本",
+    "updates": "有可安装的更新"
+  }
+}

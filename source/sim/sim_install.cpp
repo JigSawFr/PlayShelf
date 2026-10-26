@@ -32,7 +32,6 @@ const Result FAIL = NXM_RESULT(80);   // any failure of the simulated console
 
 std::map<std::string, std::vector<uint8_t>> s_meta_pending;   // set or removed (empty), not yet committed
 std::map<std::string, bool>                 s_meta_removed;
-bool                                        s_open = false;
 
 std::string root() { return paths::data_dir() + "/sim_console"; }
 std::string hex(const u8 id[16])
@@ -90,13 +89,11 @@ extern "C" {
 Result core_install_open(CoreStorage)
 {
     mkdirs();
-    s_open = true;
     return 0;
 }
 
 void core_install_close(void)
 {
-    s_open = false;
     s_meta_pending.clear();
     s_meta_removed.clear();
 }

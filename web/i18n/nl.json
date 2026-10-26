@@ -1,0 +1,207 @@
+{
+  "ui": {
+    "title": "Simulator",
+    "nav_features": "Functies",
+    "nav_install": "Installatie",
+    "nav_docs": "Documentatie",
+    "loading": "Laden…",
+    "downloading": "PlayShelf downloaden…",
+    "starting": "Starten…",
+    "start": "Starten",
+    "save_data": "Databesparing staat aan: PlayShelf downloadt een paar megabyte.",
+    "tools": "Hulpmiddelen",
+    "settings": "Instellingen",
+    "log": "Logboek",
+    "language": "Taal",
+    "theme": "Thema",
+    "theme_auto": "Automatisch",
+    "theme_light": "Licht",
+    "theme_dark": "Donker",
+    "theme_changed": "Het thema is gewijzigd: herstart om het ook aan de console te geven.",
+    "restart": "Herstarten",
+    "preset": "Voorinstelling",
+    "preset_none": "Kies een voorinstelling…",
+    "other": "Andere parameters",
+    "other_help": "Elke andere PLAYSHELF_SIM_*-variabele, met haar naam in kleine letters zonder voorvoegsel: ook een die deze pagina nog niet kent (uit een nieuwere build) bereikt PlayShelf.",
+    "add": "Toevoegen",
+    "remove": "Verwijderen",
+    "apply": "Toepassen",
+    "copy": "Link kopiëren",
+    "copied": "Link gekopieerd",
+    "reset": "Herstellen",
+    "pad": "Controller",
+    "version": "Versie",
+    "version_dev": "In ontwikkeling",
+    "fullscreen": "Volledig scherm",
+    "fullscreen_exit": "Volledig scherm sluiten",
+    "screenshot": "Schermafbeelding",
+    "note": "Toepassen start PlayShelf opnieuw vanaf een schone staat met deze instellingen; wat je erin wijzigt, wordt niet bewaard, tenzij ‘Staat bewaren’ aan staat. De console neemt de taal en het thema van de pagina over.",
+    "keys": "<kbd>↑↓←→</kbd> bewegen · <kbd>Enter</kbd> A · <kbd>Esc</kbd> B · <kbd>X</kbd> <kbd>Y</kbd> · <kbd>L</kbd> <kbd>R</kbd> · <kbd>⇧L</kbd> ZL · <kbd>⇧R</kbd> ZR · <kbd>+</kbd> <kbd>−</kbd> · een klik is een aanraking",
+    "error": "PlayShelf is gestopt:",
+    "reload": "Opnieuw laden",
+    "no_isolation": "Deze browser laat de pagina geen threads gebruiken (geen cross-origin-isolatie). Probeer een recente Chrome, Edge of Firefox, buiten een privévenster.",
+    "no_webgl": "Deze browser heeft geen WebGL 2, waarmee PlayShelf tekent.",
+    "unknown_build": "lokale build",
+    "record": "Opnemen",
+    "stop_recording": "Stoppen",
+    "forget": "Bewaarde staat vergeten",
+    "live_applied": "Gewijzigd zonder herstart",
+    "stop": "Stoppen",
+    "steps_copy": "Stappenlink",
+    "steps_help": "Een link die PlayShelf start zoals hier en herhaalt wat je sindsdien hebt gedaan",
+    "steps_copied": "Link met de stappen gekopieerd",
+    "replaying": "Stappen worden herhaald: {n} van {total}",
+    "tour": "Rondleiding",
+    "report": "Een probleem melden",
+    "tour_library": "Bibliotheek: de games op deze console, hun versies en wat een server nieuwer heeft.",
+    "tour_catalogue": "Catalogus: de games van een bibliotheekserver, hier de verzonnen games van de demoplank.",
+    "tour_game": "De pagina van een game: de basisgame, de updates en de add-ons, elk om te installeren.",
+    "tour_download": "Alles installeren: de pakketten gaan naar de downloads en worden na elkaar geïnstalleerd.",
+    "tour_downloads": "Downloads: de wachtrij, de tijdlijn van elke game en hoe de pakketten worden opgehaald.",
+    "tour_preferences": "Voorkeuren: de taal, het thema en de titeldatabase.",
+    "tour_end": "Jouw beurt: de pijlen bewegen, Enter is A, Esc is B. Het paneel stelt elke toestand in."
+  },
+  "groups": {
+    "app": "PlayShelf",
+    "library": "Bibliotheekserver",
+    "console": "Console",
+    "updates": "Updates en GitHub",
+    "capture": "Schermafbeeldingen"
+  },
+  "params": {
+    "tab": {
+      "label": "Opent op",
+      "options": {
+        "": "Bibliotheek",
+        "catalogue": "Catalogus",
+        "preferences": "Voorkeuren",
+        "about": "Info"
+      }
+    },
+    "keep": {
+      "label": "Staat bewaren tussen bezoeken",
+      "help": "De gegevens van PlayShelf (instellingen, servers, downloads) en wat de gesimuleerde console heeft geïnstalleerd blijven in deze browser; de console-instellingen van dit paneel tellen dan alleen bij een eerste start."
+    },
+    "fw": {
+      "label": "Firmware",
+      "help": "Boven de nieuwste gecontroleerde: het firmwarescherm."
+    },
+    "no_cfw": {
+      "label": "Zonder Atmosphère"
+    },
+    "emummc": {
+      "label": "emuMMC"
+    },
+    "blank": {
+      "label": "Serienummer verborgen"
+    },
+    "region": {
+      "label": "Regio",
+      "options": {
+        "": "Standaard",
+        "0": "Japan",
+        "1": "Amerika",
+        "2": "Europa",
+        "3": "Australië",
+        "4": "Hongkong, Taiwan, Korea",
+        "5": "China"
+      }
+    },
+    "applet": {
+      "label": "Appletmodus (vanuit het album)"
+    },
+    "background": {
+      "label": "PlayShelf op de achtergrond"
+    },
+    "hbloader": {
+      "label": "Een loader die een update aan een store kan doorgeven"
+    },
+    "docked": {
+      "label": "In het dock (op de tv)"
+    },
+    "battery": {
+      "label": "Op de accu (geen lader)"
+    },
+    "boot_choice": {
+      "label": "Antwoord op 'vorige build?' bij het opstarten",
+      "options": {
+        "": "B",
+        "a": "A"
+      }
+    },
+    "now": {
+      "label": "Tijd van de console, bevroren",
+      "help": "In de tijdzone van de browser."
+    },
+    "latest": {
+      "label": "Nieuwste versie : nieuwste ondersteunde firmware"
+    },
+    "store": {
+      "label": "Versie in de Homebrew App Store (met zijn gegevens op de SD-kaart)"
+    },
+    "dev_builds": {
+      "label": "Ontwikkelbuilds (GitHub-API)",
+      "options": {
+        "": "Onbereikbaar",
+        "offline": "Offline"
+      }
+    },
+    "dev_builds_delay": {
+      "label": "Elk antwoord van GitHub vertraagd met (ms)"
+    },
+    "github_login": {
+      "label": "Aanmelden bij GitHub",
+      "options": {
+        "": "Onbereikbaar",
+        "ok": "Goedgekeurd",
+        "denied": "Geweigerd",
+        "offline": "Offline"
+      }
+    },
+    "paste": {
+      "label": "Antwoord op 'Een rapport online versturen'"
+    },
+    "still_focus": {
+      "label": "Focusmarkering zonder beweging"
+    },
+    "version": {
+      "label": "Versie in de koptekst"
+    },
+    "hold_loading": {
+      "label": "Op het laadscherm blijven"
+    },
+    "cadran_noglow": {
+      "label": "Zonder achtergrondgloed"
+    },
+    "no_game": {
+      "label": "Niets open achter PlayShelf"
+    },
+    "no_demo": {
+      "label": "Geen bibliotheekserver (een eerste start)"
+    },
+    "signed": {
+      "label": "Demopakketten gelden als ondertekend door Nintendo",
+      "help": "Standaard aan met de demoserver. Uit: elke installatie vraagt eerst, zoals een niet door Nintendo ondertekend pakket op een console."
+    },
+    "speed": {
+      "label": "Snelheid van de demoserver (KB/s)",
+      "help": "Standaard 96; 0: meteen."
+    },
+    "free_mb": {
+      "label": "Vrije ruimte voor installaties (MB)",
+      "help": "0: de SD-kaart is vol, en een installatie stopt daarop."
+    }
+  },
+  "presets": {
+    "default": "Standaard",
+    "slow_network": "Een traag netwerk",
+    "fast_network": "Een snel netwerk",
+    "sd_full": "SD-kaart vol",
+    "no_server": "Nog geen bibliotheekserver",
+    "offline": "Console zonder internet",
+    "applet": "Appletmodus (vanuit het album)",
+    "no_cfw": "Zonder Atmosphère",
+    "fw_old": "Een oudere firmware",
+    "updates": "Updates om te installeren"
+  }
+}
