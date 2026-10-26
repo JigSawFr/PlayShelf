@@ -290,8 +290,8 @@ void CatalogueTab::add_page()
             if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
             else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
         };
-        // The server's icon, else the title database's.
-        if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown);
+        // The server's icon, else the title database's, else Nlib API's.
+        if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown, t.id);
         else library_icons::local(t.id, shown);
     }
     ui::set_visible(more, data && this->built < this->selection.size());

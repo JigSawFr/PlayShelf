@@ -2,12 +2,14 @@
 // an icon's bytes), the ones whose index does not hold together refused, a
 // pack's text made safe; its manifest read with its aliases, relative
 // addresses resolved, the ones not HTTPS refused; a title list (Ghostland's
-// kind) read as it streams and made a titles pack.
+// kind) read as it streams and made a titles pack; Nlib API's icon
+// addresses.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "temp_dir.hpp"
 #include "titledb/list.hpp"
 #include "titledb/manifest.hpp"
+#include "titledb/nlib.hpp"
 #include "titledb/pack.hpp"
 #include "titledb/packs.hpp"
 
@@ -168,6 +170,18 @@ void test_list()
     CHECK(!parse_title_list(R"({"readme": {"Game Name": "x"}})", &e, &why));
     CHECK(!parse_title_list("{\"0100000000010000\": {", &e, &why));
 }
+
+void test_nlib()
+{
+    CHECK(nlib_icon_url(0x01007EF00011E000) == "https://api.nlib.cc/nx/01007EF00011E000/icon/256");
+    CHECK(nlib_icon_url(0x0100000000010000, 30) == "https://api.nlib.cc/nx/0100000000010000/icon/30");
+    // Neither an update nor an add-on: Nlib API knows base games only.
+    CHECK(nlib_icon_url(0x01007EF00011E800).empty());
+    CHECK(nlib_icon_url(0x01007EF00011F001).empty());
+    CHECK(nlib_icon_url(0).empty());
+    // A size out of the API's range.
+    CHECK(nlib_icon_url(0x0100000000010000, 29).empty() && nlib_icon_url(0x0100000000010000, 4097).empty());
+}
 }   // namespace
 
 int main()
@@ -177,5 +191,6 @@ int main()
     test_safe_text();
     test_manifest();
     test_list();
-    return CHECK_DONE("title database: packs read, broken ones refused, safe text, manifests and their aliases, title lists passed");
+    test_nlib();
+    return CHECK_DONE("title database: packs read, broken ones refused, safe text, manifests and their aliases, title lists, Nlib API's addresses passed");
 }

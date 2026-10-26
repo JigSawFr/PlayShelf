@@ -32,7 +32,7 @@ The package says why, with what to do: see [When a download stops](downloads.md#
 
 ## Names or icons are missing
 
-A game known only by its file name takes its name and icon from the title database: *Preferences › Title database › Download*, then **Update now** from time to time. A source that fails says so under *Sources*, with the reason.
+A game known only by its file name takes its name and icon from the title database: *Preferences › Title database › Download*, then **Update now** from time to time. A source that fails says so under *Sources*, with the reason. An icon still missing comes from Nlib API when the console is online and *Missing icons from Nlib API* is on; a game it does not know is asked again only once PlayShelf restarts.
 
 ## Sending a report
 

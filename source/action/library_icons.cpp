@@ -4,12 +4,16 @@
 #include <borealis.hpp>
 #include <deque>
 #include <mutex>
+#include <set>
 
 #include <webp/decode.h>
 
 #include "action/titledb_flow.hpp"
+#include "library/catalog.hpp"
 #include "library/servers.hpp"
+#include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
 #include "util/http.hpp"
 #include "util/paths.hpp"
 #include "util/sha256.hpp"
@@ -26,7 +30,8 @@ struct Job
     std::string                                 url;
     std::string                                 password;
     std::function<void(int)>                    done;
-    uint64_t                                    title_id = 0;   // an icon of the title database's
+    uint64_t                                    title_id = 0;   // the game's: the title database's icon, then Nlib API's
+    bool                                        online = false; // config online_icons when it was asked
 };
 
 // An image's pixels, decoded off the UI thread when NanoVG cannot (WebP):
@@ -64,9 +69,10 @@ int texture_of(const Image& img)
     return nvgCreateImageMem(vg, 0, (unsigned char*)img.bytes.data(), (int)img.bytes.size());
 }
 
-std::mutex       s_lock;
-std::deque<Job>  s_jobs;
-bool             s_running = false;
+std::mutex         s_lock;
+std::deque<Job>    s_jobs;
+bool               s_running = false;
+std::set<uint64_t> s_unknown;   // the games Nlib API had no icon for (s_lock)
 
 std::string dir()
 {
@@ -80,24 +86,53 @@ std::string file_of(const std::string& url)
     return dir() + "/" + h.hex().substr(0, 32) + ".img";
 }
 
-// On the worker: the icon's bytes, from the cache or the server.
-std::string bytes_of(const Job& job)
+// On the worker: the bytes at `url`, from the cache, else fetched (1 MB
+// at most) and kept there; "" when none came.
+std::string fetched(const std::string& url, const http::Headers& headers, const std::string& pin, int timeout)
 {
-    const std::string file = file_of(job.url);
+    const std::string file = file_of(url);
     std::string       data;
     if (paths::read_file(file, data) && !data.empty()) return data;
-    const library::Server& s = job.loaded->server;
-    const bool             own = library::same_origin(job.url, job.loaded->fetch.endpoint);
-    http::Response         r;
-    std::string            why;
-    const http::Headers    headers = own ? library::auth_headers(s.username, job.password) : http::Headers();
-    if (!http::request(job.url, headers, own && job.loaded->fetch.on_lan ? s.pin : "", &r, &why, MAX_ICON, 15) ||
-        r.status != 200 || r.body.empty()) {
-        brls::Logger::debug("library: no icon from {} ({} {})", job.url, r.status, why);
+    http::Response r;
+    std::string    why;
+    if (!http::request(url, headers, pin, &r, &why, MAX_ICON, timeout) || r.status != 200 || r.body.empty()) {
+        brls::Logger::debug("library: no icon from {} ({} {})", url, r.status, why);
         return "";
     }
     if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(dir())) paths::atomic_write(file, r.body);
     return r.body;
+}
+
+// On the worker: the server's icon (the credentials and the pin only for
+// its own address).
+std::string bytes_of(const Job& job)
+{
+    const library::Server& s = job.loaded->server;
+    const bool             own = library::same_origin(job.url, job.loaded->fetch.endpoint);
+    const http::Headers    headers = own ? library::auth_headers(s.username, job.password) : http::Headers();
+    return fetched(job.url, headers, own && job.loaded->fetch.on_lan ? s.pin : "", 15);
+}
+
+// On the worker: the game's icon from the title database, else from Nlib
+// API (a game it did not know left alone).
+Image local_image(const Job& job)
+{
+    std::vector<uint8_t> bytes;
+    std::string          ext;
+    if (titledb_flow::icon(job.title_id, &bytes, &ext)) return image_of(std::string(bytes.begin(), bytes.end()), ext);
+    const uint64_t    base = library::base_of(job.title_id);
+    const std::string url = job.online ? titledb::nlib_icon_url(base) : "";
+    if (url.empty()) return {};
+    {
+        std::lock_guard<std::mutex> hold(s_lock);
+        if (s_unknown.count(base)) return {};
+    }
+    std::string data = fetched(url, {}, "", 10);
+    if (data.empty()) {
+        std::lock_guard<std::mutex> hold(s_lock);
+        s_unknown.insert(base);
+    }
+    return image_of(std::move(data), "");
 }
 
 void drain()
@@ -113,15 +148,8 @@ void drain()
             job = std::move(s_jobs.front());
             s_jobs.pop_front();
         }
-        std::shared_ptr<Image> img;
-        if (job.title_id) {
-            std::vector<uint8_t> bytes;
-            std::string          ext;
-            img = std::make_shared<Image>(titledb_flow::icon(job.title_id, &bytes, &ext)
-                                              ? image_of(std::string(bytes.begin(), bytes.end()), ext)
-                                              : Image{});
-        } else
-            img = std::make_shared<Image>(image_of(bytes_of(job), ""));
+        auto img = std::make_shared<Image>(job.loaded ? image_of(bytes_of(job), "") : Image{});
+        if (img->bytes.empty() && job.title_id) *img = local_image(job);
         auto done = job.done;
         brls::sync([img, done]() { done(texture_of(*img)); });
     }
@@ -129,10 +157,10 @@ void drain()
 }   // namespace
 
 void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& password, const std::string& url,
-         std::function<void(int)> done)
+         std::function<void(int)> done, uint64_t title_id)
 {
     if (!l || url.empty()) return;
-    Job  job{ std::move(l), url, password, std::move(done) };
+    Job  job{ std::move(l), url, password, std::move(done), title_id, config::get().online_icons };
     bool start = false;
     {
         std::lock_guard<std::mutex> hold(s_lock);
@@ -147,6 +175,7 @@ void local(uint64_t title_id, std::function<void(int)> done)
     if (!title_id) return;
     Job job;
     job.title_id = title_id;
+    job.online = config::get().online_icons;
     job.done = std::move(done);
     bool start = false;
     {

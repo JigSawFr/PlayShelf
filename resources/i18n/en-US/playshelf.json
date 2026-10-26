@@ -585,6 +585,7 @@
         "remove_body": "Remove {} from the sources? Its names and icons are deleted from the SD card.",
         "source_line_list": "{} · {} titles · names only, no SHA-256 published",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "Missing icons from Nlib API"
     }
 }

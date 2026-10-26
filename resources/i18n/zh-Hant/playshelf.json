@@ -585,6 +585,7 @@
         "remove_body": "要從來源中移除 {} 嗎？其名稱和圖示將從 SD 卡中刪除。",
         "source_line_list": "{} · {} 個遊戲 · 僅名稱，未公布 SHA-256",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "從 Nlib API 取得缺少的圖示"
     }
 }

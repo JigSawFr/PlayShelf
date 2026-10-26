@@ -135,13 +135,18 @@ PreferencesTab::PreferencesTab()
         this->sources_sheet();
         return true;
     });
+    // The icons none of them has, from Nlib API (action/library_icons).
+    online_icons->init("playshelf/titledb/online_icons"_i18n, config::get().online_icons, [](bool on) {
+        config::get().online_icons = on;
+        ui::save_config();
+    });
     this->titledb_listener = titledb_flow::listen(ui::guarded(this->alive, [this]() { this->show_titledb(); }));
 
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_effects", "sparkle" }, { "pf_intro", "bolt" }, { "pf_support_reminder", "heart" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
-                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" } });
+                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_online_icons", "globe" } });
 }
 
 PreferencesTab::~PreferencesTab()
@@ -278,6 +283,7 @@ void PreferencesTab::refresh()
     intro->setOn(cfg.intro, false);
     support_reminder->setOn(cfg.support_reminder, false);
     update_daily->setOn(cfg.update_daily, false);
+    online_icons->setOn(cfg.online_icons, false);
     update_via->setDetailText(update_flow::method_text());
     this->show_titledb();
     this->list.sync();

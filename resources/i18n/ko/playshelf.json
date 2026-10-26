@@ -585,6 +585,7 @@
         "remove_body": "{}을(를) 소스에서 삭제할까요? 이름과 아이콘이 SD 카드에서 삭제됩니다.",
         "source_line_list": "{} · {}개 타이틀 · 이름만, 공개된 SHA-256 없음",
         "ghostland": "Ghostland",
-        "nxmeta": "NXMeta"
+        "nxmeta": "NXMeta",
+        "online_icons": "없는 아이콘을 Nlib API에서 가져오기"
     }
 }
