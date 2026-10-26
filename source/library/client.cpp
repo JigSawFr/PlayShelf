@@ -115,8 +115,9 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
     const auto        headers = auth_headers(server.username, password);
 
     // A first request, to the API or to the index: a LAN server's own
-    // certificate shows up there.
-    const std::string first_url = server.format == Format::Index ? endpoint : endpoint + "/api/remote";
+    // certificate shows up there. The newer /sections path is tried first,
+    // so it is what carries the TLS test.
+    const std::string first_url = server.format == Format::Index ? endpoint : endpoint + "/api/remote/sections";
     const Answer      first = t.get(first_url, headers, pin);
     if (first.tls_failed) {
         if (!on_lan) return failed("the server's certificate is not one a recognized authority vouches for");
@@ -141,20 +142,35 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
     f.endpoint = endpoint;
     f.on_lan = on_lan;
     if (server.format != Format::Index) {
-        Answer a = first;
-        if (a.status == 404) a = t.get(endpoint + "/api/shop", headers, pin);
-        if (a.status == 200) {
-            std::string err;
-            if (auto c = parse_api(a.body, endpoint, &err)) {
-                f.status = FetchStatus::Ok;
-                f.format = Format::Api;
-                f.catalog = std::move(*c);
-                return f;
+        // The API paths, newest first (AeroFoil/Ownfoil's /sections, as
+        // Tinfoil and CyberFoil ask for them), then the older ones. The
+        // first answer is the TLS carrier above, so it is not asked twice.
+        static const char* const api_paths[] = {"/api/remote/sections", "/api/shop/sections", "/api/remote",
+                                                 "/api/shop"};
+        for (size_t i = 0; i < sizeof api_paths / sizeof *api_paths; i++) {
+            const Answer a = i == 0 ? first : t.get(endpoint + api_paths[i], headers, pin);
+            if (a.status == 200) {
+                std::string err;
+                if (auto c = parse_api(a.body, endpoint, &err)) {
+                    f.status = FetchStatus::Ok;
+                    f.format = Format::Api;
+                    f.catalog = std::move(*c);
+                    return f;
+                }
+                // A 200 that is not a catalogue: for an explicit Api, that
+                // error is the last word; in Auto, the address may still be
+                // a JSON index, read below.
+                if (server.format == Format::Api) return failed(err);
+                break;
             }
-            if (server.format == Format::Api) return failed(err);
-        } else if (server.format == Format::Api || a.status != 404) {
-            return failed(refusal(a));
+            // 404: this path is not served, so try the next one. Any other
+            // answer (a refused credential, a server error) is the server's
+            // word: do not guess further paths or fall back to the index.
+            if (a.status != 404) return failed(refusal(a));
         }
+        // Every API path answered 404. An explicit Api has no catalogue;
+        // Auto reads the address as a JSON index below.
+        if (server.format == Format::Api) return failed("the server has no catalogue at /api/remote or /api/shop (HTTP 404)");
     }
     // A JSON index at the address itself.
     std::string why;

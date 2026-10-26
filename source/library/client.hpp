@@ -1,7 +1,8 @@
 // client — a library server's catalogue fetched for a profile (Server): its
 // address chosen (the LAN one when it answers, by the profile's
 // connection), the credentials sent (HTTP Basic, over TLS only), the API
-// asked (/api/remote, then /api/shop) or the address read as a JSON index
+// asked (/api/remote/sections and /api/shop/sections, then the older
+// /api/remote and /api/shop) or the address read as a JSON index
 // (its "directories" followed, a few levels down), the answer parsed
 // (catalog.hpp).
 //
