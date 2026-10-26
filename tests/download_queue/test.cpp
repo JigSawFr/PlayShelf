@@ -171,11 +171,28 @@ void test_rate()
 }
 }   // namespace
 
+void test_ahead()
+{
+    std::vector<Job> q = { job("01", State::Done), job("02", State::Running), job("03", State::Waiting),
+                           job("04", State::Paused), job("05", State::Waiting), job("06", State::Waiting) };
+    CHECK(ahead_jobs(q, "02", 2) == (std::vector<size_t>{ 2, 4 }));
+    CHECK(ahead_jobs(q, "02", 1) == std::vector<size_t>{ 2 });
+    CHECK(ahead_jobs(q, "02", 0).empty());
+    CHECK(ahead_jobs(q, "", 5) == (std::vector<size_t>{ 2, 4, 5 }));
+    // The room: the rest, the package again, the reserve and 1 GiB.
+    const uint64_t G = 1ull << 30;
+    CHECK(room_ahead(10 * G, 2 * G, 3 * G, 1 * G));
+    CHECK(!room_ahead(6 * G, 2 * G, 3 * G, 1 * G));
+    CHECK(room_ahead(7 * G, 2 * G, 3 * G, 1 * G));
+    CHECK(!room_ahead(UINT64_MAX, UINT64_MAX, UINT64_MAX, 0));
+}
+
 int main()
 {
+    test_ahead();
     test_file();
     test_queue();
     test_groups();
     test_rate();
-    return CHECK_DONE("download queue: its file and journals, a restart, the next job, orphan placeholders, jobs by game and their timeline, the speed passed");
+    return CHECK_DONE("download queue: its file and journals, a restart, the next job, orphan placeholders, jobs by game and their timeline, the speed, fetching ahead passed");
 }

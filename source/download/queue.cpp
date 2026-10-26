@@ -218,6 +218,21 @@ size_t pending(const std::vector<Job>& jobs)
     });
 }
 
+std::vector<size_t> ahead_jobs(const std::vector<Job>& jobs, const std::string& running_id, int count)
+{
+    std::vector<size_t> out;
+    for (size_t i = 0; i < jobs.size() && (int)out.size() < count; i++)
+        if (jobs[i].state == State::Waiting && jobs[i].id != running_id) out.push_back(i);
+    return out;
+}
+
+bool room_ahead(uint64_t free, uint64_t left, uint64_t size, uint64_t reserve)
+{
+    const uint64_t spare = 1ull << 30;
+    const uint64_t need = left + size + reserve + spare;
+    return need >= left && free >= need;   // no wrap around
+}
+
 bool queued(const std::vector<Job>& jobs, const std::string& url)
 {
     return std::any_of(jobs.begin(), jobs.end(), [&](const Job& j) {

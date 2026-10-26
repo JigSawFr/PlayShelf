@@ -100,6 +100,28 @@ DownloadsTab::DownloadsTab()
     });
     card->addView(connections);
     cadran::List::row(connections, "server");
+    prefetch = new brls::DetailCell();
+    prefetch->setText("playshelf/downloads/prefetch"_i18n);
+    auto prefetch_text = [](int n) {
+        return n <= 0 ? "playshelf/downloads/prefetch_off"_i18n
+             : n == 1 ? "playshelf/downloads/prefetch_one"_i18n
+                      : brls::getStr("playshelf/downloads/prefetch_many", n);
+    };
+    ui::set_detail(prefetch, prefetch_text(config::get().prefetch));
+    prefetch->registerClickAction([this, prefetch_text](brls::View*) {
+        const std::vector<std::string> values = { prefetch_text(0), prefetch_text(1), prefetch_text(2) };
+        ui::pick("playshelf/downloads/prefetch"_i18n, values, config::get().prefetch,
+                 ui::guarded(this->alive, [this, prefetch_text](int i) {
+                     config::get().prefetch = i;
+                     ui::save_config();
+                     ui::set_detail(this->prefetch, prefetch_text(i));
+                     download_flow::prefetch_changed();
+                 }),
+                 true, { "", "playshelf/downloads/prefetch_note"_i18n, "playshelf/downloads/prefetch_note"_i18n });
+        return true;
+    });
+    card->addView(prefetch);
+    cadran::List::row(prefetch, "folder");
     // A tab's margins, as the other tabs' lists have them.
     const cadran::List margins(this);
     (void)margins;
@@ -278,6 +300,13 @@ void DownloadsTab::fill(Row& row)
         break;
     case download::State::Waiting:
         text = "playshelf/downloads/state_waiting"_i18n + " · " + packages;
+        // What is fetched ahead of it.
+        for (size_t i : g.jobs)
+            if (const auto a = download_flow::ahead_of(jobs[i].id)) {
+                text += " · " + (a->first >= a->second ? "playshelf/downloads/ahead_done"_i18n
+                                                        : brls::getStr("playshelf/downloads/ahead", a->first * 100 / a->second));
+                break;
+            }
         break;
     case download::State::Paused:
         text = "playshelf/downloads/state_paused"_i18n + " · " + packages;

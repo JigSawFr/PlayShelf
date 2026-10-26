@@ -13,6 +13,8 @@
 // job whose server was removed fails before it starts; one whose package
 // the console has by now is done.
 //
+// Fetching ahead (config prefetch): see ahead_of() below.
+//
 // Before the first job of a run: whether the console patches signature
 // checks (util/patches; asked to go on when nothing is found). Before each
 // job: the placeholders no job keeps are deleted. While jobs run, the
@@ -76,6 +78,14 @@ void use_other_address(const std::string& id);   // the server's other address (
 // Its server's catalogue read again, the package found in it (its title at
 // that version): its new address taken, then waiting again.
 void find_again(const std::string& id);
+
+// Fetching ahead (config prefetch): while a job installs, the next waiting
+// ones (as many as the setting says) are fetched into files of the cache,
+// when the SD card has room for them and their install; a job starts from
+// its file, the rest from the server. What a job has fetched ahead (bytes,
+// of its size), nothing when none; and the setting changed.
+std::optional<std::pair<uint64_t, uint64_t>> ahead_of(const std::string& id);
+void prefetch_changed();
 
 // The setting changed: the console kept awake or not, while a job runs.
 void keep_awake_changed();

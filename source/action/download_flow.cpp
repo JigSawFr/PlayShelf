@@ -6,8 +6,11 @@
 #include <borealis.hpp>
 #include <borealis/cadran/ui/cadran_frame.hpp>
 #include <chrono>
+#include <dirent.h>
 #include <map>
 #include <memory>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
 
 #include "action/library_flow.hpp"
 #include "core/awake.h"
@@ -15,9 +18,12 @@
 #include "install/console_core.hpp"
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
+#include "install/prefix_source.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "util/http.hpp"
+#include "util/paths.hpp"
 #include "util/patches.hpp"
 
 using namespace brls::literals;
@@ -90,6 +96,43 @@ download::Rate                 s_rate;
 double                         s_last_byte = 0;   // when the running job's count last went on
 bool                           s_ticking = false;
 
+// A package fetched ahead (config prefetch) into ahead_path(): how much of
+// it is there, while a worker fetches more.
+struct Ahead
+{
+    std::shared_ptr<std::atomic<bool>> stop = std::make_shared<std::atomic<bool>>(false);
+    bool                               running = false;
+    bool                               drop = false;   // its job removed: the file goes once the worker ends
+    bool                               failed = false; // could not (no room, the server refused): not tried again this run
+    uint64_t                           have = 0, total = 0;
+};
+std::map<std::string, Ahead> s_ahead;    // by job id
+std::string                  s_starting; // a job about to run, waiting for its fetch ahead to stop
+
+std::string ahead_dir()
+{
+    return paths::cache_dir() + "/prefetch";
+}
+
+std::string ahead_path(const std::string& id)
+{
+    return ahead_dir() + "/" + id + ".part";
+}
+
+uint64_t file_size(const std::string& path)
+{
+    struct stat st;
+    return ::stat(path.c_str(), &st) == 0 ? (uint64_t)st.st_size : 0;
+}
+
+// The room where the files fetched ahead go: the SD card, the installs'.
+uint64_t sd_free()
+{
+    paths::ensure_dir(ahead_dir());
+    struct statvfs fs;
+    return statvfs(ahead_dir().c_str(), &fs) == 0 ? (uint64_t)fs.f_bavail * fs.f_frsize : 0;
+}
+
 double now_seconds()
 {
     return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -141,7 +184,7 @@ void credentials_of(const download::Job& job, std::vector<std::string>* headers,
 
 // On the worker thread.
 Outcome run_job(const download::Job& job, const std::vector<std::string>& headers, const std::string& pin, int connections,
-                const std::vector<download::Job>& snapshot, const std::shared_ptr<Control>& ctl)
+                uint64_t ahead, const std::vector<download::Job>& snapshot, const std::shared_ptr<Control>& ctl)
 {
     using namespace install;
     Outcome o;
@@ -153,7 +196,9 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     std::string cut_why;
     HttpSource  http(job.url, headers, &ctl->stop, pin, connections);
     if (!http.open(&o.why)) return ctl->stop ? stopped() : o;
-    CutSource  src(http, *ctl, &cut_why);
+    // What was fetched ahead read from its file, the rest from the server.
+    PrefixSource prefixed(ahead_path(job.id), ahead, http);
+    CutSource    src(prefixed, *ctl, &cut_why);
     const auto pkg = package_open(src, &o.why);
     if (!pkg) return ctl->stop ? stopped() : o;
     CoreConsole console(CoreStorage_Sd);
@@ -264,6 +309,115 @@ void start_ticking()
     if (!s_ticking) tick();
 }
 
+// What was fetched ahead of a job, forgotten and its file deleted (the
+// worker's end does it when one still runs).
+void drop_ahead(const std::string& id)
+{
+    const auto it = s_ahead.find(id);
+    if (it != s_ahead.end() && it->second.running) {
+        it->second.drop = true;
+        *it->second.stop = true;
+        return;
+    }
+    s_ahead.erase(id);
+    std::remove(ahead_path(id).c_str());
+}
+
+void fetch_ahead();
+
+// A worker's end, on the UI thread.
+void ahead_ended(const std::string& id, uint64_t have, uint64_t total, const std::string& why)
+{
+    Ahead& a = s_ahead[id];
+    a.running = false;
+    a.have = have;
+    if (total) a.total = total;
+    if (a.drop || !find(id)) {
+        drop_ahead(id);
+    } else if (!why.empty() && why != "cancelled") {
+        brls::Logger::warning("downloads: fetching ahead of {} stopped: {}", find(id)->name, why);
+        a.failed = true;
+    }
+    changed();
+    if (s_starting == id) {
+        s_starting.clear();
+        start_next();
+    } else {
+        fetch_ahead();
+    }
+}
+
+// While a job runs: the next waiting ones (config prefetch) fetched into
+// files of the cache, each by a worker of its own, while the SD card has
+// room for them and for their install.
+void fetch_ahead()
+{
+    const int count = config::get().prefetch;
+    if (count <= 0 || s_running.empty()) return;
+    const uint64_t reserve = s_live.total > s_live.done ? s_live.total - s_live.done : 0;
+    for (size_t i : download::ahead_jobs(s_jobs, s_running, count)) {
+        const download::Job& job = s_jobs[i];
+        Ahead&               a = s_ahead[job.id];
+        if (a.running || a.failed || (a.total && a.have >= a.total)) continue;
+        a.running = true;
+        a.stop = std::make_shared<std::atomic<bool>>(false);
+        std::vector<std::string> headers;
+        std::string              pin;
+        credentials_of(job, &headers, &pin);
+        const std::string id = job.id, url = job.url, path = ahead_path(job.id);
+        const auto        stop = a.stop;
+        brls::Logger::info("downloads: fetching {} ahead", job.name);
+        ui::in_background("fetch ahead", [id, url, path, headers, pin, stop, reserve]() {
+            std::string why;
+            uint64_t    total = 0;
+            uint64_t    have = file_size(path);
+            if (!http::resource_size(url, &total, &why, headers, pin)) {
+                brls::sync([id, have, why]() { ahead_ended(id, have, 0, why); });
+                return;
+            }
+            if (have > total) {   // another package's: started over
+                std::remove(path.c_str());
+                have = 0;
+            }
+            if (have < total && !download::room_ahead(sd_free(), total - have, total, reserve)) {
+                brls::sync([id, have, total]() { ahead_ended(id, have, total, "no room on the SD card"); });
+                return;
+            }
+            FILE* f = have < total ? std::fopen(path.c_str(), "ab") : nullptr;
+            if (have < total && !f) why = "the file could not be written";
+            auto last = std::chrono::steady_clock::now();
+            if (f) {
+                std::string net;
+                http::range(url, have, total - have,
+                            [&](const uint8_t* data, size_t n) {
+                                if (std::fwrite(data, 1, n, f) != n) {
+                                    why = "the file could not be written";
+                                    return false;
+                                }
+                                have += n;
+                                const auto t = std::chrono::steady_clock::now();
+                                if (t - last >= std::chrono::milliseconds(500)) {
+                                    last = t;
+                                    brls::sync([id, have, total]() {
+                                        Ahead& now = s_ahead[id];
+                                        now.have = have;
+                                        now.total = total;
+                                        changed();
+                                    });
+                                }
+                                return true;
+                            },
+                            &net, headers, stop.get(), pin);
+                std::fclose(f);
+                if (why.empty()) why = net;
+            }
+            have = file_size(path);
+            if (have >= total) why.clear();
+            brls::sync([id, have, total, why]() { ahead_ended(id, have, total, why); });
+        });
+    }
+}
+
 void finished(const std::string& id, const Outcome& o)
 {
     s_running.clear();
@@ -271,6 +425,10 @@ void finished(const std::string& id, const Outcome& o)
     s_live = Live{};
     s_rate.reset();
     download::Job* j = find(id);
+    // What was fetched ahead of it: of no use once it is installed or given
+    // up (a content that failed may be the file's fault); kept while it may
+    // take up again.
+    if (o.ok || o.cancelled || o.undone) drop_ahead(id);
     if (j && o.cancelled) {
         s_jobs.erase(std::remove_if(s_jobs.begin(), s_jobs.end(), [&](const download::Job& x) { return x.id == id; }),
                      s_jobs.end());
@@ -330,13 +488,16 @@ void run(download::Job& job)
     const std::vector<download::Job> snapshot = s_jobs;
     const auto                       ctl = s_control;
     const int                        connections = config::get().connections;
-    brls::Logger::info("downloads: {} started ({} connections)", job.name, connections);
-    ui::in_background("download", [copy, headers, pin, connections, snapshot, ctl]() {
-        const Outcome o = run_job(copy, headers, pin, connections, snapshot, ctl);
+    const auto                       a = s_ahead.find(job.id);
+    const uint64_t                   ahead = a != s_ahead.end() ? a->second.have : 0;
+    brls::Logger::info("downloads: {} started ({} connections, {} bytes fetched ahead)", job.name, connections, ahead);
+    ui::in_background("download", [copy, headers, pin, connections, ahead, snapshot, ctl]() {
+        const Outcome o = run_job(copy, headers, pin, connections, ahead, snapshot, ctl);
         brls::sync([id = copy.id, o]() { finished(id, o); });
     });
     save();
     changed();
+    fetch_ahead();
 }
 
 void start_next()
@@ -391,6 +552,12 @@ void start_next()
         start_next();
         return;
     }
+    // Its fetch ahead stopped first: the install reads its file.
+    if (const auto a = s_ahead.find(job.id); a != s_ahead.end() && a->second.running) {
+        s_starting = job.id;
+        *a->second.stop = true;
+        return;
+    }
     run(job);
 }
 
@@ -414,6 +581,18 @@ void init()
     if (s_loaded) return;
     s_loaded = true;
     s_jobs = download::load_queue();
+    // The files fetched ahead: those of jobs still there taken up, the
+    // others deleted.
+    if (DIR* d = ::opendir(ahead_dir().c_str())) {
+        while (const dirent* e = ::readdir(d)) {
+            const std::string name = e->d_name;
+            if (name.size() < 6 || name.compare(name.size() - 5, 5, ".part") != 0) continue;
+            const std::string id = name.substr(0, name.size() - 5);
+            if (find(id)) s_ahead[id].have = file_size(ahead_path(id));
+            else std::remove(ahead_path(id).c_str());
+        }
+        ::closedir(d);
+    }
     if (!s_jobs.empty()) brls::Logger::info("downloads: {} in the queue, {} not finished", s_jobs.size(), download::pending(s_jobs));
 }
 
@@ -494,6 +673,7 @@ void cancel(const std::string& id)
     const auto it = std::find_if(s_jobs.begin(), s_jobs.end(), [&](const download::Job& j) { return j.id == id; });
     if (it == s_jobs.end()) return;
     if (it->state != download::State::Done) undo_stopped(*it);
+    drop_ahead(id);
     s_jobs.erase(it);
     save();
     changed();
@@ -507,6 +687,8 @@ void pause_all()
             j.retry_at = 0;
         }
     if (!s_running.empty()) pause(s_running);
+    for (auto& kv : s_ahead)
+        if (kv.second.running) *kv.second.stop = true;
     save();
     changed();
 }
@@ -612,6 +794,26 @@ void find_again(const std::string& id)
                    moved ? ui::Toast::Done : ui::Toast::Info);
         resume(id);
     });
+}
+
+std::optional<std::pair<uint64_t, uint64_t>> ahead_of(const std::string& id)
+{
+    const auto it = s_ahead.find(id);
+    if (it == s_ahead.end() || !it->second.total || !it->second.have) return std::nullopt;
+    return std::make_pair(std::min(it->second.have, it->second.total), it->second.total);
+}
+
+void prefetch_changed()
+{
+    // Off: the fetches under way stopped, what they have kept for their
+    // jobs; on: started.
+    if (config::get().prefetch <= 0) {
+        for (auto& kv : s_ahead)
+            if (kv.second.running) *kv.second.stop = true;
+        return;
+    }
+    for (auto& kv : s_ahead) kv.second.failed = false;
+    fetch_ahead();
 }
 
 void keep_awake_changed()

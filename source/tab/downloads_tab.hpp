@@ -11,8 +11,9 @@
 // it, what it installed so far deleted), and the game's own pause, resume
 // and remove. Ⓧ pauses or resumes them all, Ⓨ clears the
 // installed ones. Last, whether the console stays awake while they run
-// (config keep_awake) and how many connections a download takes at once
-// (config connections, install/split_stream). Updated as the queue changes, the running job's line
+// (config keep_awake), how many connections a download takes at once
+// (config connections, install/split_stream) and how many packages are
+// fetched ahead while one installs (config prefetch). Updated as the queue changes, the running job's line
 // twice a second.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -63,4 +64,5 @@ class DownloadsTab : public TabBase
     BRLS_BIND(brls::Box, settings,  "dl_settings");
     brls::BooleanCell* keep_awake = nullptr;
     brls::DetailCell*  connections = nullptr;
+    brls::DetailCell*  prefetch = nullptr;
 };
