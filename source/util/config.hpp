@@ -3,6 +3,7 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,17 @@
 
 namespace config
 {
+
+// The title database's default sources, in their order: CyberFoil-DB's
+// manifest (names, icons, packs checked by their SHA-256), then NXMeta's
+// Tinfoil index (names, publishers, dates) and Ghostland's title list
+// (names).
+constexpr const char* CYBERFOIL_TITLE_SOURCE =
+    "https://github.com/luketanti/CyberFoil-DB/releases/latest/download/offline_db_manifest.json";
+constexpr const char* NXMETA_TITLE_SOURCE = "https://nx-meta.nlib.cc/index.json";
+constexpr const char* GHOSTLAND_TITLE_SOURCE = "https://data.ghostland.at/nx/owned.json";
+constexpr const char* DEFAULT_TITLE_SOURCES[] = { CYBERFOIL_TITLE_SOURCE, NXMETA_TITLE_SOURCE, GHOSTLAND_TITLE_SOURCE };
+constexpr size_t MAX_TITLE_SOURCES = 8;
 
 struct Config
 {
@@ -53,6 +65,10 @@ struct Config
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8
     int         prefetch = 0;          // packages fetched ahead while one installs (action/download_flow), 0 to 2
+    // The title databases' manifests (action/titledb_flow), the first that
+    // knows a title naming it: HTTPS addresses, MAX_TITLE_SOURCES at most;
+    // DEFAULT_TITLE_SOURCES unless changed, none for no database.
+    std::vector<std::string> title_sources{ std::begin(DEFAULT_TITLE_SOURCES), std::end(DEFAULT_TITLE_SOURCES) };
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means

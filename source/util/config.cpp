@@ -2,6 +2,7 @@
 #include "util/config.hpp"
 
 #include <borealis/extern/nlohmann/json.hpp>
+#include <algorithm>
 #include <initializer_list>
 
 #include "util/date.hpp"
@@ -29,6 +30,18 @@ bool read_string(const nlohmann::json& j, const char* key, std::string& out)
     if (it == j.end()) return true;
     if (!it->is_string()) return false;
     out = it->get<std::string>();
+    return true;
+}
+
+// An array's strings (its other values left out); `out` kept when the key
+// is missing or not an array.
+bool read_strings(const nlohmann::json& j, const char* key, std::vector<std::string>& out)
+{
+    const nlohmann::json* a = json_util::array_at(j, key);
+    if (!a) return j.find(key) == j.end();
+    out.clear();
+    for (const nlohmann::json& v : *a)
+        if (v.is_string()) out.push_back(v.get<std::string>());
     return true;
 }
 
@@ -98,6 +111,12 @@ void sanitize(Config& c)
     if (!keep_ok) c.logs_keep_mb = 0;
     if (c.connections < 1 || c.connections > 8) c.connections = 4;
     if (c.prefetch < 0 || c.prefetch > 2) c.prefetch = 0;
+    std::vector<std::string> sources;
+    for (const std::string& u : c.title_sources)
+        if (u.rfind("https://", 0) == 0 && u.size() <= 512 && sources.size() < MAX_TITLE_SOURCES &&
+            std::find(sources.begin(), sources.end(), u) == sources.end())
+            sources.push_back(u);
+    c.title_sources = std::move(sources);
     if (!is_date(c.update_checked)) c.update_checked.clear();
     if (c.update_latest.size() > 32) c.update_latest.clear();
     if (c.update_snooze_version.size() > 32 || !is_date(c.update_snooze_until))
@@ -166,6 +185,7 @@ static void load_shared()
     read_bool(j, "keep_awake", c.keep_awake);
     read_int(j, "connections", c.connections);
     read_int(j, "prefetch", c.prefetch);
+    read_strings(j, "title_sources", c.title_sources);
     read_string(j, "support_reminded", c.support_reminded);
     read_string(j, "seen_version", c.seen_version);
     read_string(j, "crash_seen", c.crash_seen);
@@ -216,6 +236,7 @@ bool snapshot(Snapshot& snap)
     j["keep_awake"] = s_config.keep_awake;
     j["connections"] = s_config.connections;
     j["prefetch"] = s_config.prefetch;
+    j["title_sources"] = s_config.title_sources;
     j["support_reminded"] = s_config.support_reminded;
     j["seen_version"]    = s_config.seen_version;
     j["crash_seen"]      = s_config.crash_seen;

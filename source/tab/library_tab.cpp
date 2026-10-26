@@ -11,6 +11,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
+#include "action/titledb_flow.hpp"
 #include "library/servers.hpp"
 #include "library/titles.hpp"
 #include "ui/ui.hpp"
@@ -96,11 +97,20 @@ LibraryTab::LibraryTab()
         this->done_jobs = n;
         this->refresh();
     }));
+    // The title database opened or updated: its names.
+    this->titledb_opened = titledb_flow::status().opened;
+    this->titledb_listener = titledb_flow::listen(ui::guarded(this->alive, [this]() {
+        const int opened = titledb_flow::status().opened;
+        if (opened == this->titledb_opened) return;
+        this->titledb_opened = opened;
+        if (this->shown_games) this->show(this->shown_games);
+    }));
 }
 
 LibraryTab::~LibraryTab()
 {
     download_flow::unlisten(this->listener);
+    titledb_flow::unlisten(this->titledb_listener);
 }
 
 brls::View* LibraryTab::create()
@@ -142,7 +152,12 @@ void LibraryTab::show(std::shared_ptr<const std::vector<installed_flow::Game>> g
             e.title = t;
             break;
         }
-        e.name = !g.name.empty() ? g.name : e.data ? e.data->titles[(size_t)e.title].name : fmt::format("{:016X}", g.game.id);
+        // Its name: the console's, else the title database's, else its
+        // catalogue's, else its title id.
+        e.name = g.name;
+        if (e.name.empty())
+            if (const auto known = titledb_flow::title(g.game.id)) e.name = known->name;
+        if (e.name.empty()) e.name = e.data ? e.data->titles[(size_t)e.title].name : fmt::format("{:016X}", g.game.id);
         if (something_to_get(state_in(e.data, e.title))) to_get++;
         this->entries.push_back(std::move(e));
     }
@@ -218,21 +233,22 @@ void LibraryTab::add_page()
             this->open(at);
             return true;
         });
-        // Its icon: the console's, else its catalogue's.
+        // Its icon: the console's, else its catalogue's, else the title
+        // database's.
+        const int  gen = this->generation;
+        const auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+            const ui::Alive held = weak.lock();
+            if (held && *held && gen == this->generation && at < this->icons.size()) this->icons[at](texture);
+            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+        };
         if (e.game->icon) {
             const int texture = nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)e.game->icon->data(),
                                                   (int)e.game->icon->size());
             if (texture > 0) this->icons[at](texture);
-        } else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty()) {
-            const int gen = this->generation;
-            library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url,
-                               [weak = ui::Weak(this->alive), this, at, gen](int texture) {
-                                   const ui::Alive held = weak.lock();
-                                   if (held && *held && gen == this->generation && at < this->icons.size())
-                                       this->icons[at](texture);
-                                   else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
-                               });
-        }
+        } else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty())
+            library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url, shown);
+        else
+            library_icons::local(e.game->game.id, shown);
     }
     ui::set_visible(more, this->built < this->entries.size());
 }

@@ -104,16 +104,19 @@ list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 # switch-curl portlib (TLS through the console's ssl service), static, so its
 # own dependencies are listed after it. zstd for the .ncz contents
 # (install/content_stream.cpp): the switch-zstd portlib, the system's
-# libzstd on a desktop.
+# libzstd on a desktop. libwebp for the title database's icons
+# (action/library_icons.cpp): switch-libwebp, the system's libwebp.
 if (PLATFORM_SWITCH)
-    list(APPEND APP_PLATFORM_LIB curl zstd z nx)
+    list(APPEND APP_PLATFORM_LIB curl zstd webp z nx)
 else ()
     find_package(CURL REQUIRED)
     find_package(ZLIB REQUIRED)   # util/zip_read.cpp (the Switch links z above)
     find_library(ZSTD_LIBRARY zstd REQUIRED)
     find_path(ZSTD_INCLUDE_DIR zstd.h REQUIRED)
-    list(APPEND APP_PLATFORM_LIB CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY})
-    list(APPEND APP_PLATFORM_INCLUDE ${ZSTD_INCLUDE_DIR})
+    find_library(WEBP_LIBRARY webp REQUIRED)
+    find_path(WEBP_INCLUDE_DIR webp/decode.h REQUIRED)
+    list(APPEND APP_PLATFORM_LIB CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY} ${WEBP_LIBRARY})
+    list(APPEND APP_PLATFORM_INCLUDE ${ZSTD_INCLUDE_DIR} ${WEBP_INCLUDE_DIR})
 endif ()
 
 # Sources: UI (C++) + service layer. The real service layer (source/core/*.c)
