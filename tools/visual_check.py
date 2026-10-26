@@ -69,7 +69,7 @@ CLOCK_LARGE_SIZE = "24.725"
 CLOCK_LARGE_ORIGIN = (55, 693)
 CLOCK_LARGE_HEIGHT = 20
 CLOCK_FONT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
-                          "extern", "borealis", "resources", "font", "switch_font.ttf")
+                          "library", "aurore", "resources", "font", "switch_font.ttf")
 INK = 60   # a pixel this far (sum of the RGB differences) from the background is text
 # ImageMagick 7 keeps the version 6 commands (convert, compare, …) as aliases
 # of `magick` that warn on every call; version 6 has no `magick`.

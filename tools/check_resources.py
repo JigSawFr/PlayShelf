@@ -160,7 +160,7 @@ for lang, cat in sorted(catalogs.items()):
 # The language picker's list (Aurore's ui::LANGUAGES, which config::LANGUAGES
 # names) and the catalogs agree; the languages' names are Aurore's
 # (cadran/tools/languages/).
-PREFS_HPP = "extern/borealis/library/include/borealis/cadran/ui/prefs.hpp"
+PREFS_HPP = "library/aurore/library/include/borealis/cadran/ui/prefs.hpp"
 prefs_hpp = open(f"{ROOT}/{PREFS_HPP}", encoding="utf-8").read()
 m = re.search(r"LANGUAGES\[\]\s*=\s*\{([^}]*)\}", prefs_hpp)
 if not m:
@@ -482,7 +482,7 @@ for path in glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv)\(\s*"(PLAYSHELF_SIM_\w+)"', read(path)))
 # Aurore's Cadran reads its flags through ui::env_flag("NAME"), which
 # activity/screen_hooks.cpp answers with PLAYSHELF_SIM_NAME.
-for path in glob.glob(f"{ROOT}/extern/borealis/library/lib/cadran/**/*.cpp", recursive=True):
+for path in glob.glob(f"{ROOT}/library/aurore/library/lib/cadran/**/*.cpp", recursive=True):
     sim_read |= {"PLAYSHELF_SIM_" + n for n in re.findall(r'env_flag\(\s*"(\w+)"', read(path))}
 sim_documented = set(re.findall(r"`(PLAYSHELF_SIM_\w+)", simulator_page))
 if not sim_read or not sim_documented:
