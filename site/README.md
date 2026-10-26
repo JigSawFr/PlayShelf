@@ -1,0 +1,40 @@
+# The website
+
+PlayShelf's website, on GitHub Pages: <https://jigsawfr.github.io/PlayShelf/>.
+
+- **A home page and the documentation** in each language `site/i18n/` has a catalog for: English at the root, French in `/fr/`. A first visit to the root from elsewhere goes to the browser's language when the site has it; the header's list changes it (and is remembered). The theme is *Auto* (the browser's), *Light* or *Dark*, remembered as the web simulator remembers it (both read `ps-theme`).
+- **The home page**: what PlayShelf does, its screens, the simulator, how to install it and start, the questions (each with its own address, `#faq-<question>`), the documentation's pages. The screenshots open larger over the page (`site.js`: swipe or the arrows, down or Esc to close), the documentation's too.
+- **The screenshots in each language**, light and dark: the console's screens as the simulator shows them (below); the English ones of `images/screenshots/` for a local build without them.
+- **The documentation** is `docs/`, converted from its Markdown at each build (without its "Back to the README", GitHub's way back): each language reads `docs/<language>/` where it has the page (Canadian French reads `docs/fr/`), else the English page, with a note saying it is not translated yet. A translation's first line, `<!-- translated from docs/<page>.md, sha256 <12 hex> -->` (`tools/doc_stamp.py docs/<language>/<page>.md`), is the English page it matches: once that page changes, the site says under the translation that the English one may be more recent. GitHub's `> [!WARNING]` blocks become callouts, headings keep GitHub's anchors, links between the docs and to the README become the site's pages, and any other file of the repository links to GitHub. A translation keeps the English page's sections, in the same order.
+- **The documentation's search**: a box above its pages, over `docs/search.json` (each section of the language's pages and the home page's questions).
+- **The changelog** (`/changelog/`, `CHANGELOG.md`, its notes in English) and `releases.atom`, a feed of the releases. Once there is a release, the documentation comes in two versions: the latest release's, out of its tag, at `docs/`, and main's at `docs/dev/`, with a switch between them.
+- **The page not found** (`404.html`, served at any address) in every language.
+- **For search engines and AI assistants**: absolute links, `sitemap.xml`, structured data (schema.org JSON-LD), a preview image (`.github/readme/social-preview.png`), each page of the documentation in Markdown next to it, listed in [`llms.txt`](https://llmstxt.org) (`llms-full.txt`: the whole documentation in one file). A pull request's preview says `noindex`.
+- **On a phone**: no field under 16px (iOS zooms into one), 44px to touch, the page beside the notch in landscape, nothing wider than the screen.
+- **The web simulator** in `/simulator/` ([`web/README.md`](../web/README.md)).
+- **Each open pull request's preview** in `/pr-<number>/`: its website and its simulator, linked in a comment on the pull request.
+
+## How it is made
+
+`tools/build_site.py <out-dir>` (Python 3 and Python-Markdown) writes the pages; no framework, nothing to install but that.
+
+- `site/i18n/<language>.json`: the home page's and the header's texts, one catalog per language (`en-US.json` the reference: a text missing from another catalog is shown in English). The site is built in the languages that have one: a new language is a catalog here, and its pages in `docs/<language>/`. In a text, `{{app:<key>}}` is the app's own text for that key in that language (`resources/i18n/<language>/playshelf.json`), so a menu the site names is named as on the console; `{{version}}` is the latest release (`.release-please-manifest.json`).
+- `site/assets/`: `site.css` (the Cadran look's navy, teal and amber, light and dark), `site.js` (the language and theme menus, the lightbox, the search, the copy buttons), `theme.js` (the theme before the first paint) and `fonts/sora.woff2`, the headings' font (SIL Open Font License, `fonts/OFL.txt`), served with the site so that no visitor's browser asks anyone else for anything.
+- **The screenshots**: `tools/site_screenshots.py <simulator> <out-dir> [language…]` (Playwright for Python) runs the web simulator in a headless Chromium and saves each screen of the gallery in each language and theme, `<out-dir>/<language>/<screen>.webp` and `<screen>-dark.webp`, on the smoke test's console with a game of the demo server installed on the way. `SITE_SCREENSHOTS=<out-dir>` tells `build_site.py` to use them. With `--png`, it also writes the English ones to `images/screenshots/`, which the documentation shows on GitHub. A new screen is a name in `SCREENS` and the keys that lead to it.
+- **The site's address**: `SITE_URL` (`https://jigsawfr.github.io/PlayShelf/` by default). CI asks GitHub Pages for it (its custom domain, when it has one) and adds a preview's folder; `SITE_BASE` is its path, for 404.html; `SITE_NOINDEX=1` for a preview.
+- **A Content-Security-Policy** on every page (a `<meta>`: GitHub Pages sends no headers): only the site's own files, no inline script or style. A page needing something else is blocked: put it in `site/assets/`.
+
+To look at it locally: `make site` (the simulator in it once `make web` built it), then <http://localhost:8000/>. With the screenshots in each language: `python3 tools/site_screenshots.py build-web/simulator /tmp/shots`, then `SITE_SCREENSHOTS=/tmp/shots python3 tools/build_site.py /tmp/site`.
+
+## Checks
+
+- `tools/check_site_links.py <site> [site-url]`: every link of the site to the site, and every `#anchor`, leads somewhere.
+- `tools/site_layout.py <site>` (Playwright for Python): no page wider than the screen on a phone, a tablet or a desktop, no field iOS zooms into, no script that throws, and nothing axe-core finds against WCAG 2.2 AA (`SITE_AXE=<axe.min.js>`).
+
+## Publishing
+
+`.github/workflows/web.yml` builds the simulator, its smoke test, the screenshots and the site with the simulator in it for main and for each pull request (the `site` artifact, kept 30 days), and runs both checks. `.github/workflows/pages.yml` publishes them, with GitHub Actions as the source of GitHub Pages: main's at the root, each open pull request's in `pr-<number>/` (not a fork's: its pages would be served from this site), then edits the pull request's comment with the links. It runs where main's workflows run (after each `web` run, when a pull request is closed, or by hand), as the `github-pages` environment requires, and only puts in place the files `web.yml` built. Each run publishes everything again, so a closed pull request's preview goes at the next one.
+
+GitHub lists a workflow's runs by branch *name*, whatever repository the branch is in: `pages.yml` takes only runs of this repository (`head_repository`), so a fork can never have its files served from the site.
+
+Once: *Settings › Pages › Build and deployment › Source: GitHub Actions*.

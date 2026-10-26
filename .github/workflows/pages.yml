@@ -1,0 +1,177 @@
+name: pages
+
+# Publishes PlayShelf's website on GitHub Pages (site/README.md), with GitHub
+# Actions as its source (Settings › Pages › Source: GitHub Actions): main's
+# `site` artifact (web.yml) at the root, and each open pull request's in
+# pr-<number>/, with its link in a comment on the pull request (which says
+# the preview is gone once the pull request is closed).
+#
+# It runs where main's workflows run (workflow_run, pull_request_target), so
+# the github-pages environment, which deploys from main only, takes it; it
+# checks out nothing and runs nothing of a pull request: it only puts the
+# files web.yml built in place. Pull requests from forks are left out (their
+# pages would be served from this site). Each run publishes everything again,
+# so a closed pull request's preview goes at the next one.
+on:
+  workflow_run:
+    workflows: [ web ]
+    types: [ completed ]
+  pull_request_target:
+    types: [ closed ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; the newest waiting one publishes everything.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # A web build that failed changes nothing.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      actions: read          # the artifacts of web.yml's runs
+      pages: write
+      id-token: write
+      pull-requests: write   # the link on the pull request
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: main's site, and each open pull request's in pr-<number>/
+        id: gather
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          runs="repos/$REPO/actions/workflows/web.yml/runs"
+          mkdir site
+          # Runs are listed by branch name alone, whatever repository they
+          # come from: a fork can name a branch as one of ours (main, or an
+          # open pull request's) and its pull request's web run would come up
+          # too. Only runs of this repository are taken.
+          ours=".workflow_runs | map(select(.head_repository.full_name == \"$REPO\")) | .[0].id // empty"
+          # main's newest site: a push's or a run by hand's, never a pull request's.
+          mains=".workflow_runs | map(select(.head_repository.full_name == \"$REPO\" and (.event == \"push\" or .event == \"workflow_dispatch\"))) | .[0].id // empty"
+          main=$(gh api -X GET "$runs" -f branch=main -f status=success -f per_page=20 --jq "$mains")
+          if [ -n "$main" ]; then
+            gh run download "$main" -R "$REPO" -n site -D site
+            echo "main: run $main" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          previews=""
+          # A pull request's newest successful build: the one before its last
+          # push while that one builds, so its preview stays up meanwhile.
+          # Only pull requests from this repository's branches (never a
+          # fork's). Their previews share the site's origin: a pull request's
+          # scripts could read and write what main's pages keep in the
+          # browser (the simulator's cache, the kept simulated console in
+          # IndexedDB, the theme and language). The simulator's service
+          # worker keeps a cache per folder (web/sw.js), so the copies do not
+          # mix by accident.
+          for pr in $(gh api "repos/$REPO/pulls?state=open&per_page=100" --paginate \
+                        --jq ".[] | select(.head.repo.full_name == \"$REPO\") | \"\(.number):\(.head.ref)\""); do
+            number=${pr%%:*}
+            branch=${pr#*:}
+            run=$(gh api -X GET "$runs" -f branch="$branch" -f event=pull_request -f status=success -f per_page=20 \
+                    --jq "$ours")
+            [ -n "$run" ] || continue
+            gh run download "$run" -R "$REPO" -n site -D "site/pr-$number"
+            previews="$previews $number"
+            echo "pr-$number: run $run" >> "$GITHUB_STEP_SUMMARY"
+          done
+          touch site/.nojekyll
+          echo "previews=$previews" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      # The pull request whose build started this run: its comment points to
+      # its preview (one comment, edited at each push).
+      - name: Link on the pull request
+        if: >-
+          github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request' &&
+          github.event.workflow_run.head_repository.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          SITE: ${{ steps.deploy.outputs.page_url }}
+          PREVIEWS: ${{ steps.gather.outputs.previews }}
+        run: |
+          set -euo pipefail
+          pr=$(gh api -X GET "repos/$REPO/pulls" -f state=open -f head="${REPO%%/*}:$BRANCH" --jq '.[0].number // empty')
+          [ -n "$pr" ] && [[ " $PREVIEWS " == *" $pr "* ]] || exit 0
+          url="${SITE%/}/pr-$pr/"
+          sim="${url}simulator/"
+          shots="${sim}shots/"
+          marker='<!-- playshelf-web-simulator -->'
+          body=$(cat <<EOF
+          $marker
+          ### 🕹️ Preview of this pull request
+
+          **[The web simulator](${sim})** · [the website](${url}) — commit \`${SHA::7}\`, updated at each push (allow a minute for GitHub Pages).
+
+          Straight to a state: [the demo Catalogue](${sim}?tab=catalogue) · [no server yet](${sim}?no_demo=1) · [a slow network](${sim}?speed=16) · [without Atmosphère](${sim}?no_cfw=1) · [in French, dark](${sim}?lang=fr&theme=dark). The side panel sets the rest, and **Copy link** gives a link to what it shows.
+
+          <details><summary>The screens of this build (web smoke test)</summary>
+
+          | Catalogue | A game's sheet | Downloads |
+          |---|---|---|
+          | <img src="${shots}catalogue.png?v=${SHA::7}" width="300" alt="Catalogue"> | <img src="${shots}game_sheet.png?v=${SHA::7}" width="300" alt="A game's sheet"> | <img src="${shots}downloads_done.png?v=${SHA::7}" width="300" alt="Downloads"> |
+          | **Library** | **Preferences** | **Japanese** |
+          | <img src="${shots}library_installed.png?v=${SHA::7}" width="300" alt="Library"> | <img src="${shots}preferences.png?v=${SHA::7}" width="300" alt="Preferences"> | <img src="${shots}japanese.png?v=${SHA::7}" width="300" alt="Japanese"> |
+
+          </details>
+
+          <sub>Keyboard: arrows, Enter (A), Esc (B), X, Y, L, R, ⇧L (ZL), ⇧R (ZR), + and −; a click is a touch; an on-screen pad on phones. See [web/README.md](https://github.com/${REPO}/blob/${SHA}/web/README.md). The preview goes when the pull request is closed.</sub>
+          EOF
+          )
+          id=$(gh api "repos/$REPO/issues/$pr/comments" --paginate \
+                 --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\")))][0].id // empty" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh api -X POST "repos/$REPO/issues/$pr/comments" -f body="$body" > /dev/null
+          fi
+          echo "[pr-$pr]($sim)" >> "$GITHUB_STEP_SUMMARY"
+      # The pull request just closed: its preview is gone with this
+      # deployment, so its comment no longer links to it (nor to its screens).
+      - name: Comment of the closed pull request
+        if: >-
+          github.event_name == 'pull_request_target' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          SITE: ${{ steps.deploy.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          marker='<!-- playshelf-web-simulator -->'
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+                 --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\")))][0].id // empty" | head -n 1)
+          [ -n "$id" ] || exit 0
+          if [ "$MERGED" = true ]; then
+            what="Merged: its changes are in [main's simulator](${SITE%/}/simulator/) once main's build is published."
+          else
+            what="Closed without merging."
+          fi
+          body=$(cat <<EOF
+          $marker
+          ### 🕹️ Preview of this pull request
+
+          No longer online (last commit \`${SHA::7}\`): the preview goes when the pull request is closed. ${what}
+          EOF
+          )
+          gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body" > /dev/null
+          echo "pr-$PR: its comment updated (closed)" >> "$GITHUB_STEP_SUMMARY"

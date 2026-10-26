@@ -2,9 +2,10 @@ name: web
 
 # The web simulator (web/README.md): PlayShelf built with Emscripten, with its
 # demo library server (tools/web_demo.cpp), then played in headless Chromium
-# (tools/web_smoke.py). For main and for each pull request; the simulator and
-# its smoke test's screens are the run's artifacts. Publishing it on GitHub
-# Pages comes with the website.
+# (tools/web_smoke.py); and the website (site/README.md) with the simulator in
+# it. For main and for each pull request: the `site` artifact, which
+# pages.yml publishes on GitHub Pages (main's at the root, a pull request's in
+# pr-<number>/).
 on:
   push:
     branches: [ main ]
@@ -26,8 +27,12 @@ env:
   # The emsdk tool itself, at that version's tag, checked against the commit
   # the tag pointed to when pinned: a tag can be moved, a commit cannot.
   EMSDK_COMMIT: 35ff8a6d150541276abbc6bae512ca90bcfbe220
-  # Playwright, pinned, for the smoke test.
+  # Playwright, pinned, for the smoke test and the website's screenshots.
   PLAYWRIGHT_VERSION: 1.64.0
+  # axe-core, for the website's accessibility (tools/site_layout.py): its
+  # npm package, checked against the hash it had when pinned.
+  AXE_VERSION: 4.13.0
+  AXE_SHA256: 096912f6e77b4b695fc9304b7be65091db42d98de054da674ae222a11cb33f70
 
 jobs:
   simulator:
@@ -37,10 +42,17 @@ jobs:
     # then) took 38 minutes before the smoke test; the caches, saved once a
     # run succeeds, bring the next ones down to minutes.
     timeout-minutes: 90
+    permissions:
+      contents: read
+      pages: read   # the site's address (a custom domain, once it has one)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
+          # The history, without old files' contents: the website's
+          # documentation of the latest release comes out of its tag.
+          fetch-depth: 0
+          filter: blob:none
       # Emscripten's cache: its system libraries and ports (SDL2, zlib), built
       # for threads and exceptions on first use, which takes minutes.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -63,11 +75,12 @@ jobs:
           "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
       # The demo server's packages are made on the host (libzstd, zlib);
       # Japanese, Korean and Chinese drawn with a CJK font cut out of Noto
-      # Sans CJK with fontTools (tools/web_cjk_font.py).
+      # Sans CJK with fontTools (tools/web_cjk_font.py); the website's
+      # documentation is Markdown (tools/build_site.py).
       - name: Dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools ccache
+          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools python3-markdown ccache
       - name: The simulator
         env:
           PLAYSHELF_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -110,6 +123,82 @@ jobs:
           if [ -f build-web/shots/timings.json ]; then
             { echo; echo "Starts (s): $(python3 -c 'import json; print(", ".join(f"{k} {v}" for k, v in json.load(open("build-web/shots/timings.json")).items()))')"; } >> "$GITHUB_STEP_SUMMARY"
           fi
+      # The site's address, as GitHub Pages serves it: its custom domain
+      # when it has one, else <owner>.github.io/<repo>/; a pull request's
+      # preview in its pr-<number>/. The pages' absolute links (canonical,
+      # other languages, sitemap, llms.txt) are that address, and 404.html,
+      # served at any path, starts its links from its path. A preview is
+      # kept out of search engines.
+      - name: The site's address
+        env:
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # https when Pages enforces it, whatever html_url says meanwhile.
+          # No Pages site yet (404): gh prints its error body on stdout, so
+          # nothing of a failed call is kept.
+          if ! pages=$(gh api "repos/$REPO/pages" \
+                         --jq 'if .https_enforced then (.html_url | sub("^http:"; "https:")) else .html_url end' 2>/dev/null); then
+            pages=""
+          fi
+          owner="${REPO%%/*}"
+          pages="${pages:-https://${owner,,}.github.io/${REPO#*/}/}"
+          pages="${pages%/}/"
+          {
+            echo "SITE_URL=$pages${PR:+pr-$PR/}"
+            echo "SITE_BASE=/${pages#*://*/}${PR:+pr-$PR/}"
+            echo "SITE_NOINDEX=${PR:+1}"
+          } | tee -a "$GITHUB_ENV"
+      # The website's screenshots, each screen of its gallery in each of its
+      # languages and in both themes (tools/site_screenshots.py), from the
+      # simulator just built: about a minute each.
+      - name: The website's screenshots
+        timeout-minutes: 20
+        run: |
+          "$RUNNER_TEMP/playwright/bin/python" -u tools/site_screenshots.py build-web/simulator shots
+      - name: The website, the simulator in it
+        env:
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          PR: ${{ github.event.pull_request.number }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # SITE_URL, SITE_BASE, SITE_NOINDEX: the site's address (above).
+          # SITE_SIMULATOR: what it downloads, said on its buttons.
+          export SITE_SCREENSHOTS=shots SITE_SIMULATOR=build-web/simulator
+          python3 tools/build_site.py out .
+          # Every link of the site to the site, and every #anchor (a heading
+          # renamed, a translation's anchors), must lead somewhere.
+          python3 tools/check_site_links.py out "$SITE_URL"
+          cp -r build-web/simulator out/simulator
+          cp -r build-web/shots out/simulator/shots
+          # What the simulator's header says it was built from.
+          python3 - <<'EOF'
+          import json, os
+          build = {k.lower(): os.environ[k] for k in ("REPO", "SHA", "REF", "TITLE")}
+          build["pr"] = int(os.environ["PR"]) if os.environ["PR"] else None
+          with open("out/simulator/build.json", "w") as f:
+              json.dump(build, f)
+          EOF
+      # The website's layout (tools/site_layout.py): no page wider than the
+      # screen on a phone, a tablet or a desktop, no field iOS zooms into, no
+      # script that throws, nothing axe finds against WCAG 2.2 AA. Seconds.
+      - name: The website on a phone, a tablet and a desktop
+        timeout-minutes: 5
+        run: |
+          curl -sfL --retry 3 -o "$RUNNER_TEMP/axe.tgz" "https://registry.npmjs.org/axe-core/-/axe-core-$AXE_VERSION.tgz"
+          echo "$AXE_SHA256  $RUNNER_TEMP/axe.tgz" | sha256sum -c --quiet
+          python3 -c 'import sys, tarfile; open(sys.argv[2], "wb").write(tarfile.open(sys.argv[1]).extractfile("package/axe.min.js").read())' \
+            "$RUNNER_TEMP/axe.tgz" "$RUNNER_TEMP/axe.min.js"
+          SITE_AXE="$RUNNER_TEMP/axe.min.js" "$RUNNER_TEMP/playwright/bin/python" -u tools/site_layout.py out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: out
+          include-hidden-files: true   # .nojekyll
+          retention-days: 30
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
