@@ -84,7 +84,8 @@ OG_LOCALES = {"en-US": "en_US", "fr": "fr_FR", "fr-CA": "fr_CA", "de": "de_DE", 
               "it": "it_IT", "nl": "nl_NL", "pt": "pt_PT", "pt-BR": "pt_BR", "ru": "ru_RU", "ja": "ja_JP",
               "ko": "ko_KR", "zh-Hans": "zh_CN", "zh-Hant": "zh_TW"}
 # The documentation, in the sidebar's order.
-DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide"), ("troubleshooting", "guide"),
+DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide"), ("themes", "guide"),
+        ("troubleshooting", "guide"),
         ("config", "reference")]
 # The documentation's folder of a language (docs/<folder>/), when not its own code.
 DOC_FOLDERS = {"fr-CA": "fr"}
