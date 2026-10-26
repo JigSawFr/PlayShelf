@@ -72,7 +72,7 @@ inline constexpr const auto& TEXT_SIZES = ui::TEXT_SIZES;
 // What effects may be: the default first.
 inline constexpr const auto& EFFECTS = ui::EFFECTS;
 // What start_tab may be, in the sidebar's order.
-constexpr const char* START_TABS[] = { "library", "preferences", "about" };
+constexpr const char* START_TABS[] = { "library", "catalogue", "preferences", "about" };
 // What About › Help & diagnostics offers for the reports and crash files kept.
 constexpr int LOGS_KEEP[]      = { 0, 5, 10, 20, 50 };
 constexpr int LOGS_KEEP_DAYS[] = { 0, 7, 30, 90, 365 };

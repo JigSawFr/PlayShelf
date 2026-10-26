@@ -302,7 +302,7 @@ void finished(const std::string& id, const Outcome& o)
     }
     save();
     changed();
-    // What the console has: read again for the Library tab's covers.
+    // What the console has: read again for the Library and Catalogue tabs' covers.
     library_flow::reread_installed([]() { changed(); });
     start_next();
 }

@@ -231,4 +231,53 @@ size_t install(const Loaded& l, const std::vector<size_t>& items)
     return download_flow::add(std::move(jobs));
 }
 
+void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index)
+{
+    if (!data || index >= data->titles.size()) return;
+    const library::Title&             t = data->titles[index];
+    const std::vector<library::Item>& items = data->fetch.catalog.items;
+    using Choice = ui::Choice;
+    std::vector<Choice> choices;
+    const auto have = installed();
+    auto       add = [data](const std::vector<size_t>& chosen) {
+        return [data, chosen]() {
+            const size_t added = install(*data, chosen);
+            if (added) ui::notify(brls::getStr("playshelf/downloads/added", added));
+            else if (!chosen.empty()) ui::notify("playshelf/downloads/already"_i18n);
+        };
+    };
+    const library::TitleState st = library::state_of(t, data->fetch.catalog, *have);
+    // Its line's end: its size, or that the console has it.
+    auto line = [&](size_t i, const char* icon, const std::string& label, const std::string& group) {
+        const bool has = library::is_installed(items[i], *have);
+        choices.emplace_back(label, add({ i }), icon, has ? "playshelf/library/installed"_i18n : size_text(items[i].size),
+                             group, has ? Choice::Tone::ON : Choice::Tone::PLAIN);
+    };
+
+    // Everything at once, what the console does not have of it: the base
+    // game, its newest update (when newer than the one installed), its
+    // add-ons.
+    std::vector<size_t> missing;
+    if (t.base >= 0 && !st.base) missing.push_back((size_t)t.base);
+    const long latest = library::latest_update(t);
+    if (latest >= 0 && !library::is_installed(items[(size_t)latest], *have) &&
+        (!st.base || st.update_available))
+        missing.push_back((size_t)latest);
+    for (size_t i : t.dlcs)
+        if (!library::is_installed(items[i], *have)) missing.push_back(i);
+    uint64_t missing_size = 0;
+    for (size_t i : missing) missing_size += items[i].size;
+    if (missing.size() > 1 || (st.base && !missing.empty()))
+        choices.emplace_back(st.base ? "playshelf/library/install_missing"_i18n : "playshelf/library/install_all"_i18n,
+                             add(missing), "download", size_text(missing_size));
+
+    if (t.base >= 0) line((size_t)t.base, "gamepad", "playshelf/library/base"_i18n, "playshelf/library/group_base"_i18n);
+    for (size_t i : t.updates)
+        line(i, "refresh", brls::getStr("playshelf/library/update", items[i].version), "playshelf/library/group_updates"_i18n);
+    for (size_t i : t.dlcs) line(i, "plus", library::clean_name(items[i].name), "playshelf/library/group_dlcs"_i18n);
+    std::string subtitle = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
+    if (st.base) subtitle += " · " + brls::getStr("playshelf/library/installed_version", st.version);
+    ui::pick_actions(t.name, choices, subtitle);
+}
+
 }   // namespace library_flow

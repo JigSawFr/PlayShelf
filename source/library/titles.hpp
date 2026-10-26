@@ -1,4 +1,4 @@
-// titles — a catalogue as the Library tab shows it: its items gathered by
+// titles — a catalogue as the Catalogue tab shows it: its items gathered by
 // game (a base game, its updates newest first, its add-ons), then the games
 // a search and a section keep, in the order asked. An item whose title id
 // is unknown is a game of its own.

@@ -11,6 +11,7 @@
         "preferences": "환경 설정",
         "about": "정보",
         "library": "라이브러리",
+        "catalogue": "카탈로그",
         "downloads": "다운로드"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "업데이트 있음",
         "install_missing": "빠진 항목 설치",
         "installed_version": "설치됨: v{}"
+    },
+    "installed": {
+        "summary": "이 본체",
+        "reading": "읽는 중…",
+        "count": "게임 {}개",
+        "count_one": "게임 1개",
+        "to_get": "새로운 것이 있는 게임 {}개",
+        "version": "v{}",
+        "dlcs_missing": "받을 추가 콘텐츠 {}개",
+        "dlcs_missing_one": "받을 추가 콘텐츠 1개",
+        "empty_title": "아직 이 본체에 게임이 없습니다",
+        "empty_text": "이 본체에 설치된 게임이 여기에 표시됩니다. 카탈로그 탭에서 라이브러리 서버의 게임을 더 설치할 수 있습니다.",
+        "not_found": "지금까지 읽은 카탈로그에 이 게임이 없습니다. 이 게임이 있는 서버를 카탈로그 탭에서 읽으면 업데이트와 추가 콘텐츠가 표시됩니다."
     },
     "tiles": {
         "upload": "보고서 보내기…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "아직 다운로드가 없습니다",
-        "empty_text": "라이브러리의 게임 정보 화면에서 패키지를 여기에 추가하며, 하나씩 차례로 설치됩니다.",
+        "empty_text": "카탈로그의 게임 정보 화면에서 패키지를 여기에 추가하며, 하나씩 차례로 설치됩니다.",
         "added": "다운로드에 추가됨: {}",
         "already": "이미 다운로드에 있습니다",
         "state_waiting": "대기 중",

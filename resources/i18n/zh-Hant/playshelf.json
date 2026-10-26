@@ -11,6 +11,7 @@
         "preferences": "偏好設定",
         "about": "關於",
         "library": "遊戲庫",
+        "catalogue": "目錄",
         "downloads": "下載"
     },
     "hints": {
@@ -133,6 +134,19 @@
         "update_available": "有可用更新",
         "install_missing": "安裝缺少的內容",
         "installed_version": "已安裝：v{}"
+    },
+    "installed": {
+        "summary": "此主機上",
+        "reading": "正在讀取…",
+        "count": "{} 款遊戲",
+        "count_one": "1 款遊戲",
+        "to_get": "{} 款有新內容",
+        "version": "v{}",
+        "dlcs_missing": "{} 個追加內容可取得",
+        "dlcs_missing_one": "1 個追加內容可取得",
+        "empty_title": "此主機上還沒有遊戲",
+        "empty_text": "此主機上安裝的遊戲會顯示在這裡。「目錄」分頁可從遊戲庫伺服器安裝更多遊戲。",
+        "not_found": "目前讀取的目錄中都沒有這款遊戲：在「目錄」分頁讀取擁有它的伺服器後，會顯示其更新和追加內容。"
     },
     "tiles": {
         "upload": "傳送報告…",
@@ -445,7 +459,7 @@
     },
     "downloads": {
         "empty_title": "還沒有下載",
-        "empty_text": "遊戲庫中遊戲的詳細資料頁會把它的軟體包加入這裡；它們會依序安裝。",
+        "empty_text": "目錄中遊戲的詳細資料頁會把它的軟體包加入這裡；它們會依序安裝。",
         "added": "已加入下載：{}",
         "already": "已在下載清單中",
         "state_waiting": "等待中",

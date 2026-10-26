@@ -1,4 +1,4 @@
-// GameTile — a game of the library as a cover in a grid (tab/library_tab):
+// GameTile — a game as a cover in a grid (tab/catalogue_tab, tab/library_tab):
 // its icon (a gamepad on the well until one arrives, or for a game without
 // one), its name on one line and a value under it (its size, what the server
 // has of it). From PlayGuard's.

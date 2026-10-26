@@ -1,4 +1,4 @@
-// library_flow — what the Library tab does with its servers, on the
+// library_flow — what the Catalogue tab does with its servers, on the
 // network in the background: a server's catalogue fetched (library/client)
 // and gathered by game (library/titles), kept for this run so the tab shows
 // it again at once; a LAN server's own certificate shown to be trusted
@@ -63,6 +63,12 @@ void reread_installed(const std::function<void()>& after);
 // the downloads (action/download_flow); how many were (one already
 // waiting or running is not added twice).
 size_t install(const Loaded& l, const std::vector<size_t>& items);
+
+// A game of a catalogue (`index` in data->titles) as a sheet: everything
+// the console does not have of it at once (the base game, its newest update
+// when newer than the one installed, its add-ons), then each item, its size
+// or that the console has it; A on one adds it to the downloads.
+void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index);
 
 // "734 MB", "4,2 GB" (the language's decimal mark): a package's size.
 std::string size_text(uint64_t bytes);
