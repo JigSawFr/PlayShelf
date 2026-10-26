@@ -3,13 +3,15 @@
 
 #include <cstring>
 
+#include "install/split_stream.hpp"
 #include "util/http.hpp"
 
 namespace install
 {
 
-HttpSource::HttpSource(std::string url_, std::vector<std::string> headers_, const std::atomic<bool>* cancel_, std::string pin_)
-    : url(std::move(url_)), headers(std::move(headers_)), cancel(cancel_), pin(std::move(pin_))
+HttpSource::HttpSource(std::string url_, std::vector<std::string> headers_, const std::atomic<bool>* cancel_, std::string pin_,
+                       int connections_)
+    : url(std::move(url_)), headers(std::move(headers_)), cancel(cancel_), pin(std::move(pin_)), connections(connections_)
 {
 }
 
@@ -43,7 +45,9 @@ bool HttpSource::stream(uint64_t offset, uint64_t length, const std::function<bo
         if (why) *why = "read past the package's end";
         return false;
     }
-    return http::range(url, offset, length, sink, why, headers, cancel, pin);
+    const auto fetch = [this](uint64_t at, uint64_t n, const std::function<bool(const uint8_t*, size_t)>& to, std::string* error,
+                              const std::atomic<bool>* stop) { return http::range(url, at, n, to, error, headers, stop, pin); };
+    return split_stream(offset, length, connections, fetch, sink, why, cancel);
 }
 
 }   // namespace install

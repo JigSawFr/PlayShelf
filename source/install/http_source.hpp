@@ -1,7 +1,8 @@
 // http_source — a package on an HTTPS server as an install::Source: its
 // headers read with Range requests, its contents streamed as they arrive.
 // The server must serve ranges (a 206 for each request), as AeroFoil,
-// Ownfoil and any static file server do.
+// Ownfoil and any static file server do. A content streamed over several
+// connections at once (install/split_stream) when asked.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -19,9 +20,10 @@ class HttpSource : public Source
   public:
     // headers: sent with every request (an Authorization). cancel: as for
     // http::range(). pin: the server's key when its certificate is its own
-    // (a LAN server's, library/client.hpp).
+    // (a LAN server's, library/client.hpp). connections: a stream's, 1 to
+    // MAX_CONNECTIONS.
     HttpSource(std::string url, std::vector<std::string> headers = {}, const std::atomic<bool>* cancel = nullptr,
-               std::string pin = "");
+               std::string pin = "", int connections = 1);
     // Asks the server for the package's size; false (why set) when it
     // cannot be had or the server serves no ranges.
     bool     open(std::string* why);
@@ -35,6 +37,7 @@ class HttpSource : public Source
     std::vector<std::string> headers;
     const std::atomic<bool>* cancel;
     std::string              pin;
+    int                      connections;
     uint64_t                 total = 0;
 };
 

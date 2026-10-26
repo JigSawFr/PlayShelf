@@ -140,7 +140,7 @@ void credentials_of(const download::Job& job, std::vector<std::string>* headers,
 }
 
 // On the worker thread.
-Outcome run_job(const download::Job& job, const std::vector<std::string>& headers, const std::string& pin,
+Outcome run_job(const download::Job& job, const std::vector<std::string>& headers, const std::string& pin, int connections,
                 const std::vector<download::Job>& snapshot, const std::shared_ptr<Control>& ctl)
 {
     using namespace install;
@@ -151,7 +151,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         return o;
     };
     std::string cut_why;
-    HttpSource  http(job.url, headers, &ctl->stop, pin);
+    HttpSource  http(job.url, headers, &ctl->stop, pin, connections);
     if (!http.open(&o.why)) return ctl->stop ? stopped() : o;
     CutSource  src(http, *ctl, &cut_why);
     const auto pkg = package_open(src, &o.why);
@@ -329,9 +329,10 @@ void run(download::Job& job)
     const download::Job              copy = job;
     const std::vector<download::Job> snapshot = s_jobs;
     const auto                       ctl = s_control;
-    brls::Logger::info("downloads: {} started", job.name);
-    ui::in_background("download", [copy, headers, pin, snapshot, ctl]() {
-        const Outcome o = run_job(copy, headers, pin, snapshot, ctl);
+    const int                        connections = config::get().connections;
+    brls::Logger::info("downloads: {} started ({} connections)", job.name, connections);
+    ui::in_background("download", [copy, headers, pin, connections, snapshot, ctl]() {
+        const Outcome o = run_job(copy, headers, pin, connections, snapshot, ctl);
         brls::sync([id = copy.id, o]() { finished(id, o); });
     });
     save();
