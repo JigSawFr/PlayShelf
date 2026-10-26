@@ -39,6 +39,7 @@ struct Job
     std::string url;         // https://
     std::string server_id;   // the library server's (library/servers), "" for none
     uint64_t    title_id = 0;
+    std::optional<uint32_t> version;   // the package's, as the catalogue gives it
     uint64_t    size = 0;    // the package's, as the catalogue gives it (0: unknown)
     State       state = State::Waiting;
     std::string error;       // Failed: why
@@ -46,6 +47,11 @@ struct Job
     bool        accept_unsigned = false;    // the user said to install it anyway
     uint64_t    done = 0, total = 0;        // the install's bytes, as last known
     std::optional<install::Journal> journal;
+    // Not kept in the file: PlayShelf's own tries since the user's last
+    // word, and when it tries again (a steady clock's seconds, 0: it does
+    // not).
+    int    attempts = 0;
+    double retry_at = 0;
 };
 
 constexpr size_t MAX_JOBS = 256;

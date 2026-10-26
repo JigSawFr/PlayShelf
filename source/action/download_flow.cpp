@@ -11,6 +11,7 @@
 
 #include "action/library_flow.hpp"
 #include "core/awake.h"
+#include "download/recovery.hpp"
 #include "install/console_core.hpp"
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
@@ -30,13 +31,50 @@ struct Control
 {
     std::atomic<bool> pause{false}, cancel{false};
     std::atomic<bool> stop{false};   // either: the download itself cut at once
+    std::atomic<bool> cut{false};    // the pause is the transfer's, not the user's
 };
 
 struct Outcome
 {
     bool             ok = false, paused = false, cancelled = false, unsigned_content = false;
+    bool             undone = false;   // failed in the install: what every run did undone, the journal of no use
     std::string      why;
     uint64_t         total = 0;
+};
+
+// A package's source whose transfer, cut short (the network, a busy
+// server), pauses the install instead of failing it: its journal kept, it
+// is tried again from there. On the worker thread.
+class CutSource : public install::Source
+{
+  public:
+    CutSource(install::Source& src, Control& ctl, std::string* why) : inner(src), control(ctl), reason(why) {}
+    uint64_t size() const override { return inner.size(); }
+    bool     read(uint64_t offset, uint8_t* out, size_t n, std::string* why) override
+    {
+        return watch(inner.read(offset, out, n, why), why);
+    }
+    bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
+                std::string* why) override
+    {
+        return watch(inner.stream(offset, length, sink, why), why);
+    }
+
+  private:
+    bool watch(bool ok, const std::string* why)
+    {
+        if (ok || control.stop || !why) return ok;
+        const download::Cause c = download::cause_of(*why);
+        if (c == download::Cause::Network || c == download::Cause::Server) {
+            *reason = *why;
+            control.cut = true;
+            control.pause = true;
+        }
+        return ok;
+    }
+    install::Source& inner;
+    Control&         control;
+    std::string*     reason;
 };
 
 // The UI thread's only.
@@ -49,6 +87,8 @@ std::string                    s_running;   // the running job's id
 std::shared_ptr<Control>       s_control;
 Live                           s_live;
 download::Rate                 s_rate;
+double                         s_last_byte = 0;   // when the running job's count last went on
+bool                           s_ticking = false;
 
 double now_seconds()
 {
@@ -110,8 +150,10 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         o.cancelled = ctl->cancel.load();
         return o;
     };
-    HttpSource src(job.url, headers, &ctl->stop, pin);
-    if (!src.open(&o.why)) return ctl->stop ? stopped() : o;
+    std::string cut_why;
+    HttpSource  http(job.url, headers, &ctl->stop, pin);
+    if (!http.open(&o.why)) return ctl->stop ? stopped() : o;
+    CutSource  src(http, *ctl, &cut_why);
     const auto pkg = package_open(src, &o.why);
     if (!pkg) return ctl->stop ? stopped() : o;
     CoreConsole console(CoreStorage_Sd);
@@ -143,6 +185,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         last = t;
         brls::sync([id, done, total]() {
             if (s_running != id) return;
+            if (done > s_live.done) s_last_byte = now_seconds();
             s_live.done = done;
             s_live.total = total;
             s_rate.add(done, now_seconds());
@@ -167,12 +210,59 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     if (!inst.prepare(&o.why)) return ctl->stop ? stopped() : o;
     o.total = inst.bytes_to_write();
     o.ok = inst.run(&o.why);
+    // The transfer cut, the user not pausing: a failure to try again, the
+    // journal kept.
+    if (!o.ok && inst.paused() && ctl->cut && !ctl->stop) {
+        o.why = cut_why;
+        return o;
+    }
     if (!o.ok && (inst.paused() || ctl->cancel)) return stopped();
+    o.undone = !o.ok;
     o.unsigned_content = !o.ok && o.why.find("not signed by Nintendo") != std::string::npos;
     return o;
 }
 
 void start_next();
+void tick();
+
+// The jobs whose time to be tried again came: waiting again.
+void retry_due()
+{
+    const double now = now_seconds();
+    bool         any = false;
+    for (download::Job& j : s_jobs)
+        if (j.state == download::State::Failed && j.retry_at > 0 && j.retry_at <= now) {
+            brls::Logger::info("downloads: {} tried again ({} of {})", j.name, j.attempts, download::RETRIES);
+            j.retry_at = 0;
+            j.state = download::State::Waiting;
+            any = true;
+        }
+    if (!any) return;
+    save();
+    changed();
+    start_next();
+}
+
+// Every second while a job runs or waits to be tried again: the screens
+// told (a job standing still, the time before a try), the tries due made.
+void tick()
+{
+    const bool waiting_retry = std::any_of(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) { return j.retry_at > 0; });
+    if (s_running.empty() && !waiting_retry) {
+        s_ticking = false;
+        return;
+    }
+    s_ticking = true;
+    retry_due();
+    const bool quiet = !s_running.empty() && now_seconds() - s_last_byte >= download::QUIET_SHOWN;
+    if (quiet || waiting_retry) changed();
+    brls::delay(1000, []() { tick(); });
+}
+
+void start_ticking()
+{
+    if (!s_ticking) tick();
+}
 
 void finished(const std::string& id, const Outcome& o)
 {
@@ -189,6 +279,7 @@ void finished(const std::string& id, const Outcome& o)
         j->state = download::State::Done;
         j->journal.reset();
         j->done = j->total;
+        j->attempts = 0;
         ui::notify(brls::getStr("playshelf/downloads/done_toast", j->name), ui::Toast::Done);
     } else if (j && o.paused) {
         j->state = download::State::Paused;
@@ -197,7 +288,17 @@ void finished(const std::string& id, const Outcome& o)
         j->state = download::State::Failed;
         j->error = o.why;
         j->unsigned_content = o.unsigned_content;
-        ui::notify(brls::getStr("playshelf/downloads/failed_toast", j->name), ui::Toast::Refused);
+        // The install undid what its runs did: nothing left to take up.
+        if (o.undone) j->journal.reset();
+        const auto delay = download::retry_delay(download::cause_of(o.why, o.unsigned_content), j->attempts);
+        if (delay) {
+            j->attempts++;
+            j->retry_at = now_seconds() + *delay;
+            brls::Logger::info("downloads: {} tried again in {} s", j->name, *delay);
+        } else {
+            ui::notify(brls::getStr("playshelf/downloads/failed_toast", j->name), ui::Toast::Refused);
+        }
+        start_ticking();
     }
     save();
     changed();
@@ -218,7 +319,9 @@ void run(download::Job& job)
     s_live.done = job.done;
     s_live.total = job.total;
     s_rate.reset();
+    s_last_byte = now_seconds();
     awake(true);
+    start_ticking();
 
     std::vector<std::string> headers;
     std::string              pin;
@@ -261,7 +364,33 @@ void start_next()
             return;
         }
     }
-    run(s_jobs[(size_t)i]);
+    download::Job& job = s_jobs[(size_t)i];
+    // What can no longer be done as it stands: its server removed, its
+    // package on the console by now (another installer, an earlier job).
+    if (!job.server_id.empty()) {
+        const std::vector<library::Server> servers = library::load_servers();
+        if (!library::find_server(servers, job.server_id)) {
+            brls::Logger::warning("downloads: {}: its server is no longer there", job.name);
+            job.state = download::State::Failed;
+            job.error = download::SERVER_GONE;
+            save();
+            changed();
+            start_next();
+            return;
+        }
+    }
+    if (download::installed_already(job, *library_flow::installed())) {
+        brls::Logger::info("downloads: {} is on the console already", job.name);
+        job.state = download::State::Done;
+        job.journal.reset();
+        job.done = job.total;
+        ui::notify(brls::getStr("playshelf/downloads/already_toast", job.name), ui::Toast::Done);
+        save();
+        changed();
+        start_next();
+        return;
+    }
+    run(job);
 }
 
 // A job that is not running, removed: what its runs registered deleted.
@@ -297,6 +426,7 @@ Live live()
     Live l = s_live;
     if (l.id.empty()) return l;
     l.speed = s_rate.bytes_per_second();
+    l.quiet = now_seconds() - s_last_byte;
     l.eta = l.total > l.done ? s_rate.eta(l.total - l.done) : std::nullopt;
     return l;
 }
@@ -338,6 +468,8 @@ void resume(const std::string& id)
     if (!j || (j->state != download::State::Paused && j->state != download::State::Failed)) return;
     j->state = download::State::Waiting;
     j->error.clear();
+    j->attempts = 0;
+    j->retry_at = 0;
     save();
     changed();
     start_next();
@@ -369,7 +501,10 @@ void cancel(const std::string& id)
 void pause_all()
 {
     for (download::Job& j : s_jobs)
-        if (j.state == download::State::Waiting) j.state = download::State::Paused;
+        if (j.state == download::State::Waiting || j.retry_at > 0) {
+            j.state = download::State::Paused;
+            j.retry_at = 0;
+        }
     if (!s_running.empty()) pause(s_running);
     save();
     changed();
@@ -390,6 +525,92 @@ void clear_finished()
                  s_jobs.end());
     save();
     changed();
+}
+
+double retry_in(const download::Job& job)
+{
+    return job.retry_at > 0 ? std::max(0.0, job.retry_at - now_seconds()) : -1;
+}
+
+std::optional<library::Server> server_of(const download::Job& job)
+{
+    if (job.server_id.empty()) return std::nullopt;
+    const std::vector<library::Server> servers = library::load_servers();
+    const library::Server*             s = library::find_server(servers, job.server_id);
+    return s ? std::optional<library::Server>(*s) : std::nullopt;
+}
+
+namespace
+{
+// The job's address on its server's other address (LAN ↔ WAN); "" for none.
+std::string other_url(const download::Job& job, const library::Server& s)
+{
+    if (s.lan_url.empty() || s.wan_url.empty()) return "";
+    if (library::same_origin(job.url, s.lan_url)) return download::rebase(job.url, s.lan_url, s.wan_url);
+    if (library::same_origin(job.url, s.wan_url)) return download::rebase(job.url, s.wan_url, s.lan_url);
+    return "";
+}
+}   // namespace
+
+std::vector<download::Remedy> remedies(const download::Job& job)
+{
+    download::Situation at;
+    if (const auto s = server_of(job)) {
+        at.server_known = true;
+        at.other_address = !other_url(job, *s).empty();
+    }
+    return download::remedies(download::cause_of(job.error, job.unsigned_content), at);
+}
+
+void use_other_address(const std::string& id)
+{
+    download::Job* j = find(id);
+    if (!j) return;
+    const auto        s = server_of(*j);
+    const std::string url = s ? other_url(*j, *s) : "";
+    if (url.empty()) return;
+    brls::Logger::info("downloads: {} from the server's other address", j->name);
+    j->url = url;
+    resume(id);
+}
+
+void find_again(const std::string& id)
+{
+    const download::Job* j = find(id);
+    const auto           s = j ? server_of(*j) : std::nullopt;
+    if (!s) return;
+    if (library_flow::loading()) {
+        ui::notify("playshelf/downloads/find_busy"_i18n, ui::Toast::Refused);
+        return;
+    }
+    library_flow::forget(s->id);
+    library_flow::load(*s, [id](const std::shared_ptr<const library_flow::Loaded>& l, const std::string& why) {
+        download::Job* job = find(id);
+        if (!job) return;
+        if (!l) {
+            if (!why.empty()) ui::notify(brls::getStr("playshelf/downloads/find_failed", why), ui::Toast::Refused);
+            return;
+        }
+        const long at = download::find_again(*job, l->fetch.catalog.items);
+        if (at < 0) {
+            ui::notify(brls::getStr("playshelf/downloads/find_none", job->name), ui::Toast::Refused);
+            return;
+        }
+        const library::Item& it = l->fetch.catalog.items[(size_t)at];
+        brls::Logger::info("downloads: {} found again in the catalogue", job->name);
+        const bool moved = it.url != job->url;
+        // Another file, maybe: what an earlier run kept is of no use.
+        if (moved) {
+            undo_stopped(*job);
+            job->journal.reset();
+            job->done = 0;
+        }
+        job->url = it.url;
+        if (it.size) job->size = it.size;
+        ui::notify(brls::getStr(moved ? "playshelf/downloads/found_toast" : "playshelf/downloads/found_same", job->name),
+                   moved ? ui::Toast::Done : ui::Toast::Info);
+        resume(id);
+    });
 }
 
 void keep_awake_changed()
@@ -430,7 +651,9 @@ void show_pill()
     const bool stuck = std::any_of(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) {
         return j.state == download::State::Failed || j.state == download::State::Paused;
     });
-    cadran::set_pill(summary(), "download", stuck && s_running.empty() ? cadran::Tone::WARN : cadran::Tone::OK);
+    // A job standing still is amber too.
+    const bool quiet = !s_running.empty() && now_seconds() - s_last_byte >= download::QUIET_SHOWN;
+    cadran::set_pill(summary(), "download", (stuck && s_running.empty()) || quiet ? cadran::Tone::WARN : cadran::Tone::OK);
 }
 
 }   // namespace download_flow

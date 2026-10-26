@@ -275,6 +275,10 @@ DYNAMIC_KEYS = {
     "library/sort_values/": array_of("source/tab/library_tab.cpp", "SORTS"),
     "library/connection_values/": array_of("source/activity/server_activity.cpp", "CONNECTIONS"),
     "library/format_values/": array_of("source/activity/server_activity.cpp", "FORMATS"),
+    # A failed download's cause: every cause's name but those the Downloads
+    # tab words otherwise (its own error, the unsigned content's line).
+    "downloads/cause/": [v for v in returned_by("source/download/recovery.cpp", "cause_name") if v not in ("other", "unsigned")],
+    "downloads/help/": [v for v in returned_by("source/download/recovery.cpp", "cause_name") if v not in ("other", "unsigned")],
 }
 for prefix, values in sorted(DYNAMIC_KEYS.items()):
     values = [v for v in values if v]

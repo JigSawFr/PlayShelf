@@ -37,6 +37,25 @@ std::string running_text(const download_flow::Live& l)
     if (l.eta) text += " · " + brls::getStr("playshelf/downloads/eta", ui::fmt_duration((uint64_t)*l.eta));
     return text;
 }
+
+// "12 s" under a minute, else as ui::fmt_duration words it.
+std::string short_duration(double seconds)
+{
+    const uint64_t s = seconds > 0 ? (uint64_t)seconds : 0;
+    return s < 60 ? brls::getStr("playshelf/downloads/seconds", s) : ui::fmt_duration(s);
+}
+
+// Why a job failed, in a few words ("network cut"); its own error when
+// none fits.
+std::string cause_text(const download::Job& j)
+{
+    const download::Cause c = download::cause_of(j.error, j.unsigned_content);
+    if (c == download::Cause::Unsigned) return "playshelf/downloads/state_unsigned"_i18n;
+    const std::string why = c == download::Cause::Other ? j.error : brls::getStr(std::string("playshelf/downloads/cause/") + download::cause_name(c));
+    const double      in = download_flow::retry_in(j);
+    if (in >= 0) return brls::getStr("playshelf/downloads/state_retry", short_duration(in + 1), why);
+    return brls::getStr("playshelf/downloads/state_failed", why);
+}
 }   // namespace
 
 DownloadsTab::DownloadsTab()
@@ -223,6 +242,11 @@ void DownloadsTab::fill(Row& row)
                 text = what + " · " + (live.total ? running_text(live) : "playshelf/downloads/state_starting"_i18n);
             }
         color = "cadran/teal";
+        // Nothing comes: said, before the transfer gives up and tries again.
+        if (live.quiet >= download::QUIET_SHOWN) {
+            text += " · " + brls::getStr("playshelf/downloads/state_quiet", short_duration(live.quiet));
+            color = "cadran/amber";
+        }
         break;
     case download::State::Waiting:
         text = "playshelf/downloads/state_waiting"_i18n + " · " + packages;
@@ -236,13 +260,14 @@ void DownloadsTab::fill(Row& row)
         color = "cadran/teal";
         break;
     case download::State::Failed:
+        color = "cadran/coral";
         for (size_t i : g.jobs)
             if (jobs[i].state == download::State::Failed && text.empty()) {
                 const std::string what = jobs[i].label.empty() ? jobs[i].name : jobs[i].label;
-                text = what + " · " + (jobs[i].unsigned_content ? "playshelf/downloads/state_unsigned"_i18n
-                                                               : brls::getStr("playshelf/downloads/state_failed", jobs[i].error));
+                text = what + " · " + cause_text(jobs[i]);
+                // Tried again by itself: not the user's call yet.
+                if (download_flow::retry_in(jobs[i]) >= 0) color = "cadran/amber";
             }
-        color = "cadran/coral";
         break;
     }
     if (size && download::group_state(g, jobs) != download::State::Running) text += " · " + library_flow::size_text(size);
@@ -323,11 +348,33 @@ void DownloadsTab::open_job(const std::string& job_id)
         choices.emplace_back("playshelf/downloads/resume"_i18n, [job_id]() { download_flow::resume(job_id); }, "download");
         break;
     case download::State::Failed:
-        if (j->unsigned_content)
-            choices.emplace_back("playshelf/downloads/install_anyway"_i18n, [job_id]() { download_flow::accept_unsigned(job_id); },
-                                 "alert", "", "", Choice::Tone::WARN);
-        else
-            choices.emplace_back("playshelf/downloads/retry"_i18n, [job_id]() { download_flow::resume(job_id); }, "refresh");
+        for (download::Remedy r : download_flow::remedies(*j)) switch (r) {
+            case download::Remedy::Retry:
+                choices.emplace_back(download_flow::retry_in(*j) >= 0 ? "playshelf/downloads/retry_now"_i18n : "playshelf/downloads/retry"_i18n,
+                                     [job_id]() { download_flow::resume(job_id); }, "refresh");
+                break;
+            case download::Remedy::OtherAddress:
+                choices.emplace_back("playshelf/downloads/other_address"_i18n, [job_id]() { download_flow::use_other_address(job_id); },
+                                     "globe");
+                break;
+            case download::Remedy::EditServer:
+                choices.emplace_back("playshelf/downloads/edit_server"_i18n, [job_id]() {
+                    const download::Job* job = job_of(job_id);
+                    const auto           s = job ? download_flow::server_of(*job) : std::nullopt;
+                    // Saved: the job tried again with what changed.
+                    if (s) library_flow::edit(*s, [job_id](const std::string& saved) {
+                        if (!saved.empty()) download_flow::resume(job_id);
+                    });
+                }, "server");
+                break;
+            case download::Remedy::FindAgain:
+                choices.emplace_back("playshelf/downloads/find_again"_i18n, [job_id]() { download_flow::find_again(job_id); }, "eye");
+                break;
+            case download::Remedy::InstallAnyway:
+                choices.emplace_back("playshelf/downloads/install_anyway"_i18n, [job_id]() { download_flow::accept_unsigned(job_id); },
+                                     "alert", "", "", Choice::Tone::WARN);
+                break;
+            }
         break;
     case download::State::Done:
         break;
@@ -344,6 +391,14 @@ void DownloadsTab::open_job(const std::string& job_id)
                                                 "playshelf/downloads/remove"_i18n, [job_id]() { download_flow::cancel(job_id); });
                          },
                          "trash", "", "", done ? Choice::Tone::PLAIN : Choice::Tone::DANGER);
-    std::string subtitle = j->state == download::State::Failed && j->unsigned_content ? "playshelf/downloads/unsigned_note"_i18n : "";
+    // A failure: what it means, and the error itself.
+    std::string subtitle;
+    if (j->state == download::State::Failed) {
+        const download::Cause c = download::cause_of(j->error, j->unsigned_content);
+        subtitle = c == download::Cause::Unsigned ? "playshelf/downloads/unsigned_note"_i18n
+                 : c == download::Cause::Other    ? j->error
+                                                  : brls::getStr(std::string("playshelf/downloads/help/") + download::cause_name(c));
+        if (c != download::Cause::Other && c != download::Cause::Unsigned && !j->error.empty()) subtitle += "\n" + j->error;
+    }
     ui::pick_actions(name, choices, subtitle);
 }

@@ -36,6 +36,7 @@ void test_file()
     Job     a = job("00000000000000a1", State::Running);
     a.server_id = "0123456789abcdef";
     a.title_id = 0x0100000000010000ull;
+    a.version = 131072;
     a.size = 123456789;
     a.done = 1000;
     a.total = 5000;
@@ -62,7 +63,7 @@ void test_file()
     if (!CHECK(back.size() == 2)) return;
     CHECK(back[0].state == State::Paused);   // cut short by a restart
     CHECK(back[0].name == a.name && back[0].url == a.url && back[0].server_id == a.server_id);
-    CHECK(back[0].title_id == a.title_id && back[0].size == a.size && back[0].done == 1000 && back[0].total == 5000);
+    CHECK(back[0].title_id == a.title_id && back[0].version == a.version && !back[1].version && back[0].size == a.size && back[0].done == 1000 && back[0].total == 5000);
     CHECK(back[0].journal && *back[0].journal == jn);
     CHECK(back[0].game == "Zelda" && back[0].label == "Update v65536" && back[0].game_id == a.game_id &&
           back[0].icon_url == a.icon_url);
