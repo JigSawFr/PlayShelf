@@ -11,6 +11,7 @@
 #include "action/download_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
+#include "install/split_stream.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 
@@ -66,12 +67,39 @@ DownloadsTab::DownloadsTab()
     empty.text->setText("playshelf/downloads/empty_text"_i18n);
     empty_box->addView(empty.box);
 
+    // The settings, a card: staying awake, the connections.
+    brls::Box* card = cadran::List::rows_in(settings);
+    keep_awake = new brls::BooleanCell();
     keep_awake->init("playshelf/downloads/keep_awake"_i18n, config::get().keep_awake, [](bool on) {
         config::get().keep_awake = on;
         ui::save_config();
         download_flow::keep_awake_changed();
     });
-    cadran::List::row(keep_awake, "bolt", true);
+    card->addView(keep_awake);
+    cadran::List::row(keep_awake, "bolt");
+    connections = new brls::DetailCell();
+    connections->setText("playshelf/downloads/connections"_i18n);
+    ui::set_detail(connections, std::to_string(config::get().connections));
+    connections->registerClickAction([this](brls::View*) {
+        std::vector<std::string> values, details;
+        for (int n = 1; n <= install::MAX_CONNECTIONS; n++) {
+            values.push_back(std::to_string(n));
+            details.push_back(n == 1   ? "playshelf/downloads/connections_one"_i18n
+                              : n == 4 ? "playshelf/downloads/connections_default"_i18n
+                              : n == install::MAX_CONNECTIONS ? "playshelf/downloads/connections_most"_i18n
+                                                              : "");
+        }
+        ui::pick("playshelf/downloads/connections"_i18n, values, config::get().connections - 1,
+                 ui::guarded(this->alive, [this](int i) {
+                     config::get().connections = i + 1;
+                     ui::save_config();
+                     ui::set_detail(this->connections, std::to_string(i + 1));
+                 }),
+                 true, details);
+        return true;
+    });
+    card->addView(connections);
+    cadran::List::row(connections, "server");
     // A tab's margins, as the other tabs' lists have them.
     const cadran::List margins(this);
     (void)margins;

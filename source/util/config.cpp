@@ -95,6 +95,7 @@ void sanitize(Config& c)
     keep_ok = false;
     for (int k : LOGS_KEEP_MB) keep_ok |= c.logs_keep_mb == k;
     if (!keep_ok) c.logs_keep_mb = 0;
+    if (c.connections < 1 || c.connections > 8) c.connections = 4;
     if (!is_date(c.update_checked)) c.update_checked.clear();
     if (c.update_latest.size() > 32) c.update_latest.clear();
     if (c.update_snooze_version.size() > 32 || !is_date(c.update_snooze_until))
@@ -160,6 +161,7 @@ static void load_shared()
     read_string(j, "dev_builds_order", c.dev_builds_order);
     read_bool(j, "support_reminder", c.support_reminder);
     read_bool(j, "keep_awake", c.keep_awake);
+    read_int(j, "connections", c.connections);
     read_string(j, "support_reminded", c.support_reminded);
     read_string(j, "seen_version", c.seen_version);
     read_string(j, "crash_seen", c.crash_seen);
@@ -207,6 +209,7 @@ bool snapshot(Snapshot& snap)
     j["dev_builds_order"] = s_config.dev_builds_order;
     j["support_reminder"] = s_config.support_reminder;
     j["keep_awake"] = s_config.keep_awake;
+    j["connections"] = s_config.connections;
     j["support_reminded"] = s_config.support_reminded;
     j["seen_version"]    = s_config.seen_version;
     j["crash_seen"]      = s_config.crash_seen;

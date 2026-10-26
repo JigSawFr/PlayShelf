@@ -2,7 +2,7 @@
 
 <!-- Downloads: the queue by game, each game's icon, state and timeline of
      its packages; A on one gives what can be done with it; whether the
-     console stays awake while they run. Filled by
+     console stays awake while they run, and a download's connections. Filled by
      source/tab/downloads_tab.cpp. -->
 
 <brls:Box
@@ -26,7 +26,7 @@
 
             <brls:Box id="dl_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="40"/>
             <brls:Box id="dl_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            <brls:BooleanCell id="dl_keep_awake" marginTop="12"/>
+            <brls:Box id="dl_settings" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
 
         </brls:Box>
 
