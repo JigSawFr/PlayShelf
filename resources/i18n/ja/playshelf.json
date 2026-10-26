@@ -10,7 +10,8 @@
     "tabs": {
         "preferences": "オプション",
         "about": "情報",
-        "library": "ライブラリ"
+        "library": "ライブラリ",
+        "downloads": "ダウンロード"
     },
     "hints": {
         "refresh": "更新",
@@ -443,7 +444,6 @@
         "done_many": "{} 個のパッケージをインストールしました：{} MB 書き込みました。"
     },
     "downloads": {
-        "title": "ダウンロード",
         "empty_title": "ダウンロードはまだありません",
         "empty_text": "ライブラリのゲームの詳細画面から、そのパッケージがここに追加され、1つずつ順番にインストールされます。",
         "added": "ダウンロードに追加しました：{}",
@@ -472,7 +472,9 @@
         "summary_running": "インストール予定 {}件 · {}%",
         "summary_waiting": "待機中 {}件",
         "summary_paused": "一時停止中 {}件",
-        "summary_none": "インストールするものはありません",
+        "summary_failed": "失敗 {}件",
+        "done_toast": "インストール完了：{}",
+        "failed_toast": "失敗：{}",
         "no_patches_body": "PlayShelf はこの本体で sys-patch も sigpatches も見つけられませんでした。これらなしでインストールしたゲームは起動しない可能性があります。\n\nそれでもインストールしますか？",
         "no_patches_go": "それでもインストール",
         "packages": "{}個のパッケージ",

@@ -5,6 +5,7 @@
 
 #include <borealis/cadran/ui/cadran_frame.hpp>
 
+#include "action/download_flow.hpp"
 #include "action/update_flow.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -107,7 +108,7 @@ void PreferencesTab::refresh()
     update_daily->setOn(cfg.update_daily, false);
     update_via->setDetailText(update_flow::method_text());
     this->list.sync();
-    cadran::set_pill("");
+    download_flow::show_pill();
 }
 
 brls::View* PreferencesTab::create()

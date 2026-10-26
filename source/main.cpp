@@ -37,6 +37,7 @@
 #include "core/sim_env.h"
 #include "core/sysinfo.h"
 #include "tab/about_tab.hpp"
+#include "tab/downloads_tab.hpp"
 #include "tab/library_tab.hpp"
 #include "tab/preferences_tab.hpp"
 #include "ui/ui.hpp"
@@ -253,6 +254,7 @@ void register_views()
     brls::Application::registerXMLView("ScrollView",      ScrollView::create);
     brls::Application::registerXMLView("MadeInFrance",    MadeInFrance::create);
     brls::Application::registerXMLView("LibraryTab",      LibraryTab::create);
+    brls::Application::registerXMLView("DownloadsTab",    DownloadsTab::create);
     brls::Application::registerXMLView("PreferencesTab",  PreferencesTab::create);
     brls::Application::registerXMLView("AboutTab",        AboutTab::create);
 

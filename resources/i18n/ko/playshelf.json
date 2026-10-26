@@ -10,7 +10,8 @@
     "tabs": {
         "preferences": "환경 설정",
         "about": "정보",
-        "library": "라이브러리"
+        "library": "라이브러리",
+        "downloads": "다운로드"
     },
     "hints": {
         "refresh": "새로 고침",
@@ -443,7 +444,6 @@
         "done_many": "패키지 {}개를 설치했습니다: {} MB를 기록했습니다."
     },
     "downloads": {
-        "title": "다운로드",
         "empty_title": "아직 다운로드가 없습니다",
         "empty_text": "라이브러리의 게임 정보 화면에서 패키지를 여기에 추가하며, 하나씩 차례로 설치됩니다.",
         "added": "다운로드에 추가됨: {}",
@@ -472,7 +472,9 @@
         "summary_running": "설치할 항목 {}개 · {}%",
         "summary_waiting": "대기 중 {}개",
         "summary_paused": "일시 정지 {}개",
-        "summary_none": "설치할 항목 없음",
+        "summary_failed": "실패 {}개",
+        "done_toast": "설치 완료: {}",
+        "failed_toast": "실패: {}",
         "no_patches_body": "PlayShelf가 이 본체에서 sys-patch도 sigpatches도 찾지 못했습니다. 이것 없이 설치한 게임은 실행되지 않을 수 있습니다.\n\n그래도 설치하시겠습니까?",
         "no_patches_go": "그래도 설치",
         "packages": "패키지 {}개",

@@ -12,7 +12,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
 | `start_tab` | `library`, `preferences`, `about` | `library` | *Preferences › Start on* |
 | `support_reminder` | `true`, `false` | `true` | "Support PlayShelf" once a month at start-up |
-| `keep_awake` | `true`, `false` | `true` | *Library › Downloads › Stay awake while downloading*: the console does not go to sleep by itself while downloads run |
+| `keep_awake` | `true`, `false` | `true` | *Downloads › Stay awake while downloading*: the console does not go to sleep by itself while downloads run |
 | `support_reminded` | `YYYY-MM-DD` | none | The day of the last reminder |
 | `seen_version` | a version | none | The version whose "What's new" was shown |
 | `crash_seen` | a crash file's name | none | The newest crash file already said |

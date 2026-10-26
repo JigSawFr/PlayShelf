@@ -10,7 +10,8 @@
     "tabs": {
         "preferences": "Voorkeuren",
         "about": "Info",
-        "library": "Bibliotheek"
+        "library": "Bibliotheek",
+        "downloads": "Downloads"
     },
     "hints": {
         "refresh": "Vernieuwen",
@@ -443,7 +444,6 @@
         "done_many": "{} pakketten geïnstalleerd: {} MB geschreven."
     },
     "downloads": {
-        "title": "Downloads",
         "empty_title": "Nog geen downloads",
         "empty_text": "De pagina van een game in de Bibliotheek voegt hier zijn pakketten toe; ze worden na elkaar geïnstalleerd.",
         "added": "Toegevoegd aan de downloads: {}",
@@ -472,7 +472,9 @@
         "summary_running": "{} te installeren · {}%",
         "summary_waiting": "{} wachtend",
         "summary_paused": "{} gepauzeerd",
-        "summary_none": "Niets te installeren",
+        "summary_failed": "{} mislukt",
+        "done_toast": "Geïnstalleerd: {}",
+        "failed_toast": "Mislukt: {}",
         "no_patches_body": "PlayShelf vindt sys-patch noch sigpatches op deze console: een game die zonder geïnstalleerd is, start misschien niet.\n\nToch installeren?",
         "no_patches_go": "Toch installeren",
         "packages": "{} pakketten",

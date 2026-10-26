@@ -216,8 +216,10 @@ m = re.search(r"after (\d+) ms", ready[0]) if ready else None
 if not m or int(m.group(1)) < 2000:
     fail("the first screen came before the end of the intro: " + (ready[0].strip() if ready else "no line"))
 
-# The tabs, down the rail: Library | Preferences, About.
+# The tabs, down the rail: Library, Downloads | Preferences, About.
 shot("01_library")
+key("Down")
+shot("11_downloads")
 key("Down")
 shot("02_preferences")
 key("Right")                 # into Preferences: the language tile

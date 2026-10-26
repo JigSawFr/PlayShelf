@@ -10,7 +10,8 @@
     "tabs": {
         "preferences": "偏好設定",
         "about": "關於",
-        "library": "遊戲庫"
+        "library": "遊戲庫",
+        "downloads": "下載"
     },
     "hints": {
         "refresh": "重新整理",
@@ -443,7 +444,6 @@
         "done_many": "已安裝 {} 個軟體包：已寫入 {} MB。"
     },
     "downloads": {
-        "title": "下載",
         "empty_title": "還沒有下載",
         "empty_text": "遊戲庫中遊戲的詳細資料頁會把它的軟體包加入這裡；它們會依序安裝。",
         "added": "已加入下載：{}",
@@ -472,7 +472,9 @@
         "summary_running": "待安裝 {} 個 · {}%",
         "summary_waiting": "{} 個等待中",
         "summary_paused": "{} 個已暫停",
-        "summary_none": "沒有要安裝的內容",
+        "summary_failed": "{} 個失敗",
+        "done_toast": "已安裝：{}",
+        "failed_toast": "失敗：{}",
         "no_patches_body": "PlayShelf 在此主機上既找不到 sys-patch 也找不到 sigpatches：在沒有它們的情況下安裝的遊戲可能無法啟動。\n\n仍要安裝嗎？",
         "no_patches_go": "仍要安裝",
         "packages": "{} 個套件",

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "tab/about_tab.hpp"
 
+#include "action/download_flow.hpp"
 #include "action/update_flow.hpp"
 #include <borealis/cadran/ui/cadran_frame.hpp>
 #include <borealis/cadran/ui/cadran_kit.hpp>
@@ -149,7 +150,7 @@ void AboutTab::refresh()
         const std::string version_text = app::commit().empty() ? app::version() : app::version() + " · " + app::commit();
         this->version_line->setText(brls::getStr("playshelf/cadran/about/version", version_text));
     }
-    cadran::set_pill("");
+    download_flow::show_pill();
 }
 
 brls::View* AboutTab::create()
