@@ -62,7 +62,11 @@ void keep_awake_changed();
 int  listen(std::function<void()> changed);
 void unlisten(int id);
 
-// "2 downloads · 34 %", "1 paused", "" when the queue is empty.
+// "2 to install · 34 %", "1 paused", "1 failed", "" when nothing is left
+// to do.
 std::string summary();
+// The summary in the header's pill, whichever tab is shown (amber when a
+// job failed or waits paused); none when the queue is empty.
+void show_pill();
 
 }   // namespace download_flow

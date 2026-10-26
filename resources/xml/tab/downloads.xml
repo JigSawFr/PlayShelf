@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Downloads: the queue by game, each game's icon, state and timeline of
+     its packages; A on one gives what can be done with it; whether the
+     console stays awake while they run. Filled by
+     source/tab/downloads_tab.cpp. -->
+
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+            <brls:Box id="dl_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="40"/>
+            <brls:Box id="dl_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <brls:BooleanCell id="dl_keep_awake" marginTop="12"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:Box>

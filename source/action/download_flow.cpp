@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <atomic>
 #include <borealis.hpp>
+#include <borealis/cadran/ui/cadran_frame.hpp>
 #include <chrono>
 #include <map>
 #include <memory>
@@ -63,6 +64,7 @@ download::Job* find(const std::string& id)
 
 void changed()
 {
+    show_pill();
     // A copy: a listener may unlisten (a screen closing).
     const auto listeners = s_listeners;
     for (const auto& kv : listeners) kv.second();
@@ -187,6 +189,7 @@ void finished(const std::string& id, const Outcome& o)
         j->state = download::State::Done;
         j->journal.reset();
         j->done = j->total;
+        ui::notify(brls::getStr("playshelf/downloads/done_toast", j->name), ui::Toast::Done);
     } else if (j && o.paused) {
         j->state = download::State::Paused;
     } else if (j) {
@@ -194,6 +197,7 @@ void finished(const std::string& id, const Outcome& o)
         j->state = download::State::Failed;
         j->error = o.why;
         j->unsigned_content = o.unsigned_content;
+        ui::notify(brls::getStr("playshelf/downloads/failed_toast", j->name), ui::Toast::Refused);
     }
     save();
     changed();
@@ -408,7 +412,10 @@ void unlisten(int id)
 std::string summary()
 {
     const size_t left = download::pending(s_jobs);
-    if (!left) return "";
+    if (!left) {
+        const auto failed = std::count_if(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) { return j.state == download::State::Failed; });
+        return failed ? brls::getStr("playshelf/downloads/summary_failed", failed) : "";
+    }
     if (!s_running.empty()) {
         const Live l = live();
         const int  percent = l.total ? (int)std::min<uint64_t>(100, l.done * 100 / l.total) : 0;
@@ -416,6 +423,14 @@ std::string summary()
     }
     const bool waiting = std::any_of(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) { return j.state == download::State::Waiting; });
     return brls::getStr(waiting ? "playshelf/downloads/summary_waiting" : "playshelf/downloads/summary_paused", left);
+}
+
+void show_pill()
+{
+    const bool stuck = std::any_of(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) {
+        return j.state == download::State::Failed || j.state == download::State::Paused;
+    });
+    cadran::set_pill(summary(), "download", stuck && s_running.empty() ? cadran::Tone::WARN : cadran::Tone::OK);
 }
 
 }   // namespace download_flow

@@ -10,7 +10,8 @@
     "tabs": {
         "preferences": "Preferencias",
         "about": "Información",
-        "library": "Biblioteca"
+        "library": "Biblioteca",
+        "downloads": "Descargas"
     },
     "hints": {
         "refresh": "Actualizar",
@@ -443,7 +444,6 @@
         "done_many": "{} paquetes instalados: {} MB escritos."
     },
     "downloads": {
-        "title": "Descargas",
         "empty_title": "Aún no hay descargas",
         "empty_text": "La ficha de un juego, en la Biblioteca, agrega aquí sus paquetes; se instalan uno tras otro.",
         "added": "Agregado a las descargas: {}",
@@ -472,7 +472,9 @@
         "summary_running": "{} por instalar · {} %",
         "summary_waiting": "{} en espera",
         "summary_paused": "{} en pausa",
-        "summary_none": "Nada que instalar",
+        "summary_failed": "{} con error",
+        "done_toast": "Instalado: {}",
+        "failed_toast": "Error: {}",
         "no_patches_body": "PlayShelf no encuentra ni sys-patch ni sigpatches en esta consola: es posible que un juego instalado sin ellos no inicie.\n\n¿Instalar de todas formas?",
         "no_patches_go": "Instalar de todas formas",
         "packages": "{} paquetes",

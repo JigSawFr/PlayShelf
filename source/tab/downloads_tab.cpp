@@ -1,5 +1,5 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
-#include "activity/downloads_activity.hpp"
+#include "tab/downloads_tab.hpp"
 
 #include <fmt/format.h>
 
@@ -20,10 +20,10 @@ namespace
 {
 constexpr float ICON = 72;
 
-const download::Job* job_of(const std::string& id)
+const download::Job* job_of(const std::string& job_id)
 {
     for (const download::Job& j : download_flow::jobs())
-        if (j.id == id) return &j;
+        if (j.id == job_id) return &j;
     return nullptr;
 }
 
@@ -39,17 +39,9 @@ std::string running_text(const download_flow::Live& l)
 }
 }   // namespace
 
-DownloadsActivity::~DownloadsActivity()
+DownloadsTab::DownloadsTab()
+    : TabBase("xml/tab/downloads.xml", false)
 {
-    *this->alive = false;
-    download_flow::unlisten(this->listener);
-}
-
-void DownloadsActivity::onContentAvailable()
-{
-    if (auto* applet = dynamic_cast<brls::AppletFrame*>(this->getContentView()))
-        applet->setTitle("playshelf/downloads/title"_i18n);
-
     cadran::kit::Empty empty = cadran::kit::empty("download");
     empty.title->setText("playshelf/downloads/empty_title"_i18n);
     empty.text->setText("playshelf/downloads/empty_text"_i18n);
@@ -61,16 +53,32 @@ void DownloadsActivity::onContentAvailable()
         download_flow::keep_awake_changed();
     });
     cadran::List::row(keep_awake, "bolt", true);
-    // The margins of the screens the skin dresses (this one dresses itself).
-    const cadran::List margins(this->getContentView(), true);
+    // A tab's margins, as the other tabs' lists have them.
+    const cadran::List margins(this);
     (void)margins;
 
-    this->listener = download_flow::listen(ui::guarded(this->alive, [this]() { this->update(); }));
-    this->set_hints();
+    this->listener = download_flow::listen(ui::guarded(this->alive, [this]() {
+        if (this->shown()) this->update();
+    }));
+}
+
+DownloadsTab::~DownloadsTab()
+{
+    download_flow::unlisten(this->listener);
+}
+
+void DownloadsTab::refresh()
+{
+    download_flow::show_pill();
     this->update();
 }
 
-void DownloadsActivity::set_hints()
+brls::View* DownloadsTab::create()
+{
+    return new DownloadsTab();
+}
+
+void DownloadsTab::set_hints()
 {
     const auto& jobs = download_flow::jobs();
     const bool  any_paused = std::any_of(jobs.begin(), jobs.end(), [](const download::Job& j) { return j.state == download::State::Paused; });
@@ -78,7 +86,7 @@ void DownloadsActivity::set_hints()
     const bool  any_active = download::pending(jobs) > (size_t)std::count_if(jobs.begin(), jobs.end(), [](const download::Job& j) {
                                 return j.state == download::State::Paused;
                             });
-    brls::View* root = this->getContentView();
+    brls::View* root = this;
     const std::string x_hint = any_active ? "playshelf/downloads/pause_all"_i18n : any_paused ? "playshelf/downloads/resume_all"_i18n : "";
     root->registerAction(x_hint, brls::BUTTON_X, [](brls::View*) {
                              const auto& all = download_flow::jobs();
@@ -96,7 +104,7 @@ void DownloadsActivity::set_hints()
     brls::Application::getGlobalHintsUpdateEvent()->fire();
 }
 
-void DownloadsActivity::update()
+void DownloadsTab::update()
 {
     const auto& jobs = download_flow::jobs();
     const auto  groups = download::groups(jobs);
@@ -110,7 +118,7 @@ void DownloadsActivity::update()
         brls::View* focus = brls::Application::getCurrentFocus();
         for (brls::View* v = focus; v; v = v->getParent())
             if (v == list) {
-                brls::Application::giveFocus(this->getContentView());
+                brls::Application::giveFocus(keep_awake);
                 break;
             }
         list->clearViews(true);
@@ -186,14 +194,14 @@ void DownloadsActivity::update()
     this->set_hints();
 }
 
-void DownloadsActivity::fill(Row& row)
+void DownloadsTab::fill(Row& row)
 {
     const auto& jobs = download_flow::jobs();
     download::Group g;
     uint64_t        size = 0;
-    for (const std::string& id : row.ids)
+    for (const std::string& job_id : row.ids)
         for (size_t i = 0; i < jobs.size(); i++)
-            if (jobs[i].id == id) {
+            if (jobs[i].id == job_id) {
                 g.jobs.push_back(i);
                 size += jobs[i].size;
             }
@@ -242,11 +250,11 @@ void DownloadsActivity::fill(Row& row)
     ui::set_text(row.state, text);
 }
 
-void DownloadsActivity::open_game(const std::vector<std::string>& ids)
+void DownloadsTab::open_game(const std::vector<std::string>& ids)
 {
     std::vector<const download::Job*> pkgs;
-    for (const std::string& id : ids)
-        if (const download::Job* j = job_of(id)) pkgs.push_back(j);
+    for (const std::string& job_id : ids)
+        if (const download::Job* j = job_of(job_id)) pkgs.push_back(j);
     if (pkgs.empty()) return;
     if (pkgs.size() == 1) {
         this->open_job(pkgs[0]->id);
@@ -262,11 +270,11 @@ void DownloadsActivity::open_game(const std::vector<std::string>& ids)
     }
     if (active)
         choices.emplace_back("playshelf/downloads/pause_game"_i18n, [ids]() {
-            for (const std::string& id : ids) download_flow::pause(id);
+            for (const std::string& job_id : ids) download_flow::pause(job_id);
         }, "pause");
     if (stopped)
         choices.emplace_back("playshelf/downloads/resume_game"_i18n, [ids]() {
-            for (const std::string& id : ids) download_flow::resume(id);
+            for (const std::string& job_id : ids) download_flow::resume(job_id);
         }, "download");
     // Each package, its state at the end; A: its own actions.
     for (const download::Job* j : pkgs) {
@@ -283,16 +291,16 @@ void DownloadsActivity::open_game(const std::vector<std::string>& ids)
         case download::State::Done: state = "playshelf/downloads/state_done"_i18n; tone = Choice::Tone::ON; break;
         case download::State::Failed: state = "playshelf/downloads/failed_short"_i18n; tone = Choice::Tone::DANGER; break;
         }
-        const std::string id = j->id;
+        const std::string job_id = j->id;
         choices.emplace_back(j->label.empty() ? j->name : j->label,
-                             ui::guarded(this->alive, [this, id]() { this->open_job(id); }), "file", state,
+                             ui::guarded(this->alive, [this, job_id]() { this->open_job(job_id); }), "file", state,
                              "playshelf/downloads/group_packages"_i18n, tone);
     }
     const std::string game = pkgs[0]->game.empty() ? pkgs[0]->name : pkgs[0]->game;
     choices.emplace_back("playshelf/downloads/remove_game"_i18n, [ids, game]() {
         ui::confirm_danger(brls::getStr("playshelf/downloads/remove_game_body", game), "playshelf/downloads/remove"_i18n,
                            [ids]() {
-                               for (const std::string& id : ids) download_flow::cancel(id);
+                               for (const std::string& job_id : ids) download_flow::cancel(job_id);
                            });
     }, "trash", "", "", Choice::Tone::DANGER);
     uint64_t size = 0;
@@ -300,26 +308,26 @@ void DownloadsActivity::open_game(const std::vector<std::string>& ids)
     ui::pick_actions(game, choices, size ? library_flow::size_text(size) : "");
 }
 
-void DownloadsActivity::open_job(const std::string& id)
+void DownloadsTab::open_job(const std::string& job_id)
 {
-    const download::Job* j = job_of(id);
+    const download::Job* j = job_of(job_id);
     if (!j) return;
     using Choice = ui::Choice;
     std::vector<Choice> choices;
     switch (j->state) {
     case download::State::Waiting:
     case download::State::Running:
-        choices.emplace_back("playshelf/downloads/pause"_i18n, [id]() { download_flow::pause(id); }, "pause");
+        choices.emplace_back("playshelf/downloads/pause"_i18n, [job_id]() { download_flow::pause(job_id); }, "pause");
         break;
     case download::State::Paused:
-        choices.emplace_back("playshelf/downloads/resume"_i18n, [id]() { download_flow::resume(id); }, "download");
+        choices.emplace_back("playshelf/downloads/resume"_i18n, [job_id]() { download_flow::resume(job_id); }, "download");
         break;
     case download::State::Failed:
         if (j->unsigned_content)
-            choices.emplace_back("playshelf/downloads/install_anyway"_i18n, [id]() { download_flow::accept_unsigned(id); },
+            choices.emplace_back("playshelf/downloads/install_anyway"_i18n, [job_id]() { download_flow::accept_unsigned(job_id); },
                                  "alert", "", "", Choice::Tone::WARN);
         else
-            choices.emplace_back("playshelf/downloads/retry"_i18n, [id]() { download_flow::resume(id); }, "refresh");
+            choices.emplace_back("playshelf/downloads/retry"_i18n, [job_id]() { download_flow::resume(job_id); }, "refresh");
         break;
     case download::State::Done:
         break;
@@ -327,13 +335,13 @@ void DownloadsActivity::open_job(const std::string& id)
     const bool        done = j->state == download::State::Done;
     const std::string name = j->name;
     choices.emplace_back(done ? "playshelf/downloads/forget"_i18n : "playshelf/downloads/remove"_i18n,
-                         [id, name, done]() {
+                         [job_id, name, done]() {
                              if (done) {
-                                 download_flow::cancel(id);
+                                 download_flow::cancel(job_id);
                                  return;
                              }
                              ui::confirm_danger(brls::getStr("playshelf/downloads/remove_body", name),
-                                                "playshelf/downloads/remove"_i18n, [id]() { download_flow::cancel(id); });
+                                                "playshelf/downloads/remove"_i18n, [job_id]() { download_flow::cancel(job_id); });
                          },
                          "trash", "", "", done ? Choice::Tone::PLAIN : Choice::Tone::DANGER);
     std::string subtitle = j->state == download::State::Failed && j->unsigned_content ? "playshelf/downloads/unsigned_note"_i18n : "";

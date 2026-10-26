@@ -9,7 +9,6 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
-#include "activity/downloads_activity.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "view/game_tile.hpp"
@@ -98,11 +97,8 @@ LibraryTab::LibraryTab()
     empty.box->setMarginTop(40);
     empty_box->addView(empty.box);
 
-    downloads_cell->registerClickAction([](brls::View*) {
-        brls::Application::pushActivity(new DownloadsActivity());
-        return true;
-    });
-    // The queue's changes: its line, and the covers once an install ended.
+    // The queue's changes: the header's line, and the covers once an
+    // install ended.
     this->downloads_listener = download_flow::listen(ui::guarded(this->alive, [this]() {
         if (this->shown()) this->refresh();
     }));
@@ -142,7 +138,7 @@ LibraryTab::LibraryTab()
     });
     cadran::style_button(more);
 
-    this->list.apply({ { "lb_downloads", "download" }, { "lb_server", "server" }, { "lb_search", "eye" }, { "lb_sort", "list" }, { "lb_section", "folder" } });
+    this->list.apply({ { "lb_server", "server" }, { "lb_search", "eye" }, { "lb_sort", "list" }, { "lb_section", "folder" } });
 }
 
 const library::Server* LibraryTab::server() const
@@ -158,10 +154,7 @@ LibraryTab::~LibraryTab()
 
 void LibraryTab::refresh()
 {
-    cadran::set_pill("");
-    const std::string queue = download_flow::summary();
-    ui::set_visible(downloads_cell, !queue.empty() || !download_flow::jobs().empty());
-    ui::set_detail(downloads_cell, queue.empty() ? "playshelf/downloads/summary_none"_i18n : queue);
+    download_flow::show_pill();
     this->servers = library::load_servers();
     const library::Server* s = this->server();
     if (s) s_server_id = s->id;

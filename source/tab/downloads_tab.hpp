@@ -1,4 +1,6 @@
-// DownloadsActivity — Library › Downloads (action/download_flow): the queue
+// DownloadsTab — the downloads (action/download_flow), a tab of the rail
+// so the queue is a press away whatever else is open; the queue itself
+// runs whichever screen is shown. The queue
 // by game, a card each (download::groups: a base game, its updates and its
 // add-ons from one server), its icon (from the Library's cache), its name,
 // where it stands (the package being installed with its percent, speed and
@@ -19,15 +21,18 @@
 
 #include <borealis/cadran/ui/cadran_kit.hpp>
 
+#include "tab/tab_base.hpp"
 #include "view/timeline.hpp"
 
-class DownloadsActivity : public brls::Activity
+class DownloadsTab : public TabBase
 {
   public:
-    CONTENT_FROM_XML_RES("activity/downloads.xml");
+    DownloadsTab();
+    ~DownloadsTab() override;
+    static brls::View* create();
 
-    ~DownloadsActivity() override;
-    void onContentAvailable() override;
+  protected:
+    void refresh() override;
 
   private:
     struct Row
@@ -45,13 +50,12 @@ class DownloadsActivity : public brls::Activity
     void update();
     void fill(Row& row);
     void open_game(const std::vector<std::string>& ids);
-    void open_job(const std::string& id);
+    void open_job(const std::string& job_id);
     void set_hints();
 
     std::vector<Row> rows;
     int              generation = 0;   // the cards' build: an icon arriving for an older one is freed
     int              listener = 0;
-    std::shared_ptr<bool> alive = std::make_shared<bool>(true);
 
     BRLS_BIND(brls::Box, empty_box, "dl_empty");
     BRLS_BIND(brls::Box, list,      "dl_list");

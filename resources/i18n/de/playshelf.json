@@ -10,7 +10,8 @@
     "tabs": {
         "preferences": "Optionen",
         "about": "Info",
-        "library": "Bibliothek"
+        "library": "Bibliothek",
+        "downloads": "Downloads"
     },
     "hints": {
         "refresh": "Aktualisieren",
@@ -443,7 +444,6 @@
         "done_many": "{} Pakete installiert: {} MB geschrieben."
     },
     "downloads": {
-        "title": "Downloads",
         "empty_title": "Noch kein Download",
         "empty_text": "Die Seite eines Spiels in der Bibliothek fügt seine Pakete hier hinzu; sie werden nacheinander installiert.",
         "added": "Zu den Downloads hinzugefügt: {}",
@@ -472,7 +472,9 @@
         "summary_running": "{} zu installieren · {} %",
         "summary_waiting": "{} wartend",
         "summary_paused": "{} pausiert",
-        "summary_none": "Nichts zu installieren",
+        "summary_failed": "{} fehlgeschlagen",
+        "done_toast": "Installiert: {}",
+        "failed_toast": "Fehlgeschlagen: {}",
         "no_patches_body": "PlayShelf findet auf dieser Konsole weder sys-patch noch sigpatches: Ein ohne sie installiertes Spiel startet möglicherweise nicht.\n\nTrotzdem installieren?",
         "no_patches_go": "Trotzdem installieren",
         "packages": "{} Pakete",
