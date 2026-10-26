@@ -139,27 +139,45 @@ std::vector<Title> group_titles(const Catalog& catalog)
 }
 
 std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::string& query, Sort sort,
-                                  const std::string& section)
+                                  const std::string& section, const Selection& selection)
 {
     const std::string   q = fold(query);
     // A title id is looked for by 8 hex digits at least: fewer would match
     // most games ("0100…").
     const bool by_id = q.size() >= 8 && q.find_first_not_of("0123456789abcdef") == std::string::npos;
+    const Filter& f = selection.filter;
     std::vector<size_t> out;
-    std::vector<std::string> names(titles.size());
+    std::vector<std::string> names(titles.size()), publishers(titles.size());
+    std::vector<uint32_t>    dates(titles.size());
     for (size_t i = 0; i < titles.size(); i++) {
         const Title& t = titles[i];
         if (!section.empty() && std::find(t.sections.begin(), t.sections.end(), section) == t.sections.end()) continue;
         names[i] = fold(t.name);
         if (!q.empty() && names[i].find(q) == std::string::npos && !(by_id && t.id && hex16(t.id).find(q) != std::string::npos))
             continue;
+        const Facts facts = selection.facts && t.id ? selection.facts(t.id) : Facts();
+        if (!matches(f, facts)) continue;
+        if (f.state != Filter::State::Any && selection.state) {
+            const TitleState st = selection.state(t);
+            if ((f.state == Filter::State::Missing && st.base) || (f.state == Filter::State::Installed && !st.base) ||
+                (f.state == Filter::State::ToUpdate && !st.update_available) ||
+                (f.state == Filter::State::DlcsMissing && !st.dlcs_missing))
+                continue;
+        }
+        publishers[i] = fold(facts.publisher);
+        dates[i] = t.release_date ? t.release_date : facts.release_date;
         out.push_back(i);
     }
     std::stable_sort(out.begin(), out.end(), [&](size_t a, size_t b) {
         const Title& x = titles[a];
         const Title& y = titles[b];
-        if (sort == Sort::Newest && x.release_date != y.release_date) return x.release_date > y.release_date;
+        if (sort == Sort::Newest && dates[a] != dates[b]) return dates[a] > dates[b];
         if (sort == Sort::Largest && x.size != y.size) return x.size > y.size;
+        if (sort == Sort::Publisher && publishers[a] != publishers[b]) {
+            // Those with no publisher known last.
+            if (publishers[a].empty() || publishers[b].empty()) return publishers[b].empty();
+            return publishers[a] < publishers[b];
+        }
         return names[a] < names[b];
     });
     return out;

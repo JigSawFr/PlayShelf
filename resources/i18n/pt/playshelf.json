@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "Por nome",
             "newest": "Mais recentes primeiro",
-            "largest": "Maiores primeiro"
+            "largest": "Maiores primeiro",
+            "publisher": "Por editora"
         },
         "section": "Secção",
         "section_all": "Todas as secções",
@@ -150,7 +151,13 @@
         "delete_body": "Eliminar {} desta consola? O jogo, a sua atualização e os conteúdos adicionais são eliminados; os dados guardados ficam.",
         "deleted": "Eliminado: {}",
         "delete_failed": "Não foi possível eliminar {}",
-        "group_console": "Esta consola"
+        "group_console": "Esta consola",
+        "order_values": {
+            "name": "Por nome",
+            "publisher": "Por editora",
+            "newest": "Os mais recentes",
+            "to_get_first": "Por completar primeiro"
+        }
     },
     "tiles": {
         "upload": "Enviar um relatório…",
@@ -668,5 +675,28 @@
         "zh": "chinês",
         "ko": "coreano",
         "ru": "russo"
+    },
+    "filters": {
+        "row": "Filtros",
+        "row_sort": "Ordem e filtros",
+        "none": "Nenhum",
+        "title": "Filtrar os jogos",
+        "note": "Um género, uma editora, jogadores ou um idioma: só os jogos cujos detalhes a Nlib API já deu correspondem. Os outros são pedidos entretanto.",
+        "genre": "Género",
+        "publisher": "Editora",
+        "players": "Jogadores",
+        "any": "Todos",
+        "players_one": "Um jogador",
+        "players_many": "Dois jogadores ou mais",
+        "state": "Na consola",
+        "state_missing": "Fora da consola",
+        "state_installed": "Na consola",
+        "state_to_update": "Uma atualização por instalar",
+        "state_dlcs_missing": "Conteúdos adicionais por instalar",
+        "hide_demos": "Ocultar as demos",
+        "no_demos": "Sem demos",
+        "clear": "Limpar os filtros",
+        "known": "Detalhes conhecidos: {} de {} jogos",
+        "shown": "{} mostrados"
     }
 }

@@ -45,6 +45,9 @@ library::Facts facts(uint64_t title_id);
 // The games on screen: those not known yet asked of Nlib API, one after
 // the other, in place of the ones asked before and not done.
 void enrich(const std::vector<uint64_t>& title_ids);
+// Whether a game's facts may still come: not known yet, nor a game Nlib
+// API said it does not know (false too with nlib_api off).
+bool waiting(uint64_t title_id);
 
 // The eShop's genres PlayShelf has words for, as genre_name() turns Nlib
 // API's into keys (playshelf/genres/<one of them>).

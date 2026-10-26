@@ -16,6 +16,7 @@
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
 #include "library/titles.hpp"
+#include "tab/filter_sheet.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "view/game_cell.hpp"
@@ -68,6 +69,19 @@ bool something_to_get(const library::TitleState& st)
 {
     return st.update_available || st.dlcs_missing;
 }
+
+// The order and the filter chosen: they stay for this run.
+enum class Order : int { Name, Publisher, Newest, ToGetFirst };
+const char* const ORDERS[] = { "name", "publisher", "newest", "to_get_first" };
+Order           s_order = Order::Name;
+library::Filter s_filter;
+
+bool needs_facts()
+{
+    const library::Filter& f = s_filter;
+    return !f.genre.empty() || !f.publisher.empty() || !f.language.empty() || f.players || f.hide_demos ||
+           s_order == Order::Publisher || s_order == Order::Newest;
+}
 }   // namespace
 
 LibraryTab::LibraryTab()
@@ -83,6 +97,11 @@ LibraryTab::LibraryTab()
         return true;
     });
     cadran::List::row(summary, "gamepad", true);
+    filter_cell->registerClickAction([this](brls::View*) {
+        this->pick_filter();
+        return true;
+    });
+    cadran::List::row(filter_cell, "tools", true);
     more->registerClickAction([this](brls::View*) {
         this->add_page();
         return true;
@@ -110,9 +129,12 @@ LibraryTab::LibraryTab()
     // Nlib API's facts came: the names of the games known only by their
     // title id, once one of them has one.
     this->nlib_listener = nlib_flow::listen(ui::guarded(this->alive, [this]() {
+        if (!this->shown_games) return;
         for (const Entry& e : this->entries)
             if (e.name == fmt::format("{:016X}", e.game->game.id) && !nlib_flow::facts(e.game->game.id).name.empty())
                 return this->show_games(this->shown_games);
+        // A filter or the order that needs the facts: the games again.
+        if (needs_facts()) this->show_games(this->shown_games);
     }));
 }
 
@@ -173,14 +195,48 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
         if (something_to_get(state_in(e.data, e.title))) to_get++;
         this->entries.push_back(std::move(e));
     }
-    std::stable_sort(this->entries.begin(), this->entries.end(),
-                     [](const Entry& a, const Entry& b) { return library::fold(a.name) < library::fold(b.name); });
-
     const size_t count = this->entries.size();
+    // Those the filter keeps: by their facts, and by what a catalogue has
+    // that the console has not.
+    auto kept = [](const Entry& e) {
+        if (!library::matches(s_filter, nlib_flow::facts(e.game->game.id))) return false;
+        const library::TitleState st = state_in(e.data, e.title);
+        return !(s_filter.state == library::Filter::State::ToUpdate && !st.update_available) &&
+               !(s_filter.state == library::Filter::State::DlcsMissing && !st.dlcs_missing);
+    };
+    this->entries.erase(std::remove_if(this->entries.begin(), this->entries.end(), [&](const Entry& e) { return !kept(e); }),
+                        this->entries.end());
+    // In the order chosen, by name after it.
+    std::stable_sort(this->entries.begin(), this->entries.end(), [](const Entry& a, const Entry& b) {
+        if (s_order == Order::ToGetFirst) {
+            const bool x = something_to_get(state_in(a.data, a.title)), y = something_to_get(state_in(b.data, b.title));
+            if (x != y) return x;
+        } else if (s_order == Order::Publisher) {
+            const std::string x = library::fold(nlib_flow::facts(a.game->game.id).publisher);
+            const std::string y = library::fold(nlib_flow::facts(b.game->game.id).publisher);
+            if (x != y) return y.empty() || (!x.empty() && x < y);
+        } else if (s_order == Order::Newest) {
+            const uint32_t x = nlib_flow::facts(a.game->game.id).release_date, y = nlib_flow::facts(b.game->game.id).release_date;
+            if (x != y) return x > y;
+        }
+        return library::fold(a.name) < library::fold(b.name);
+    });
+    // The games' facts a filter or the order needs, asked meanwhile.
+    if (needs_facts()) {
+        std::vector<uint64_t> waiting;
+        for (const installed_flow::Game& g : *this->shown_games)
+            if (nlib_flow::waiting(g.game.id)) waiting.push_back(g.game.id);
+        nlib_flow::enrich(waiting);
+    }
+    const std::string filtered = filter_sheet::summary(s_filter);
+    ui::set_detail(filter_cell, brls::getStr(std::string("playshelf/installed/order_values/") + ORDERS[(int)s_order]) +
+                                    (filtered.empty() ? "" : " · " + filtered));
     ui::set_visible(empty_box, count == 0);
+    ui::set_visible(filter_cell, count > 0);
     // Kept even with no game: the focus has a place when the covers go.
     std::string line = count == 1 ? "playshelf/installed/count_one"_i18n : brls::getStr("playshelf/installed/count", count);
     if (to_get) line += " · " + brls::getStr("playshelf/installed/to_get", to_get);
+    if (this->entries.size() != count) line += " · " + brls::getStr("playshelf/filters/shown", this->entries.size());
     ui::set_detail(summary, line);
 
     // The focus moves off the covers first: they are made again.
@@ -266,8 +322,27 @@ void LibraryTab::add_page()
             library_icons::local(e.game->game.id, shown);
     }
     ui::set_visible(more, this->built < this->entries.size());
-    // What Nlib API knows of the games just shown, gathered meanwhile.
-    nlib_flow::enrich(shown_ids);
+    // What Nlib API knows of the games just shown, gathered meanwhile (all
+    // of them instead when a filter or the order needs it: show_games()).
+    if (!needs_facts()) nlib_flow::enrich(shown_ids);
+}
+
+void LibraryTab::pick_filter()
+{
+    std::vector<uint64_t> games;
+    if (this->shown_games)
+        for (const installed_flow::Game& g : *this->shown_games) games.push_back(g.game.id);
+    filter_sheet::Order order;
+    for (const char* o : ORDERS) order.labels.push_back(brls::getStr(std::string("playshelf/installed/order_values/") + o));
+    order.chosen = (int)s_order;
+    auto again = ui::guarded(this->alive, [this]() {
+        if (this->shown_games) this->show_games(this->shown_games);
+    });
+    order.pick = [again](int i) {
+        s_order = (Order)i;
+        again();
+    };
+    filter_sheet::open(&s_filter, std::move(games), filter_sheet::States::Library, std::move(order), again);
 }
 
 void LibraryTab::set_hints()

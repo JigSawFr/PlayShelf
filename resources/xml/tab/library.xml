@@ -26,6 +26,7 @@
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
             <brls:DetailCell id="li_summary" title="@i18n/playshelf/installed/summary"/>
+            <brls:DetailCell id="li_filter" title="@i18n/playshelf/filters/row_sort" marginTop="12" visibility="gone"/>
             <brls:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
             <brls:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
             <brls:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>

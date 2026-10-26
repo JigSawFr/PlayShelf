@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "Op naam",
             "newest": "Nieuwste eerst",
-            "largest": "Grootste eerst"
+            "largest": "Grootste eerst",
+            "publisher": "Op uitgever"
         },
         "section": "Sectie",
         "section_all": "Alle secties",
@@ -150,7 +151,13 @@
         "delete_body": "{} van deze console verwijderen? De game, de update en de extra content gaan weg; de opgeslagen data blijft.",
         "deleted": "Verwijderd: {}",
         "delete_failed": "{} kon niet worden verwijderd",
-        "group_console": "Deze console"
+        "group_console": "Deze console",
+        "order_values": {
+            "name": "Op naam",
+            "publisher": "Op uitgever",
+            "newest": "Nieuwste eerst",
+            "to_get_first": "Aan te vullen eerst"
+        }
     },
     "tiles": {
         "upload": "Rapport versturen…",
@@ -668,5 +675,28 @@
         "zh": "Chinees",
         "ko": "Koreaans",
         "ru": "Russisch"
+    },
+    "filters": {
+        "row": "Filters",
+        "row_sort": "Volgorde en filters",
+        "none": "Geen",
+        "title": "Games filteren",
+        "note": "Een genre, een uitgever, spelers of een taal: alleen games waarvan Nlib API de details al gaf, komen overeen. De andere worden intussen opgevraagd.",
+        "genre": "Genre",
+        "publisher": "Uitgever",
+        "players": "Spelers",
+        "any": "Alle",
+        "players_one": "Eén speler",
+        "players_many": "Twee spelers of meer",
+        "state": "Op de console",
+        "state_missing": "Niet op de console",
+        "state_installed": "Op de console",
+        "state_to_update": "Een update te halen",
+        "state_dlcs_missing": "Extra content te halen",
+        "hide_demos": "Demo's verbergen",
+        "no_demos": "Zonder demo's",
+        "clear": "Filters wissen",
+        "known": "Details bekend: {} van {} games",
+        "shown": "{} getoond"
     }
 }

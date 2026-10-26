@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "Par nom",
             "newest": "Les plus récents",
-            "largest": "Les plus gros"
+            "largest": "Les plus gros",
+            "publisher": "Par éditeur"
         },
         "section": "Section",
         "section_all": "Toutes les sections",
@@ -150,7 +151,13 @@
         "delete_body": "Supprimer {} de cette console ? Le jeu, sa mise à jour et ses contenus additionnels sont supprimés ; ses sauvegardes restent.",
         "deleted": "Supprimé : {}",
         "delete_failed": "{} n'a pas pu être supprimé",
-        "group_console": "Cette console"
+        "group_console": "Cette console",
+        "order_values": {
+            "name": "Par nom",
+            "publisher": "Par éditeur",
+            "newest": "Les plus récents",
+            "to_get_first": "À compléter d'abord"
+        }
     },
     "tiles": {
         "upload": "Envoyer un rapport…",
@@ -668,5 +675,28 @@
         "zh": "chinois",
         "ko": "coréen",
         "ru": "russe"
+    },
+    "filters": {
+        "row": "Filtres",
+        "row_sort": "Ordre et filtres",
+        "none": "Aucun",
+        "title": "Filtrer les jeux",
+        "note": "Un genre, un éditeur, des joueurs ou une langue : seuls les jeux dont Nlib API a déjà donné les détails correspondent. Les autres sont demandés en attendant.",
+        "genre": "Genre",
+        "publisher": "Éditeur",
+        "players": "Joueurs",
+        "any": "Tous",
+        "players_one": "Un joueur",
+        "players_many": "Deux joueurs ou plus",
+        "state": "Sur la console",
+        "state_missing": "Absents de la console",
+        "state_installed": "Sur la console",
+        "state_to_update": "Une mise à jour à prendre",
+        "state_dlcs_missing": "Des contenus additionnels à prendre",
+        "hide_demos": "Masquer les démos",
+        "no_demos": "Sans démos",
+        "clear": "Effacer les filtres",
+        "known": "Détails connus : {} jeux sur {}",
+        "shown": "{} affichés"
     }
 }

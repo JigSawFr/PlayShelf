@@ -30,6 +30,7 @@
             <brls:DetailCell id="lb_server" title="@i18n/playshelf/library/server"/>
             <brls:DetailCell id="lb_search" title="@i18n/playshelf/library/search"/>
             <brls:DetailCell id="lb_sort" title="@i18n/playshelf/library/sort"/>
+            <brls:DetailCell id="lb_filter" title="@i18n/playshelf/filters/row"/>
             <brls:DetailCell id="lb_section" title="@i18n/playshelf/library/section"/>
             <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="16">
                 <brls:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>

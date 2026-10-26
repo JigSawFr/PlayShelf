@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "按名称",
             "newest": "最新在前",
-            "largest": "最大在前"
+            "largest": "最大在前",
+            "publisher": "按发行商"
         },
         "section": "分区",
         "section_all": "全部分区",
@@ -150,7 +151,13 @@
         "delete_body": "要从此主机删除 {} 吗？游戏本体、更新和追加内容将被删除；存档会保留。",
         "deleted": "已删除：{}",
         "delete_failed": "无法删除 {}",
-        "group_console": "此主机"
+        "group_console": "此主机",
+        "order_values": {
+            "name": "按名称",
+            "publisher": "按发行商",
+            "newest": "最新优先",
+            "to_get_first": "有可补全内容优先"
+        }
     },
     "tiles": {
         "upload": "发送报告…",
@@ -668,5 +675,28 @@
         "zh": "中文",
         "ko": "韩语",
         "ru": "俄语"
+    },
+    "filters": {
+        "row": "筛选",
+        "row_sort": "排序和筛选",
+        "none": "无",
+        "title": "筛选游戏",
+        "note": "类型、发行商、玩家人数或语言：只有 Nlib API 已提供详情的游戏才会匹配。其他游戏会在此期间请求。",
+        "genre": "类型",
+        "publisher": "发行商",
+        "players": "玩家人数",
+        "any": "全部",
+        "players_one": "1 名玩家",
+        "players_many": "2 名玩家以上",
+        "state": "主机",
+        "state_missing": "不在主机上",
+        "state_installed": "在主机上",
+        "state_to_update": "有可用更新",
+        "state_dlcs_missing": "有可用追加内容",
+        "hide_demos": "隐藏体验版",
+        "no_demos": "不含体验版",
+        "clear": "清除筛选",
+        "known": "已知详情：{}/{} 款游戏",
+        "shown": "显示 {} 款"
     }
 }

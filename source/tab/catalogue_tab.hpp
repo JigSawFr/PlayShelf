@@ -49,6 +49,12 @@ class CatalogueTab : public TabBase
     void open_title(size_t title);
     void server_sheet();
     void pick_sort();
+    void pick_filter();
+    // The games the search, section, filter and order keep, as indexes in
+    // shown_data->titles.
+    std::vector<size_t> select() const;
+    void ask_facts();
+    void facts_came();
     void pick_section();
     void search();
     void after_saved(const std::string& saved_id);
@@ -71,9 +77,11 @@ class CatalogueTab : public TabBase
 
     BRLS_BIND(brls::Box,        empty_box, "lb_empty");
     int downloads_listener = 0;
+    int nlib_listener = 0;
     BRLS_BIND(brls::DetailCell, server_cell, "lb_server");
     BRLS_BIND(brls::DetailCell, search_cell, "lb_search");
     BRLS_BIND(brls::DetailCell, sort_cell,   "lb_sort");
+    BRLS_BIND(brls::DetailCell, filter_cell, "lb_filter");
     BRLS_BIND(brls::DetailCell, section_cell, "lb_section");
     BRLS_BIND(brls::Label,      status,      "lb_status");
     BRLS_BIND(brls::Box,        grid,        "lb_grid");

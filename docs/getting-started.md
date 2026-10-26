@@ -28,7 +28,7 @@ The first start opens on the **Library**, which says there is no server yet.
 
 ## Install a game
 
-The **Catalogue** shows the server's games as covers, with their size and their add-ons. **Search** and **Order** narrow it; a server with sections shows them too.
+The **Catalogue** shows the server's games as covers, with their size and their add-ons. **Search** and **Order** (by name, newest, largest or publisher) narrow it; a server with sections shows them too. **Filters** keep the games of a genre, of a publisher, for one player or several, in your language, by what the console has of them (not there, there, an update or add-ons to get), demos hidden. Genres, publishers, players and languages come from Nlib API as the games show: while a filter needs them, the games not known yet are asked in the background and join the list as they come (the line under the filters says how many are known). The **Library** has its own **Order and filters**: by name, publisher, newest, or the games with something to get first.
 
 | Catalogue | A game's page |
 |---|---|

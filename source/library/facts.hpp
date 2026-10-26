@@ -58,6 +58,28 @@ class FactsBook
     std::map<uint64_t, Facts> games;
 };
 
+// What a list of games keeps of them by their facts (each field "" or 0:
+// any); state: what the console has of them, applied by the list itself.
+struct Filter
+{
+    enum class State : uint8_t { Any, Missing, Installed, ToUpdate, DlcsMissing };
+
+    std::string genre;       // Nlib API's English word
+    std::string publisher;
+    std::string language;    // Nlib API's code ("fr")
+    int         players = 0;   // 1: one at a time only; 2: two or more
+    bool        hide_demos = false;
+    State       state = State::Any;
+
+    // How many of them are set.
+    size_t active() const;
+};
+
+// Whether a game of these facts is kept (all but the state). One whose
+// facts are not known yet is left out by a genre, a publisher, players or a
+// language asked.
+bool matches(const Filter& filter, const Facts& facts);
+
 // "20170303" from Nlib API's "2017-03-03" (0 when it is not a date).
 uint32_t date_of(const std::string& ymd);
 

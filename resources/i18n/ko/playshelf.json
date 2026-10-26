@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "이름순",
             "newest": "최신순",
-            "largest": "용량 큰 순"
+            "largest": "용량 큰 순",
+            "publisher": "퍼블리셔순"
         },
         "section": "섹션",
         "section_all": "모든 섹션",
@@ -150,7 +151,13 @@
         "delete_body": "{}을(를) 이 본체에서 삭제할까요? 게임, 업데이트, 추가 콘텐츠가 삭제되며 세이브 데이터는 남습니다.",
         "deleted": "삭제됨: {}",
         "delete_failed": "{}을(를) 삭제할 수 없습니다",
-        "group_console": "이 본체"
+        "group_console": "이 본체",
+        "order_values": {
+            "name": "이름순",
+            "publisher": "퍼블리셔순",
+            "newest": "최신순",
+            "to_get_first": "받을 것이 있는 게임 먼저"
+        }
     },
     "tiles": {
         "upload": "보고서 보내기…",
@@ -668,5 +675,28 @@
         "zh": "중국어",
         "ko": "한국어",
         "ru": "러시아어"
+    },
+    "filters": {
+        "row": "필터",
+        "row_sort": "정렬과 필터",
+        "none": "없음",
+        "title": "게임 필터",
+        "note": "장르, 퍼블리셔, 플레이 인원, 언어: Nlib API가 이미 세부 정보를 준 게임만 일치합니다. 나머지는 그동안 요청합니다.",
+        "genre": "장르",
+        "publisher": "퍼블리셔",
+        "players": "플레이 인원",
+        "any": "전체",
+        "players_one": "1인",
+        "players_many": "2인 이상",
+        "state": "본체",
+        "state_missing": "본체에 없음",
+        "state_installed": "본체에 있음",
+        "state_to_update": "받을 업데이트",
+        "state_dlcs_missing": "받을 추가 콘텐츠",
+        "hide_demos": "체험판 숨기기",
+        "no_demos": "체험판 제외",
+        "clear": "필터 지우기",
+        "known": "세부 정보 확인: {}/{}개 게임",
+        "shown": "{}개 표시"
     }
 }

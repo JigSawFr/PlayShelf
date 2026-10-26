@@ -274,6 +274,7 @@ DYNAMIC_KEYS = {
     "tools/update_via_values/": array_of("source/kit/action/update_flow.cpp", "METHODS"),
     "library/sort_values/": array_of("source/tab/catalogue_tab.cpp", "SORTS"),
     "genres/": array_of("source/action/nlib_flow.hpp", "GENRES"),
+    "installed/order_values/": array_of("source/tab/library_tab.cpp", "ORDERS"),
     "languages/": array_of("source/titledb/nlib.hpp", "NLIB_LANGUAGES"),
     "library/connection_values/": array_of("source/activity/server_activity.cpp", "CONNECTIONS"),
     "library/format_values/": array_of("source/activity/server_activity.cpp", "FORMATS"),

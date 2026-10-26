@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "依名稱",
             "newest": "最新在前",
-            "largest": "最大在前"
+            "largest": "最大在前",
+            "publisher": "按發行商"
         },
         "section": "分區",
         "section_all": "所有分區",
@@ -150,7 +151,13 @@
         "delete_body": "要從此主機刪除 {} 嗎？遊戲本體、更新和追加內容將被刪除；存檔會保留。",
         "deleted": "已刪除：{}",
         "delete_failed": "無法刪除 {}",
-        "group_console": "此主機"
+        "group_console": "此主機",
+        "order_values": {
+            "name": "按名稱",
+            "publisher": "按發行商",
+            "newest": "最新優先",
+            "to_get_first": "有可補全內容優先"
+        }
     },
     "tiles": {
         "upload": "傳送報告…",
@@ -668,5 +675,28 @@
         "zh": "中文",
         "ko": "韓語",
         "ru": "俄語"
+    },
+    "filters": {
+        "row": "篩選",
+        "row_sort": "排序和篩選",
+        "none": "無",
+        "title": "篩選遊戲",
+        "note": "類型、發行商、玩家人數或語言：只有 Nlib API 已提供詳情的遊戲才會符合。其他遊戲會在此期間請求。",
+        "genre": "類型",
+        "publisher": "發行商",
+        "players": "玩家人數",
+        "any": "全部",
+        "players_one": "1 名玩家",
+        "players_many": "2 名玩家以上",
+        "state": "主機",
+        "state_missing": "不在主機上",
+        "state_installed": "在主機上",
+        "state_to_update": "有可用更新",
+        "state_dlcs_missing": "有可用追加內容",
+        "hide_demos": "隱藏體驗版",
+        "no_demos": "不含體驗版",
+        "clear": "清除篩選",
+        "known": "已知詳情：{}/{} 款遊戲",
+        "shown": "顯示 {} 款"
     }
 }

@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "Per nome",
             "newest": "Più recenti prima",
-            "largest": "Più grandi prima"
+            "largest": "Più grandi prima",
+            "publisher": "Per editore"
         },
         "section": "Sezione",
         "section_all": "Tutte le sezioni",
@@ -150,7 +151,13 @@
         "delete_body": "Eliminare {} da questa console? Vengono eliminati il gioco, il suo aggiornamento e i contenuti aggiuntivi; i salvataggi restano.",
         "deleted": "Eliminato: {}",
         "delete_failed": "Impossibile eliminare {}",
-        "group_console": "Questa console"
+        "group_console": "Questa console",
+        "order_values": {
+            "name": "Per nome",
+            "publisher": "Per editore",
+            "newest": "I più recenti",
+            "to_get_first": "Da completare prima"
+        }
     },
     "tiles": {
         "upload": "Invia un rapporto…",
@@ -668,5 +675,28 @@
         "zh": "cinese",
         "ko": "coreano",
         "ru": "russo"
+    },
+    "filters": {
+        "row": "Filtri",
+        "row_sort": "Ordine e filtri",
+        "none": "Nessuno",
+        "title": "Filtra i giochi",
+        "note": "Un genere, un editore, i giocatori o una lingua: corrispondono solo i giochi di cui Nlib API ha già dato i dettagli. Gli altri vengono richiesti nel frattempo.",
+        "genre": "Genere",
+        "publisher": "Editore",
+        "players": "Giocatori",
+        "any": "Tutti",
+        "players_one": "Un giocatore",
+        "players_many": "Due giocatori o più",
+        "state": "Sulla console",
+        "state_missing": "Non sulla console",
+        "state_installed": "Sulla console",
+        "state_to_update": "Un aggiornamento da scaricare",
+        "state_dlcs_missing": "Contenuti aggiuntivi da scaricare",
+        "hide_demos": "Nascondi le demo",
+        "no_demos": "Senza demo",
+        "clear": "Cancella i filtri",
+        "known": "Dettagli noti: {} giochi su {}",
+        "shown": "{} mostrati"
     }
 }

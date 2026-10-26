@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "名前順",
             "newest": "新しい順",
-            "largest": "大きい順"
+            "largest": "大きい順",
+            "publisher": "発売元順"
         },
         "section": "セクション",
         "section_all": "すべてのセクション",
@@ -150,7 +151,13 @@
         "delete_body": "{}をこの本体から削除しますか？ゲーム本体、更新データ、追加コンテンツが削除されます。セーブデータは残ります。",
         "deleted": "削除しました：{}",
         "delete_failed": "{}を削除できませんでした",
-        "group_console": "この本体"
+        "group_console": "この本体",
+        "order_values": {
+            "name": "名前順",
+            "publisher": "発売元順",
+            "newest": "新しい順",
+            "to_get_first": "足りないものがある順"
+        }
     },
     "tiles": {
         "upload": "レポートを送信…",
@@ -668,5 +675,28 @@
         "zh": "中国語",
         "ko": "韓国語",
         "ru": "ロシア語"
+    },
+    "filters": {
+        "row": "フィルター",
+        "row_sort": "並び順とフィルター",
+        "none": "なし",
+        "title": "ゲームを絞り込む",
+        "note": "ジャンル、発売元、プレイ人数、言語：Nlib API から詳細が届いたゲームだけが一致します。残りはその間に問い合わせます。",
+        "genre": "ジャンル",
+        "publisher": "発売元",
+        "players": "プレイ人数",
+        "any": "すべて",
+        "players_one": "1人",
+        "players_many": "2人以上",
+        "state": "本体",
+        "state_missing": "本体にない",
+        "state_installed": "本体にある",
+        "state_to_update": "更新データあり",
+        "state_dlcs_missing": "追加コンテンツあり",
+        "hide_demos": "体験版を隠す",
+        "no_demos": "体験版なし",
+        "clear": "フィルターを消去",
+        "known": "詳細が分かっているゲーム：{}／{}",
+        "shown": "{} 件表示"
     }
 }

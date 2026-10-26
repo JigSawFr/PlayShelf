@@ -134,6 +134,25 @@ std::vector<std::string> FactsBook::publishers() const
     return { all.begin(), all.end() };
 }
 
+size_t Filter::active() const
+{
+    return (size_t)!this->genre.empty() + (size_t)!this->publisher.empty() + (size_t)!this->language.empty() +
+           (size_t)(this->players != 0) + (size_t)this->hide_demos + (size_t)(this->state != State::Any);
+}
+
+bool matches(const Filter& filter, const Facts& facts)
+{
+    auto has = [](const std::vector<std::string>& list, const std::string& v) {
+        return std::find(list.begin(), list.end(), v) != list.end();
+    };
+    if (!filter.genre.empty() && !has(facts.categories, filter.genre)) return false;
+    if (!filter.publisher.empty() && facts.publisher != filter.publisher) return false;
+    if (!filter.language.empty() && !has(facts.languages, filter.language)) return false;
+    if (filter.players == 1 && facts.players != 1) return false;
+    if (filter.players >= 2 && facts.players < 2) return false;
+    return !(filter.hide_demos && facts.demo);
+}
+
 uint32_t date_of(const std::string& ymd)
 {
     if (ymd.size() != 10 || ymd[4] != '-' || ymd[7] != '-') return 0;

@@ -14,6 +14,7 @@
 #include "action/nlib_flow.hpp"
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
+#include "tab/filter_sheet.hpp"
 #include "ui/ui.hpp"
 #include "view/game_tile.hpp"
 
@@ -28,8 +29,18 @@ std::string   s_server_id;
 std::string   s_query;
 library::Sort s_sort = library::Sort::Name;
 std::string   s_section;
+library::Filter s_filter;
 
-const char* const SORTS[] = { "name", "newest", "largest" };
+const char* const SORTS[] = { "name", "newest", "largest", "publisher" };
+
+// A filter or an order that needs the games' facts (Nlib API's, gathered
+// as games show): the ones not known yet are asked meanwhile.
+bool needs_facts()
+{
+    const library::Filter& f = s_filter;
+    return !f.genre.empty() || !f.publisher.empty() || !f.language.empty() || f.players || f.hide_demos ||
+           s_sort == library::Sort::Publisher;
+}
 
 std::string sort_text(library::Sort s)
 {
@@ -157,6 +168,12 @@ CatalogueTab::CatalogueTab()
         this->pick_sort();
         return true;
     });
+    filter_cell->registerClickAction([this](brls::View*) {
+        this->pick_filter();
+        return true;
+    });
+    // Facts came while a filter or an order needs them: the games again.
+    this->nlib_listener = nlib_flow::listen(ui::guarded(this->alive, [this]() { this->facts_came(); }));
     section_cell->registerClickAction([this](brls::View*) {
         this->pick_section();
         return true;
@@ -181,7 +198,8 @@ CatalogueTab::CatalogueTab()
     });
     cadran::style_button(more);
 
-    this->list.apply({ { "lb_server", "server" }, { "lb_search", "eye" }, { "lb_sort", "list" }, { "lb_section", "folder" } });
+    this->list.apply({ { "lb_server", "server" }, { "lb_search", "eye" }, { "lb_sort", "list" }, { "lb_filter", "tools" },
+                       { "lb_section", "folder" } });
 }
 
 const library::Server* CatalogueTab::server() const
@@ -193,6 +211,7 @@ const library::Server* CatalogueTab::server() const
 CatalogueTab::~CatalogueTab()
 {
     download_flow::unlisten(this->downloads_listener);
+    nlib_flow::unlisten(this->nlib_listener);
 }
 
 void CatalogueTab::refresh()
@@ -202,7 +221,7 @@ void CatalogueTab::refresh()
     const library::Server* s = this->server();
     if (s) s_server_id = s->id;
     ui::set_visible_all({ { empty_box, !s }, { server_cell, s != nullptr }, { search_cell, s != nullptr },
-                          { sort_cell, s != nullptr } });
+                          { sort_cell, s != nullptr }, { filter_cell, s != nullptr } });
     if (!s) {
         ui::set_visible_all({ { section_cell, false }, { status, false }, { grid, false }, { more, false } });
         this->shown_data = nullptr;
@@ -211,6 +230,8 @@ void CatalogueTab::refresh()
     ui::set_detail(server_cell, s->name);
     ui::set_detail(search_cell, s_query.empty() ? "playshelf/library/search_all"_i18n : s_query);
     ui::set_detail(sort_cell, sort_text(s_sort));
+    const std::string filtered = filter_sheet::summary(s_filter);
+    ui::set_detail(filter_cell, filtered.empty() ? "playshelf/filters/none"_i18n : filtered);
     ui::set_visible_all({ { status, true }, { grid, true } });
 
     this->shown_data = library_flow::loaded(s->id);
@@ -255,6 +276,12 @@ void CatalogueTab::show_status()
         const library::Fetch& f = this->shown_data->fetch;
         text = brls::getStr(f.on_lan ? "playshelf/library/count_lan" : "playshelf/library/count_wan",
                             this->selection.size(), this->shown_data->titles.size());
+        if (needs_facts()) {
+            size_t known = 0;
+            for (const library::Title& t : this->shown_data->titles)
+                if (t.id && nlib_flow::book().find(t.id)) known++;
+            text += "\n" + brls::getStr("playshelf/filters/known", known, this->shown_data->titles.size());
+        }
         if (!f.catalog.motd.empty()) text += "\n" + f.catalog.motd;
     }
     status->setTextColor(cadran::kit::color(color));
@@ -264,7 +291,9 @@ void CatalogueTab::show_status()
 void CatalogueTab::build_grid(bool force)
 {
     const auto* data = this->shown_data.get();
-    const std::string key = s_query + "\n" + std::to_string((int)s_sort) + "\n" + s_section;
+    const library::Filter& f = s_filter;
+    const std::string      key = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, (int)s_sort, s_section, f.genre, f.publisher,
+                                             f.language, f.players, (int)f.state, f.hide_demos);
     // Its sections: a choice only when the server has several.
     const bool sections = data && data->fetch.catalog.sections.size() > 1;
     ui::set_visible(section_cell, sections);
@@ -299,9 +328,44 @@ void CatalogueTab::build_grid(bool force)
     this->password = data ? library::password_of(data->server) : "";
     this->grid_row = nullptr;
     this->built = 0;
-    this->selection = data ? library::select_titles(data->titles, s_query, s_sort, sections ? s_section : "")
-                           : std::vector<size_t>();
+    this->selection = this->select();
+    this->ask_facts();
     this->add_page();
+    this->show_status();
+}
+
+std::vector<size_t> CatalogueTab::select() const
+{
+    const auto* data = this->shown_data.get();
+    if (!data) return {};
+    const auto         installed = this->built_installed;
+    library::Selection pick;
+    pick.filter = s_filter;
+    pick.facts = [](uint64_t title_id) { return nlib_flow::facts(title_id); };
+    pick.state = [data, installed](const library::Title& t) { return library::state_of(t, data->fetch.catalog, *installed); };
+    const bool sections = data->fetch.catalog.sections.size() > 1;
+    return library::select_titles(data->titles, s_query, s_sort, sections ? s_section : "", pick);
+}
+
+void CatalogueTab::ask_facts()
+{
+    // The games not known yet, asked a page at a time while a filter or
+    // the order needs their facts.
+    const auto* data = this->shown_data.get();
+    if (!data || !needs_facts()) return;
+    std::vector<uint64_t> unknown;
+    for (const library::Title& t : data->titles)
+        if (t.id && nlib_flow::waiting(t.id) && unknown.size() < PAGE) unknown.push_back(t.id);
+    nlib_flow::enrich(unknown);
+}
+
+void CatalogueTab::facts_came()
+{
+    if (!this->shown() || !this->shown_data || !needs_facts()) return;
+    // The covers built again only when what they show changed (one may
+    // have the focus); the next games asked either way.
+    if (this->select() != this->selection) this->build_grid(true);
+    else this->ask_facts();
     this->show_status();
 }
 
@@ -340,8 +404,9 @@ void CatalogueTab::add_page()
         else library_icons::local(t.id, shown);
     }
     ui::set_visible(more, data && this->built < this->selection.size());
-    // What Nlib API knows of the games just shown, gathered meanwhile.
-    nlib_flow::enrich(shown_ids);
+    // What Nlib API knows of the games just shown, gathered meanwhile (the
+    // ones a filter needs are asked instead: build_grid()).
+    if (!needs_facts()) nlib_flow::enrich(shown_ids);
 }
 
 void CatalogueTab::open_title(size_t index)
@@ -385,12 +450,22 @@ void CatalogueTab::server_sheet()
 void CatalogueTab::pick_sort()
 {
     std::vector<std::string> labels;
-    labels.reserve(3);
-    for (int i = 0; i < 3; i++) labels.push_back(sort_text((library::Sort)i));
+    for (size_t i = 0; i < sizeof(SORTS) / sizeof(SORTS[0]); i++) labels.push_back(sort_text((library::Sort)i));
     ui::pick("playshelf/library/sort"_i18n, labels, (int)s_sort, ui::guarded(this->alive, [this](int i) {
                  s_sort = (library::Sort)i;
                  this->refresh();
              }));
+}
+
+void CatalogueTab::pick_filter()
+{
+    const auto data = this->shown_data;
+    std::vector<uint64_t> games;
+    if (data)
+        for (const library::Title& t : data->titles)
+            if (t.id) games.push_back(t.id);
+    filter_sheet::open(&s_filter, std::move(games), filter_sheet::States::Catalogue, {},
+                       ui::guarded(this->alive, [this]() { this->refresh(); }));
 }
 
 void CatalogueTab::pick_section()

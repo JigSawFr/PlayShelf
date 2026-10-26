@@ -122,6 +122,81 @@ void test_select()
     CHECK(select_titles(t, "01006F8002326000", Sort::Name) == std::vector<size_t>({3}));
     CHECK(select_titles(t, "zzz", Sort::Name).empty());
 }
+
+// By what is known of them: their genre, publisher, players, language,
+// demo, and what the console has; sorted by publisher, the date known.
+void test_filter()
+{
+    std::vector<Title> t(4);
+    const char* const NAMES[] = { "Alpha", "Bravo", "Charlie", "Delta" };
+    for (size_t i = 0; i < t.size(); i++) {
+        t[i].name = NAMES[i];
+        t[i].id = 0x0100000000010000 + 0x2000 * i;
+    }
+    std::map<uint64_t, Facts> known;
+    known[t[0].id].publisher = "Zeta Games";
+    known[t[0].id].categories = { "Puzzle" };
+    known[t[0].id].players = 1;
+    known[t[0].id].languages = { "en", "fr" };
+    known[t[0].id].release_date = 20240101;
+    known[t[1].id].publisher = "Acme";
+    known[t[1].id].categories = { "Racing", "Action" };
+    known[t[1].id].players = 4;
+    known[t[1].id].languages = { "en" };
+    known[t[2].id].publisher = "Acme";
+    known[t[2].id].categories = { "Action" };
+    known[t[2].id].demo = true;
+    known[t[2].id].players = 2;
+    Selection sel;
+    sel.facts = [&](uint64_t id) {
+        const auto it = known.find(id);
+        return it == known.end() ? Facts() : it->second;
+    };
+    auto pick = [&](Sort sort = Sort::Name) { return select_titles(t, "", sort, "", sel); };
+
+    CHECK(pick() == std::vector<size_t>({ 0, 1, 2, 3 }) && sel.filter.active() == 0);
+    // Delta's facts are not known: a filter on them leaves it out.
+    sel.filter.genre = "Action";
+    CHECK(pick() == std::vector<size_t>({ 1, 2 }) && sel.filter.active() == 1);
+    sel.filter.hide_demos = true;
+    CHECK(pick() == std::vector<size_t>({ 1 }) && sel.filter.active() == 2);
+    sel.filter = Filter();
+    sel.filter.publisher = "Acme";
+    CHECK(pick() == std::vector<size_t>({ 1, 2 }));
+    sel.filter = Filter();
+    sel.filter.players = 1;
+    CHECK(pick() == std::vector<size_t>({ 0 }));
+    sel.filter.players = 2;
+    CHECK(pick() == std::vector<size_t>({ 1, 2 }));
+    sel.filter = Filter();
+    sel.filter.language = "fr";
+    CHECK(pick() == std::vector<size_t>({ 0 }));
+
+    // By publisher, those with none last; by date, the facts' when the
+    // catalogue has none.
+    sel.filter = Filter();
+    CHECK(pick(Sort::Publisher) == std::vector<size_t>({ 1, 2, 0, 3 }));
+    t[1].release_date = 20250101;
+    CHECK(pick(Sort::Newest) == std::vector<size_t>({ 1, 0, 2, 3 }));
+
+    // What the console has: applied when the list says.
+    sel.filter.state = Filter::State::Installed;
+    CHECK(pick().size() == 4);   // no state known: not applied
+    sel.state = [](const Title& x) {
+        TitleState st;
+        st.base = x.name == "Bravo" || x.name == "Delta";
+        st.update_available = x.name == "Delta";
+        st.dlcs_missing = x.name == "Bravo" ? 2 : 0;
+        return st;
+    };
+    CHECK(pick() == std::vector<size_t>({ 1, 3 }));
+    sel.filter.state = Filter::State::Missing;
+    CHECK(pick() == std::vector<size_t>({ 0, 2 }));
+    sel.filter.state = Filter::State::ToUpdate;
+    CHECK(pick() == std::vector<size_t>({ 3 }));
+    sel.filter.state = Filter::State::DlcsMissing;
+    CHECK(pick() == std::vector<size_t>({ 1 }));
+}
 }   // namespace
 
 void test_state()
@@ -165,6 +240,7 @@ int main()
     test_two_bases();
     test_names();
     test_select();
+    test_filter();
     test_state();
     return CHECK_DONE("library titles: items by game, names, search, sections, orders and what is installed passed");
 }

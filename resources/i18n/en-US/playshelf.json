@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "By name",
             "newest": "Newest first",
-            "largest": "Largest first"
+            "largest": "Largest first",
+            "publisher": "By publisher"
         },
         "section": "Section",
         "section_all": "Every section",
@@ -150,7 +151,13 @@
         "delete_body": "Delete {} from this console? Its base game, its update and its add-ons go; its saves stay.",
         "deleted": "Deleted: {}",
         "delete_failed": "{} could not be deleted",
-        "group_console": "This console"
+        "group_console": "This console",
+        "order_values": {
+            "name": "By name",
+            "publisher": "By publisher",
+            "newest": "Newest first",
+            "to_get_first": "Something to get first"
+        }
     },
     "tiles": {
         "upload": "Send a report…",
@@ -668,5 +675,28 @@
         "zh": "Chinese",
         "ko": "Korean",
         "ru": "Russian"
+    },
+    "filters": {
+        "row": "Filters",
+        "row_sort": "Order and filters",
+        "none": "None",
+        "title": "Filter the games",
+        "note": "A genre, a publisher, players or a language: only the games whose details came from Nlib API so far match. The others are asked meanwhile.",
+        "genre": "Genre",
+        "publisher": "Publisher",
+        "players": "Players",
+        "any": "All",
+        "players_one": "One player",
+        "players_many": "Two players or more",
+        "state": "On the console",
+        "state_missing": "Not on the console",
+        "state_installed": "On the console",
+        "state_to_update": "An update to get",
+        "state_dlcs_missing": "Add-ons to get",
+        "hide_demos": "Hide the demos",
+        "no_demos": "No demos",
+        "clear": "Clear the filters",
+        "known": "Details known: {} of {} games",
+        "shown": "{} shown"
     }
 }

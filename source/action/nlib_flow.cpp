@@ -245,6 +245,12 @@ std::string genre_name(const std::string& genre)
     return s.empty() || s == key ? genre : s;
 }
 
+bool waiting(uint64_t title_id)
+{
+    const uint64_t base = library::base_of(title_id);
+    return config::get().nlib_api && !titledb::nlib_details_url(base, "en").empty() && !s_book.find(base) && !is_unknown(base);
+}
+
 int listen(std::function<void()> changed)
 {
     const int id = s_next++;

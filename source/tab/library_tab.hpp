@@ -46,6 +46,7 @@ class LibraryTab : public TabBase
 
     void show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
+    void pick_filter();
     void open(size_t i);
     void set_hints();
 
@@ -64,6 +65,7 @@ class LibraryTab : public TabBase
 
     BRLS_BIND(brls::Box,    empty_box, "li_empty");
     BRLS_BIND(brls::DetailCell, summary, "li_summary");
+    BRLS_BIND(brls::DetailCell, filter_cell, "li_filter");
     BRLS_BIND(brls::Box,    grid,      "li_grid");
     BRLS_BIND(brls::Box,    list_box,  "li_list");
     BRLS_BIND(brls::Button, more,      "li_more");

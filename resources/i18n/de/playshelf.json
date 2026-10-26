@@ -68,7 +68,8 @@
         "sort_values": {
             "name": "Nach Name",
             "newest": "Neueste zuerst",
-            "largest": "Größte zuerst"
+            "largest": "Größte zuerst",
+            "publisher": "Nach Publisher"
         },
         "section": "Bereich",
         "section_all": "Alle Bereiche",
@@ -150,7 +151,13 @@
         "delete_body": "{} von dieser Konsole löschen? Das Spiel, sein Update und seine Zusatzinhalte werden gelöscht; seine Spielstände bleiben.",
         "deleted": "Gelöscht: {}",
         "delete_failed": "{} konnte nicht gelöscht werden",
-        "group_console": "Diese Konsole"
+        "group_console": "Diese Konsole",
+        "order_values": {
+            "name": "Nach Name",
+            "publisher": "Nach Publisher",
+            "newest": "Neueste zuerst",
+            "to_get_first": "Zu Ergänzendes zuerst"
+        }
     },
     "tiles": {
         "upload": "Bericht senden…",
@@ -668,5 +675,28 @@
         "zh": "Chinesisch",
         "ko": "Koreanisch",
         "ru": "Russisch"
+    },
+    "filters": {
+        "row": "Filter",
+        "row_sort": "Reihenfolge und Filter",
+        "none": "Keine",
+        "title": "Spiele filtern",
+        "note": "Ein Genre, ein Publisher, Spieler oder eine Sprache: Nur Spiele, deren Details Nlib API schon geliefert hat, passen. Die anderen werden derweil abgefragt.",
+        "genre": "Genre",
+        "publisher": "Publisher",
+        "players": "Spieler",
+        "any": "Alle",
+        "players_one": "Ein Spieler",
+        "players_many": "Zwei Spieler oder mehr",
+        "state": "Auf der Konsole",
+        "state_missing": "Nicht auf der Konsole",
+        "state_installed": "Auf der Konsole",
+        "state_to_update": "Ein Update zu holen",
+        "state_dlcs_missing": "Zusatzinhalte zu holen",
+        "hide_demos": "Demos ausblenden",
+        "no_demos": "Ohne Demos",
+        "clear": "Filter löschen",
+        "known": "Details bekannt: {} von {} Spielen",
+        "shown": "{} angezeigt"
     }
 }
