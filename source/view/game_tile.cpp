@@ -32,7 +32,7 @@ GameTile::GameTile()
     this->cover->setWidth(COVER);
     this->cover->setHeight(COVER);
     this->cover->setCornerRadius(8);
-    this->cover->setBackgroundColor(cadran::kit::color("cadran/well"));
+    this->cover->setThemeColor("backgroundColor", "cadran/well");
     this->cover->setAlignItems(brls::AlignItems::CENTER);
     this->cover->setJustifyContent(brls::JustifyContent::CENTER);
     this->placeholder = cadran::kit::icon("gamepad", 56, "cadran/text3");
@@ -55,7 +55,7 @@ GameTile::GameTile()
     this->detail = new brls::Label();
     this->detail->setFontSize(15);
     this->detail->setSingleLine(true);
-    this->detail->setTextColor(cadran::kit::color("cadran/text3"));
+    this->detail->setThemeColor("textColor", "cadran/text3");
     this->detail->setMarginTop(2);
     this->addView(this->detail);
 }
@@ -70,9 +70,9 @@ void GameTile::set_detail(const std::string& text)
     this->detail->setText(text);
 }
 
-void GameTile::set_detail_color(NVGcolor color)
+void GameTile::set_detail_color(const char* key)
 {
-    this->detail->setTextColor(color);
+    this->detail->setThemeColor("textColor", key);
 }
 
 void GameTile::set_icon_texture(int texture, bool owned)

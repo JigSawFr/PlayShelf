@@ -207,7 +207,7 @@ void DownloadsTab::update()
             cover->setHeight(ICON);
             cover->setShrink(0);
             cover->setCornerRadius(cadran::kit::RADIUS_ICON);
-            cover->setBackgroundColor(cadran::kit::color("cadran/well"));
+            cover->setThemeColor("backgroundColor", "cadran/well");
             cover->setAlignItems(brls::AlignItems::CENTER);
             cover->setJustifyContent(brls::JustifyContent::CENTER);
             cover->setMarginRight(20);
@@ -334,7 +334,7 @@ void DownloadsTab::fill(Row& row)
         break;
     }
     if (size && download::group_state(g, jobs) != download::State::Running) text += " · " + library_flow::size_text(size);
-    row.state->setTextColor(cadran::kit::color(color));
+    row.state->setThemeColor("textColor", color);
     ui::set_text(row.state, text);
 }
 

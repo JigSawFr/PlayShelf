@@ -205,13 +205,13 @@ void LibraryTab::add_page()
         if (st.update_available) detail = "playshelf/library/update_available"_i18n;
         else if (st.dlcs_missing == 1) detail = "playshelf/installed/dlcs_missing_one"_i18n;
         else if (st.dlcs_missing) detail = brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing);
-        const NVGcolor color = cadran::kit::color(something_to_get(st) ? "cadran/amber" : "cadran/text3");
+        const char* color = something_to_get(st) ? "cadran/amber" : "cadran/text3";
         brls::View*    view = nullptr;
         if (list) {
             auto* cell = new GameCell();
             cell->setText(e.name);
             cell->setDetailText(detail);
-            cell->setDetailTextColor(color);
+            cell->detail->setThemeColor("textColor", color);
             this->rows->addView(cell);
             cadran::List::row(cell);
             this->icons.push_back([cell](int texture) { cell->set_icon_texture(texture, true); });

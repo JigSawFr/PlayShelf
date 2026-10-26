@@ -40,10 +40,10 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
     const library::TitleState st = library::state_of(t, catalog, installed);
     if (st.base) {
         tile->set_detail(st.update_available ? "playshelf/library/update_available"_i18n : "playshelf/library/installed"_i18n);
-        tile->set_detail_color(cadran::kit::color(st.update_available ? "cadran/amber" : "cadran/teal"));
+        tile->set_detail_color(st.update_available ? "cadran/amber" : "cadran/teal");
         return;
     }
-    tile->set_detail_color(cadran::kit::color("cadran/text3"));
+    tile->set_detail_color("cadran/text3");
     std::string text = library_flow::size_text(t.size);
     if (t.base < 0) text += " · " + "playshelf/library/no_base"_i18n;
     else if (t.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
@@ -214,7 +214,7 @@ void CatalogueTab::show_status()
                             this->selection.size(), this->shown_data->titles.size());
         if (!f.catalog.motd.empty()) text += "\n" + f.catalog.motd;
     }
-    status->setTextColor(cadran::kit::color(color));
+    status->setThemeColor("textColor", color);
     ui::set_text(status, text.empty() ? " " : text);
 }
 

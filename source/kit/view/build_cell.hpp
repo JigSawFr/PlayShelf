@@ -18,7 +18,7 @@
 struct BuildTag
 {
     std::string text;
-    NVGcolor    color;
+    const char* color;            // a theme key ("cadran/teal")
     const char* icon = nullptr;   // a glyph before the text (cadran_icon), or in its place
 };
 

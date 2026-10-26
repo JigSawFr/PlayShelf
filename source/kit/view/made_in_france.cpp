@@ -42,7 +42,7 @@ MadeInFrance::MadeInFrance()
     auto* label = new brls::Label();
     label->setText("playshelf/about/made_in_france"_i18n);
     label->setFontSize(20);
-    label->setTextColor(cadran::kit::color("cadran/text3"));
+    label->setThemeColor("textColor", "cadran/text3");
     label->setMarginLeft(10);
     this->addView(new FrenchFlag());
     this->addView(label);
