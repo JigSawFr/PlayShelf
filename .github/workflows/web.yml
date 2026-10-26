@@ -136,8 +136,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # https when Pages enforces it, whatever html_url says meanwhile.
-          pages=$(gh api "repos/$REPO/pages" \
-                    --jq 'if .https_enforced then (.html_url | sub("^http:"; "https:")) else .html_url end' 2>/dev/null || true)
+          # No Pages site yet (404): gh prints its error body on stdout, so
+          # nothing of a failed call is kept.
+          if ! pages=$(gh api "repos/$REPO/pages" \
+                         --jq 'if .https_enforced then (.html_url | sub("^http:"; "https:")) else .html_url end' 2>/dev/null); then
+            pages=""
+          fi
           owner="${REPO%%/*}"
           pages="${pages:-https://${owner,,}.github.io/${REPO#*/}/}"
           pages="${pages%/}/"
