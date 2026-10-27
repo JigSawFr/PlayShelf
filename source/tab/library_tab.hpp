@@ -24,6 +24,7 @@
 #include "tab/tab_base.hpp"
 
 class GameTile;
+class ToolChip;
 
 class LibraryTab : public TabBase
 {
@@ -31,6 +32,9 @@ class LibraryTab : public TabBase
     LibraryTab();
     ~LibraryTab() override;
     static brls::View* create();
+    // The Library shown next with only the games in this state (the Home
+    // tab's tiles); its order kept.
+    static void preset(library::Filter::State state);
 
   protected:
     void refresh() override;
@@ -47,6 +51,7 @@ class LibraryTab : public TabBase
 
     void show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
+    void pick_filter();
     void open(size_t i);
     void set_hints();
 
@@ -59,11 +64,14 @@ class LibraryTab : public TabBase
     int                    generation = 0;
     int                    listener = 0;
     int                    titledb_listener = 0;
+    int                    nlib_listener = 0;
     int                    titledb_opened = 0;   // titledb_flow::Status::opened when its names were read
     size_t                 done_jobs = 0;   // the downloads installed when last read: one more, read again
 
     BRLS_BIND(brls::Box,    empty_box, "li_empty");
-    BRLS_BIND(brls::DetailCell, summary, "li_summary");
+    BRLS_BIND(brls::Box,    bar,       "li_bar");
+    ToolChip* summary = nullptr;
+    ToolChip* filter_cell = nullptr;
     BRLS_BIND(brls::Box,    grid,      "li_grid");
     BRLS_BIND(brls::Box,    list_box,  "li_list");
     BRLS_BIND(brls::Button, more,      "li_more");

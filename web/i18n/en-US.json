@@ -53,6 +53,7 @@
     "replaying": "Replaying the steps: {n} of {total}",
     "tour": "Tour",
     "report": "Report a problem",
+    "tour_home": "Home: where the console and its servers stand, what your games miss, the servers' newest games and games for you.",
     "tour_library": "Library: the games on this console, their versions, and what a server has that is newer.",
     "tour_catalogue": "Catalogue: a library server's games, here the demo shelf's made-up ones.",
     "tour_game": "A game's sheet: its base game, its updates and add-ons, each one to install.",
@@ -72,7 +73,8 @@
     "tab": {
       "label": "Opens on",
       "options": {
-        "": "Library",
+        "": "Home",
+        "library": "Library",
         "catalogue": "Catalogue",
         "preferences": "Preferences",
         "about": "About"
@@ -175,6 +177,9 @@
     },
     "no_game": {
       "label": "Nothing open behind PlayShelf"
+    },
+    "no_play": {
+      "label": "No play time on the console"
     },
     "no_demo": {
       "label": "No library server (a first start)"

@@ -2,7 +2,8 @@
 // so the queue is a press away whatever else is open; the queue itself
 // runs whichever screen is shown. The queue
 // by game, a card each (download::groups: a base game, its updates and its
-// add-ons from one server), its icon (from the Library's cache), its name,
+// add-ons from one server), its icon (from the Library's cache), the
+// game's banner from Nlib API behind its right half, its name,
 // where it stands (the package being installed with its percent, speed and
 // time left; waiting, paused, installed, why one failed) and a timeline of
 // its packages (view/timeline). A on a card: the game's packages, each
@@ -26,6 +27,8 @@
 #include "tab/tab_base.hpp"
 #include "view/timeline.hpp"
 
+class BannerBackdrop;
+
 class DownloadsTab : public TabBase
 {
   public:
@@ -45,6 +48,7 @@ class DownloadsTab : public TabBase
         brls::Label*             name = nullptr;
         brls::Label*             state = nullptr;
         Timeline*                timeline = nullptr;
+        BannerBackdrop*          backdrop = nullptr;   // the game's banner behind the card
     };
 
     // The cards made again when the games or their jobs changed (added,

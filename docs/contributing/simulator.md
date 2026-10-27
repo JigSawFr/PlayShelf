@@ -26,6 +26,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_NOW=<POSIX seconds>` | A frozen console time (with `TZ=` for its time zone) |
 | `PLAYSHELF_SIM_NO_CFW=1` | No Atmosphère |
 | `PLAYSHELF_SIM_NO_GAME=1` | No game open (applet mode with nothing behind it) |
+| `PLAYSHELF_SIM_NO_PLAY=1` | No play time on the console (`sim/sim_play.cpp`; unset, each game's play time, starts and last play are made up from its title id) |
 | `PLAYSHELF_SIM_PASTE=https://gist.github.com/u/ab12` | What GitHub answers to *Send a report…* (`offline` for no network) |
 | `PLAYSHELF_SIM_REGION=2` | The console region |
 | `PLAYSHELF_SIM_SIGNED=1` | The packages signed with the host tests' key (the web simulator's demo server's, `tools/web_demo.cpp`) taken as signed by Nintendo: installed without the question an unsigned content asks |

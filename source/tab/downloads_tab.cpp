@@ -12,8 +12,10 @@
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
 #include "install/split_stream.hpp"
+#include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "view/banner_card.hpp"
 
 using namespace brls::literals;
 
@@ -201,6 +203,14 @@ void DownloadsTab::update()
             r.card->setAlignItems(brls::AlignItems::CENTER);
             r.card->setPadding(16, 24, 16, 16);
             r.card->setMarginBottom(12);
+            // The game's banner behind its right half, once it came.
+            auto* backdrop = new BannerBackdrop();
+            backdrop->setPositionTop(0);
+            backdrop->setPositionBottom(0);
+            backdrop->setPositionRight(0);
+            backdrop->setWidthPercentage(55);
+            r.card->addView(backdrop);
+            r.backdrop = backdrop;
             // The game's icon, on the well until (and unless) the cache has it.
             auto* cover = new brls::Box(brls::Axis::ROW);
             cover->setWidth(ICON);
@@ -255,6 +265,12 @@ void DownloadsTab::update()
                 if (p || !game_id) shown(p);
                 else library_icons::local(game_id, shown);
             });
+            if (game_id && config::get().nlib_api)
+                library_icons::picture(titledb::nlib_banner_url(game_id), 854, 480,
+                                       ui::guarded(this->alive, [this, at, gen](const library_icons::Picture& p) {
+                                           if (p && gen == this->generation && at < this->rows.size())
+                                               this->rows[at].backdrop->set_picture(p->rgba.data(), p->width, p->height);
+                                       }));
             this->rows.push_back(r);
         }
         if (!this->rows.empty() && !brls::Application::getCurrentFocus()->isFocusable())

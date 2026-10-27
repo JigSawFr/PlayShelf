@@ -1,7 +1,8 @@
 // CatalogueTab — a library server's catalogue (action/library_flow). With no
 // server yet: an empty state, to add one or find one on this network. Else
 // the server shown (A: another one, change it, add one, find one, read it
-// again), the search (Ⓨ too), the order (name, newest, largest) and the
+// again), the search (Ⓨ too), the order (name, newest, largest,
+// publisher, or shelves: a row of covers a genre, "See all" to filter by it) and the
 // section when the server has several; a line saying where the catalogue
 // stands (being read, why it could not be, how many games, the server's
 // message); then the games as covers, a page at a time ("Show more"). A on
@@ -13,7 +14,8 @@
 // cache (action/library_icons).
 // A game's items go to the downloads (action/download_flow, the Downloads
 // tab).
-// Ⓧ reads the catalogue again. What is chosen stays for this run.
+// Its controls are a row of pills (view/tool_chip), the room below them
+// the games'. Ⓧ reads the catalogue again. What is chosen stays for this run.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -27,6 +29,7 @@
 #include "tab/tab_base.hpp"
 
 class GameTile;
+class ToolChip;
 
 class CatalogueTab : public TabBase
 {
@@ -46,9 +49,19 @@ class CatalogueTab : public TabBase
     // The grid built again when what it shows changed (`force`: anyway).
     void build_grid(bool force);
     void add_page();
+    // The games by genre: a shelf each, its covers scrolled sideways.
+    void add_shelves();
+    // A game's cover, kept in tiles (its icon on its way).
+    GameTile* make_tile(size_t title);
     void open_title(size_t title);
     void server_sheet();
     void pick_sort();
+    void pick_filter();
+    // The games the search, section, filter and order keep, as indexes in
+    // shown_data->titles.
+    std::vector<size_t> select() const;
+    void ask_facts();
+    void facts_came();
     void pick_section();
     void search();
     void after_saved(const std::string& saved_id);
@@ -61,7 +74,8 @@ class CatalogueTab : public TabBase
     std::vector<size_t> selection;   // the games shown, as indexes in shown_data->titles
     size_t      built = 0;            // how many of them have a cover
     brls::Box*  grid_row = nullptr;
-    std::vector<GameTile*> tiles;     // the covers built, in the selection's order
+    std::vector<GameTile*> tiles;     // the covers built
+    std::vector<size_t> tile_titles;  // theirs, as indexes in shown_data->titles
     int         generation = 0;       // the covers' build: an icon arriving for an older one is freed
     std::string password;             // the server's, for its icons
     // What the grid was built for.
@@ -71,10 +85,13 @@ class CatalogueTab : public TabBase
 
     BRLS_BIND(brls::Box,        empty_box, "lb_empty");
     int downloads_listener = 0;
-    BRLS_BIND(brls::DetailCell, server_cell, "lb_server");
-    BRLS_BIND(brls::DetailCell, search_cell, "lb_search");
-    BRLS_BIND(brls::DetailCell, sort_cell,   "lb_sort");
-    BRLS_BIND(brls::DetailCell, section_cell, "lb_section");
+    int nlib_listener = 0;
+    BRLS_BIND(brls::Box,        bar,         "lb_bar");
+    ToolChip* server_cell = nullptr;
+    ToolChip* search_cell = nullptr;
+    ToolChip* sort_cell = nullptr;
+    ToolChip* filter_cell = nullptr;
+    ToolChip* section_cell = nullptr;
     BRLS_BIND(brls::Label,      status,      "lb_status");
     BRLS_BIND(brls::Box,        grid,        "lb_grid");
     BRLS_BIND(brls::Button,     more,        "lb_more");

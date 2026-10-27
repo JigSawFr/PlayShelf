@@ -75,6 +75,32 @@ void GameTile::set_detail_color(const char* key)
     this->detail->setThemeColor("textColor", key);
 }
 
+void GameTile::set_badge(const char* icon_name, const char* ink)
+{
+    if (this->badge) {
+        this->cover->removeView(this->badge, true);
+        this->badge = nullptr;
+    }
+    if (!icon_name) return;
+    constexpr float SIDE = 28;
+    this->badge = new brls::Box(brls::Axis::ROW);
+    this->badge->setPositionType(brls::PositionType::ABSOLUTE);
+    this->badge->setPositionTop(6);
+    this->badge->setPositionRight(6);
+    this->badge->setWidth(SIDE);
+    this->badge->setHeight(SIDE);
+    this->badge->setCornerRadius(SIDE / 2);
+    this->badge->setThemeColor("backgroundColor", ink);
+    this->badge->setThemeColor("borderColor", "brls/background");
+    this->badge->setBorderThickness(2);
+    this->badge->setAlignItems(brls::AlignItems::CENTER);
+    this->badge->setJustifyContent(brls::JustifyContent::CENTER);
+    this->badge->setShadowType(brls::ShadowType::GENERIC);
+    this->badge->setShadowVisibility(true);
+    this->badge->addView(cadran::kit::icon(icon_name, 15, "brls/background"));
+    this->cover->addView(this->badge);
+}
+
 void GameTile::set_icon(const uint8_t* rgba, int width, int height)
 {
     this->icon->setImageFromRGBA(rgba, width, height);

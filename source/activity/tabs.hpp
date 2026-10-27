@@ -9,22 +9,24 @@
 namespace tabs
 {
 
-constexpr int library     = 0;   // the games on the console
-constexpr int catalogue   = 1;   // a library server's catalogue
-constexpr int downloads   = 2;   // the downloads' queue
-constexpr int preferences = 4;   // the app's settings and its updates
-constexpr int about       = 5;   // version, help, credits
+constexpr int home        = 0;   // where the console and its servers stand
+constexpr int library     = 1;   // the games on the console
+constexpr int catalogue   = 2;   // a library server's catalogue
+constexpr int downloads   = 3;   // the downloads' queue
+constexpr int preferences = 5;   // the app's settings and its updates
+constexpr int about       = 6;   // version, help, credits
 
 // The n-th entry of config::START_TABS as a sidebar position.
 constexpr int of(int n)
 {
-    constexpr int positions[] = { library, catalogue, preferences, about };
+    constexpr int positions[] = { home, library, catalogue, preferences, about };
     return n >= 0 && n < (int)(sizeof(positions) / sizeof(positions[0])) ? positions[n] : library;
 }
 
 // The position of the tab named `screen` ("tab/about"), -1 for none.
 inline int position_of(const std::string& screen)
 {
+    if (screen == "tab/home") return home;
     if (screen == "tab/library") return library;
     if (screen == "tab/catalogue") return catalogue;
     if (screen == "tab/downloads") return downloads;

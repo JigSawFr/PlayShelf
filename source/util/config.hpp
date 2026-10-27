@@ -45,7 +45,7 @@ struct Config
     std::string update_latest;
     std::string update_snooze_version;
     std::string update_snooze_until;
-    std::string start_tab = "library";   // tab shown at start-up (main.xml order: START_TABS)
+    std::string start_tab = "home";   // tab shown at start-up (main.xml order: START_TABS)
     // The saved reports and the crash files kept, each folder on its own
     // (util/log_files.hpp; 0: no limit): the newest logs_keep, those of the
     // last logs_keep_days days, the newest that fit in logs_keep_mb MB.
@@ -94,7 +94,7 @@ inline constexpr const auto& TEXT_SIZES = ui::TEXT_SIZES;
 // What effects may be: the default first.
 inline constexpr const auto& EFFECTS = ui::EFFECTS;
 // What start_tab may be, in the sidebar's order.
-constexpr const char* START_TABS[] = { "library", "catalogue", "preferences", "about" };
+constexpr const char* START_TABS[] = { "home", "library", "catalogue", "preferences", "about" };
 // What About › Help & diagnostics offers for the reports and crash files kept.
 constexpr int LOGS_KEEP[]      = { 0, 5, 10, 20, 50 };
 constexpr int LOGS_KEEP_DAYS[] = { 0, 7, 30, 90, 365 };
