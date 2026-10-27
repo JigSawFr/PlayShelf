@@ -73,6 +73,9 @@ struct Config
     // neither a server nor the title databases have (action/library_icons)
     // and for a game's page: its details, banner, screenshots (action/nlib_flow).
     bool nlib_api = true;
+    // Home's popular games: popular.json fetched again once a day (else the
+    // one PlayShelf came with).
+    bool popular_online = true;
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means

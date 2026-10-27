@@ -20,6 +20,7 @@ using Done = std::function<void(std::shared_ptr<const std::vector<Game>>)>;
 
 // The UI thread's only.
 std::shared_ptr<const std::vector<Game>> s_games;
+Space                                    s_space;
 std::vector<Done>                        s_waiting;   // a read under way: told at its end
 
 // The names and icons read this run, by title id (the worker's, guarded),
@@ -77,6 +78,8 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
                 game.name = c.name;
                 game.version = c.version;
                 game.icon = c.icon;
+                u64 size = 0;
+                if (core_game_size(g.id, &size)) game.size = size;
                 CorePlay stats;
                 if (play && core_play_stats(g.id, &stats)) {
                     game.play_s = stats.total_s;
@@ -87,8 +90,11 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
                 out->push_back(std::move(game));
             }
             if (play) core_play_close();
-            brls::sync([out]() {
+            Space room;
+            room.known = core_sd_space(&room.total, &room.free);
+            brls::sync([out, room]() {
                 s_games = out;
+                s_space = room;
                 const std::vector<Done> waiting = std::move(s_waiting);
                 s_waiting.clear();
                 for (const Done& d : waiting)
@@ -124,6 +130,11 @@ std::string play_text(uint64_t seconds)
 std::shared_ptr<const std::vector<Game>> games()
 {
     return s_games;
+}
+
+Space space()
+{
+    return s_space;
 }
 
 }   // namespace installed_flow

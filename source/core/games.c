@@ -52,3 +52,35 @@ Result core_game_delete(u64 app_id)
     nsExit();
     return rc;
 }
+
+bool core_game_size(u64 app_id, u64 *bytes)
+{
+    *bytes = 0;
+    if (R_FAILED(nsInitialize())) return false;
+    NsApplicationOccupiedSize size;
+    const Result rc = nsCalculateApplicationOccupiedSize(app_id, &size);
+    nsExit();
+    if (R_FAILED(rc)) return false;
+    // Four entries of 0x20 bytes, one per storage: its id (a byte), then the
+    // base game's, the update's and the add-ons' sizes (u64 each, at 8).
+    for (int i = 0; i < 4; i++) {
+        u64 parts[3];
+        memcpy(parts, size.unk_x0 + i * 0x20 + 8, sizeof(parts));
+        *bytes += parts[0] + parts[1] + parts[2];
+    }
+    return true;
+}
+
+bool core_sd_space(u64 *total, u64 *free_bytes)
+{
+    *total = *free_bytes = 0;
+    if (R_FAILED(nsInitialize())) return false;
+    s64 all = 0, left = 0;
+    const bool ok = R_SUCCEEDED(nsGetTotalSpaceSize(NcmStorageId_SdCard, &all)) &&
+                    R_SUCCEEDED(nsGetFreeSpaceSize(NcmStorageId_SdCard, &left)) && all > 0 && left >= 0;
+    nsExit();
+    if (!ok) return false;
+    *total = (u64)all;
+    *free_bytes = (u64)left;
+    return true;
+}

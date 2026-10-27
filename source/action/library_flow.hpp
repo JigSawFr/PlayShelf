@@ -63,8 +63,13 @@ void reread_installed(const std::function<void()>& after);
 
 // These items of `l`'s catalogue (indexes in fetch.catalog.items) added to
 // the downloads (action/download_flow); how many were (one already
-// waiting or running is not added twice).
+// waiting or running is not added twice). Each from the best server read
+// in this run that has the same package: one on this network first, then
+// the one its downloads ran fastest from (note_speed), else `l`'s.
 size_t install(const Loaded& l, const std::vector<size_t>& items);
+// What a download from `server_id` runs at (bytes a second), kept for
+// install() to choose its server: an average of what it was told.
+void note_speed(const std::string& server_id, double bytes_per_second);
 
 // What a game of a catalogue (`index` in data->titles) offers, for its
 // page (activity/game_activity), by the page's tabs: everything the console

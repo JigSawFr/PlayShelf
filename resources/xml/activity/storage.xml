@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Home › Storage: the SD card's room, then the console's games by the
+     room they take, those not played for months first. Built by
+     source/activity/storage_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        title="@i18n/playshelf/storage/title"
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            id="st_root"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"/>
+
+    </ScrollView>
+
+</brls:AppletFrame>

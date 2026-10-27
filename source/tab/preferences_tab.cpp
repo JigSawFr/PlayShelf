@@ -10,6 +10,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/titledb_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/update_flow.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -146,6 +147,12 @@ PreferencesTab::PreferencesTab()
         config::get().nlib_api = on;
         ui::save_config();
     });
+    // Home's popular games, from Wikipedia's readers (action/popular_flow).
+    popular_online->init("playshelf/titledb/popular_online"_i18n, config::get().popular_online, [](bool on) {
+        config::get().popular_online = on;
+        ui::save_config();
+        if (on) popular_flow::refresh();
+    });
     this->titledb_listener = titledb_flow::listen(ui::guarded(this->alive, [this]() { this->show_titledb(); }));
 
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
@@ -153,7 +160,8 @@ PreferencesTab::PreferencesTab()
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_intro", "bolt" },
                        { "pf_support_reminder", "heart" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
-                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" } });
+                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
+                       { "pf_popular_online", "bolt" } });
 }
 
 PreferencesTab::~PreferencesTab()
@@ -292,6 +300,7 @@ void PreferencesTab::refresh()
     support_reminder->setOn(cfg.support_reminder, false);
     update_daily->setOn(cfg.update_daily, false);
     nlib_api->setOn(cfg.nlib_api, false);
+    popular_online->setOn(cfg.popular_online, false);
     update_via->setDetailText(update_flow::method_text());
     this->show_titledb();
     this->list.sync();

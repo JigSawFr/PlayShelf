@@ -17,6 +17,7 @@ struct Hooks
     std::function<brls::View*()>      make_help_tab;          // Help & diagnostics, for a screen of its own
     std::function<void(const char* what, bool ok)> note_write;   // a write that failed, for the app to say
     std::function<void()>             mode_changed;           // what runs only in developer mode
+    std::function<void()>             open_notices;           // the notification bell's list
 
     // Before replacing the running .nro (an update, another build, going
     // back): false stops it, the app having said why. Unset: allowed.

@@ -27,6 +27,7 @@
 
 #include "action/frame_stats_flow.hpp"
 #include "action/log_prune_flow.hpp"
+#include "action/notices.hpp"
 #include "action/rollback_flow.hpp"
 #include "activity/init_error_activity.hpp"
 #include "activity/loading_activity.hpp"
@@ -55,6 +56,7 @@
 #include "view/loading_dial.hpp"
 #include "view/loading_mark.hpp"
 #include "view/made_in_france.hpp"
+#include "view/notice_bell.hpp"
 
 using namespace brls::literals;
 
@@ -262,6 +264,8 @@ void register_views()
     brls::Application::registerXMLView("LoadingBar",      LoadingBar::create);
     brls::Application::registerXMLView("CadranIcon",      CadranIcon::create);
     brls::Application::registerXMLView("CadranDigits",    CadranDigits::create);
+
+    NoticeBell::install();   // the bell goes in the header's row at the right
 }
 
 // After the main loop: the tasks and writes still running finished, the
@@ -380,6 +384,7 @@ int main(int argc, char* argv[])
     brls::Application::setGlobalQuit(false);
 
     register_views();
+    notices::start();   // what was put away at an earlier start, the kit's news
 
     // The loading screen first, with nothing slow before it, and drawn at once
     // (no fade: a frame at alpha 0 is a black one). The rest of the start-up

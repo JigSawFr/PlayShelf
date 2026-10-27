@@ -11,6 +11,7 @@
 #include "action/frame_stats_flow.hpp"
 #include "action/upload_flow.hpp"
 #include "activity/main_activity.hpp"
+#include "activity/notices_activity.hpp"
 #include "activity/tabs.hpp"
 #include "app.hpp"
 #include "core/sim_env.h"
@@ -110,4 +111,5 @@ void install_screen_hooks()
     ui::app_hooks::Hooks& a = ui::app_hooks::get();
     a.make_help_tab = []() -> brls::View* { return new HelpTab(); };
     a.mode_changed = []() { frame_stats_flow::apply(); };
+    a.open_notices = []() { NoticesActivity::open(); };
 }

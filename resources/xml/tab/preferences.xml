@@ -42,6 +42,7 @@
             <brls:DetailCell id="pf_titledb" title="@i18n/playshelf/titledb/row"/>
             <brls:DetailCell id="pf_title_sources" title="@i18n/playshelf/titledb/sources"/>
             <brls:BooleanCell id="pf_nlib_api"/>
+            <brls:BooleanCell id="pf_popular_online"/>
 
         </brls:Box>
 
