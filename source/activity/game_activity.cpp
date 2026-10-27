@@ -265,6 +265,17 @@ void GameActivity::onContentAvailable()
     this->add_head();
     this->add_tabs();
     this->fill_details_tab();
+    // The focus on its first line, as the sheet had it (A, A installs
+    // everything); the tabs above it.
+    if (!lines_box->getChildren().empty()) {
+        brls::View* first = lines_box->getChildren()[0]->getDefaultFocus();
+        ui::Weak    weak(this->alive);
+        if (first)
+            brls::sync([weak, first]() {
+                const ui::Alive held = weak.lock();
+                if (held && *held) brls::Application::giveFocus(first);
+            });
+    }
 
     // What Nlib API knows of it: asked once the page is up.
     if (this->page.title_id) {
