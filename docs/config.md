@@ -7,12 +7,17 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `schema` | `1` | `1` | The layout of this file |
 | `language` | `system` or a language code (`en-US`, `fr`, `fr-CA`, `de`, `es`, `es-419`, `it`, `nl`, `pt`, `pt-BR`, `ru`, `ja`, `ko`, `zh-Hans`, `zh-Hant`) | `system` | *Preferences › Language*: the console's own, or one forced |
 | `theme` | `system`, `light`, `dark` | `dark` | *Preferences › Theme* |
+| `theme_file` | `""`, `builtin:<preset>` (`high-contrast-dark`, `high-contrast-light`, `ocean`, `amethyst`, `sand`, a season such as `halloween`, or `seasonal`, which follows the calendar) or the path of a theme file | `""` | *Preferences › Palette*: PlayShelf's own colours (`""`), one of the presets, or a file of the `themes` folder ([Themes](themes.md)). A file that styles only the light or the dark theme also sets that theme; one that cannot be read leaves PlayShelf's own colours |
 | `text_size` | `auto`, `normal`, `large` | `auto` | *Preferences › Text size*: `auto` is larger while docked |
 | `effects` | `auto`, `full`, `reduced` | `auto` | *Preferences › Visual effects*: `auto` keeps the lighter effects off the dock |
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
-| `start_tab` | `library`, `preferences`, `about` | `library` | *Preferences › Start on* |
+| `start_tab` | `home`, `library`, `catalogue`, `preferences`, `about` | `home` | *Preferences › Start on* |
 | `support_reminder` | `true`, `false` | `true` | "Support PlayShelf" once a month at start-up |
 | `keep_awake` | `true`, `false` | `true` | *Downloads › Stay awake while downloading*: the console does not go to sleep by itself while downloads run |
+| `connections` | `1` to `8` | `4` | *Downloads › Connections per download*: how many requests a download makes at once, each for a 4 MB piece of the package taken in turn; more help with a server that serves each connection slowly. The packages are still installed one after the other. The title database's packs are fetched the same way |
+| `prefetch` | `0` to `2` | `0` | *Downloads › Fetch ahead*: while a package installs, the next ones (as many) are fetched into `cache/prefetch/` when the SD card has room for them and their install (1 GiB to spare); their install starts from the file, the rest from the server. A file goes once its package is installed or removed |
+| `title_sources` | a list of `https://` addresses, 8 at most | CyberFoil-DB's manifest (`https://github.com/luketanti/CyberFoil-DB/releases/latest/download/offline_db_manifest.json`), then NXMeta's Tinfoil index (`https://nx-meta.nlib.cc/index.json`) and Ghostland's title list (`https://data.ghostland.at/nx/owned.json`) | *Preferences › Title database › Sources*: the title databases, in their order; the first that knows a game names it (its icon: the first that has one). A source is a CyberFoil-DB manifest (its packs checked by the SHA-256 it gives before they are used) or a title list (a JSON object of title ids, each with its `Game Name`, `Version` and `Size`, or a Tinfoil index's `titledb` with `name`, `publisher`, `releaseDate`, `version` and `size`: no icons, HTTPS alone vouching for it, read as it streams and made a titles pack). `[]`: no database. Each source is kept in `titledb/<hash of its address>/` of the data folder |
+| `nlib_api` | `true`, `false` | `true` | *Preferences › Title database › Icons and game pages from Nlib API*: [Nlib API](https://api.nlib.cc/nx/) is asked, for base games only and one game at a time, for a game's icon that neither its server nor the title databases have (`…/nx/<title id>/icon/256`, for the games on screen) and, on a game's page, for its details in PlayShelf's language (publisher, year, categories, summary, description: kept a week in `cache/nlib/`), its banner and its screenshots (kept with the icons in `cache/library_icons/`). What it says of a game beyond the text (publisher, developer, date, genres, players, languages, age rating, demo) is kept for good in `nlib/facts.json` of the data folder, gathered as the games show: a page opened, and the covers on screen, one game at a time. A game it does not know is not asked again until PlayShelf restarts |
 | `support_reminded` | `YYYY-MM-DD` | none | The day of the last reminder |
 | `seen_version` | a version | none | The version whose "What's new" was shown |
 | `crash_seen` | a crash file's name | none | The newest crash file already said |
@@ -25,6 +30,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `dev_mode` | `true`, `false` | `false` | The developer tools (seven presses of Ⓨ on *About › Version*) |
 | `frame_stats` | `true`, `false` | `false` | *Developer › Frame statistics* |
 | `cadran_glow` | `true`, `false` | `true` | *Developer › Background glow* |
+| `library_view` | `grid`, `list` | `grid` | *Library*, Ⓨ: the games as covers or as a list |
 | `dev_builds_order` | `newest`, `number` | `newest` | The order of the pull requests in *Install another build* |
 | `logs_keep` | `0`, `5`, `10`, `20`, `50` | `20` | The reports and crash files kept, by number (`0`: no limit) |
 | `logs_keep_days` | `0`, `7`, `30`, `90`, `365` | `0` | …by age in days |

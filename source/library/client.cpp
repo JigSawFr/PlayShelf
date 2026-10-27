@@ -80,6 +80,62 @@ bool read_indexes(const std::string& url, const std::vector<std::string>& header
 }
 }   // namespace
 
+Answer Transport::call(const std::string& url, const http::Call& c, const std::vector<std::string>& headers,
+                       const std::string& pin)
+{
+    if ((c.method.empty() || c.method == "GET") && c.body.empty() && c.fields.empty() && c.file_path.empty() &&
+        c.to_path.empty())
+        return get(url, headers, pin);
+    Answer a;
+    a.error = "not supported";
+    return a;
+}
+
+namespace
+{
+// Ownfoil 2: its owned apps, a page at a time, and its handshake for its
+// name and message of the day. Nothing (`f` untouched) when the server
+// does not answer GraphQL; a refusal of the credentials is the last word.
+enum class GraphQl { Absent, Ok, Failed };
+GraphQl read_graphql(const std::string& endpoint, const std::vector<std::string>& headers, const std::string& pin,
+                     Transport& t, Fetch* f)
+{
+    Catalog  c;
+    uint64_t total = 0;
+    for (int page = 1; page <= GRAPHQL_MAX_PAGES; page++) {
+        const Answer a = t.get(endpoint + "/api/graphql?query=" + graphql_apps_query(page, GRAPHQL_PAGE), headers, pin);
+        if (a.status == 401 || a.status == 403) {
+            f->why = refusal(a);
+            return GraphQl::Failed;
+        }
+        std::string err;
+        const size_t before = c.items.size() + c.skipped;
+        if (a.status != 200 || !add_graphql_apps(c, a.body, endpoint, &total, &err)) {
+            if (page == 1) return GraphQl::Absent;
+            f->why = a.status != 200 ? refusal(a) : err;
+            return GraphQl::Failed;
+        }
+        // The last page: short, or everything there.
+        if (c.items.size() + c.skipped - before < (size_t)GRAPHQL_PAGE || c.items.size() + c.skipped >= total ||
+            c.items.size() >= MAX_ITEMS)
+            break;
+    }
+    http::Call hello;
+    hello.method = "OPTIONS";
+    const Answer h = t.call(endpoint + "/", hello, headers, pin);
+    if (h.status == 200)
+        if (const auto info = parse_handshake(h.body)) {
+            f->info = *info;
+            c.motd = info->motd;
+        }
+    f->status = FetchStatus::Ok;
+    f->format = Format::Api;
+    f->dialect = Dialect::GraphQl;
+    f->catalog = std::move(c);
+    return GraphQl::Ok;
+}
+}   // namespace
+
 bool same_origin(const std::string& a, const std::string& b)
 {
     auto origin = [](const std::string& url) {
@@ -115,8 +171,10 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
     const auto        headers = auth_headers(server.username, password);
 
     // A first request, to the API or to the index: a LAN server's own
-    // certificate shows up there.
-    const std::string first_url = server.format == Format::Index ? endpoint : endpoint + "/api/remote";
+    // certificate shows up there. The newer /sections path is tried first,
+    // so it is what carries the TLS test.
+    const std::string limit = "?limit=" + std::to_string(SECTIONS_LIMIT);
+    const std::string first_url = server.format == Format::Index ? endpoint : endpoint + "/api/remote/sections" + limit;
     const Answer      first = t.get(first_url, headers, pin);
     if (first.tls_failed) {
         if (!on_lan) return failed("the server's certificate is not one a recognized authority vouches for");
@@ -141,20 +199,47 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
     f.endpoint = endpoint;
     f.on_lan = on_lan;
     if (server.format != Format::Index) {
-        Answer a = first;
-        if (a.status == 404) a = t.get(endpoint + "/api/shop", headers, pin);
-        if (a.status == 200) {
-            std::string err;
-            if (auto c = parse_api(a.body, endpoint, &err)) {
-                f.status = FetchStatus::Ok;
-                f.format = Format::Api;
-                f.catalog = std::move(*c);
-                return f;
+        // The API paths, newest first (AeroFoil/Ownfoil's /sections, as
+        // Tinfoil and CyberFoil ask for them), then the older ones. The
+        // first answer is the TLS carrier above, so it is not asked twice.
+        static const char* const api_paths[] = {"/api/remote/sections", "/api/shop/sections", "/api/remote",
+                                                 "/api/shop"};
+        std::string not_api;   // a 200 that was no catalogue: why
+        for (size_t i = 0; i < sizeof api_paths / sizeof *api_paths; i++) {
+            const bool   sections = i < 2;
+            const Answer a = i == 0 ? first : t.get(endpoint + api_paths[i] + (sections ? limit : ""), headers, pin);
+            if (a.status == 200) {
+                std::string err;
+                if (auto c = parse_api(a.body, endpoint, &err)) {
+                    // A frozen account: only its placeholders.
+                    if (c->frozen && c->items.empty()) return failed("the account is frozen on this server");
+                    f.status = FetchStatus::Ok;
+                    f.format = Format::Api;
+                    f.dialect = sections ? Dialect::Sections : Dialect::Shop;
+                    f.catalog = std::move(*c);
+                    return f;
+                }
+                // A 200 that is not a catalogue: Ownfoil 2 (its web page
+                // for any other path) is asked below; then, for an explicit
+                // Api, that error is the last word; in Auto, the address
+                // may still be a JSON index, read below.
+                not_api = err;
+                break;
             }
-            if (server.format == Format::Api) return failed(err);
-        } else if (server.format == Format::Api || a.status != 404) {
-            return failed(refusal(a));
+            // 404: this path is not served, so try the next one. Any other
+            // answer (a refused credential, a server error) is the server's
+            // word: do not guess further paths or fall back to the index.
+            if (a.status != 404) return failed(refusal(a));
         }
+        switch (read_graphql(endpoint, headers, pin, t, &f)) {
+        case GraphQl::Ok: return f;
+        case GraphQl::Failed: return failed(f.why);
+        case GraphQl::Absent: break;
+        }
+        // No API answered. An explicit Api has no catalogue; Auto reads the
+        // address as a JSON index below.
+        if (server.format == Format::Api)
+            return failed(!not_api.empty() ? not_api : "the server has no catalogue at /api/remote, /api/shop or /api/graphql (HTTP 404)");
     }
     // A JSON index at the address itself.
     std::string why;

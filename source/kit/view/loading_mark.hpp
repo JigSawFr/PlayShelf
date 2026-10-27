@@ -1,8 +1,9 @@
-// LoadingMark — the PlayShelf icon drawn at the view's size for the loading
-// screen: the amber tile, the navy disc, the play-time ring and the play
-// button (branding/icon.svg), with a soft teal glow behind it. The ring's teal
-// arc turns while the app starts. Brand colours, not the theme's: the loading
-// screen looks the same in both themes, like the store banner.
+// LoadingMark — the PlayShelf icon (icon.jpg, from branding/icon.svg) drawn at
+// the view's size for the loading screen, its corners rounded, over Aurore's
+// aurora glow, which breathes from teal to violet while the app starts. Brand
+// colours, not the theme's: the loading screen looks the same in both themes.
+// A theme with a logo (`logo =`, Theme::logo()) shows it in the icon's place,
+// over the same glow.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -19,5 +20,5 @@ class LoadingMark : public brls::View
     static brls::View* create();
 
   private:
-    bool still = false;   // desktop smoke test: the arc where the icon has it
+    bool still = false;   // desktop smoke test: the glow at rest
 };

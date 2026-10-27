@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Catalogue: the catalogue of a library server (tab/catalogue_tab.cpp). With
+     no server yet, an empty state to add one or find one on this network;
+     else the server and what the games are filtered and sorted by, a line
+     saying where the catalogue stands, then its games as a grid of covers
+     (a page at a time, "Show more" after it). -->
+
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            id="lb_content"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+            <brls:Box id="lb_empty" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <!-- The server, search, order, filters and section as pills
+                 (view/tool_chip, made in code). -->
+            <brls:Box id="lb_bar" width="auto" height="auto" axis="row"/>
+            <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="4">
+                <brls:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
+            </brls:Box>
+            <brls:Box id="lb_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
+            <brls:Button id="lb_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
+                width="320" alignSelf="center"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:Box>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Home: where the console and its servers stand, at a glance (tab/home_tab.cpp).
+     A greeting and a line; tiles counting the console's games, the updates
+     and add-ons to get and the downloads (A on one: that list); the games
+     with something to get, the servers' newest games and games like the
+     console's as rows of wide banners and covers. With no server and no
+     game yet, a welcome to add a server. -->
+
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            id="ho_content"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"/>
+
+    </ScrollView>
+
+</brls:Box>

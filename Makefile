@@ -3,6 +3,8 @@
 #   make              -> ./playshelf.nro            (needs devkitPro, DEVKITPRO set)
 #   make dist         -> ./playshelf.zip            (unzip onto the SD card root)
 #   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend; needs GLFW)
+#   make web          -> ./build-web/simulator/     (the web simulator; needs Emscripten's emcmake)
+#   make web-serve    -> make web, served at http://localhost:8000
 #   make test         -> host unit tests (plain gcc/g++, ASan + UBSan + libstdc++'s assertions; parallel, all suites)
 #   make check        -> make test, then the resource and source checks and compat.json
 #   make fuzz         -> libFuzzer runs of the parsers (clang; FUZZ_SECONDS=30 each, parallel)
@@ -23,6 +25,7 @@
 TARGET  := playshelf
 BUILD   := build
 DESKTOP := build-desktop
+WEB     := build-web
 CC      ?= gcc
 CXX     ?= g++
 TESTOUT := $(BUILD)/host-tests
@@ -43,7 +46,7 @@ ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindep
 CMAKE_ARGS ?=
 JSON_HPP := library/aurore/library/include/borealis/extern/nlohmann/json.hpp
 
-.PHONY: all clean dist nxlink desktop test fuzz check FORCE
+.PHONY: all clean dist nxlink desktop web web-serve site test fuzz check FORCE
 
 RENDERER := $(if $(GL),-DUSE_DEKO3D=OFF,-DUSE_DEKO3D=ON)
 
@@ -64,6 +67,35 @@ dist: all
 	@cp LICENSE out/switch/$(TARGET)/LICENSE.txt
 	@cp packaging/sphaira/$(TARGET).json out/config/sphaira/github/
 	@cd out && $(ZIP_TREE) ../$(TARGET).zip
+
+# The web simulator (web/README.md): first its demo library server, made on
+# the host by tools/web_demo.cpp (the install suites' package builders, with
+# libzstd and zlib), then PlayShelf with Emscripten.
+WEB_DEMO_SOURCES := tools/web_demo.cpp source/kit/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
+                source/install/cnmt.cpp source/install/nca.cpp source/kit/util/sha256.cpp
+$(WEB)/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
+	@mkdir -p $(WEB)
+	$(CXX) -std=c++17 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
+	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
+$(WEB)/demo/index.json: $(WEB)/web_demo
+	@rm -rf $(WEB)/demo
+	@$(WEB)/web_demo $(WEB)/demo
+
+web: $(WEB)/demo/index.json
+	@emcmake cmake -B $(WEB) -S . -DCMAKE_BUILD_TYPE=Release -DPLAYSHELF_WEB_DEMO=$(abspath $(WEB))/demo $(CMAKE_ARGS)
+	@"$$(command -v cmake)" --build $(WEB) -j $(JOBS)
+
+web-serve: web
+	@python3 web/serve.py $(WEB)/simulator 8000
+
+# The website (site/README.md), the simulator in it when built: served at
+# http://localhost:8000/.
+site:
+	@rm -rf build-site
+	@SITE_SIMULATOR=$(WEB)/simulator python3 tools/build_site.py build-site .
+	@python3 tools/check_site_links.py build-site
+	@if [ -d $(WEB)/simulator ]; then cp -r $(WEB)/simulator build-site/simulator; fi
+	@python3 web/serve.py build-site 8000
 
 desktop:
 	@cmake -B $(DESKTOP) -S . -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release $(CMAKE_ARGS)
@@ -127,7 +159,19 @@ library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
 # A server's catalogue fetched (a scripted network) and the servers' file.
 library_client_SRC := $(filter-out $(K)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
                       $(SECRET_BOX) $(K)/util/sha256.cpp $(K)/util/paths.cpp tests/library_client/test.cpp
-library_titles_SRC := source/library/catalog.cpp source/library/titles.cpp tests/library_titles/test.cpp
+library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp tests/library_titles/test.cpp
+# What is known of the games beyond their catalogue (Nlib API's), kept on
+# the SD card.
+library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
+# A game's save as a zip archive, and back.
+save_archive_SRC  := source/saves/archive.cpp $(K)/util/zip_write.cpp $(K)/util/paths.cpp tests/save_archive/test.cpp
+save_archive_LIBS := -lz
+# AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
+library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(K)/util/paths.cpp \
+                        tests/library_services/test.cpp
+# The console's games by title (base game, update, add-ons) and what a
+# catalogue has beyond them.
+library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp
 # The downloads' queue (source/download/): its file, the journals in it, the
 # speed, the placeholders no job keeps.
 download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp $(K)/util/paths.cpp \
@@ -136,6 +180,16 @@ download_queue_LIBS := -lzstd
 # What a failed download's error means and what can be done about it.
 download_recovery_SRC  := $(filter-out tests/%,$(download_queue_SRC)) source/download/recovery.cpp tests/download_recovery/test.cpp
 download_recovery_LIBS := -lzstd
+# A package's first bytes from a file fetched ahead, the rest from its source.
+prefix_source_SRC := source/install/prefix_source.cpp tests/prefix_source/test.cpp
+# CyberFoil-DB's packs (names, icons) and their manifest; a title list made a pack.
+titledb_SRC := source/titledb/pack.cpp source/titledb/manifest.cpp source/titledb/list.cpp source/titledb/nlib.cpp tests/titledb/test.cpp
+# Their folders on the SD card: updates checked by their SHA-256, the sources' order.
+titledb_store_SRC := $(filter-out tests/%,$(titledb_SRC)) source/titledb/store.cpp $(K)/util/sha256.cpp $(K)/util/paths.cpp \
+                     tests/titledb_store/test.cpp
+# A range over several connections at once, handed on in order.
+split_stream_SRC  := source/install/split_stream.cpp tests/split_stream/test.cpp
+split_stream_LIBS := -pthread
 # The desktop build's console (sim/sim_install.cpp) behind install::Console.
 install_sim_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/install/console_core.cpp source/sim/sim_install.cpp \
                     $(K)/util/paths.cpp $(K)/sim/sim_env.cpp tests/install_sim/test.cpp
@@ -183,7 +237,8 @@ cadran_text_FLAGS := $(format_text_FLAGS)
 # borealis' own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
-# it, rewritten only then).
+# it, rewritten only then). C++20, as borealis is built (its headers use
+# defaulted comparisons).
 I18N_COPY    := $(TESTOUT)/borealis_i18n
 I18N_STAMP   := $(TESTOUT)/borealis_i18n.commit
 I18N_COMMIT  := $(shell git -C library/aurore rev-parse HEAD 2>/dev/null)
@@ -198,10 +253,10 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@# in this copy only: borealis itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp tests/i18n_threads/test.cpp
-i18n_threads_FLAGS := -std=c++17 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
+i18n_threads_FLAGS := -std=c++20 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \
-                        include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga/src) \
+                        include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
                       -DBRLS_RESOURCES='"./"'
 i18n_threads_LIBS  := -pthread
 session_log_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/session_log.cpp $(K)/util/crash_report.cpp tests/session_log/test.cpp
@@ -287,6 +342,10 @@ install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz
 install_package_FUZZ_LIBS := -lzstd
 library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
 library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
+save_archive_FUZZ      := source/saves/archive.cpp tests/fuzz/save_archive/fuzz.cpp
+save_archive_FUZZ_LIBS := -lz
+library_services_FUZZ  := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp tests/fuzz/library_services/fuzz.cpp
+titledb_FUZZ           := $(filter-out tests/%,$(titledb_SRC)) tests/fuzz/titledb/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))
 FUZZ_RUNS := $(addsuffix .run,$(FUZZ_PROGRAMS))

@@ -162,6 +162,17 @@ static void test_content_range()
     CHECK(!http_logic::range_ok(206, &got, 100, 99, &error));
 }
 
+void test_set_cookie()
+{
+    std::string c;
+    CHECK(http_logic::parse_set_cookie("Set-Cookie: session=abc.def; HttpOnly; Path=/\r\n", &c) && c == "session=abc.def");
+    CHECK(http_logic::parse_set_cookie("set-cookie:remember_token=1|x", &c) && c == "remember_token=1|x");
+    CHECK(!http_logic::parse_set_cookie("Content-Type: text/html", &c));
+    CHECK(!http_logic::parse_set_cookie("Set-Cookie: =nameless", &c));
+    CHECK(!http_logic::parse_set_cookie("Set-Cookie: novalue", &c));
+    CHECK(!http_logic::parse_set_cookie("Set-Cookie: a=b\x01c", &c));
+}
+
 int main()
 {
     test_fits();
@@ -170,5 +181,6 @@ int main()
     test_download_start();
     test_redirect();
     test_content_range();
-    return CHECK_DONE("http_logic size limit, headers, outcome, download start, redirect and content range tests passed");
+    test_set_cookie();
+    return CHECK_DONE("http_logic size limit, headers, outcome, download start, redirect, content range and cookie tests passed");
 }

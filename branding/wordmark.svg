@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="176" viewBox="0 0 360 88">
+  <defs><linearGradient id="w-word" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#00FFCC"/><stop offset="0.55" stop-color="#33BBFF"/><stop offset="1" stop-color="#8A5CFF"/></linearGradient></defs>
+  <!-- The "PlayShelf" wordmark as Aurore's: the name in white, underlined by the aurora's colours, on a transparent ground; the loading screen draws it (resources/img/wordmark.png, at twice the size it is shown). -->
+  <text x="180" y="56" text-anchor="middle" font-family="Sora" font-weight="700" font-size="60" letter-spacing="-1.5" fill="#E8EEF7">PlayShelf</text>
+  <rect x="150" y="80" width="60" height="4" rx="2" fill="url(#w-word)"/>
+</svg>

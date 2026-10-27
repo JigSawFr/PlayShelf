@@ -49,8 +49,8 @@ brls::View* tag(const std::string& text)
 {
     auto* box = new brls::Box(brls::Axis::ROW);
     box->setAlignItems(brls::AlignItems::CENTER);
-    box->setBackgroundColor(kit::color("cadran/surf2"));
-    box->setBorderColor(kit::color("cadran/line"));
+    box->setThemeColor("backgroundColor", "cadran/surf2");
+    box->setThemeColor("borderColor", "cadran/line");
     box->setBorderThickness(1);
     box->setHeight(24);
     box->setCornerRadius(12);
@@ -82,7 +82,8 @@ brls::Box* card(const changelog::Line& l, bool left)
         box->addView(image);
     } else {
         box->setAlignItems(brls::AlignItems::STRETCH);
-        auto* bar = new brls::Rectangle(kit::color("cadran/teal"));
+        auto* bar = new brls::Rectangle();
+        bar->setThemeColor("color", "cadran/teal");
         bar->setWidth(4);
         bar->setCornerRadius(2);
         bar->setMarginRight(14);

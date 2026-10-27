@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Preferences: only what sets PlayShelf itself up — the app (language,
-     theme, text size and start tab as tiles first, the effects, the intro),
-     the monthly "Support PlayShelf" reminder and how it updates. A setting
+     theme, text size and start tab as tiles first, the palette, the effects,
+     the intro),
+     the monthly "Support PlayShelf" reminder, how it updates and the title
+     database (the names and icons every tab falls back on). A setting
      that shapes one feature sits with it; Help & diagnostics is in About. -->
 
 <brls:Box
@@ -29,12 +31,17 @@
             <brls:DetailCell id="pf_theme" title="@i18n/playshelf/tools/theme"/>
             <brls:DetailCell id="pf_text_size" title="@i18n/playshelf/tiles/text_size"/>
             <brls:DetailCell id="pf_start_tab" title="@i18n/playshelf/tiles/start_tab"/>
+            <brls:DetailCell id="pf_palette" title="@i18n/cadran/tools/palette"/>
             <brls:DetailCell id="pf_effects" title="@i18n/playshelf/prefs/effects"/>
             <brls:BooleanCell id="pf_intro"/>
             <brls:BooleanCell id="pf_support_reminder"/>
             <brls:Header title="@i18n/playshelf/tools/section_update" marginTop="24" marginBottom="8"/>
             <brls:BooleanCell id="pf_update_daily"/>
             <brls:DetailCell id="pf_update_via" title="@i18n/playshelf/tools/update_via"/>
+            <brls:Header title="@i18n/playshelf/titledb/section" marginTop="24" marginBottom="8"/>
+            <brls:DetailCell id="pf_titledb" title="@i18n/playshelf/titledb/row"/>
+            <brls:DetailCell id="pf_title_sources" title="@i18n/playshelf/titledb/sources"/>
+            <brls:BooleanCell id="pf_nlib_api"/>
 
         </brls:Box>
 

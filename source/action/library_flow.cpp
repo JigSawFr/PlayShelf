@@ -9,9 +9,11 @@
 #include <fmt/format.h>
 
 #include "action/download_flow.hpp"
+#include "action/titledb_flow.hpp"
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
 #include "library/http_transport.hpp"
+#include "library/installed.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 
@@ -24,6 +26,7 @@ namespace
 // The UI thread's only.
 std::map<std::string, std::shared_ptr<const Loaded>> s_loaded;
 bool                                                 s_loading = false;
+std::vector<std::function<void(std::shared_ptr<const Loaded>, std::string)>> s_waiting;   // the fetch's `done`s
 std::shared_ptr<const Installed>                     s_installed = std::make_shared<Installed>();
 
 // On a worker thread: what is installed, read now.
@@ -90,6 +93,35 @@ void open_editor(const library::Server& server, bool is_new, const std::function
 }
 }   // namespace
 
+std::vector<Source> sources(uint64_t title_id)
+{
+    std::vector<Source> out;
+    if (!title_id) return out;
+    for (const library::Server& s : library::load_servers()) {
+        const auto l = loaded(s.id);
+        if (!l) continue;
+        const long at = library::title_of(l->titles, title_id);
+        if (at < 0) continue;
+        const library::Title& t = l->titles[(size_t)at];
+        Source src;
+        src.server_id = s.id;
+        src.server = s.name;
+        src.base = t.base >= 0;
+        src.updates = t.updates.size();
+        src.dlcs = t.dlcs.size();
+        if (!t.updates.empty()) src.newest = l->fetch.catalog.items[t.updates.front()].version;
+        std::vector<std::string> parts;
+        if (src.base) parts.push_back("playshelf/game/source_base"_i18n);
+        if (src.updates == 1) parts.push_back(brls::getStr("playshelf/game/source_update_one", src.newest));
+        else if (src.updates) parts.push_back(brls::getStr("playshelf/game/source_update", src.updates, src.newest));
+        if (src.dlcs == 1) parts.push_back("playshelf/game/source_dlc_one"_i18n);
+        else if (src.dlcs) parts.push_back(brls::getStr("playshelf/game/source_dlc", src.dlcs));
+        for (size_t i = 0; i < parts.size(); i++) src.what += (i ? " · " : "") + parts[i];
+        out.push_back(std::move(src));
+    }
+    return out;
+}
+
 std::string size_text(uint64_t bytes)
 {
     const double mb = (double)bytes / (1024.0 * 1024.0);
@@ -123,17 +155,34 @@ bool loading()
 
 void load(const library::Server& server, const Done& done)
 {
+    s_waiting.push_back(done);
     if (s_loading) return;
     s_loading = true;
+    // Each one asked meanwhile told too.
+    const Done all = [](const std::shared_ptr<const Loaded>& l, const std::string& why) {
+        auto waiting = std::move(s_waiting);
+        s_waiting.clear();
+        for (const Done& d : waiting) d(l, why);
+    };
     const std::string password = library::password_of(server);
-    ui::in_background("library", [server, password, done]() {
+    ui::in_background("library", [server, password, all]() {
         library::HttpTransport transport;
         auto                   l = std::make_shared<Loaded>();
         l->server = server;
         l->fetch = library::fetch(server, password, transport);
-        if (l->fetch.status == library::FetchStatus::Ok) l->titles = library::group_titles(l->fetch.catalog);
+        if (l->fetch.status == library::FetchStatus::Ok) {
+            l->titles = library::group_titles(l->fetch.catalog);
+            // A game the server names only by its file: the title
+            // database's name, when it has one.
+            for (library::Title& t : l->titles) {
+                if (!t.id) continue;
+                const auto known = l->fetch.catalog.titles.find(t.id);
+                if (known != l->fetch.catalog.titles.end() && !known->second.name.empty()) continue;
+                if (const auto local = titledb_flow::title(t.id); local && !local->name.empty()) t.name = local->name;
+            }
+        }
         const auto now = read_installed();
-        brls::sync([server, l, now, done]() { fetched(server, l, now, done); });
+        brls::sync([server, l, now, all]() { fetched(server, l, now, all); });
     });
 }
 
@@ -229,6 +278,85 @@ size_t install(const Loaded& l, const std::vector<size_t>& items)
         jobs.push_back(std::move(j));
     }
     return download_flow::add(std::move(jobs));
+}
+
+GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more)
+{
+    GameLines out;
+    if (!data || index >= data->titles.size()) return out;
+    const library::Title&             t = data->titles[index];
+    const std::vector<library::Item>& items = data->fetch.catalog.items;
+    using Choice = ui::Choice;
+    const auto have = installed();
+    auto       add = [data](const std::vector<size_t>& chosen) {
+        return [data, chosen]() {
+            const size_t added = install(*data, chosen);
+            if (added) ui::notify(brls::getStr("playshelf/downloads/added", added));
+            else if (!chosen.empty()) ui::notify("playshelf/downloads/already"_i18n);
+        };
+    };
+    const library::TitleState st = library::state_of(t, data->fetch.catalog, *have);
+    // Its line's end: its size, or that the console has it.
+    auto line = [&](std::vector<Choice>& to, size_t i, const char* icon, const std::string& label) {
+        const bool has = library::is_installed(items[i], *have);
+        to.emplace_back(label, add({ i }), icon, has ? "playshelf/library/installed"_i18n : size_text(items[i].size), "",
+                        has ? Choice::Tone::ON : Choice::Tone::PLAIN);
+        return has;
+    };
+
+    // Everything at once, what the console does not have of it: the base
+    // game, its newest update (when newer than the one installed), its
+    // add-ons.
+    std::vector<size_t> missing, dlcs_missing;
+    if (t.base >= 0 && !st.base) missing.push_back((size_t)t.base);
+    const long latest = library::latest_update(t);
+    const bool latest_missing = latest >= 0 && !library::is_installed(items[(size_t)latest], *have) &&
+                                (!st.base || st.update_available);
+    if (latest_missing) missing.push_back((size_t)latest);
+    for (size_t i : t.dlcs)
+        if (!library::is_installed(items[i], *have)) dlcs_missing.push_back(i);
+    missing.insert(missing.end(), dlcs_missing.begin(), dlcs_missing.end());
+    auto size_of = [&](const std::vector<size_t>& chosen) {
+        uint64_t n = 0;
+        for (size_t i : chosen) n += items[i].size;
+        return n;
+    };
+    if (missing.size() > 1 || (st.base && !missing.empty()))
+        out.main.emplace_back(st.base ? "playshelf/library/install_missing"_i18n : "playshelf/library/install_all"_i18n,
+                              add(missing), "download", size_text(size_of(missing)));
+    if (t.base >= 0) {
+        line(out.main, (size_t)t.base, "gamepad", "playshelf/library/base"_i18n);
+        out.base_size = items[(size_t)t.base].size;
+    }
+
+    // Its updates: the newest at once when the console has an older one.
+    if (latest_missing && st.base)
+        out.updates.emplace_back("playshelf/game/install_latest"_i18n, add({ (size_t)latest }), "download",
+                                 size_text(items[(size_t)latest].size));
+    for (size_t i : t.updates) {
+        // Its number (the version's high half) before the version itself.
+        line(out.updates, i, "refresh", brls::getStr("playshelf/game/update_line", items[i].version >> 16, items[i].version));
+        out.updates_size += items[i].size;
+    }
+    out.update_count = t.updates.size();
+    if (latest >= 0) out.latest_version = items[(size_t)latest].version;
+
+    // Its add-ons: the missing ones at once, when there are several.
+    if (dlcs_missing.size() > 1)
+        out.dlcs.emplace_back("playshelf/game/install_missing_dlcs"_i18n, add(dlcs_missing), "download",
+                              size_text(size_of(dlcs_missing)));
+    for (size_t i : t.dlcs) {
+        if (line(out.dlcs, i, "plus", library::clean_name(items[i].name))) out.dlcs_installed++;
+        out.dlcs_size += items[i].size;
+    }
+    out.dlc_count = t.dlcs.size();
+
+    out.more = more;
+    out.installed = st.base;
+    out.installed_version = st.base ? st.version : 0;
+    out.facts = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
+    if (st.base) out.facts += " · " + brls::getStr("playshelf/library/installed_version", st.version);
+    return out;
 }
 
 }   // namespace library_flow

@@ -60,10 +60,9 @@ NewCount add_new_count(brls::Button* tab)
 // `n` new in that tab's ink (dark on the chosen tab's teal); none: gone.
 void set_new_count(const NewCount& c, size_t n, bool chosen)
 {
-    const NVGcolor ink = brls::Application::getTheme()[(chosen ? brls::BUTTONSTYLE_PRIMARY
-                                                               : brls::BUTTONSTYLE_DEFAULT).enabledLabelColor];
-    c.glyph->setColor(ink);
-    c.count->setTextColor(ink);
+    const std::string& ink = (chosen ? brls::BUTTONSTYLE_PRIMARY : brls::BUTTONSTYLE_DEFAULT).enabledLabelColor;
+    c.glyph->setThemeColor("color", ink);
+    c.count->setThemeColor("textColor", ink);
     c.count->setText(std::to_string(n));
     ui::set_visible(c.box, n > 0);
 }

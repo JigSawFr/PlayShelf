@@ -1,0 +1,212 @@
+{
+  "ui": {
+    "title": "Simulador",
+    "nav_features": "Recursos",
+    "nav_install": "Instalação",
+    "nav_docs": "Documentação",
+    "loading": "Carregando…",
+    "downloading": "Baixando o PlayShelf…",
+    "starting": "Iniciando…",
+    "start": "Iniciar",
+    "save_data": "A economia de dados está ativada: o PlayShelf baixa alguns megabytes.",
+    "tools": "Ferramentas",
+    "settings": "Configurações",
+    "log": "Registro",
+    "language": "Idioma",
+    "theme": "Tema",
+    "theme_auto": "Automático",
+    "theme_light": "Claro",
+    "theme_dark": "Escuro",
+    "theme_changed": "O tema mudou: reinicie para aplicá-lo também ao console.",
+    "restart": "Reiniciar",
+    "preset": "Predefinição",
+    "preset_none": "Escolha uma predefinição…",
+    "other": "Outros parâmetros",
+    "other_help": "Qualquer outra variável PLAYSHELF_SIM_*, pelo nome em minúsculas sem o prefixo: mesmo uma que esta página ainda não conhece (de uma build mais recente) chega ao PlayShelf.",
+    "add": "Adicionar",
+    "remove": "Remover",
+    "apply": "Aplicar",
+    "copy": "Copiar link",
+    "copied": "Link copiado",
+    "reset": "Redefinir",
+    "pad": "Controle",
+    "version": "Versão",
+    "version_dev": "Em desenvolvimento",
+    "fullscreen": "Tela cheia",
+    "fullscreen_exit": "Sair da tela cheia",
+    "screenshot": "Captura",
+    "note": "Aplicar reinicia o PlayShelf do zero com essas configurações; o que você muda dentro dele não é mantido, a não ser com “Manter o estado”. O console usa o idioma e o tema da página.",
+    "keys": "<kbd>↑↓←→</kbd> mover · <kbd>Enter</kbd> A · <kbd>Esc</kbd> B · <kbd>X</kbd> <kbd>Y</kbd> · <kbd>L</kbd> <kbd>R</kbd> · <kbd>⇧L</kbd> ZL · <kbd>⇧R</kbd> ZR · <kbd>+</kbd> <kbd>−</kbd> · um clique é um toque",
+    "error": "O PlayShelf parou:",
+    "reload": "Recarregar",
+    "no_isolation": "Este navegador não permite que a página use threads (sem isolamento de origem cruzada). Experimente um Chrome, Edge ou Firefox recente, fora de uma janela anônima.",
+    "no_webgl": "Este navegador não tem WebGL 2, com o qual o PlayShelf desenha.",
+    "unknown_build": "build local",
+    "record": "Gravar",
+    "stop_recording": "Parar",
+    "forget": "Esquecer o estado salvo",
+    "live_applied": "Alterado sem reiniciar",
+    "stop": "Parar",
+    "steps_copy": "Link dos passos",
+    "steps_help": "Um link que inicia o PlayShelf como aqui e repete o que você fez desde então",
+    "steps_copied": "Link com os passos copiado",
+    "replaying": "Repetindo os passos: {n} de {total}",
+    "tour": "Tour",
+    "report": "Relatar um problema",
+    "tour_home": "Início: como estão o console e os servidores, o que falta aos seus jogos, as novidades dos servidores e jogos para você.",
+    "tour_library": "Biblioteca: os jogos deste console, suas versões e o que um servidor tem de mais novo.",
+    "tour_catalogue": "Catálogo: os jogos de um servidor de biblioteca, aqui os inventados da prateleira de demonstração.",
+    "tour_game": "A página de um jogo: o jogo base, as atualizações e os DLCs, cada um para instalar.",
+    "tour_download": "Instalar tudo: os pacotes vão para os downloads e são instalados um depois do outro.",
+    "tour_downloads": "Downloads: a fila, a linha do tempo de cada jogo e como os pacotes são baixados.",
+    "tour_preferences": "Preferências: o idioma, o tema e o banco de dados de títulos.",
+    "tour_end": "Sua vez: as setas movem, Enter é A, Esc é B. O painel define qualquer estado."
+  },
+  "groups": {
+    "app": "PlayShelf",
+    "library": "Servidor de biblioteca",
+    "console": "Console",
+    "updates": "Atualizações e GitHub",
+    "capture": "Capturas"
+  },
+  "params": {
+    "tab": {
+      "label": "Abre em",
+      "options": {
+        "": "Início",
+        "library": "Biblioteca",
+        "catalogue": "Catálogo",
+        "preferences": "Preferências",
+        "about": "Sobre"
+      }
+    },
+    "keep": {
+      "label": "Manter o estado entre visitas",
+      "help": "Os dados do PlayShelf (configurações, servidores, downloads) e o que o console simulado instalou ficam neste navegador; as configurações de console deste painel só contam então na primeira inicialização."
+    },
+    "fw": {
+      "label": "Firmware",
+      "help": "Acima do mais recente verificado, a tela do firmware."
+    },
+    "no_cfw": {
+      "label": "Sem Atmosphère"
+    },
+    "emummc": {
+      "label": "emuMMC"
+    },
+    "blank": {
+      "label": "Número de série oculto"
+    },
+    "region": {
+      "label": "Região",
+      "options": {
+        "": "Padrão",
+        "0": "Japão",
+        "1": "Américas",
+        "2": "Europa",
+        "3": "Austrália",
+        "4": "Hong Kong, Taiwan, Coreia",
+        "5": "China"
+      }
+    },
+    "applet": {
+      "label": "Modo applet (a partir do álbum)"
+    },
+    "background": {
+      "label": "PlayShelf em segundo plano"
+    },
+    "hbloader": {
+      "label": "Um carregador que pode passar uma atualização a uma loja"
+    },
+    "docked": {
+      "label": "Na base (na TV)"
+    },
+    "battery": {
+      "label": "Na bateria (sem carregador)"
+    },
+    "boot_choice": {
+      "label": "Resposta a \"build anterior?\" ao iniciar",
+      "options": {
+        "": "B",
+        "a": "A"
+      }
+    },
+    "now": {
+      "label": "Horário do console, congelado",
+      "help": "No fuso horário do navegador."
+    },
+    "latest": {
+      "label": "Versão mais recente : firmware mais recente compatível"
+    },
+    "store": {
+      "label": "Versão da Homebrew App Store (com o registro dela no cartão SD)"
+    },
+    "dev_builds": {
+      "label": "Builds de desenvolvimento (API do GitHub)",
+      "options": {
+        "": "Inacessível",
+        "offline": "Offline"
+      }
+    },
+    "dev_builds_delay": {
+      "label": "Cada resposta do GitHub atrasada (ms)"
+    },
+    "github_login": {
+      "label": "Login no GitHub",
+      "options": {
+        "": "Inacessível",
+        "ok": "Aprovado",
+        "denied": "Recusado",
+        "offline": "Offline"
+      }
+    },
+    "paste": {
+      "label": "Resposta a \"Enviar um relatório on-line\""
+    },
+    "still_focus": {
+      "label": "Destaque do foco sem animação"
+    },
+    "version": {
+      "label": "Versão exibida no cabeçalho"
+    },
+    "hold_loading": {
+      "label": "Ficar na tela de carregamento"
+    },
+    "cadran_noglow": {
+      "label": "Sem brilho de fundo"
+    },
+    "no_game": {
+      "label": "Nada aberto por trás do PlayShelf"
+    },
+    "no_play": {
+      "label": "Sem tempo de jogo no console"
+    },
+    "no_demo": {
+      "label": "Nenhum servidor de biblioteca (uma primeira inicialização)"
+    },
+    "signed": {
+      "label": "Pacotes de demonstração considerados assinados pela Nintendo",
+      "help": "Ativado por padrão com o servidor de demonstração. Desativado: cada instalação pergunta antes, como um pacote não assinado pela Nintendo em um console."
+    },
+    "speed": {
+      "label": "Velocidade do servidor de demonstração (KB/s)",
+      "help": "96 por padrão; 0: na hora."
+    },
+    "free_mb": {
+      "label": "Espaço livre para instalações (MB)",
+      "help": "0: o cartão SD está cheio e uma instalação para nele."
+    }
+  },
+  "presets": {
+    "default": "Padrão",
+    "slow_network": "Uma rede lenta",
+    "fast_network": "Uma rede rápida",
+    "sd_full": "Cartão SD cheio",
+    "no_server": "Ainda sem servidor de biblioteca",
+    "offline": "Console sem internet",
+    "applet": "Modo applet (pelo álbum)",
+    "no_cfw": "Sem Atmosphère",
+    "fw_old": "Um firmware mais antigo",
+    "updates": "Atualizações para instalar"
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "ui": {
+    "title": "模擬器",
+    "nav_features": "功能",
+    "nav_install": "安裝",
+    "nav_docs": "說明文件",
+    "loading": "載入中…",
+    "downloading": "正在下載 PlayShelf…",
+    "starting": "啟動中…",
+    "start": "開始",
+    "save_data": "已開啟節省數據模式：PlayShelf 需要下載幾 MB。",
+    "tools": "工具",
+    "settings": "設定",
+    "log": "記錄",
+    "language": "語言",
+    "theme": "主題",
+    "theme_auto": "自動",
+    "theme_light": "淺色",
+    "theme_dark": "深色",
+    "theme_changed": "主題已變更：重新啟動後主機也會使用它。",
+    "restart": "重新啟動",
+    "preset": "預設組合",
+    "preset_none": "選擇預設組合…",
+    "other": "其他參數",
+    "other_help": "其他任何 PLAYSHELF_SIM_* 變數，以去掉前綴的小寫名稱表示：即使本頁還不認得（來自較新的版本），也會傳給 PlayShelf。",
+    "add": "新增",
+    "remove": "移除",
+    "apply": "套用",
+    "copy": "複製連結",
+    "copied": "已複製連結",
+    "reset": "重設",
+    "pad": "控制器",
+    "version": "版本",
+    "version_dev": "開發中",
+    "fullscreen": "全螢幕",
+    "fullscreen_exit": "結束全螢幕",
+    "screenshot": "截圖",
+    "note": "「套用」會用這些設定從全新狀態重新啟動 PlayShelf；在其中做的變更不會保留，除非開啟「保留狀態」。主機使用頁面的語言和主題。",
+    "keys": "<kbd>↑↓←→</kbd> 移動 · <kbd>Enter</kbd> A · <kbd>Esc</kbd> B · <kbd>X</kbd> <kbd>Y</kbd> · <kbd>L</kbd> <kbd>R</kbd> · <kbd>⇧L</kbd> ZL · <kbd>⇧R</kbd> ZR · <kbd>+</kbd> <kbd>−</kbd> · 點擊即觸控",
+    "error": "PlayShelf 已停止：",
+    "reload": "重新載入",
+    "no_isolation": "此瀏覽器不允許頁面使用執行緒（沒有跨來源隔離）。請在非無痕視窗中使用較新的 Chrome、Edge 或 Firefox。",
+    "no_webgl": "此瀏覽器沒有 PlayShelf 繪圖所需的 WebGL 2。",
+    "unknown_build": "本機版本",
+    "record": "錄影",
+    "stop_recording": "停止",
+    "forget": "清除保留的狀態",
+    "live_applied": "已變更，無需重新啟動",
+    "stop": "停止",
+    "steps_copy": "步驟連結",
+    "steps_help": "一個連結：像這裡一樣啟動 PlayShelf，並重播之後的操作",
+    "steps_copied": "已複製含步驟的連結",
+    "replaying": "正在重播步驟：第 {n} 步，共 {total} 步",
+    "tour": "導覽",
+    "report": "回報問題",
+    "tour_home": "首頁：主機和伺服器的狀態、你的遊戲缺少的內容、伺服器上的新遊戲和為你推薦的遊戲。",
+    "tour_library": "遊戲庫：這台主機上的遊戲、版本，以及伺服器上較新的內容。",
+    "tour_catalogue": "目錄：庫伺服器的遊戲，這裡是示範書架上虛構的遊戲。",
+    "tour_game": "遊戲頁面：本體、更新和追加內容，每一項都可安裝。",
+    "tour_download": "全部安裝：其資料包進入下載，逐一安裝。",
+    "tour_downloads": "下載：佇列、每個遊戲的時間軸，以及資料包的取得方式。",
+    "tour_preferences": "偏好設定：語言、主題和遊戲資訊資料庫。",
+    "tour_end": "輪到你了：方向鍵移動，Enter 為 A，Esc 為 B。面板可設定任何狀態。"
+  },
+  "groups": {
+    "app": "PlayShelf",
+    "library": "庫伺服器",
+    "console": "主機",
+    "updates": "更新與 GitHub",
+    "capture": "截圖"
+  },
+  "params": {
+    "tab": {
+      "label": "開啟時顯示",
+      "options": {
+        "": "首頁",
+        "library": "遊戲庫",
+        "catalogue": "目錄",
+        "preferences": "偏好設定",
+        "about": "關於"
+      }
+    },
+    "keep": {
+      "label": "在造訪之間保留狀態",
+      "help": "PlayShelf 的資料（設定、伺服器、下載）以及模擬主機已安裝的內容會保留在此瀏覽器中；此面板的主機設定屆時只在首次啟動時生效。"
+    },
+    "fw": {
+      "label": "系統版本",
+      "help": "高於已驗證的最新版本時，顯示系統版本畫面。"
+    },
+    "no_cfw": {
+      "label": "沒有 Atmosphère"
+    },
+    "emummc": {
+      "label": "emuMMC"
+    },
+    "blank": {
+      "label": "序號已隱藏"
+    },
+    "region": {
+      "label": "地區",
+      "options": {
+        "": "預設",
+        "0": "日本",
+        "1": "美洲",
+        "2": "歐洲",
+        "3": "澳洲",
+        "4": "香港、台灣、韓國",
+        "5": "中國"
+      }
+    },
+    "applet": {
+      "label": "小程式模式（從相簿啟動）"
+    },
+    "background": {
+      "label": "PlayShelf 在背景"
+    },
+    "hbloader": {
+      "label": "能把更新交給商店的載入器"
+    },
+    "docked": {
+      "label": "插在底座上（電視）"
+    },
+    "battery": {
+      "label": "電池供電（未接充電器）"
+    },
+    "boot_choice": {
+      "label": "啟動時對「上一個版本？」的回答",
+      "options": {
+        "": "B",
+        "a": "A"
+      }
+    },
+    "now": {
+      "label": "固定主機時間",
+      "help": "依瀏覽器的時區。"
+    },
+    "latest": {
+      "label": "最新版本 : 支援的最新系統版本"
+    },
+    "store": {
+      "label": "Homebrew App Store 中的版本（SD 卡上有其紀錄）"
+    },
+    "dev_builds": {
+      "label": "開發版本（GitHub API）",
+      "options": {
+        "": "無法連線",
+        "offline": "離線"
+      }
+    },
+    "dev_builds_delay": {
+      "label": "GitHub 每次回應延遲（毫秒）"
+    },
+    "github_login": {
+      "label": "登入 GitHub",
+      "options": {
+        "": "無法連線",
+        "ok": "已核准",
+        "denied": "已拒絕",
+        "offline": "離線"
+      }
+    },
+    "paste": {
+      "label": "「線上傳送報告」的回應"
+    },
+    "still_focus": {
+      "label": "焦點醒目提示靜止"
+    },
+    "version": {
+      "label": "標題列顯示的版本"
+    },
+    "hold_loading": {
+      "label": "停在載入畫面"
+    },
+    "cadran_noglow": {
+      "label": "無背景光暈"
+    },
+    "no_game": {
+      "label": "PlayShelf 後面沒有開啟任何內容"
+    },
+    "no_play": {
+      "label": "主機上沒有遊戲時間"
+    },
+    "no_demo": {
+      "label": "沒有庫伺服器（首次啟動）"
+    },
+    "signed": {
+      "label": "將示範資料包視為已由 Nintendo 簽署",
+      "help": "有示範伺服器時預設開啟。關閉：每次安裝都會先詢問，就像主機上未經 Nintendo 簽署的資料包一樣。"
+    },
+    "speed": {
+      "label": "示範伺服器速度（KB/s）",
+      "help": "預設 96；0 表示立即。"
+    },
+    "free_mb": {
+      "label": "可用於安裝的空間（MB）",
+      "help": "0：SD 卡已滿，安裝會在此停止。"
+    }
+  },
+  "presets": {
+    "default": "預設",
+    "slow_network": "慢速網路",
+    "fast_network": "快速網路",
+    "sd_full": "SD 卡已滿",
+    "no_server": "尚無庫伺服器",
+    "offline": "沒有網際網路的主機",
+    "applet": "小程式模式（從相簿啟動）",
+    "no_cfw": "沒有 Atmosphère",
+    "fw_old": "較舊的系統版本",
+    "updates": "有可安裝的更新"
+  }
+}

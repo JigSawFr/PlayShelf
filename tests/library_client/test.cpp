@@ -47,6 +47,17 @@ struct Script : Transport
         a.status = 404;
         return a;
     }
+    Answer call(const std::string& url, const http::Call& c, const std::vector<std::string>& headers,
+                const std::string& pin) override
+    {
+        if (c.method.empty() || c.method == "GET") return get(url, headers, pin);
+        asked.push_back(c.method + " " + url);
+        const auto it = answers.find(c.method + " " + url);
+        if (it != answers.end()) return it->second;
+        Answer a;
+        a.status = 405;
+        return a;
+    }
     bool reachable(const std::string& url) override { return up.count(url) != 0; }
     std::string certificate(const std::string&, std::string* why) override
     {
@@ -62,6 +73,8 @@ Answer ok(const std::string& body)
     a.body = body;
     return a;
 }
+
+const std::string LIMIT = "?limit=" + std::to_string(SECTIONS_LIMIT);
 
 const char* API = R"({"sections":[{"id":"all","title":"All","items":[{"url":"/api/get_game/7#Seven.nsp","size":7}]}]})";
 
@@ -125,7 +138,7 @@ void test_lan_pin()
     Script w;
     Answer bad;
     bad.tls_failed = true;
-    w.answers["https://shelf.example.org/api/remote"] = bad;
+    w.answers["https://shelf.example.org/api/remote/sections" + LIMIT] = bad;
     f = fetch(shelf(), "", w);
     CHECK(f.status == FetchStatus::Failed && f.why.find("recognized authority") != std::string::npos);
     // Lan only: the LAN address even when it does not answer the probe.
@@ -139,10 +152,19 @@ void test_lan_pin()
 
 void test_fallbacks()
 {
+    // The newer /sections paths, each on its own.
+    Script sec;
+    sec.answers["https://shelf.example.org/api/remote/sections" + LIMIT] = ok(API);
+    Fetch f = fetch(shelf(), "", sec);
+    CHECK(f.status == FetchStatus::Ok && f.format == Format::Api && f.catalog.items.size() == 1);
+    Script shop_sec;
+    shop_sec.answers["https://shelf.example.org/api/shop/sections" + LIMIT] = ok(API);
+    f = fetch(shelf(), "", shop_sec);
+    CHECK(f.status == FetchStatus::Ok && f.format == Format::Api);
     // The older path.
     Script t;
     t.answers["https://shelf.example.org/api/shop"] = ok(API);
-    Fetch f = fetch(shelf(), "", t);
+    f = fetch(shelf(), "", t);
     CHECK(f.status == FetchStatus::Ok && f.format == Format::Api);
     // Neither: the address read as an index, its directories followed (a
     // cycle once), merged.
@@ -156,6 +178,8 @@ void test_fallbacks()
     CHECK(f.catalog.items.size() == 2);
     // Its API paths tried first, then the index itself once (the cycle back to it not followed).
     CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url) == 1);
+    CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/remote/sections" + LIMIT) == 1);
+    CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/shop/sections" + LIMIT) == 1);
     CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/remote") == 1);
     CHECK(std::count(i.asked.begin(), i.asked.end(), s.wan_url + "/api/shop") == 1);
     // A chain deeper than the limit stops there.
@@ -189,6 +213,78 @@ void test_fallbacks()
     no_https.wan_url = "http://plain.example.org";
     f = fetch(no_https, "", none);
     CHECK(f.status == FetchStatus::Failed && f.why.find("https") != std::string::npos);
+}
+
+// Ownfoil 2: no /api/shop (its web page for any path), its GraphQL API a
+// page at a time, its handshake for the message of the day.
+void test_ownfoil()
+{
+    Script t;
+    const std::string base = "https://shelf.example.org";
+    for (const char* p : {"/api/remote/sections", "/api/shop/sections"})
+        t.answers[base + p + LIMIT] = ok("<!doctype html><title>Ownfoil</title>");
+    auto app = [](const std::string& id, const char* type, int version, const char* name) {
+        return std::string(R"({"appId":")") + id + R"(","titleId":")" + id.substr(0, 13) + R"(000","appVersion":)" +
+               std::to_string(version) + R"(,"appType":")" + type + R"(","downloadUrl":"/api/download/t)" + id +
+               R"(","downloadSize":5000000000,"downloadExtension":"nsz","titledb":{"name":")" + name +
+               R"("},"title":{"name":"Game","icon":{"url":"/api/media/x/icon/0/thumb/a.webp"}}})";
+    };
+    std::string page1 = R"({"data":{"apps":{"total":3,"items":[)";
+    page1 += app("0100000000010000", "BASE", 0, "Game") + "," + app("0100000000010800", "UPDATE", 65536, "") + "]}}}";
+    // The page size: a page shorter than it is the last.
+    std::string page1_full = page1;
+    t.answers[base + "/api/graphql?query=" + graphql_apps_query(1, GRAPHQL_PAGE)] = ok(page1);
+    Answer hello = ok(R"({"uid":"u","name":"Home","version":"2.5.0","protocol_version":1,"motd":"Welcome","public":false,
+                         "features":{"shop":true,"save_backup":false}})");
+    t.answers["OPTIONS " + base + "/"] = hello;
+    Fetch f = fetch(shelf(), "secret", t);
+    if (!CHECK(f.status == FetchStatus::Ok && f.dialect == Dialect::GraphQl)) {
+        fprintf(stderr, "  %s\n", f.why.c_str());
+        return;
+    }
+    CHECK(f.catalog.items.size() == 2 && f.catalog.motd == "Welcome" && f.info.name == "Home" && f.info.protocol == 1);
+    const Item& b = f.catalog.items[0];
+    CHECK(b.url == base + "/api/download/t0100000000010000" && b.size == 5000000000ull && b.kind == Kind::Base);
+    CHECK(b.name == "Game" && b.icon_url == base + "/api/media/x/icon/0/thumb/a.webp" && b.title_id == 0x0100000000010000ull);
+    CHECK(f.catalog.items[1].kind == Kind::Update && f.catalog.items[1].version == 65536 && f.catalog.items[1].has_version);
+    CHECK(t.last_headers.size() == 1);   // the credentials, to GraphQL and the handshake alike
+    // A refused password: said, no index guessed.
+    Script r = t;
+    Answer denied;
+    denied.status = 401;
+    r.answers[base + "/api/graphql?query=" + graphql_apps_query(1, GRAPHQL_PAGE)] = denied;
+    f = fetch(shelf(), "wrong", r);
+    CHECK(f.status == FetchStatus::Failed && f.why.find("username or password") != std::string::npos);
+    // No handshake: the catalogue all the same.
+    Script n = t;
+    n.answers.erase("OPTIONS " + base + "/");
+    f = fetch(shelf(), "secret", n);
+    CHECK(f.status == FetchStatus::Ok && f.catalog.motd.empty());
+    // An error the query met: said.
+    Script e = t;
+    e.answers[base + "/api/graphql?query=" + graphql_apps_query(1, GRAPHQL_PAGE)] = ok(R"({"errors":[{"message":"Unknown field"}]})");
+    Server api = shelf();
+    api.format = Format::Api;
+    f = fetch(api, "secret", e);
+    CHECK(f.status == FetchStatus::Failed);
+}
+
+// AeroFoil: its sections' dialect, the "All" it cut short, a frozen account.
+void test_aerofoil()
+{
+    Script t;
+    t.answers["https://shelf.example.org/api/remote/sections" + LIMIT] =
+        ok(R"({"sections":[{"id":"all","title":"All","truncated":true,"items":[{"url":"/api/get_game/7#Seven.nsp","size":7}]}]})");
+    Fetch f = fetch(shelf(), "", t);
+    CHECK(f.status == FetchStatus::Ok && f.dialect == Dialect::Sections && f.catalog.truncated);
+    Script old;
+    old.answers["https://shelf.example.org/api/shop"] = ok(API);
+    CHECK(fetch(shelf(), "", old).dialect == Dialect::Shop);
+    Script frozen;
+    frozen.answers["https://shelf.example.org/api/remote/sections" + LIMIT] =
+        ok(R"({"sections":[{"id":"new","items":[{"name":"Account frozen","url":"/api/frozen/notice#frozen.txt","size":1}]}]})");
+    f = fetch(shelf(), "", frozen);
+    CHECK(f.status == FetchStatus::Failed && f.why.find("frozen") != std::string::npos);
 }
 
 void test_store()
@@ -256,6 +352,8 @@ int main()
     test_api_wan();
     test_lan_pin();
     test_fallbacks();
+    test_ownfoil();
+    test_aerofoil();
     test_store();
     CHECK_DONE("library client: endpoints, credentials, API and index, pins on first use, the servers' file passed");
 }

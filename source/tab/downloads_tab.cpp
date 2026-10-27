@@ -11,8 +11,12 @@
 #include "action/download_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
+#include "install/split_stream.hpp"
+#include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "view/banner_card.hpp"
+#include "view/cover_placeholder.hpp"
 
 using namespace brls::literals;
 
@@ -66,12 +70,61 @@ DownloadsTab::DownloadsTab()
     empty.text->setText("playshelf/downloads/empty_text"_i18n);
     empty_box->addView(empty.box);
 
+    // The settings, a card: staying awake, the connections.
+    brls::Box* card = cadran::List::rows_in(settings);
+    keep_awake = new brls::BooleanCell();
     keep_awake->init("playshelf/downloads/keep_awake"_i18n, config::get().keep_awake, [](bool on) {
         config::get().keep_awake = on;
         ui::save_config();
         download_flow::keep_awake_changed();
     });
-    cadran::List::row(keep_awake, "bolt", true);
+    card->addView(keep_awake);
+    cadran::List::row(keep_awake, "bolt");
+    connections = new brls::DetailCell();
+    connections->setText("playshelf/downloads/connections"_i18n);
+    ui::set_detail(connections, std::to_string(config::get().connections));
+    connections->registerClickAction([this](brls::View*) {
+        std::vector<std::string> values, details;
+        for (int n = 1; n <= install::MAX_CONNECTIONS; n++) {
+            values.push_back(std::to_string(n));
+            details.push_back(n == 1   ? "playshelf/downloads/connections_one"_i18n
+                              : n == 4 ? "playshelf/downloads/connections_default"_i18n
+                              : n == install::MAX_CONNECTIONS ? "playshelf/downloads/connections_most"_i18n
+                                                              : "");
+        }
+        ui::pick("playshelf/downloads/connections"_i18n, values, config::get().connections - 1,
+                 ui::guarded(this->alive, [this](int i) {
+                     config::get().connections = i + 1;
+                     ui::save_config();
+                     ui::set_detail(this->connections, std::to_string(i + 1));
+                 }),
+                 true, details);
+        return true;
+    });
+    card->addView(connections);
+    cadran::List::row(connections, "server");
+    prefetch = new brls::DetailCell();
+    prefetch->setText("playshelf/downloads/prefetch"_i18n);
+    auto prefetch_text = [](int n) {
+        return n <= 0 ? "playshelf/downloads/prefetch_off"_i18n
+             : n == 1 ? "playshelf/downloads/prefetch_one"_i18n
+                      : brls::getStr("playshelf/downloads/prefetch_many", n);
+    };
+    ui::set_detail(prefetch, prefetch_text(config::get().prefetch));
+    prefetch->registerClickAction([this, prefetch_text](brls::View*) {
+        const std::vector<std::string> values = { prefetch_text(0), prefetch_text(1), prefetch_text(2) };
+        ui::pick("playshelf/downloads/prefetch"_i18n, values, config::get().prefetch,
+                 ui::guarded(this->alive, [this, prefetch_text](int i) {
+                     config::get().prefetch = i;
+                     ui::save_config();
+                     ui::set_detail(this->prefetch, prefetch_text(i));
+                     download_flow::prefetch_changed();
+                 }),
+                 true, { "", "playshelf/downloads/prefetch_note"_i18n, "playshelf/downloads/prefetch_note"_i18n });
+        return true;
+    });
+    card->addView(prefetch);
+    cadran::List::row(prefetch, "folder");
     // A tab's margins, as the other tabs' lists have them.
     const cadran::List margins(this);
     (void)margins;
@@ -151,17 +204,25 @@ void DownloadsTab::update()
             r.card->setAlignItems(brls::AlignItems::CENTER);
             r.card->setPadding(16, 24, 16, 16);
             r.card->setMarginBottom(12);
+            // The game's banner behind its right half, once it came.
+            auto* backdrop = new BannerBackdrop();
+            backdrop->setPositionTop(0);
+            backdrop->setPositionBottom(0);
+            backdrop->setPositionRight(0);
+            backdrop->setWidthPercentage(55);
+            r.card->addView(backdrop);
+            r.backdrop = backdrop;
             // The game's icon, on the well until (and unless) the cache has it.
             auto* cover = new brls::Box(brls::Axis::ROW);
             cover->setWidth(ICON);
             cover->setHeight(ICON);
             cover->setShrink(0);
             cover->setCornerRadius(cadran::kit::RADIUS_ICON);
-            cover->setBackgroundColor(cadran::kit::color("cadran/well"));
+            cover->setThemeColor("backgroundColor", "cadran/well");
             cover->setAlignItems(brls::AlignItems::CENTER);
             cover->setJustifyContent(brls::JustifyContent::CENTER);
             cover->setMarginRight(20);
-            cover->addView(cadran::kit::icon("gamepad", 36, "cadran/text3"));
+            cover->addView(new CoverPlaceholder(ICON, 36, cadran::kit::RADIUS_ICON));
             r.icon = new brls::Image();
             r.icon->setWidth(ICON);
             r.icon->setHeight(ICON);
@@ -192,17 +253,25 @@ void DownloadsTab::update()
             list->addView(r.card);
             const size_t at = this->rows.size();
             const int    gen = this->generation;
-            library_icons::cached(g.icon_url, ui::guarded(this->alive, [this, at, gen](int texture) {
-                if (gen != this->generation || at >= this->rows.size() || !texture) {
-                    if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
-                    return;
-                }
+            // The cache's (a cover shown before), else the title database's.
+            const uint64_t game_id = g.jobs.empty() ? 0 : jobs[g.jobs.front()].game_id;
+            auto           shown = ui::guarded(this->alive, [this, at, gen](const library_icons::Picture& p) {
+                if (gen != this->generation || at >= this->rows.size()) return;
                 Row& row = this->rows[at];
-                row.icon->innerSetImage(texture);
-                row.icon->setFreeTexture(true);
+                if (!library_icons::show(row.icon, p)) return;
                 row.icon->setVisibility(brls::Visibility::VISIBLE);
                 row.icon->getParent()->getChildren()[0]->setVisibility(brls::Visibility::GONE);
-            }));
+            });
+            library_icons::cached(g.icon_url, [shown, game_id](const library_icons::Picture& p) {
+                if (p || !game_id) shown(p);
+                else library_icons::local(game_id, shown);
+            });
+            if (game_id && config::get().nlib_api)
+                library_icons::picture(titledb::nlib_banner_url(game_id), 854, 480,
+                                       ui::guarded(this->alive, [this, at, gen](const library_icons::Picture& p) {
+                                           if (p && gen == this->generation && at < this->rows.size())
+                                               this->rows[at].backdrop->set_picture(p->rgba.data(), p->width, p->height);
+                                       }));
             this->rows.push_back(r);
         }
         if (!this->rows.empty() && !brls::Application::getCurrentFocus()->isFocusable())
@@ -250,6 +319,13 @@ void DownloadsTab::fill(Row& row)
         break;
     case download::State::Waiting:
         text = "playshelf/downloads/state_waiting"_i18n + " · " + packages;
+        // What is fetched ahead of it.
+        for (size_t i : g.jobs)
+            if (const auto a = download_flow::ahead_of(jobs[i].id)) {
+                text += " · " + (a->first >= a->second ? "playshelf/downloads/ahead_done"_i18n
+                                                        : brls::getStr("playshelf/downloads/ahead", a->first * 100 / a->second));
+                break;
+            }
         break;
     case download::State::Paused:
         text = "playshelf/downloads/state_paused"_i18n + " · " + packages;
@@ -271,7 +347,7 @@ void DownloadsTab::fill(Row& row)
         break;
     }
     if (size && download::group_state(g, jobs) != download::State::Running) text += " · " + library_flow::size_text(size);
-    row.state->setTextColor(cadran::kit::color(color));
+    row.state->setThemeColor("textColor", color);
     ui::set_text(row.state, text);
 }
 

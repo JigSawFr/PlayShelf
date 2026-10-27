@@ -2,7 +2,9 @@
 #include "activity/main_activity.hpp"
 
 #include "action/download_flow.hpp"
+#include "action/nlib_flow.hpp"
 #include "action/rollback_flow.hpp"
+#include "action/titledb_flow.hpp"
 #include <borealis/cadran/ui/cadran_frame.hpp>
 
 #include "action/support_flow.hpp"
@@ -23,6 +25,8 @@ void MainActivity::onContentAvailable()
 {
     // For the desktop smoke test: the start screens lead here.
     brls::Logger::info("main screen opened");
+    titledb_flow::start();
+    nlib_flow::start();
     download_flow::init();
     this->update_title();
     // The frame after the design boards.

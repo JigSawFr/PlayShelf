@@ -30,7 +30,7 @@ class DevBuildActivity : public brls::Activity
     dev_builds::Build build;
     bool              newer;
 
-    void add_fact(const std::string& name, const std::string& value, NVGcolor color);
+    void add_fact(const std::string& name, const std::string& value, const char* color);   // a theme key
     // Its page on GitHub ("" when there is none to show).
     std::string page() const;
     void show_page();

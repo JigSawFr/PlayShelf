@@ -2,7 +2,8 @@
 // so the queue is a press away whatever else is open; the queue itself
 // runs whichever screen is shown. The queue
 // by game, a card each (download::groups: a base game, its updates and its
-// add-ons from one server), its icon (from the Library's cache), its name,
+// add-ons from one server), its icon (from the Library's cache), the
+// game's banner from Nlib API behind its right half, its name,
 // where it stands (the package being installed with its percent, speed and
 // time left; waiting, paused, installed, why one failed) and a timeline of
 // its packages (view/timeline). A on a card: the game's packages, each
@@ -11,7 +12,9 @@
 // it, what it installed so far deleted), and the game's own pause, resume
 // and remove. Ⓧ pauses or resumes them all, Ⓨ clears the
 // installed ones. Last, whether the console stays awake while they run
-// (config keep_awake). Updated as the queue changes, the running job's line
+// (config keep_awake), how many connections a download takes at once
+// (config connections, install/split_stream) and how many packages are
+// fetched ahead while one installs (config prefetch). Updated as the queue changes, the running job's line
 // twice a second.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -23,6 +26,8 @@
 
 #include "tab/tab_base.hpp"
 #include "view/timeline.hpp"
+
+class BannerBackdrop;
 
 class DownloadsTab : public TabBase
 {
@@ -43,6 +48,7 @@ class DownloadsTab : public TabBase
         brls::Label*             name = nullptr;
         brls::Label*             state = nullptr;
         Timeline*                timeline = nullptr;
+        BannerBackdrop*          backdrop = nullptr;   // the game's banner behind the card
     };
 
     // The cards made again when the games or their jobs changed (added,
@@ -59,5 +65,8 @@ class DownloadsTab : public TabBase
 
     BRLS_BIND(brls::Box, empty_box, "dl_empty");
     BRLS_BIND(brls::Box, list,      "dl_list");
-    BRLS_BIND(brls::BooleanCell, keep_awake, "dl_keep_awake");
+    BRLS_BIND(brls::Box, settings,  "dl_settings");
+    brls::BooleanCell* keep_awake = nullptr;
+    brls::DetailCell*  connections = nullptr;
+    brls::DetailCell*  prefetch = nullptr;
 };

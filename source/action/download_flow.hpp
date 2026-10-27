@@ -1,8 +1,8 @@
 // download_flow — the downloads' queue at work (download/queue): the jobs
 // read from queue.json at start-up (one cut short by a restart comes back
-// paused, its journal kept), added from the Library tab, installed one
-// after the other on a worker thread (install::Installer to the SD card,
-// each from the journal of its earlier runs). A library server's
+// paused, its journal kept), added from the Catalogue and Library tabs,
+// installed one after the other on a worker thread (install::Installer to
+// the SD card, each from the journal of its earlier runs). A library server's
 // credentials and pin are taken from its profile when the job starts, and
 // go only to that server's addresses.
 //
@@ -12,6 +12,8 @@
 // other address, its profile, the package found again in its catalogue). A
 // job whose server was removed fails before it starts; one whose package
 // the console has by now is done.
+//
+// Fetching ahead (config prefetch): see ahead_of() below.
 //
 // Before the first job of a run: whether the console patches signature
 // checks (util/patches; asked to go on when nothing is found). Before each
@@ -76,6 +78,14 @@ void use_other_address(const std::string& id);   // the server's other address (
 // Its server's catalogue read again, the package found in it (its title at
 // that version): its new address taken, then waiting again.
 void find_again(const std::string& id);
+
+// Fetching ahead (config prefetch): while a job installs, the next waiting
+// ones (as many as the setting says) are fetched into files of the cache,
+// when the SD card has room for them and their install; a job starts from
+// its file, the rest from the server. What a job has fetched ahead (bytes,
+// of its size), nothing when none; and the setting changed.
+std::optional<std::pair<uint64_t, uint64_t>> ahead_of(const std::string& id);
+void prefetch_changed();
 
 // The setting changed: the console kept awake or not, while a job runs.
 void keep_awake_changed();

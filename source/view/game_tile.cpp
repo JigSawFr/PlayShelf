@@ -8,6 +8,7 @@
 #include <borealis/cadran/ui/motion.hpp>
 
 #include "ui/ui.hpp"
+#include "view/cover_placeholder.hpp"
 
 namespace
 {
@@ -32,10 +33,10 @@ GameTile::GameTile()
     this->cover->setWidth(COVER);
     this->cover->setHeight(COVER);
     this->cover->setCornerRadius(8);
-    this->cover->setBackgroundColor(cadran::kit::color("cadran/well"));
+    this->cover->setThemeColor("backgroundColor", "cadran/well");
     this->cover->setAlignItems(brls::AlignItems::CENTER);
     this->cover->setJustifyContent(brls::JustifyContent::CENTER);
-    this->placeholder = cadran::kit::icon("gamepad", 56, "cadran/text3");
+    this->placeholder = new CoverPlaceholder(COVER, 56, 8);
     this->cover->addView(this->placeholder);
     this->icon = new brls::Image();
     this->icon->setWidth(COVER);
@@ -55,7 +56,7 @@ GameTile::GameTile()
     this->detail = new brls::Label();
     this->detail->setFontSize(15);
     this->detail->setSingleLine(true);
-    this->detail->setTextColor(cadran::kit::color("cadran/text3"));
+    this->detail->setThemeColor("textColor", "cadran/text3");
     this->detail->setMarginTop(2);
     this->addView(this->detail);
 }
@@ -70,16 +71,41 @@ void GameTile::set_detail(const std::string& text)
     this->detail->setText(text);
 }
 
-void GameTile::set_detail_color(NVGcolor color)
+void GameTile::set_detail_color(const char* key)
 {
-    this->detail->setTextColor(color);
+    this->detail->setThemeColor("textColor", key);
 }
 
-void GameTile::set_icon_texture(int texture, bool owned)
+void GameTile::set_badge(const char* icon_name, const char* ink)
 {
-    if (texture == 0) return;
-    this->icon->innerSetImage(texture);
-    this->icon->setFreeTexture(owned);
+    if (this->badge) {
+        this->cover->removeView(this->badge, true);
+        this->badge = nullptr;
+    }
+    if (!icon_name) return;
+    constexpr float SIDE = 28;
+    this->badge = new brls::Box(brls::Axis::ROW);
+    this->badge->setPositionType(brls::PositionType::ABSOLUTE);
+    this->badge->setPositionTop(6);
+    this->badge->setPositionRight(6);
+    this->badge->setWidth(SIDE);
+    this->badge->setHeight(SIDE);
+    this->badge->setCornerRadius(SIDE / 2);
+    this->badge->setThemeColor("backgroundColor", ink);
+    this->badge->setThemeColor("borderColor", "brls/background");
+    this->badge->setBorderThickness(2);
+    this->badge->setAlignItems(brls::AlignItems::CENTER);
+    this->badge->setJustifyContent(brls::JustifyContent::CENTER);
+    this->badge->setShadowType(brls::ShadowType::GENERIC);
+    this->badge->setShadowVisibility(true);
+    this->badge->addView(cadran::kit::icon(icon_name, 15, "brls/background"));
+    this->cover->addView(this->badge);
+}
+
+void GameTile::set_icon(const uint8_t* rgba, int width, int height)
+{
+    this->icon->setImageFromRGBA(rgba, width, height);
+    if (!this->icon->getTexture()) return;
     this->placeholder->setVisibility(brls::Visibility::GONE);
     this->icon->setVisibility(brls::Visibility::VISIBLE);
     // Arriving in place of the gamepad: the cover fades in.

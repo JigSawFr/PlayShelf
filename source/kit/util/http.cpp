@@ -95,6 +95,8 @@ struct Sink
     std::string              range_error{};
     bool                     has_range = false;
     http_logic::ContentRange content_range{};   // from the answer's headers
+    std::vector<std::string>* cookies = nullptr;   // call(): the Set-Cookie headers' "name=value"
+    std::function<void(uint64_t, uint64_t)> sent{};   // call(): a file's bytes sent so far
 };
 
 bool cancelled(const Sink* sink)
@@ -103,9 +105,11 @@ bool cancelled(const Sink* sink)
 }
 
 // Called by curl about once a second, even while waiting for the server.
-int on_progress(void* user, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
+int on_progress(void* user, curl_off_t, curl_off_t, curl_off_t ul_total, curl_off_t ul_now)
 {
-    return s_abort || cancelled(static_cast<const Sink*>(user)) ? 1 : 0;   // non-zero aborts the transfer
+    const auto* sink = static_cast<const Sink*>(user);
+    if (sink && sink->sent && ul_total > 0) sink->sent((uint64_t)ul_now, (uint64_t)ul_total);
+    return s_abort || cancelled(sink) ? 1 : 0;   // non-zero aborts the transfer
 }
 
 // Each header line of the answer (and of a redirect's): the Content-Range kept.
@@ -117,6 +121,10 @@ size_t on_header(char* data, size_t size, size_t count, void* user)
     if (http_logic::parse_content_range(std::string(data, n), &r)) {
         sink->content_range = r;
         sink->has_range = true;
+    }
+    if (sink->cookies) {
+        std::string cookie;
+        if (http_logic::parse_set_cookie(std::string(data, n), &cookie)) sink->cookies->push_back(cookie);
     }
     return n;
 }
@@ -210,6 +218,8 @@ struct Extra
     const std::string* pinned_key = nullptr;     // "sha256//…": this key, not the CA store, vouches for the server
     std::string*       peer_pem = nullptr;       // peer_certificate(): the server's certificate, unverified
     bool*              tls_failed = nullptr;     // set when the server's certificate or key was refused
+    const Call*        call = nullptr;           // call(): its method and form
+    std::vector<std::string>* cookies = nullptr;  // call(): the cookies the answer sets
 };
 
 bool perform(const std::string& url, const Extra& x, std::string* body, std::string* error, size_t max_bytes,
@@ -237,12 +247,21 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     Sink  own{ body, max_bytes };
     Sink& sink = to_file ? *to_file : own;
     sink.curl = curl;
+    if (x.call) {
+        sink.cookies = x.cookies;
+        sink.cancel = x.call->cancel;
+        if (!x.call->file_path.empty()) sink.sent = x.call->progress;
+    }
     const std::string agent = "PlayShelf/" + app::version();
     char message[CURL_ERROR_SIZE] = "";
     struct curl_slist* headers = nullptr;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     if (s_share) curl_easy_setopt(curl, CURLOPT_SHARE, s_share);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, x.follow && !post ? 1L : 0L);
+    // Another method than GET or POST, or a form: what call() asks.
+    const std::string method = x.call ? x.call->method : std::string();
+    const bool        custom = !method.empty() && method != "GET" && method != "POST";
+    const bool        form = x.call && (!x.call->fields.empty() || !x.call->file_path.empty());
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, x.follow && !post && !custom && !form ? 1L : 0L);
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
     // HTTPS only, redirects included (no downgrade to http:// or other schemes).
 #if LIBCURL_VERSION_NUM >= 0x075500
@@ -271,10 +290,12 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     if (!x.range.empty()) curl_easy_setopt(curl, CURLOPT_RANGE, x.range.c_str());
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, on_header);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &sink);
-    if (to_file) {   // a long transfer: give up on a stall rather than at the end
+    if (to_file || (form && !x.call->file_path.empty())) {   // a long transfer: give up on a stall rather than at the end
         curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
-        if (to_file->base && !to_file->chunk) curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)to_file->base);
+        // A file sent: the server may take its time over it before it answers.
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, to_file ? 30L : 180L);
+        if (to_file && to_file->base && !to_file->chunk)
+            curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)to_file->base);
     }
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -289,6 +310,25 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post->data());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, (curl_off_t)post->size());
     }
+    curl_mime* mime = nullptr;
+    if (form) {
+        // Its fields, then its file, read from the disk as it is sent.
+        mime = curl_mime_init(curl);
+        for (const auto& [name, value] : x.call->fields) {
+            curl_mimepart* part = curl_mime_addpart(mime);
+            curl_mime_name(part, name.c_str());
+            curl_mime_data(part, value.data(), value.size());
+        }
+        if (!x.call->file_path.empty()) {
+            curl_mimepart* part = curl_mime_addpart(mime);
+            curl_mime_name(part, x.call->file_field.c_str());
+            curl_mime_filedata(part, x.call->file_path.c_str());
+            curl_mime_filename(part, x.call->file_name.c_str());
+            curl_mime_type(part, "application/octet-stream");
+        }
+        curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
+    }
+    if (custom) curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
     for (const std::string& h : http_logic::request_headers(post ? x.content_type : nullptr, x.headers))
         headers = curl_slist_append(headers, h.c_str());
     if (headers) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -312,6 +352,7 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
         *x.location = target ? target : "";
     }
     curl_easy_cleanup(curl);
+    curl_mime_free(mime);
     curl_slist_free_all(headers);
     if (status_out) *status_out = status;
 
@@ -463,6 +504,57 @@ bool request(const std::string& url, const Headers& headers, const std::string& 
     x.tls_failed = &r->tls_failed;
     r->tls_failed = false;
     return perform(url, x, &r->body, error, max_bytes, timeout_s, &r->status);
+}
+
+bool call(const std::string& url, const Call& c, const Headers& headers, const std::string& pinned_key, Response* r,
+          std::string* error, size_t max_bytes, long timeout_s)
+{
+    Extra x;
+    x.headers = &headers;
+    x.pinned_key = &pinned_key;
+    x.tls_failed = &r->tls_failed;
+    x.call = &c;
+    x.cookies = &r->cookies;
+    x.follow = c.follow;
+    if (!c.body.empty() || (c.method == "POST" && c.fields.empty() && c.file_path.empty())) {
+        x.post = &c.body;
+        x.content_type = c.content_type.empty() ? nullptr : c.content_type.c_str();
+    }
+    std::string location;
+    if (!c.follow) x.location = &location;
+    r->tls_failed = false;
+    r->cookies.clear();
+    r->location.clear();
+    if (c.to_path.empty()) {
+        const bool ok = perform(url, x, &r->body, error, max_bytes, timeout_s, &r->status);
+        r->location = location;
+        return ok;
+    }
+    // Owner-writable only, as download()'s.
+    const int fd = ::open(c.to_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    FILE* file = fd >= 0 ? ::fdopen(fd, "wb") : nullptr;
+    if (!file) {
+        if (fd >= 0) ::close(fd);
+        if (error) *error = "cannot create " + c.to_path;
+        return false;
+    }
+    std::string unused;
+    Sink        sink{ &unused, max_bytes };
+    sink.file = file;
+    sink.progress = c.progress;
+    x.to_file = &sink;
+    bool ok = perform(url, x, &unused, error, max_bytes, timeout_s, &r->status);
+    r->body.clear();
+    r->location = location;
+    if (c.cancel && c.cancel->load()) {
+        if (error) *error = "cancelled";
+        ok = false;
+    }
+    if (std::fclose(file) != 0 && ok) {
+        if (error) *error = "cannot write the file";
+        ok = false;
+    }
+    return ok;
 }
 
 bool peer_certificate(const std::string& url, std::string* pem, std::string* error)

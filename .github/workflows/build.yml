@@ -87,6 +87,10 @@ jobs:
         run: make test
       - name: Resources
         run: python3 tools/check_resources.py .
+      - name: The web simulator's settings and page logic
+        run: |
+          python3 tools/check_web_params.py .
+          node --test tests/web_page/*.test.js
       - name: Sources
         run: python3 tools/check_sources.py .
       - name: compat.json
@@ -155,7 +159,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends cmake ccache libgl1-mesa-dev libgl1-mesa-dri \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxkbcommon-dev libwayland-dev \
-            wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev libzstd-dev xvfb xauth xdotool imagemagick dbus
+            wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev libzstd-dev libwebp-dev xvfb xauth xdotool imagemagick dbus
       - name: Compiler messages as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -279,6 +283,9 @@ jobs:
           submodules: true
       - name: Compiler messages as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+      # libwebp for the title database's icons, when the image lacks it.
+      - name: Portlibs
+        run: dkp-pacman -Q switch-libwebp > /dev/null 2>&1 || dkp-pacman -Sy --noconfirm switch-libwebp
       - name: Build .nro / .zip
         env:
           # The commit the app says it was built from (app::commit()): for a
