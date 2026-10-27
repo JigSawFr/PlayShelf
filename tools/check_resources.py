@@ -6,8 +6,9 @@
 - config::LANGUAGES (source/util/config.hpp) lists exactly those languages,
   and each has a name under playshelf/tools/languages/;
 - every "playshelf/..." key referenced from C++ or XML exists in en-US,
-  but PlayShelf's theme colours (THEME_KEYS: "playshelf/dial/...", keys of
-  the theme, not of the catalogs), which docs/themes.md lists each;
+  but PlayShelf's theme colours and image slots (THEME_KEYS:
+  "playshelf/dial/...", "playshelf/cover/...", keys of the theme, not of the
+  catalogs), which docs/themes.md lists each;
 - a key built at runtime ("playshelf/days/{}", "playshelf/error/" + key)
   is under a prefix DYNAMIC_KEYS declares, with the values the code
   can put after it (read from the code's own lists where there is one): each
@@ -196,9 +197,10 @@ def check_key(key, where):
         errors.append(f"{where}: unknown i18n key {key}")
 
 
-# PlayShelf's own theme colours (View::setThemeColor, theme files): the
-# prefixes they are under, documented for theme makers in docs/themes.md.
-THEME_KEYS = ("playshelf/dial/",)
+# PlayShelf's own theme colours (View::setThemeColor, theme files) and image
+# slots (Theme::addImageSlot, `image.<key>` in theme files): the prefixes
+# they are under, documented for theme makers in docs/themes.md.
+THEME_KEYS = ("playshelf/dial/", "playshelf/cover/")
 theme_doc = open(f"{ROOT}/docs/themes.md", encoding="utf-8").read()
 
 for path in glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursive=True) + glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):

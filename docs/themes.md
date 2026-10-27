@@ -81,7 +81,17 @@ Besides Aurore's keys, a file can set the colours of the dial on the loading scr
 | `playshelf/dial/track` | The day's track |
 | `playshelf/dial/teal` | Its glow and the day's arc, faint |
 
-The loading screen otherwise takes the theme's background and text. PlayShelf's logo keeps its own colours.
+The loading screen otherwise takes the theme's background and text. PlayShelf's logo keeps its own colours, unless the theme brings a logo of its own (below).
+
+### PlayShelf's own pictures
+
+A theme folder (below) can replace these pictures of PlayShelf's (`image.<key> = file.png`, in the theme's folder, PNG or JPEG):
+
+| Key | What | Without it |
+|---|---|---|
+| `playshelf/cover/placeholder` | What a game without a cover shows, in the Library, the Catalogue, the Home tab, the Downloads and on its page: the picture fills the cover's square (cut at its edges, centred, its corners rounded); made at most 512 × 512 | A gamepad on the cover's well |
+
+The theme's `logo` takes the place of PlayShelf's mark in the header and on About, and of its icon on the loading screen (over the same glow).
 
 ### Two themes in one file
 

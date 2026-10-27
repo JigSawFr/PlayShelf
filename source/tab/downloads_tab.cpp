@@ -16,6 +16,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "view/banner_card.hpp"
+#include "view/cover_placeholder.hpp"
 
 using namespace brls::literals;
 
@@ -221,7 +222,7 @@ void DownloadsTab::update()
             cover->setAlignItems(brls::AlignItems::CENTER);
             cover->setJustifyContent(brls::JustifyContent::CENTER);
             cover->setMarginRight(20);
-            cover->addView(cadran::kit::icon("gamepad", 36, "cadran/text3"));
+            cover->addView(new CoverPlaceholder(ICON, 36, cadran::kit::RADIUS_ICON));
             r.icon = new brls::Image();
             r.icon->setWidth(ICON);
             r.icon->setHeight(ICON);

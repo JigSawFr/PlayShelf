@@ -82,7 +82,17 @@ En plus des clés d'Aurore, un fichier peut régler les couleurs du cadran de l'
 | `playshelf/dial/track` | La piste du jour |
 | `playshelf/dial/teal` | Son halo et l'arc du jour, en léger |
 
-L'écran de chargement prend sinon le fond et le texte du thème. Le logo de PlayShelf garde ses couleurs.
+L'écran de chargement prend sinon le fond et le texte du thème. Le logo de PlayShelf garde ses couleurs, sauf si le thème apporte son propre logo (plus bas).
+
+### Les images propres à PlayShelf
+
+Un dossier de thème (plus bas) peut remplacer ces images de PlayShelf (`image.<clé> = fichier.png`, dans le dossier du thème, en PNG ou JPEG) :
+
+| Clé | Quoi | Sans elle |
+|---|---|---|
+| `playshelf/cover/placeholder` | Ce que montre un jeu sans jaquette, dans la Bibliothèque, le Catalogue, l'onglet Accueil, les Téléchargements et sur sa page : l'image remplit le carré de la jaquette (coupée sur ses bords, centrée, ses coins arrondis) ; ramenée à 512 × 512 au plus | Une manette sur le creux de la jaquette |
+
+Le `logo` du thème prend la place de la marque de PlayShelf dans l'en-tête et dans À propos, et de son icône sur l'écran de chargement (sur le même halo).
 
 ### Deux thèmes dans un fichier
 

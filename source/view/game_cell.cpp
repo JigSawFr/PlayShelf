@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "view/game_cell.hpp"
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
+#include "view/cover_placeholder.hpp"
 
 namespace
 {
@@ -19,7 +19,7 @@ GameCell::GameCell()
     this->slot->setThemeColor("backgroundColor", "cadran/well");
     this->slot->setAlignItems(brls::AlignItems::CENTER);
     this->slot->setJustifyContent(brls::JustifyContent::CENTER);
-    this->placeholder = cadran::kit::icon("gamepad", 22, "cadran/text3");
+    this->placeholder = new CoverPlaceholder(ICON, 22, 8);
     this->slot->addView(this->placeholder);
     this->icon = new brls::Image();
     this->icon->setWidth(ICON);
