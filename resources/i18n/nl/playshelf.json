@@ -135,7 +135,9 @@
         "installed_version": "Geïnstalleerd: v{}",
         "shelf_unknown": "Nog niet bekend",
         "shelf_all": "Alles bekijken",
-        "shelf_games": "{} games"
+        "shelf_games": "{} games",
+        "featured": "Uitgelicht",
+        "new": "Nieuw"
     },
     "installed": {
         "summary": "Op deze console",
@@ -161,7 +163,12 @@
             "publisher": "Op uitgever",
             "newest": "Nieuwste eerst",
             "to_get_first": "Aan te vullen eerst"
-        }
+        },
+        "stat_games": "Games",
+        "stat_updates": "Updates te halen",
+        "stat_dlcs": "Extra content te halen",
+        "stat_genres": "Genres",
+        "featured": "Aan te vullen"
     },
     "tiles": {
         "upload": "Rapport versturen…",

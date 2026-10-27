@@ -135,7 +135,9 @@
         "installed_version": "インストール済み: v{}",
         "shelf_unknown": "まだ分からないゲーム",
         "shelf_all": "すべて見る",
-        "shelf_games": "{} 本"
+        "shelf_games": "{} 本",
+        "featured": "注目",
+        "new": "新作"
     },
     "installed": {
         "summary": "この本体",
@@ -161,7 +163,12 @@
             "publisher": "発売元順",
             "newest": "新しい順",
             "to_get_first": "足りないものがある順"
-        }
+        },
+        "stat_games": "ゲーム",
+        "stat_updates": "更新データ",
+        "stat_dlcs": "追加コンテンツ",
+        "stat_genres": "ジャンル",
+        "featured": "足りないもの"
     },
     "tiles": {
         "upload": "レポートを送信…",

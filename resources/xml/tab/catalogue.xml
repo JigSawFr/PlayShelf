@@ -2,8 +2,9 @@
 
 <!-- Catalogue: the catalogue of a library server (tab/catalogue_tab.cpp). With
      no server yet, an empty state to add one or find one on this network;
-     else the server and what the games are filtered and sorted by, a line
-     saying where the catalogue stands, then its games as a grid of covers
+     else the server and what the games are filtered and sorted by, the
+     newest games as wide banners (featured), a line saying where the
+     catalogue stands, then its games as a grid of covers
      (a page at a time, "Show more" after it). -->
 
 <brls:Box
@@ -32,6 +33,7 @@
             <brls:DetailCell id="lb_sort" title="@i18n/playshelf/library/sort"/>
             <brls:DetailCell id="lb_filter" title="@i18n/playshelf/filters/row"/>
             <brls:DetailCell id="lb_section" title="@i18n/playshelf/library/section"/>
+            <brls:Box id="lb_featured" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
             <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="16">
                 <brls:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
             </brls:Box>

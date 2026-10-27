@@ -135,7 +135,9 @@
         "installed_version": "Installiert: v{}",
         "shelf_unknown": "Noch nicht bekannt",
         "shelf_all": "Alle ansehen",
-        "shelf_games": "{} Spiele"
+        "shelf_games": "{} Spiele",
+        "featured": "Im Rampenlicht",
+        "new": "Neu"
     },
     "installed": {
         "summary": "Auf dieser Konsole",
@@ -161,7 +163,12 @@
             "publisher": "Nach Publisher",
             "newest": "Neueste zuerst",
             "to_get_first": "Zu Ergänzendes zuerst"
-        }
+        },
+        "stat_games": "Spiele",
+        "stat_updates": "Updates zu holen",
+        "stat_dlcs": "Zusatzinhalte zu holen",
+        "stat_genres": "Genres",
+        "featured": "Zu ergänzen"
     },
     "tiles": {
         "upload": "Bericht senden…",

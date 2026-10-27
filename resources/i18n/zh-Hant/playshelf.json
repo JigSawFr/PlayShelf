@@ -135,7 +135,9 @@
         "installed_version": "已安裝：v{}",
         "shelf_unknown": "尚未知曉",
         "shelf_all": "查看全部",
-        "shelf_games": "{} 款遊戲"
+        "shelf_games": "{} 款遊戲",
+        "featured": "精選",
+        "new": "新作"
     },
     "installed": {
         "summary": "此主機上",
@@ -161,7 +163,12 @@
             "publisher": "按發行商",
             "newest": "最新優先",
             "to_get_first": "有可補全內容優先"
-        }
+        },
+        "stat_games": "遊戲",
+        "stat_updates": "可用更新",
+        "stat_dlcs": "可用追加內容",
+        "stat_genres": "類型",
+        "featured": "待補全"
     },
     "tiles": {
         "upload": "傳送報告…",

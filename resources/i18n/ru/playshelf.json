@@ -135,7 +135,9 @@
         "installed_version": "Установлено: v{}",
         "shelf_unknown": "Пока неизвестны",
         "shelf_all": "Показать все",
-        "shelf_games": "Игр: {}"
+        "shelf_games": "Игр: {}",
+        "featured": "В центре внимания",
+        "new": "Новинка"
     },
     "installed": {
         "summary": "На этой консоли",
@@ -161,7 +163,12 @@
             "publisher": "По издателю",
             "newest": "Сначала новые",
             "to_get_first": "Сначала с обновлениями"
-        }
+        },
+        "stat_games": "Игры",
+        "stat_updates": "Обновления",
+        "stat_dlcs": "Дополнения",
+        "stat_genres": "Жанры",
+        "featured": "Можно дополнить"
     },
     "tiles": {
         "upload": "Отправить отчёт…",

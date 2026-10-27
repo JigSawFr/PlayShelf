@@ -135,7 +135,9 @@
         "installed_version": "Instalado: v{}",
         "shelf_unknown": "Aún sin conocer",
         "shelf_all": "Ver todo",
-        "shelf_games": "{} juegos"
+        "shelf_games": "{} juegos",
+        "featured": "Destacados",
+        "new": "Nuevo"
     },
     "installed": {
         "summary": "En esta consola",
@@ -161,7 +163,12 @@
             "publisher": "Por editor",
             "newest": "Los más recientes",
             "to_get_first": "Por completar primero"
-        }
+        },
+        "stat_games": "Juegos",
+        "stat_updates": "Actualizaciones por instalar",
+        "stat_dlcs": "Contenido por instalar",
+        "stat_genres": "Géneros",
+        "featured": "Por completar"
     },
     "tiles": {
         "upload": "Enviar un informe…",

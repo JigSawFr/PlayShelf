@@ -135,7 +135,9 @@
         "installed_version": "Installed: v{}",
         "shelf_unknown": "Not known yet",
         "shelf_all": "See all",
-        "shelf_games": "{} games"
+        "shelf_games": "{} games",
+        "featured": "Featured",
+        "new": "New"
     },
     "installed": {
         "summary": "On this console",
@@ -161,7 +163,12 @@
             "publisher": "By publisher",
             "newest": "Newest first",
             "to_get_first": "Something to get first"
-        }
+        },
+        "stat_games": "Games",
+        "stat_updates": "Updates to get",
+        "stat_dlcs": "Add-ons to get",
+        "stat_genres": "Genres",
+        "featured": "Something to get"
     },
     "tiles": {
         "upload": "Send a report…",

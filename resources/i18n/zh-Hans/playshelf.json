@@ -135,7 +135,9 @@
         "installed_version": "已安装：v{}",
         "shelf_unknown": "尚未知晓",
         "shelf_all": "查看全部",
-        "shelf_games": "{} 款游戏"
+        "shelf_games": "{} 款游戏",
+        "featured": "精选",
+        "new": "新作"
     },
     "installed": {
         "summary": "此主机上",
@@ -161,7 +163,12 @@
             "publisher": "按发行商",
             "newest": "最新优先",
             "to_get_first": "有可补全内容优先"
-        }
+        },
+        "stat_games": "游戏",
+        "stat_updates": "可用更新",
+        "stat_dlcs": "可用追加内容",
+        "stat_genres": "类型",
+        "featured": "待补全"
     },
     "tiles": {
         "upload": "发送报告…",

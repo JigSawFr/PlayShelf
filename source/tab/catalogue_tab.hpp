@@ -5,7 +5,8 @@
 // publisher, or shelves: a row of covers a genre, "See all" to filter by it) and the
 // section when the server has several; a line saying where the catalogue
 // stands (being read, why it could not be, how many games, the server's
-// message); then the games as covers, a page at a time ("Show more"). A on
+// message); the newest games as wide banners (featured, from what Nlib API
+// knows) while nothing narrows the catalogue; then the games as covers, a page at a time ("Show more"). A on
 // a game: its page (activity/game_activity), to install the base game, an update, an add-on, or
 // everything the console does not have of it at once (the base game, its
 // newest update, its add-ons). A cover says when the console has the game
@@ -27,6 +28,7 @@
 #include "library/servers.hpp"
 #include "tab/tab_base.hpp"
 
+class BannerCard;
 class GameTile;
 
 class CatalogueTab : public TabBase
@@ -49,6 +51,9 @@ class CatalogueTab : public TabBase
     void add_page();
     // The games by genre: a shelf each, its covers scrolled sideways.
     void add_shelves();
+    // The newest games Nlib API knows, as wide banners above the covers,
+    // while nothing narrows the catalogue.
+    void add_featured();
     // A game's cover, kept in tiles (its icon on its way).
     GameTile* make_tile(size_t title);
     void open_title(size_t title);
@@ -75,6 +80,9 @@ class CatalogueTab : public TabBase
     std::vector<GameTile*> tiles;     // the covers built
     std::vector<size_t> tile_titles;  // theirs, as indexes in shown_data->titles
     int         generation = 0;       // the covers' build: an icon arriving for an older one is freed
+    std::vector<BannerCard*> cards;   // the featured banners built
+    size_t      featured_count = 0;   // how many games the featured row had to show
+    int         featured_generation = 0;   // its build: a banner arriving for an older one is freed
     std::string password;             // the server's, for its icons
     // What the grid was built for.
     const void* built_data = nullptr;
@@ -89,6 +97,7 @@ class CatalogueTab : public TabBase
     BRLS_BIND(brls::DetailCell, sort_cell,   "lb_sort");
     BRLS_BIND(brls::DetailCell, filter_cell, "lb_filter");
     BRLS_BIND(brls::DetailCell, section_cell, "lb_section");
+    BRLS_BIND(brls::Box,        featured,    "lb_featured");
     BRLS_BIND(brls::Label,      status,      "lb_status");
     BRLS_BIND(brls::Box,        grid,        "lb_grid");
     BRLS_BIND(brls::Button,     more,        "lb_more");

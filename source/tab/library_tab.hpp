@@ -24,6 +24,8 @@
 
 class GameTile;
 
+class BannerCard;
+
 class LibraryTab : public TabBase
 {
   public:
@@ -46,6 +48,10 @@ class LibraryTab : public TabBase
 
     void show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
+    // The tiles counting the games (all of them, the filter aside) and the
+    // banners of those with something to get (of those shown).
+    void add_stats(size_t count, size_t updates, size_t dlcs);
+    void add_featured();
     void pick_filter();
     void open(size_t i);
     void set_hints();
@@ -57,6 +63,7 @@ class LibraryTab : public TabBase
     brls::Box*             rows = nullptr;       // list: the card of rows (in list_box, made once)
     size_t                 built = 0;
     int                    generation = 0;
+    std::vector<BannerCard*> cards;   // the featured banners built
     int                    listener = 0;
     int                    titledb_listener = 0;
     int                    nlib_listener = 0;
@@ -66,6 +73,8 @@ class LibraryTab : public TabBase
     BRLS_BIND(brls::Box,    empty_box, "li_empty");
     BRLS_BIND(brls::DetailCell, summary, "li_summary");
     BRLS_BIND(brls::DetailCell, filter_cell, "li_filter");
+    BRLS_BIND(brls::Box,    stats,     "li_stats");
+    BRLS_BIND(brls::Box,    featured,  "li_featured");
     BRLS_BIND(brls::Box,    grid,      "li_grid");
     BRLS_BIND(brls::Box,    list_box,  "li_list");
     BRLS_BIND(brls::Button, more,      "li_more");

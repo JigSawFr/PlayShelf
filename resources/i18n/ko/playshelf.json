@@ -135,7 +135,9 @@
         "installed_version": "설치됨: v{}",
         "shelf_unknown": "아직 모르는 게임",
         "shelf_all": "모두 보기",
-        "shelf_games": "게임 {}개"
+        "shelf_games": "게임 {}개",
+        "featured": "추천",
+        "new": "신작"
     },
     "installed": {
         "summary": "이 본체",
@@ -161,7 +163,12 @@
             "publisher": "퍼블리셔순",
             "newest": "최신순",
             "to_get_first": "받을 것이 있는 게임 먼저"
-        }
+        },
+        "stat_games": "게임",
+        "stat_updates": "받을 업데이트",
+        "stat_dlcs": "받을 추가 콘텐츠",
+        "stat_genres": "장르",
+        "featured": "보완할 게임"
     },
     "tiles": {
         "upload": "보고서 보내기…",

@@ -2,6 +2,7 @@
 #include "tab/library_tab.hpp"
 
 #include <algorithm>
+#include <set>
 
 #include <fmt/format.h>
 
@@ -19,6 +20,7 @@
 #include "tab/filter_sheet.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "view/banner_card.hpp"
 #include "view/game_cell.hpp"
 #include "view/game_tile.hpp"
 
@@ -28,12 +30,16 @@ namespace
 {
 constexpr size_t PAGE = 40;   // covers built at a time
 
+// The tab's room: the screen less the rail and the column's sides.
+float room()
+{
+    return brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
+           2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
+}
+
 int columns()
 {
-    // The tab's room: the screen less the rail and the column's sides.
-    const float room = brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
-                       2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
-    return std::max(1, (int)(room / GameTile::WIDTH));
+    return std::max(1, (int)(room() / GameTile::WIDTH));
 }
 
 size_t installed_jobs()
@@ -196,6 +202,12 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
         this->entries.push_back(std::move(e));
     }
     const size_t count = this->entries.size();
+    size_t       updates = 0, dlcs = 0;
+    for (const Entry& e : this->entries) {
+        const library::TitleState st = state_in(e.data, e.title);
+        updates += st.update_available ? 1 : 0;
+        dlcs += st.dlcs_missing;
+    }
     // Those the filter keeps: by their facts, and by what a catalogue has
     // that the console has not.
     auto kept = [](const Entry& e) {
@@ -241,7 +253,7 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
 
     // The focus moves off the covers first: they are made again.
     for (brls::View* v = brls::Application::getCurrentFocus(); v; v = v->getParent())
-        if (v == grid || v == list_box || v == more) {
+        if (v == grid || v == list_box || v == more || v == stats || v == featured) {
             brls::Application::giveFocus(summary);
             break;
         }
@@ -256,7 +268,123 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
     this->grid_row = nullptr;
     this->built = 0;
     this->generation++;
+    this->add_stats(count, updates, dlcs);
+    this->add_featured();
     this->add_page();
+}
+
+void LibraryTab::add_stats(size_t count, size_t updates, size_t dlcs)
+{
+    stats->clearViews(true);
+    ui::set_visible(stats, count > 0);
+    if (!count) return;
+    std::set<std::string> genres;
+    for (const installed_flow::Game& g : *this->shown_games)
+        for (const std::string& c : nlib_flow::facts(g.game.id).categories)
+            if (c != "Other") genres.insert(c);
+    // A number in the display face, its words under it; A runs `run`.
+    auto tile = [this](size_t n, const std::string& words, const char* icon_name, const char* ink,
+                       std::function<void()> run) {
+        auto* box = new brls::Box(brls::Axis::COLUMN);
+        box->setGrow(1);
+        box->setWidth(0);
+        box->setPadding(14, 18, 14, 18);
+        box->setMargins(0, 6, 0, 6);
+        box->setCornerRadius(16);
+        box->setHighlightCornerRadius(18);
+        box->setBackgroundColor(cadran::kit::color("cadran/surf"));
+        box->setBorderColor(cadran::kit::color("cadran/line"));
+        box->setBorderThickness(1);
+        box->setFocusable(true);
+        auto* top = new brls::Box(brls::Axis::ROW);
+        top->setAlignItems(brls::AlignItems::CENTER);
+        top->addView(cadran::kit::display(std::to_string(n), 32, ink));
+        auto* mark = cadran::kit::icon(icon_name, 20, ink);
+        mark->setMarginLeft(10);
+        top->addView(mark);
+        box->addView(top);
+        brls::Label* l = cadran::kit::label(words, 15, "cadran/text3");
+        l->setSingleLine(true);
+        l->setMarginTop(2);
+        box->addView(l);
+        box->registerClickAction([run](brls::View*) {
+            brls::sync(run);
+            return true;
+        });
+        stats->addView(box);
+    };
+    // A filter chosen from a tile: the games again (after this click: it
+    // frees the tile); the focus back on the tile made in its place.
+    auto filter_by = [this](library::Filter::State state, size_t at) {
+        return ui::guarded(this->alive, [this, state, at]() {
+            s_filter = library::Filter();
+            s_filter.state = state;
+            this->show_games(this->shown_games);
+            if (at < stats->getChildren().size()) brls::Application::giveFocus(stats->getChildren()[at]);
+        });
+    };
+    tile(count, "playshelf/installed/stat_games"_i18n, "gamepad", "cadran/teal", filter_by(library::Filter::State::Any, 0));
+    tile(updates, "playshelf/installed/stat_updates"_i18n, "download", updates ? "cadran/amber" : "cadran/text2",
+         filter_by(library::Filter::State::ToUpdate, 1));
+    tile(dlcs, "playshelf/installed/stat_dlcs"_i18n, "plus", dlcs ? "cadran/amber" : "cadran/text2",
+         filter_by(library::Filter::State::DlcsMissing, 2));
+    tile(genres.size(), "playshelf/installed/stat_genres"_i18n, "tag", "cadran/text2",
+         ui::guarded(this->alive, [this]() { this->pick_filter(); }));
+    stats->setMargins(12, -6, 0, -6);
+}
+
+void LibraryTab::add_featured()
+{
+    featured->clearViews(true);
+    this->cards.clear();
+    ui::set_visible(featured, false);
+    constexpr size_t MAX = 6;
+    constexpr float  W = 440, H = 220;
+    std::vector<size_t> to_get;
+    for (size_t i = 0; i < this->entries.size() && to_get.size() < MAX; i++)
+        if (something_to_get(state_in(this->entries[i].data, this->entries[i].title))) to_get.push_back(i);
+    if (to_get.empty() || !config::get().nlib_api) return;
+    auto* header = cadran::kit::display("playshelf/installed/featured"_i18n, 24);
+    header->setMarginTop(20);
+    header->setMarginLeft(8);
+    featured->addView(header);
+    auto* frame = new brls::HScrollingFrame();
+    frame->setWidth(room());
+    frame->setHeight(H + 16);
+    auto* row = new brls::Box(brls::Axis::ROW);
+    frame->addView(row);
+    featured->addView(frame);
+    const int gen = this->generation;
+    for (size_t i : to_get) {
+        const Entry&              e = this->entries[i];
+        const uint64_t            game_id = e.game->game.id;
+        const library::Facts      f = nlib_flow::facts(game_id);
+        const library::TitleState st = state_in(e.data, e.title);
+        auto*                     card = new BannerCard(W, H);
+        card->set_title(e.name);
+        std::string line = f.publisher;
+        if (f.release_date) line += (line.empty() ? "" : " · ") + std::to_string(f.release_date / 10000);
+        card->set_line(line);
+        card->set_kicker(st.update_available ? "playshelf/library/update_available"_i18n
+                         : st.dlcs_missing == 1 ? "playshelf/installed/dlcs_missing_one"_i18n
+                                                : brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing),
+                         "cadran/amber");
+        card->registerClickAction([this, i](brls::View*) {
+            this->open(i);
+            return true;
+        });
+        row->addView(card);
+        this->cards.push_back(card);
+        const size_t at = this->cards.size() - 1;
+        library_icons::picture(titledb::nlib_banner_url(game_id), 854, 480,
+                               [weak = ui::Weak(this->alive), this, at, gen](int texture, int w, int h) {
+                                   const ui::Alive held = weak.lock();
+                                   if (held && *held && gen == this->generation && at < this->cards.size())
+                                       this->cards[at]->set_picture(texture, w, h);
+                                   else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+                               });
+    }
+    ui::set_visible(featured, true);
 }
 
 void LibraryTab::add_page()

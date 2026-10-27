@@ -2,6 +2,7 @@
 #include "tab/catalogue_tab.hpp"
 
 #include <algorithm>
+#include <ctime>
 #include <map>
 
 #include <fmt/format.h>
@@ -17,6 +18,8 @@
 #include "library/servers.hpp"
 #include "tab/filter_sheet.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
+#include "view/banner_card.hpp"
 #include "view/game_tile.hpp"
 
 using namespace brls::literals;
@@ -37,6 +40,8 @@ library::Filter s_filter;
 const char* const ORDERS[] = { "name", "newest", "largest", "publisher", "shelves" };
 constexpr size_t  SHELVES = 4;
 constexpr size_t  SHELF_MAX = 12;   // covers a shelf, "See all" after them
+constexpr size_t  FEATURED = 6;     // games in the featured row
+constexpr float   CARD_W = 520, CARD_H = 260;
 
 bool shelves()
 {
@@ -339,7 +344,8 @@ void CatalogueTab::build_grid(bool force)
     this->built_key = key;
     this->built_installed = installed;
 
-    if (inside(brls::Application::getCurrentFocus(), grid)) brls::Application::giveFocus(search_cell);
+    if (inside(brls::Application::getCurrentFocus(), grid) || inside(brls::Application::getCurrentFocus(), featured))
+        brls::Application::giveFocus(search_cell);
     grid->clearViews(true);
     this->tiles.clear();
     this->tile_titles.clear();
@@ -354,6 +360,7 @@ void CatalogueTab::build_grid(bool force)
     grid->setPaddingLeft(shelves() ? 0 : (room() - (float)columns() * GameTile::WIDTH) / 2);
     this->selection = this->select();
     this->ask_facts();
+    this->add_featured();
     if (shelves()) this->add_shelves();
     else this->add_page();
     this->show_status();
@@ -386,7 +393,15 @@ void CatalogueTab::ask_facts()
 
 void CatalogueTab::facts_came()
 {
-    if (!this->shown() || !this->shown_data || !needs_facts()) return;
+    if (!this->shown() || !this->shown_data) return;
+    // The featured row filled as the games' dates come (not under the focus).
+    if (this->featured_count < FEATURED && !inside(brls::Application::getCurrentFocus(), featured)) {
+        size_t dated = 0;
+        for (size_t index : this->selection)
+            if (nlib_flow::facts(this->shown_data->titles[index].id).release_date) dated++;
+        if (std::min(dated, FEATURED) != this->featured_count) this->add_featured();
+    }
+    if (!needs_facts()) return;
     // The covers built again only when what they show changed (one may
     // have the focus); the next games asked either way.
     if (this->select() != this->selection) this->build_grid(true);
@@ -509,6 +524,79 @@ void CatalogueTab::add_shelves()
             row->addView(all);
         }
     }
+}
+
+void CatalogueTab::add_featured()
+{
+    featured->clearViews(true);
+    this->cards.clear();
+    this->featured_count = 0;
+    this->featured_generation++;
+    const auto* data = this->shown_data.get();
+    ui::set_visible(featured, false);
+    if (!data || !config::get().nlib_api || !s_query.empty() || s_filter.active()) return;
+    // The newest of the games shown, by their release date; a year old at
+    // most: new.
+    std::vector<std::pair<uint32_t, size_t>> dated;
+    for (size_t index : this->selection) {
+        const library::Facts f = nlib_flow::facts(data->titles[index].id);
+        if (f.release_date && !f.demo) dated.emplace_back(f.release_date, index);
+    }
+    std::stable_sort(dated.begin(), dated.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+    if (dated.size() > FEATURED) dated.resize(FEATURED);
+    this->featured_count = dated.size();
+    if (dated.size() < 2) return;
+    const std::time_t now = std::time(nullptr);
+    std::tm           today{};
+    gmtime_r(&now, &today);
+    const uint32_t year_ago = (uint32_t)((today.tm_year + 1900 - 1) * 10000 + (today.tm_mon + 1) * 100 + today.tm_mday);
+
+    auto* header = cadran::kit::display("playshelf/library/featured"_i18n, 24);
+    header->setMarginTop(20);
+    header->setMarginLeft(8);
+    featured->addView(header);
+    auto* frame = new brls::HScrollingFrame();
+    frame->setWidth(room());
+    frame->setHeight(CARD_H + 16);
+    auto* row = new brls::Box(brls::Axis::ROW);
+    frame->addView(row);
+    featured->addView(frame);
+    const int gen = this->featured_generation;
+    for (const auto& item : dated) {
+        const uint32_t        date = item.first;
+        const size_t          index = item.second;
+        const library::Title& t = data->titles[index];
+        const library::Facts  f = nlib_flow::facts(t.id);
+        auto*                 card = new BannerCard(CARD_W, CARD_H);
+        card->set_title(t.name);
+        std::string line = f.publisher;
+        line += (line.empty() ? "" : " · ") + std::to_string(date / 10000);
+        for (const std::string& g : f.categories)
+            if (g != "Other") {
+                line += " · " + nlib_flow::genre_name(g);
+                break;
+            }
+        card->set_line(line);
+        const library::TitleState st = library::state_of(t, data->fetch.catalog, *this->built_installed);
+        if (st.base && st.update_available) card->set_kicker("playshelf/library/update_available"_i18n, "cadran/amber");
+        else if (st.base) card->set_kicker("playshelf/library/installed"_i18n, "cadran/teal");
+        else if (date >= year_ago) card->set_kicker("playshelf/library/new"_i18n, "cadran/teal");
+        card->registerClickAction([this, index](brls::View*) {
+            this->open_title(index);
+            return true;
+        });
+        row->addView(card);
+        this->cards.push_back(card);
+        const size_t at = this->cards.size() - 1;
+        library_icons::picture(titledb::nlib_banner_url(t.id), 854, 480,
+                               [weak = ui::Weak(this->alive), this, at, gen](int texture, int w, int h) {
+                                   const ui::Alive held = weak.lock();
+                                   if (held && *held && gen == this->featured_generation && at < this->cards.size())
+                                       this->cards[at]->set_picture(texture, w, h);
+                                   else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+                               });
+    }
+    ui::set_visible(featured, true);
 }
 
 void CatalogueTab::open_title(size_t index)
