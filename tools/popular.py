@@ -12,8 +12,9 @@ month, each on a log scale against the most of all; its trend is the change
 of its views last month against the two before, in percent (0 when it is
 read too little to say). The views are asked for the best known games only
 (VIEWED, by sitelinks), one at a time: Wikimedia's API turns many away. Its
-refusals cut the views short, not the file: what was read is used, the rest
-scored by their sitelinks.
+refusals cut the views short, not the file: when at least half were read,
+what was read is used and the rest scored by their sitelinks; with fewer,
+every game is scored by its sitelinks and none has a trend.
 
 Usage: tools/popular.py [out.json]   (default resources/data/popular.json)
 """
@@ -130,6 +131,10 @@ def main():
             continue
         time.sleep(PAUSE)
     print(f"{len(read)} English pages read", file=sys.stderr)
+    # Too few read to compare: every game by its sitelinks alone, no trend.
+    if len(read) < len(best) // 2:
+        print("too few views: scores by sitelinks alone, no trend", file=sys.stderr)
+        read = {}
 
     most_links = max((links for links, _ in known.values()), default=1)
     most_views = max([c[-1] for c in read.values()] + [1])

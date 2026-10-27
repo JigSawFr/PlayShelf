@@ -13,7 +13,7 @@ A game's score weighs its sitelinks (40 %) and its views of the last month (60 %
 tools/popular.py            # writes resources/data/popular.json
 ```
 
-It takes a few minutes. When Wikimedia refuses the views (HTTP 429), what was read is kept and the rest is scored by its sitelinks: run it again later for a better file. The file goes in a pull request like any change; PlayShelf comes with the one of its build and, with *Preferences › Title database › Popular games from Wikipedia* on ([`popular_online`](../config.md)), fetches the one on `main` once a day through jsDelivr (`https://cdn.jsdelivr.net/gh/JigSawFr/PlayShelf@main/resources/data/popular.json`), so a new file reaches every console without a release. The newer of the two (its `generated` day) is used.
+It takes a few minutes. When Wikimedia refuses the views (HTTP 429), what was read is kept and the rest is scored by its sitelinks; with fewer than half read, every game is scored by its sitelinks and none is trending: run it again later for a better file. The file goes in a pull request like any change; PlayShelf comes with the one of its build and, with *Preferences › Title database › Popular games from Wikipedia* on ([`popular_online`](../config.md)), fetches the one on `main` once a day through jsDelivr (`https://cdn.jsdelivr.net/gh/JigSawFr/PlayShelf@main/resources/data/popular.json`), so a new file reaches every console without a release. The newer of the two (its `generated` day) is used.
 
 The file:
 
