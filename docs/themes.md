@@ -16,6 +16,8 @@ PlayShelf draws every colour from its theme: the light or dark theme, then a **p
   | Ocean | dark | Deep blue, a sky-blue accent |
   | Amethyst | light and dark | Violet, following the theme chosen |
   | Sand | light | Warm paper, a terracotta accent |
+  | Winter, Valentine's Day, Lunar New Year, Spring, Summer, Autumn, Halloween, Christmas, New Year's Eve | light and dark | One for each season and feast: frost and silver, rose, red lacquer and gold, cherry blossoms, sea and sunset, maple, pumpkin on a violet night, pine and gold, midnight and champagne |
+  | Seasonal | light and dark | The one of the day, by the calendar: Halloween from 17 October, Christmas in December, and so on. It changes by itself: the day a season or a feast begins, the screens take its palette at midnight, or as soon as the console wakes up. The seasons are the northern hemisphere's; Aurore's [theme guide](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#the-seasons) has the exact days |
 
 - Your own theme files (below), by their names.
 

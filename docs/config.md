@@ -7,7 +7,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `schema` | `1` | `1` | The layout of this file |
 | `language` | `system` or a language code (`en-US`, `fr`, `fr-CA`, `de`, `es`, `es-419`, `it`, `nl`, `pt`, `pt-BR`, `ru`, `ja`, `ko`, `zh-Hans`, `zh-Hant`) | `system` | *Preferences › Language*: the console's own, or one forced |
 | `theme` | `system`, `light`, `dark` | `dark` | *Preferences › Theme* |
-| `theme_file` | `""`, `builtin:<preset>` (`high-contrast-dark`, `high-contrast-light`, `ocean`, `amethyst`, `sand`) or the path of a theme file | `""` | *Preferences › Palette*: PlayShelf's own colours (`""`), one of the presets, or a file of the `themes` folder ([Themes](themes.md)). A file that styles only the light or the dark theme also sets that theme; one that cannot be read leaves PlayShelf's own colours |
+| `theme_file` | `""`, `builtin:<preset>` (`high-contrast-dark`, `high-contrast-light`, `ocean`, `amethyst`, `sand`, a season such as `halloween`, or `seasonal`, which follows the calendar) or the path of a theme file | `""` | *Preferences › Palette*: PlayShelf's own colours (`""`), one of the presets, or a file of the `themes` folder ([Themes](themes.md)). A file that styles only the light or the dark theme also sets that theme; one that cannot be read leaves PlayShelf's own colours |
 | `text_size` | `auto`, `normal`, `large` | `auto` | *Preferences › Text size*: `auto` is larger while docked |
 | `effects` | `auto`, `full`, `reduced` | `auto` | *Preferences › Visual effects*: `auto` keeps the lighter effects off the dock |
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
