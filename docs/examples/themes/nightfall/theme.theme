@@ -1,0 +1,43 @@
+# Nightfall: the example theme folder of docs/themes.md. Its pictures are
+# drawn by tools/make_example_theme.py. Copy the whole folder into
+# config/playshelf/themes/ on the SD card.
+name = Nightfall
+author = PlayShelf
+version = 1.0
+description = A moonlit sky behind every screen, at night or at dawn.
+icon = moon
+
+# The picker's thumbnail, and the picture of a game without a cover
+preview = preview.png
+image.playshelf/cover/placeholder = cover.png
+
+# Behind every screen: the picture fills the window, the cards let it show a little
+background_fit = cover
+surface_opacity = 0.88
+
+# A faint pattern of stars on the dialogs, and a few sparkles drifting
+# (never with Preferences › Visual effects at Reduced motion)
+backdrop.dialog_fit = tile
+backdrop.dialog_opacity = 0.45
+particles = sparkles
+particles_density = low
+
+[light]
+background = #f4f0fa
+surface = #ffffff
+text = #241f38
+accent = #5c4cbe
+background_image = day.jpg
+background_dim = 0.5
+logo = logo-light.png
+backdrop.dialog = stars-day.png
+
+[dark]
+background = #0e1430
+surface = #182042
+text = #eef0ff
+accent = #8e9cff
+background_image = night.jpg
+background_dim = 0.3
+logo = logo-dark.png
+backdrop.dialog = stars-night.png
