@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
@@ -21,7 +22,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         FUZZ_ASSERT(!root.empty());
     }
     const std::string zip = root + "/in.zip", out = root + "/out";
-    FILE* f = std::fopen(zip.c_str(), "wb");
+    const int fd = ::open(zip.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    FILE*     f = fd >= 0 ? ::fdopen(fd, "wb") : nullptr;
     FUZZ_ASSERT(f);
     std::fwrite(data, 1, size, f);
     std::fclose(f);

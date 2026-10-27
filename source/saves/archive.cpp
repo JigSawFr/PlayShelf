@@ -7,6 +7,7 @@
 #include <cstring>
 #include <ctime>
 #include <dirent.h>
+#include <fcntl.h>
 #include <memory>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -102,6 +103,16 @@ bool walk(const std::string& dir, const std::string& rel, std::vector<Found>* ou
         if (f.folder && !walk(path, f.rel, out, why, depth + 1)) return false;
     }
     return true;
+}
+
+// A file created or truncated for writing, owner-writable only (fopen would
+// ask for 0666).
+File create(const std::string& path)
+{
+    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    FILE*     f = fd >= 0 ? ::fdopen(fd, "wb") : nullptr;
+    if (!f && fd >= 0) ::close(fd);
+    return File(f);
 }
 
 bool write_all(FILE* f, const std::string& data)
@@ -237,7 +248,7 @@ bool zip_dir(const std::string& dir, const std::string& zip_path, const Progress
 {
     std::vector<Found> found;
     if (!walk(dir, "", &found, why)) return false;
-    File out(std::fopen(zip_path.c_str(), "wb"));
+    File out(create(zip_path));
     if (!out) return fail(why, "cannot create " + zip_path);
     std::vector<Written> written;
     uint64_t             at = 0, total = 0;
@@ -410,7 +421,7 @@ bool unzip_to(const std::string& zip_path, const std::string& dir, const std::fu
         const size_t slash = path.find_last_of('/');
         if (slash != std::string::npos && slash + 1 > root.size() && !make_dirs(path.substr(0, slash)))
             return fail(why, "cannot make the folder of " + en.name);
-        File out(std::fopen(path.c_str(), "wb"));
+        File out(create(path));
         if (!out) return fail(why, "cannot write " + en.name);
         uLong    crc = crc32(0, nullptr, 0);
         uint64_t left = en.packed, written = 0;
