@@ -352,7 +352,7 @@ void restore(const Loaded& l, const CoreSaveUser& user, const library::SaveBacku
             }
         }
         std::remove(zip.c_str());
-        brls::sync([b, ok, why, kept, put_back, l, user, backup, name]() {
+        brls::sync([b, ok, why, kept, put_back, name]() {
             finish(b);
             if (!ok) {
                 std::string before;
