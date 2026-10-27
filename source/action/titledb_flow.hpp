@@ -29,6 +29,9 @@ void start();
 
 // What the databases know of a title, nothing before they are open.
 std::optional<titledb::Title> title(uint64_t id);
+// The base games released between `from` and `to` (YYYYMMDD), `max` at
+// most: Home's "Coming soon".
+std::vector<uint64_t> released(uint32_t from, uint32_t to, size_t max);
 // A title's icon, as an image (WebP, PNG or JPEG) and its kind.
 bool icon(uint64_t id, std::vector<uint8_t>* bytes, std::string* ext);
 // The base games whose name holds `query` (case and Latin accents aside,

@@ -43,6 +43,9 @@ class TitlePack
     size_t count() const { return this->index.size(); }
     // `id`'s entry, nothing when the pack has none (or nothing of it).
     std::optional<Title> find(uint64_t id) const;
+    // The base games released between `from` and `to` (YYYYMMDD, both
+    // included), added to `out` up to `max` of them, in title id order.
+    void released(uint32_t from, uint32_t to, size_t max, std::vector<uint64_t>* out) const;
     // Each base game's id and name (those it names), by id, until `each`
     // answers false.
     void each_base_name(const std::function<bool(uint64_t id, const std::string& name)>& each) const;

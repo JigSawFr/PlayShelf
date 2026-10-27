@@ -25,6 +25,7 @@ namespace
 {
 // The UI thread's only.
 std::map<std::string, std::shared_ptr<const Loaded>> s_loaded;
+std::map<std::string, double>                        s_speed;   // bytes a second, by server: what its downloads ran at
 bool                                                 s_loading = false;
 std::vector<std::function<void(std::shared_ptr<const Loaded>, std::string)>> s_waiting;   // the fetch's `done`s
 std::shared_ptr<const Installed>                     s_installed = std::make_shared<Installed>();
@@ -246,12 +247,59 @@ void reread_installed(const std::function<void()>& after)
     });
 }
 
-size_t install(const Loaded& l, const std::vector<size_t>& items)
+void note_speed(const std::string& server_id, double bytes_per_second)
+{
+    if (server_id.empty() || bytes_per_second <= 0) return;
+    double& known = s_speed[server_id];
+    known = known > 0 ? known * 0.8 + bytes_per_second * 0.2 : bytes_per_second;
+}
+
+namespace
+{
+// How good a server is to get a package from: one on this network first,
+// then the fastest its downloads ran (an unknown one as a slow one).
+double rank_of(const Loaded& l)
+{
+    const auto it = s_speed.find(l.server.id);
+    return (l.fetch.on_lan ? 1e12 : 0) + (it == s_speed.end() ? 0 : it->second);
+}
+
+// The catalogue to get `l`'s item `i` from: another server with the same
+// package (title id, version, kind) when it ranks better, else `l`.
+std::pair<const Loaded*, size_t> best_source(const Loaded& l, size_t i)
+{
+    const library::Item&             it = l.fetch.catalog.items[i];
+    std::pair<const Loaded*, size_t> best{ &l, i };
+    double                           best_rank = rank_of(l);
+    if (!it.title_id || !it.has_version) return best;
+    for (const auto& [id, other] : s_loaded) {
+        if (!other || id == l.server.id) continue;
+        const double rank = rank_of(*other);
+        if (rank <= best_rank) continue;
+        const auto& items = other->fetch.catalog.items;
+        for (size_t k = 0; k < items.size(); k++)
+            if (items[k].title_id == it.title_id && items[k].has_version && items[k].version == it.version &&
+                items[k].kind == it.kind) {
+                best = { other.get(), k };
+                best_rank = rank;
+                break;
+            }
+    }
+    return best;
+}
+}   // namespace
+
+size_t install(const Loaded& from, const std::vector<size_t>& items)
 {
     if (ui::refuse_read_only()) return 0;
     std::vector<download::Job> jobs;
-    for (size_t i : items) {
-        if (i >= l.fetch.catalog.items.size()) continue;
+    for (size_t asked : items) {
+        if (asked >= from.fetch.catalog.items.size()) continue;
+        // From the best server that has it (on this network, the fastest).
+        const auto [source, i] = best_source(from, asked);
+        const Loaded& l = *source;
+        if (&l != &from)
+            brls::Logger::info("library: {} from {} rather than {}", l.fetch.catalog.items[i].name, l.server.name, from.server.name);
         const library::Item& it = l.fetch.catalog.items[i];
         download::Job        j;
         // Its game's name, and which item of it ("Update v131072", an

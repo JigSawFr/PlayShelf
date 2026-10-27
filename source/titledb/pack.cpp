@@ -153,6 +153,16 @@ std::optional<Title> TitlePack::find(uint64_t id) const
     return t;
 }
 
+void TitlePack::released(uint32_t from, uint32_t to, size_t max, std::vector<uint64_t>* out) const
+{
+    for (const Entry& e : this->index) {
+        if (out->size() >= max) return;
+        // A base game's id: ends in 000, bit 12 clear.
+        if ((e.id & 0x1FFF) || !(e.flags & HAS_DATE) || !(e.flags & HAS_NAME)) continue;
+        if (e.release_date >= from && e.release_date <= to) out->push_back(e.id);
+    }
+}
+
 void TitlePack::each_base_name(const std::function<bool(uint64_t, const std::string&)>& each) const
 {
     for (const Entry& e : this->index) {

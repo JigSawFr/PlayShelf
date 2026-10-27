@@ -15,6 +15,7 @@
 #include "action/installed_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
 #include "view/cover_placeholder.hpp"
@@ -385,6 +386,19 @@ void GameActivity::add_tabs()
     };
     this->getContentView()->registerAction("playshelf/game/tab_previous"_i18n, brls::BUTTON_LB, step(-1));
     this->getContentView()->registerAction("playshelf/game/tab_next"_i18n, brls::BUTTON_RB, step(1));
+    // X: on the wishlist (Home shows it, the bell says when a server has
+    // it), or off it.
+    if (this->page.title_id) {
+        const uint64_t    game_id = this->page.title_id;
+        const std::string name = this->page.name;
+        auto hint = [game_id]() { return wishlist::has(game_id) ? "playshelf/wishlist/remove"_i18n : "playshelf/wishlist/add"_i18n; };
+        this->getContentView()->registerAction(hint(), brls::BUTTON_X, [this, game_id, name, hint](brls::View*) {
+            wishlist::toggle(game_id, name);
+            this->getContentView()->updateActionHint(brls::BUTTON_X, hint());
+            brls::Application::getGlobalHintsUpdateEvent()->fire();
+            return true;
+        });
+    }
 
     // Overview: everything missing and the base game, then the caller's.
     std::vector<ui::Choice> main = l.main;

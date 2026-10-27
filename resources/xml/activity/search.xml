@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Home › Search: the games whose name has the words asked, on the console
+     and on every server read. Built by source/activity/search_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            id="se_root"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"/>
+
+    </ScrollView>
+
+</brls:AppletFrame>

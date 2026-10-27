@@ -163,6 +163,12 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 # What is known of the games beyond their catalogue (Nlib API's), kept on
 # the SD card.
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
+# What the notification bell holds: its entries, those put away.
+notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
+# How well known the games are (popular.json, tools/popular.py).
+library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
+# When each game was first seen on a server; the wishlist's ids.
+library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
 save_archive_SRC  := source/saves/archive.cpp $(K)/util/zip_write.cpp $(K)/util/paths.cpp tests/save_archive/test.cpp
 save_archive_LIBS := -lz

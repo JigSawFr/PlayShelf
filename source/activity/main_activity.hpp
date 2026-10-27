@@ -23,4 +23,13 @@ class MainActivity : public brls::Activity
     // Shows tab `position` (tabs.hpp) and focuses its content: the view
     // with id `row` when given and shown, else its first one.
     void open_tab(int position, const std::string& row = "");
+
+  private:
+    // The notification bell: Y opens its list, the footer says how many
+    // entries are to do.
+    int  notice_listener = 0;
+    void update_notice_hint();
+    // Home's badge and the bell's entries, from action/insights.
+    int  insights_listener = 0;
+    void update_insights();
 };

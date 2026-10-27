@@ -184,6 +184,12 @@ std::optional<titledb::Title> title(uint64_t id)
     return db ? db->title(id) : std::nullopt;
 }
 
+std::vector<uint64_t> released(uint32_t from, uint32_t to, size_t max)
+{
+    const auto db = current();
+    return db ? db->released(from, to, max) : std::vector<uint64_t>{};
+}
+
 bool icon(uint64_t id, std::vector<uint8_t>* bytes, std::string* ext)
 {
     const auto db = current();

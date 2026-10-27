@@ -163,6 +163,15 @@ void test_list()
         TitlePack q;
         const auto t2 = q.open("tinfoil.pack", &why) ? q.find(0x0100FFC01BE60000) : std::nullopt;
         CHECK(t2 && t2->publisher == "Sarepta Studio" && t2->release_date == 20231220);
+        // Released in a span: the base games only (not the update dated 2024).
+        std::vector<uint64_t> out;
+        q.released(20231201, 20241231, 10, &out);
+        CHECK(out.size() == 1 && out[0] == 0x0100FFC01BE60000);
+        out.clear();
+        q.released(20240101, 20241231, 10, &out);
+        CHECK(out.empty());
+        q.released(20231201, 20231231, 0, &out);
+        CHECK(out.empty());
     }
 
     // Not a list: an array, no title, not JSON.

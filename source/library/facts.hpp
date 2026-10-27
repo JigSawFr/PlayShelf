@@ -62,7 +62,8 @@ class FactsBook
 // any); state: what the console has of them, applied by the list itself.
 struct Filter
 {
-    enum class State : uint8_t { Any, Missing, Installed, ToUpdate, DlcsMissing };
+    // NeverPlayed: the Library's, the console's games never started.
+    enum class State : uint8_t { Any, Missing, Installed, ToUpdate, DlcsMissing, NeverPlayed };
 
     std::string genre;       // Nlib API's English word
     std::string publisher;

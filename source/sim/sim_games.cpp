@@ -4,7 +4,9 @@
 //                    (16 hex digits, the base game's)
 //   <title id>.jpg   its icon
 // A game without them has no control data: the Library tab names it from
-// a catalogue, else by its title id. A game deleted: its content meta
+// a catalogue, else by its title id. Its size is made up from its title id
+// (1 to 16 GB, the same at every run); the SD card holds 128 GB, 9.6 GB of
+// them free (under a tenth: the bell says so). A game deleted: its content meta
 // records (meta/) gone, its base game's, its update's and its add-ons'.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstdio>
@@ -56,4 +58,19 @@ Result core_game_delete(u64 app_id)
     }
     ::closedir(d);
     return 0;
+}
+
+bool core_game_size(u64 app_id, u64* bytes)
+{
+    u64 h = app_id * 0x9E3779B97F4A7C15ULL;
+    h ^= h >> 31;
+    *bytes = (h % 1500 + 100) * 10000000ULL;   // 1 to 16 GB, by 10 MB
+    return true;
+}
+
+bool core_sd_space(u64* total, u64* free_bytes)
+{
+    *total = 119200000000ULL;   // a 128 GB card, as the console counts it
+    *free_bytes = 9600000000ULL;
+    return true;
 }

@@ -36,4 +36,6 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_STORE=1.1.0` | The version of PlayShelf the Homebrew App Store's catalogue has (`none`: not listed, `offline` for no network): with its record on the simulated SD card (`playshelf_data/sd/switch/appstore/.get/packages/PlayShelf/manifest.install`), an update through a store first checks the catalogue has the new version |
 | `PLAYSHELF_SIM_VERSION=1.0.0:1a2b3c4` | Not the console: the version and commit the header's badge shows (`1.0.0:` for a release), not the build's own, for screenshots that compare |
 
+The simulated console's games each take 1 to 16 GB (made up from their title id, `sim/sim_games.cpp`) on an SD card of 128 GB with 9.6 GB free: under a tenth, so the notification bell says the card is nearly full.
+
 Run it on a desktop with a D-Bus session (`dbus-run-session -- build-desktop/playshelf`); its data folder is `playshelf_data/` in the working directory, the simulated SD card `playshelf_data/sd/`.

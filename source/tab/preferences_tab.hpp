@@ -43,4 +43,5 @@ class PreferencesTab : public TabBase
     BRLS_BIND(brls::DetailCell,  titledb,        "pf_titledb");
     BRLS_BIND(brls::DetailCell,  title_sources,  "pf_title_sources");
     BRLS_BIND(brls::BooleanCell, nlib_api,       "pf_nlib_api");
+    BRLS_BIND(brls::BooleanCell, popular_online, "pf_popular_online");
 };

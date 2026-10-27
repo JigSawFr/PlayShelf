@@ -2,13 +2,20 @@
 #include "activity/main_activity.hpp"
 
 #include "action/download_flow.hpp"
+#include "action/insights.hpp"
+#include "action/notices.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/rollback_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include <borealis/cadran/ui/cadran_frame.hpp>
+#include <borealis/cadran/view/tab_badge.hpp>
 
 #include "action/support_flow.hpp"
 #include "action/update_flow.hpp"
+#include "action/wishlist.hpp"
+#include "activity/insight_notices.hpp"
+#include "activity/notices_activity.hpp"
 #include "activity/tabs.hpp"
 #include "tab/tab_base.hpp"
 #include "ui/ui.hpp"
@@ -27,6 +34,8 @@ void MainActivity::onContentAvailable()
     brls::Logger::info("main screen opened");
     titledb_flow::start();
     nlib_flow::start();
+    popular_flow::start();
+    wishlist::start();
     download_flow::init();
     this->update_title();
     // The frame after the design boards.
@@ -46,6 +55,30 @@ void MainActivity::onContentAvailable()
         ui::notify("playshelf/hints/exit_again"_i18n);
         return true;
     });
+
+    // Y: the notification bell's list, from any tab, its count in the
+    // footer. A tab with its own Ⓨ shows that one instead (the focused
+    // view's wins).
+    this->getContentView()->registerAction("playshelf/notices/hint"_i18n, brls::BUTTON_Y, [](brls::View*) {
+        NoticesActivity::open();
+        return true;
+    });
+#if !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
+    // The desktop build: the keyboard has no Ⓨ, so the Y key (smoke test). Not in
+    // a browser, where the page presses Ⓨ itself for the Y key.
+    this->getContentView()->registerAction(brls::BrlsKeyCombination(brls::BRLS_KBD_KEY_Y), [](brls::View*) {
+        NoticesActivity::open();
+        return true;
+    });
+#endif
+    this->notice_listener = notices::listen([this]() { this->update_notice_hint(); });
+    this->update_notice_hint();
+
+    // What PlayShelf makes of the console and its servers: the bell's
+    // entries, and Home's entry of the sidebar counting the games with
+    // something to get.
+    this->insights_listener = insights::listen([this]() { this->update_insights(); });
+    insights::start();
 
     // −: the language, the theme and the text size (also a tap on them in
     // the header, which shows them). Left out of the footer first when a
@@ -87,7 +120,27 @@ void MainActivity::onContentAvailable()
 
 MainActivity::~MainActivity()
 {
+    notices::unlisten(this->notice_listener);
+    insights::unlisten(this->insights_listener);
     if (brls::getHintsOptionalOwner() == this->getContentView()) brls::setHintsOptionalOwner(nullptr);
+}
+
+void MainActivity::update_notice_hint()
+{
+    const int n = notices::action_count();
+    this->getContentView()->updateActionHint(brls::BUTTON_Y, n > 0 ? brls::getStr("playshelf/notices/hint_count", n)
+                                                                    : "playshelf/notices/hint"_i18n);
+    brls::Application::getGlobalHintsUpdateEvent()->fire();
+}
+
+void MainActivity::update_insights()
+{
+    const auto snap = insights::now();
+    insight_notices::publish(*snap);
+    auto* frame   = this->getView("main_tabs");
+    auto* sidebar = frame ? dynamic_cast<brls::Sidebar*>(frame->getView("brls/tab_frame/sidebar")) : nullptr;
+    if (!sidebar) return;
+    if (TabBadge* badge = TabBadge::of(sidebar->getItem(tabs::home))) badge->set_count((int)snap->to_get_games);
 }
 
 void MainActivity::open_tab(int position, const std::string& row)

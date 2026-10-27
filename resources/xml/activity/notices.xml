@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The notification bell's list: what is to do, then what is for
+     information. A on an entry runs its action (or puts the information
+     away). The entries are built by source/activity/notices_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        title="@i18n/playshelf/notices/title"
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            id="nt_root"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"/>
+
+    </ScrollView>
+
+</brls:AppletFrame>

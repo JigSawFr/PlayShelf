@@ -188,6 +188,7 @@ static void load_shared()
     read_int(j, "prefetch", c.prefetch);
     read_strings(j, "title_sources", c.title_sources);
     read_bool(j, "nlib_api", c.nlib_api);
+    read_bool(j, "popular_online", c.popular_online);
     read_string(j, "support_reminded", c.support_reminded);
     read_string(j, "seen_version", c.seen_version);
     read_string(j, "crash_seen", c.crash_seen);
@@ -241,6 +242,7 @@ bool snapshot(Snapshot& snap)
     j["prefetch"] = s_config.prefetch;
     j["title_sources"] = s_config.title_sources;
     j["nlib_api"] = s_config.nlib_api;
+    j["popular_online"] = s_config.popular_online;
     j["support_reminded"] = s_config.support_reminded;
     j["seen_version"]    = s_config.seen_version;
     j["crash_seen"]      = s_config.crash_seen;

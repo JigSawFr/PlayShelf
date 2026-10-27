@@ -36,6 +36,7 @@ const char* state_key(State s)
         case State::Installed: return "playshelf/filters/state_installed";
         case State::ToUpdate: return "playshelf/filters/state_to_update";
         case State::DlcsMissing: return "playshelf/filters/state_dlcs_missing";
+        case State::NeverPlayed: return "playshelf/filters/state_never_played";
         default: return "playshelf/filters/any";
     }
 }
@@ -132,6 +133,7 @@ void show(std::shared_ptr<Sheet> sheet)
     std::vector<State> states = { State::Any };
     if (sheet->states == States::Catalogue) states.insert(states.end(), { State::Missing, State::Installed });
     states.insert(states.end(), { State::ToUpdate, State::DlcsMissing });
+    if (sheet->states == States::Library) states.push_back(State::NeverPlayed);
     lines.emplace_back("playshelf/filters/state"_i18n, [sheet, states]() {
         std::vector<std::string> labels;
         for (State s : states) labels.push_back(brls::getStr(state_key(s)));

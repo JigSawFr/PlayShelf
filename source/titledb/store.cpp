@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "titledb/store.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <sys/stat.h>
@@ -287,6 +288,16 @@ std::optional<Title> Database::title(uint64_t id) const
         if (!other) other = std::move(t);
     }
     return other;
+}
+
+std::vector<uint64_t> Database::released(uint32_t from, uint32_t to, size_t max) const
+{
+    std::vector<uint64_t> out;
+    for (const Source& s : this->list) s.titles->released(from, to, max, &out);
+    std::sort(out.begin(), out.end());
+    out.erase(std::unique(out.begin(), out.end()), out.end());
+    if (out.size() > max) out.resize(max);
+    return out;
 }
 
 bool Database::icon(uint64_t id, std::vector<uint8_t>* bytes, std::string* ext) const

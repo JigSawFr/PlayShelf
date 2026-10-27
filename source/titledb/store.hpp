@@ -87,6 +87,9 @@ class Database
 
     void open(const std::vector<std::string>& dirs);
     std::optional<Title> title(uint64_t id) const;
+    // The base games released between `from` and `to` (YYYYMMDD), each once,
+    // `max` at most (titledb::TitlePack::released, every source).
+    std::vector<uint64_t> released(uint32_t from, uint32_t to, size_t max) const;
     bool                 icon(uint64_t id, std::vector<uint8_t>* bytes, std::string* ext) const;
     const std::vector<Source>& sources() const { return this->list; }
     std::vector<std::string>   skipped;

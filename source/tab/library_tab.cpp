@@ -219,7 +219,8 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
         if (!library::matches(s_filter, nlib_flow::facts(e.game->game.id))) return false;
         const library::TitleState st = state_in(e.data, e.title);
         return !(s_filter.state == library::Filter::State::ToUpdate && !st.update_available) &&
-               !(s_filter.state == library::Filter::State::DlcsMissing && !st.dlcs_missing);
+               !(s_filter.state == library::Filter::State::DlcsMissing && !st.dlcs_missing) &&
+               !(s_filter.state == library::Filter::State::NeverPlayed && (e.game->launches || e.game->play_s));
     };
     this->entries.erase(std::remove_if(this->entries.begin(), this->entries.end(), [&](const Entry& e) { return !kept(e); }),
                         this->entries.end());
