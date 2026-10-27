@@ -215,7 +215,9 @@ void LibraryTab::add_page()
             cell->detail->setThemeColor("textColor", color);
             this->rows->addView(cell);
             cadran::List::row(cell);
-            this->icons.push_back([cell](int texture) { cell->set_icon_texture(texture, true); });
+            this->icons.push_back([cell](const library_icons::Picture& p) {
+                if (p) cell->set_icon(p->rgba.data(), p->width, p->height);
+            });
             view = cell;
         } else {
             if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
@@ -227,7 +229,9 @@ void LibraryTab::add_page()
             tile->set_detail(detail);
             tile->set_detail_color(color);
             this->grid_row->addView(tile);
-            this->icons.push_back([tile](int texture) { tile->set_icon_texture(texture, true); });
+            this->icons.push_back([tile](const library_icons::Picture& p) {
+                if (p) tile->set_icon(p->rgba.data(), p->width, p->height);
+            });
             view = tile;
         }
         view->registerClickAction([this, at](brls::View*) {
@@ -237,16 +241,12 @@ void LibraryTab::add_page()
         // Its icon: the console's, else its catalogue's, else the title
         // database's.
         const int  gen = this->generation;
-        const auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+        const auto shown = [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& p) {
             const ui::Alive held = weak.lock();
-            if (held && *held && gen == this->generation && at < this->icons.size()) this->icons[at](texture);
-            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+            if (held && *held && gen == this->generation && at < this->icons.size()) this->icons[at](p);
         };
-        if (e.game->icon) {
-            const int texture = nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)e.game->icon->data(),
-                                                  (int)e.game->icon->size());
-            if (texture > 0) this->icons[at](texture);
-        } else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty())
+        if (e.game->icon) library_icons::decode(e.game->icon, shown);
+        else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty())
             library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url, shown,
                                e.game->game.id);
         else
@@ -320,13 +320,16 @@ void LibraryTab::open(size_t i)
     const std::shared_ptr<const std::vector<uint8_t>> own = e.game->icon;
     const auto                                        data = e.data;
     const std::string url = data ? data->titles[(size_t)e.title].icon_url : "";
-    page.icon = [own, data, url, game_id](std::function<void(int)> shown) {
-        if (own) {
-            const int texture = nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)own->data(), (int)own->size());
-            if (texture > 0) return shown(texture);
-        }
+    const auto ask = [data, url, game_id](library_icons::Done shown) {
         if (data && !url.empty()) library_icons::get(data, library::password_of(data->server), url, std::move(shown), game_id);
         else library_icons::local(game_id, std::move(shown));
+    };
+    page.icon = [own, ask](library_icons::Done shown) {
+        if (!own) return ask(std::move(shown));
+        library_icons::decode(own, [ask, shown](const library_icons::Picture& p) {
+            if (p) shown(p);
+            else ask(shown);
+        });
     };
     GameActivity::show(std::move(page));
 }

@@ -27,12 +27,6 @@ constexpr int   SHOTS_PER_ROW = 3;
 // size (a view wider than its picture would draw its edges stretched).
 constexpr int   FULL_H = 660, FULL_W = FULL_H * 16 / 9;
 
-// A texture that came after its view went: freed.
-void drop(int texture)
-{
-    if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
-}
-
 // One screenshot on the whole screen, black around it: ◀ ▶ the others, B
 // back to the page.
 class ShotActivity : public brls::Activity
@@ -55,7 +49,6 @@ class ShotActivity : public brls::Activity
         this->image->setWidth(FULL_W);
         this->image->setHeight(FULL_H);
         this->image->setScalingType(brls::ImageScalingType::FIT);
-        this->image->setFreeTexture(true);
         box->addView(this->image);
         this->counter = kit::label("", 18, "cadran/text3");
         this->counter->setMarginTop(12);
@@ -94,10 +87,9 @@ class ShotActivity : public brls::Activity
         const int  wanted = this->at;
         ui::Weak   weak(this->alive);
         library_icons::picture(titledb::nlib_screen_url(this->base, wanted), FULL_W, FULL_H,
-                               [this, weak, wanted](int texture, int, int) {
+                               [this, weak, wanted](const library_icons::Picture& p) {
                                    const ui::Alive held = weak.lock();
-                                   if (!held || !*held || wanted != this->at || !texture) return drop(texture);
-                                   this->image->innerSetImage(texture);
+                                   if (held && *held && wanted == this->at) library_icons::show(this->image, p);
                                });
     }
 };
@@ -134,7 +126,6 @@ void GameActivity::onContentAvailable()
     this->icon->setHeight(ICON);
     this->icon->setCornerRadius(12);
     this->icon->setScalingType(brls::ImageScalingType::FIT);
-    this->icon->setFreeTexture(true);
     this->icon->setVisibility(brls::Visibility::GONE);
     cover->addView(this->icon);
     head->addView(cover);
@@ -160,10 +151,9 @@ void GameActivity::onContentAvailable()
 
     if (this->page.icon) {
         ui::Weak weak(this->alive);
-        this->page.icon([this, weak, placeholder](int texture) {
+        this->page.icon([this, weak, placeholder](const library_icons::Picture& p) {
             const ui::Alive held = weak.lock();
-            if (!held || !*held || !texture) return drop(texture);
-            this->icon->innerSetImage(texture);
+            if (!held || !*held || !library_icons::show(this->icon, p)) return;
             this->icon->setVisibility(brls::Visibility::VISIBLE);
             placeholder->setVisibility(brls::Visibility::GONE);
         });
@@ -271,10 +261,9 @@ void GameActivity::show_details(const titledb::Details& d)
 
     // Its banner, over the page once it came.
     ui::Weak weak(this->alive);
-    library_icons::picture(titledb::nlib_banner_url(base), 854, 480, [this, weak](int texture, int, int) {
+    library_icons::picture(titledb::nlib_banner_url(base), 854, 480, [this, weak](const library_icons::Picture& p) {
         const ui::Alive held = weak.lock();
-        if (!held || !*held || !texture) return drop(texture);
-        banner->innerSetImage(texture);
+        if (!held || !*held || !library_icons::show(banner, p)) return;
         banner->setVisibility(brls::Visibility::VISIBLE);
     });
 }
@@ -308,7 +297,6 @@ void GameActivity::add_screens(int count)
         image->setHeight(SHOT_H);
         image->setCornerRadius(10);
         image->setScalingType(brls::ImageScalingType::FIT);
-        image->setFreeTexture(true);
         tile->addView(image);
         tile->registerClickAction([base, count, n](brls::View*) {
             brls::Application::pushActivity(new ShotActivity(base, count, n), brls::TransitionAnimation::FADE);
@@ -316,10 +304,9 @@ void GameActivity::add_screens(int count)
         });
         row->addView(tile);
         ui::Weak weak(this->alive);
-        library_icons::picture(titledb::nlib_screen_url(base, n), SHOT_W, SHOT_H, [weak, image](int texture, int, int) {
+        library_icons::picture(titledb::nlib_screen_url(base, n), SHOT_W, SHOT_H, [weak, image](const library_icons::Picture& p) {
             const ui::Alive held = weak.lock();
-            if (!held || !*held || !texture) return drop(texture);
-            image->innerSetImage(texture);
+            if (held && *held) library_icons::show(image, p);
         });
     }
 }

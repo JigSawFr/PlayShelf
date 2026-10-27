@@ -75,11 +75,10 @@ void GameTile::set_detail_color(const char* key)
     this->detail->setThemeColor("textColor", key);
 }
 
-void GameTile::set_icon_texture(int texture, bool owned)
+void GameTile::set_icon(const uint8_t* rgba, int width, int height)
 {
-    if (texture == 0) return;
-    this->icon->innerSetImage(texture);
-    this->icon->setFreeTexture(owned);
+    this->icon->setImageFromRGBA(rgba, width, height);
+    if (!this->icon->getTexture()) return;
     this->placeholder->setVisibility(brls::Visibility::GONE);
     this->icon->setVisibility(brls::Visibility::VISIBLE);
     // Arriving in place of the gamepad: the cover fades in.

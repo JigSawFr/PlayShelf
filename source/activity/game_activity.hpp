@@ -21,6 +21,7 @@
 #include <borealis/cadran/ui/guarded.hpp>
 #include <borealis/cadran/ui/ui.hpp>
 
+#include "action/library_icons.hpp"
 #include "titledb/nlib.hpp"
 
 class GameActivity : public brls::Activity
@@ -35,9 +36,9 @@ class GameActivity : public brls::Activity
         std::string             facts;          // under its name: title id, size, version installed
         std::string             note;           // a line under them ("" none)
         std::vector<ui::Choice> lines;
-        // Asks for its icon: the setter given, called with a texture the
-        // page then owns (0: none). nullptr: no icon to ask for.
-        std::function<void(std::function<void(int)>)> icon;
+        // Asks for its icon: the setter given, called on the UI thread with
+        // its pixels (library_icons; nullptr: none). nullptr: no icon to ask for.
+        std::function<void(library_icons::Done)> icon;
     };
     static void show(Page page);
 
