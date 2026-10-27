@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- The loading screen (activity/loading_activity.hpp), in the theme's background
-     and texts (the store banner's navy on the dark theme), Cadran's dial on the right (on a light
+     (or its background picture) and texts (the store banner's navy on the dark theme), Cadran's dial on the right (on a light
      background, the wordmark and the bar in its inks, LoadingActivity::follow_theme): the icon over
      Aurore's aurora glow, breathing, the wordmark, the tagline, and a progress bar over the
      start-up steps. -->
@@ -63,7 +63,7 @@
         id="loading_anchor"
         width="1"
         height="1"
-        color="@theme/brls/background"
+        color="@theme/cadran/none"
         focusable="true"
         hideHighlight="true"/>
 

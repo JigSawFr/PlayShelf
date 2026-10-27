@@ -231,7 +231,8 @@ cadran_text_FLAGS := $(format_text_FLAGS)
 # borealis' own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
-# it, rewritten only then).
+# it, rewritten only then). C++20, as borealis is built (its headers use
+# defaulted comparisons).
 I18N_COPY    := $(TESTOUT)/borealis_i18n
 I18N_STAMP   := $(TESTOUT)/borealis_i18n.commit
 I18N_COMMIT  := $(shell git -C library/aurore rev-parse HEAD 2>/dev/null)
@@ -246,7 +247,7 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@# in this copy only: borealis itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp tests/i18n_threads/test.cpp
-i18n_threads_FLAGS := -std=c++17 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
+i18n_threads_FLAGS := -std=c++20 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \
                         include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
