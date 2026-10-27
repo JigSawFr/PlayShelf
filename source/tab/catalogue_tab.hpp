@@ -1,7 +1,8 @@
 // CatalogueTab — a library server's catalogue (action/library_flow). With no
 // server yet: an empty state, to add one or find one on this network. Else
 // the server shown (A: another one, change it, add one, find one, read it
-// again), the search (Ⓨ too), the order (name, newest, largest) and the
+// again), the search (Ⓨ too), the order (name, newest, largest,
+// publisher, or shelves: a row of covers a genre, "See all" to filter by it) and the
 // section when the server has several; a line saying where the catalogue
 // stands (being read, why it could not be, how many games, the server's
 // message); then the games as covers, a page at a time ("Show more"). A on
@@ -46,6 +47,10 @@ class CatalogueTab : public TabBase
     // The grid built again when what it shows changed (`force`: anyway).
     void build_grid(bool force);
     void add_page();
+    // The games by genre: a shelf each, its covers scrolled sideways.
+    void add_shelves();
+    // A game's cover, kept in tiles (its icon on its way).
+    GameTile* make_tile(size_t title);
     void open_title(size_t title);
     void server_sheet();
     void pick_sort();
@@ -67,7 +72,8 @@ class CatalogueTab : public TabBase
     std::vector<size_t> selection;   // the games shown, as indexes in shown_data->titles
     size_t      built = 0;            // how many of them have a cover
     brls::Box*  grid_row = nullptr;
-    std::vector<GameTile*> tiles;     // the covers built, in the selection's order
+    std::vector<GameTile*> tiles;     // the covers built
+    std::vector<size_t> tile_titles;  // theirs, as indexes in shown_data->titles
     int         generation = 0;       // the covers' build: an icon arriving for an older one is freed
     std::string password;             // the server's, for its icons
     // What the grid was built for.

@@ -69,7 +69,8 @@
             "name": "Op naam",
             "newest": "Nieuwste eerst",
             "largest": "Grootste eerst",
-            "publisher": "Op uitgever"
+            "publisher": "Op uitgever",
+            "shelves": "Op genre, als schappen"
         },
         "section": "Sectie",
         "section_all": "Alle secties",
@@ -131,7 +132,10 @@
         "installed": "Geïnstalleerd",
         "update_available": "Update beschikbaar",
         "install_missing": "Installeer wat ontbreekt",
-        "installed_version": "Geïnstalleerd: v{}"
+        "installed_version": "Geïnstalleerd: v{}",
+        "shelf_unknown": "Nog niet bekend",
+        "shelf_all": "Alles bekijken",
+        "shelf_games": "{} games"
     },
     "installed": {
         "summary": "Op deze console",

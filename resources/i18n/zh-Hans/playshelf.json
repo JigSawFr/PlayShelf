@@ -69,7 +69,8 @@
             "name": "按名称",
             "newest": "最新在前",
             "largest": "最大在前",
-            "publisher": "按发行商"
+            "publisher": "按发行商",
+            "shelves": "按类型分架"
         },
         "section": "分区",
         "section_all": "全部分区",
@@ -131,7 +132,10 @@
         "installed": "已安装",
         "update_available": "有可用更新",
         "install_missing": "安装缺少的内容",
-        "installed_version": "已安装：v{}"
+        "installed_version": "已安装：v{}",
+        "shelf_unknown": "尚未知晓",
+        "shelf_all": "查看全部",
+        "shelf_games": "{} 款游戏"
     },
     "installed": {
         "summary": "此主机上",

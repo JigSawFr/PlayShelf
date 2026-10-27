@@ -69,7 +69,8 @@
             "name": "名前順",
             "newest": "新しい順",
             "largest": "大きい順",
-            "publisher": "発売元順"
+            "publisher": "発売元順",
+            "shelves": "ジャンル別の棚"
         },
         "section": "セクション",
         "section_all": "すべてのセクション",
@@ -131,7 +132,10 @@
         "installed": "インストール済み",
         "update_available": "アップデートあり",
         "install_missing": "足りないものをインストール",
-        "installed_version": "インストール済み: v{}"
+        "installed_version": "インストール済み: v{}",
+        "shelf_unknown": "まだ分からないゲーム",
+        "shelf_all": "すべて見る",
+        "shelf_games": "{} 本"
     },
     "installed": {
         "summary": "この本体",

@@ -69,7 +69,8 @@
             "name": "По названию",
             "newest": "Сначала новые",
             "largest": "Сначала большие",
-            "publisher": "По издателю"
+            "publisher": "По издателю",
+            "shelves": "По жанрам, полками"
         },
         "section": "Раздел",
         "section_all": "Все разделы",
@@ -131,7 +132,10 @@
         "installed": "Установлено",
         "update_available": "Есть обновление",
         "install_missing": "Установить недостающее",
-        "installed_version": "Установлено: v{}"
+        "installed_version": "Установлено: v{}",
+        "shelf_unknown": "Пока неизвестны",
+        "shelf_all": "Показать все",
+        "shelf_games": "Игр: {}"
     },
     "installed": {
         "summary": "На этой консоли",

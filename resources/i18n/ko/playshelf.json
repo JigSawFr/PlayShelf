@@ -69,7 +69,8 @@
             "name": "이름순",
             "newest": "최신순",
             "largest": "용량 큰 순",
-            "publisher": "퍼블리셔순"
+            "publisher": "퍼블리셔순",
+            "shelves": "장르별 선반"
         },
         "section": "섹션",
         "section_all": "모든 섹션",
@@ -131,7 +132,10 @@
         "installed": "설치됨",
         "update_available": "업데이트 있음",
         "install_missing": "빠진 항목 설치",
-        "installed_version": "설치됨: v{}"
+        "installed_version": "설치됨: v{}",
+        "shelf_unknown": "아직 모르는 게임",
+        "shelf_all": "모두 보기",
+        "shelf_games": "게임 {}개"
     },
     "installed": {
         "summary": "이 본체",

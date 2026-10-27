@@ -1,4 +1,4 @@
-<!-- translated from docs/getting-started.md, sha256 f1b4bb6d6024 -->
+<!-- translated from docs/getting-started.md, sha256 1c91d78090a5 -->
 # Prise en main
 
 PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et en installe vos propres sauvegardes et homebrews : le jeu de base, ses mises à jour et ses contenus additionnels, en NSP, NSZ, XCI ou XCZ, en HTTPS. Cette page va de la carte SD au premier jeu installé.
@@ -29,7 +29,7 @@ Le premier démarrage s'ouvre sur la **Bibliothèque**, qui indique qu'il n'y a 
 
 ## Installer un jeu
 
-Le **Catalogue** montre les jeux du serveur en jaquettes, avec leur taille et leurs contenus additionnels. **Rechercher** et **Ordre** (par nom, les plus récents, les plus gros ou par éditeur) l'affinent ; un serveur organisé en sections les montre aussi. **Filtres** garde les jeux d'un genre, d'un éditeur, à un ou plusieurs joueurs, dans votre langue, selon ce que la console en a (absents, présents, une mise à jour ou des contenus additionnels à prendre), démos masquées. Les genres, éditeurs, joueurs et langues viennent de Nlib API à mesure que les jeux s'affichent : tant qu'un filtre en a besoin, les jeux pas encore connus sont demandés en arrière-plan et rejoignent la liste à leur arrivée (la ligne sous les filtres dit combien sont connus). La **Bibliothèque** a ses propres **Ordre et filtres** : par nom, par éditeur, les plus récents, ou ceux à compléter d'abord.
+Le **Catalogue** montre les jeux du serveur en jaquettes, avec leur taille et leurs contenus additionnels. **Rechercher** et **Ordre** (par nom, les plus récents, les plus gros, par éditeur, ou par genre en rayons : une rangée de jaquettes par genre, les jeux pas encore connus sur la dernière, **Tout voir** au bout d'une rangée pleine pour tout le genre) l'affinent ; un serveur organisé en sections les montre aussi. **Filtres** garde les jeux d'un genre, d'un éditeur, à un ou plusieurs joueurs, dans votre langue, selon ce que la console en a (absents, présents, une mise à jour ou des contenus additionnels à prendre), démos masquées. Les genres, éditeurs, joueurs et langues viennent de Nlib API à mesure que les jeux s'affichent : tant qu'un filtre en a besoin, les jeux pas encore connus sont demandés en arrière-plan et rejoignent la liste à leur arrivée (la ligne sous les filtres dit combien sont connus). La **Bibliothèque** a ses propres **Ordre et filtres** : par nom, par éditeur, les plus récents, ou ceux à compléter d'abord.
 
 | Catalogue | La fiche d'un jeu |
 |---|---|

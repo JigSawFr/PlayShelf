@@ -2,6 +2,7 @@
 #include "tab/catalogue_tab.hpp"
 
 #include <algorithm>
+#include <map>
 
 #include <fmt/format.h>
 
@@ -27,11 +28,25 @@ constexpr size_t PAGE = 40;   // covers built at a time
 // What is chosen stays for this run (a tab is made again each time it opens).
 std::string   s_server_id;
 std::string   s_query;
-library::Sort s_sort = library::Sort::Name;
+size_t        s_order = 0;   // in ORDERS
 std::string   s_section;
 library::Filter s_filter;
 
-const char* const SORTS[] = { "name", "newest", "largest", "publisher" };
+// The orders, as library::Sort's, then the shelves: a row of covers a
+// genre, by name.
+const char* const ORDERS[] = { "name", "newest", "largest", "publisher", "shelves" };
+constexpr size_t  SHELVES = 4;
+constexpr size_t  SHELF_MAX = 12;   // covers a shelf, "See all" after them
+
+bool shelves()
+{
+    return s_order == SHELVES;
+}
+
+library::Sort sort_of()
+{
+    return shelves() ? library::Sort::Name : (library::Sort)s_order;
+}
 
 // A filter or an order that needs the games' facts (Nlib API's, gathered
 // as games show): the ones not known yet are asked meanwhile.
@@ -39,12 +54,12 @@ bool needs_facts()
 {
     const library::Filter& f = s_filter;
     return !f.genre.empty() || !f.publisher.empty() || !f.language.empty() || f.players || f.hide_demos ||
-           s_sort == library::Sort::Publisher;
+           sort_of() == library::Sort::Publisher || shelves();
 }
 
-std::string sort_text(library::Sort s)
+std::string order_text(size_t order)
 {
-    return brls::getStr(std::string("playshelf/library/sort_values/") + SORTS[(int)s]);
+    return brls::getStr(std::string("playshelf/library/sort_values/") + ORDERS[order]);
 }
 
 // What a cover says under the name: installed (an update to get, in
@@ -66,12 +81,16 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
     tile->set_detail(text);
 }
 
+// The tab's room: the screen less the rail and the column's sides.
+float room()
+{
+    return brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
+           2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
+}
+
 int columns()
 {
-    // The tab's room: the screen less the rail and the column's sides.
-    const float room = brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
-                       2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
-    return std::max(1, (int)(room / GameTile::WIDTH));
+    return std::max(1, (int)(room() / GameTile::WIDTH));
 }
 
 bool inside(brls::View* view, brls::View* parent)
@@ -229,7 +248,7 @@ void CatalogueTab::refresh()
     }
     ui::set_detail(server_cell, s->name);
     ui::set_detail(search_cell, s_query.empty() ? "playshelf/library/search_all"_i18n : s_query);
-    ui::set_detail(sort_cell, sort_text(s_sort));
+    ui::set_detail(sort_cell, order_text(s_order));
     const std::string filtered = filter_sheet::summary(s_filter);
     ui::set_detail(filter_cell, filtered.empty() ? "playshelf/filters/none"_i18n : filtered);
     ui::set_visible_all({ { status, true }, { grid, true } });
@@ -292,7 +311,7 @@ void CatalogueTab::build_grid(bool force)
 {
     const auto* data = this->shown_data.get();
     const library::Filter& f = s_filter;
-    const std::string      key = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, (int)s_sort, s_section, f.genre, f.publisher,
+    const std::string      key = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
                                              f.language, f.players, (int)f.state, f.hide_demos);
     // Its sections: a choice only when the server has several.
     const bool sections = data && data->fetch.catalog.sections.size() > 1;
@@ -310,7 +329,7 @@ void CatalogueTab::build_grid(bool force)
         if (installed != this->built_installed && data) {
             this->built_installed = installed;
             for (size_t i = 0; i < this->tiles.size(); i++)
-                show_detail(this->tiles[i], data->titles[this->selection[i]], data->fetch.catalog, *installed);
+                show_detail(this->tiles[i], data->titles[this->tile_titles[i]], data->fetch.catalog, *installed);
         }
         return;
     }
@@ -321,6 +340,7 @@ void CatalogueTab::build_grid(bool force)
     if (inside(brls::Application::getCurrentFocus(), grid)) brls::Application::giveFocus(search_cell);
     grid->clearViews(true);
     this->tiles.clear();
+    this->tile_titles.clear();
     // The icons of the covers gone are not wanted; one already on its way
     // finds its cover gone (the generation changed) and is freed.
     library_icons::drop_pending();
@@ -330,7 +350,8 @@ void CatalogueTab::build_grid(bool force)
     this->built = 0;
     this->selection = this->select();
     this->ask_facts();
-    this->add_page();
+    if (shelves()) this->add_shelves();
+    else this->add_page();
     this->show_status();
 }
 
@@ -344,7 +365,7 @@ std::vector<size_t> CatalogueTab::select() const
     pick.facts = [](uint64_t title_id) { return nlib_flow::facts(title_id); };
     pick.state = [data, installed](const library::Title& t) { return library::state_of(t, data->fetch.catalog, *installed); };
     const bool sections = data->fetch.catalog.sections.size() > 1;
-    return library::select_titles(data->titles, s_query, s_sort, sections ? s_section : "", pick);
+    return library::select_titles(data->titles, s_query, sort_of(), sections ? s_section : "", pick);
 }
 
 void CatalogueTab::ask_facts()
@@ -380,33 +401,98 @@ void CatalogueTab::add_page()
             this->grid_row = new brls::Box(brls::Axis::ROW);
             grid->addView(this->grid_row);
         }
-        const size_t          index = this->selection[this->built];
-        const library::Title& t = data->titles[index];
-        if (t.id) shown_ids.push_back(t.id);
-        auto*                 tile = new GameTile();
-        tile->set_name(t.name);
-        show_detail(tile, t, data->fetch.catalog, *this->built_installed);
-        tile->registerClickAction([this, index](brls::View*) {
-            this->open_title(index);
-            return true;
-        });
-        this->grid_row->addView(tile);
-        this->tiles.push_back(tile);
-        const size_t at = this->tiles.size() - 1;
-        const int    gen = this->generation;
-        auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
-            const ui::Alive held = weak.lock();
-            if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
-            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
-        };
-        // The server's icon, else the title database's, else Nlib API's.
-        if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown, t.id);
-        else library_icons::local(t.id, shown);
+        const size_t index = this->selection[this->built];
+        if (data->titles[index].id) shown_ids.push_back(data->titles[index].id);
+        this->grid_row->addView(this->make_tile(index));
     }
     ui::set_visible(more, data && this->built < this->selection.size());
     // What Nlib API knows of the games just shown, gathered meanwhile (the
     // ones a filter needs are asked instead: build_grid()).
     if (!needs_facts()) nlib_flow::enrich(shown_ids);
+}
+
+GameTile* CatalogueTab::make_tile(size_t index)
+{
+    const auto*           data = this->shown_data.get();
+    const library::Title& t = data->titles[index];
+    auto*                 tile = new GameTile();
+    tile->set_name(t.name);
+    show_detail(tile, t, data->fetch.catalog, *this->built_installed);
+    tile->registerClickAction([this, index](brls::View*) {
+        this->open_title(index);
+        return true;
+    });
+    this->tiles.push_back(tile);
+    this->tile_titles.push_back(index);
+    const size_t at = this->tiles.size() - 1;
+    const int    gen = this->generation;
+    auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+        const ui::Alive held = weak.lock();
+        if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
+        else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+    };
+    // The server's icon, else the title database's, else Nlib API's.
+    if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown, t.id);
+    else library_icons::local(t.id, shown);
+    return tile;
+}
+
+void CatalogueTab::add_shelves()
+{
+    ui::set_visible(more, false);
+    const auto* data = this->shown_data.get();
+    if (!data) return;
+    // The games of each genre (a game on each of its genres' shelves), the
+    // fullest shelf first; the games not known yet on the last one.
+    std::map<std::string, std::vector<size_t>> by_genre;
+    std::vector<size_t>                        unknown;
+    for (size_t index : this->selection) {
+        const library::Facts facts = nlib_flow::facts(data->titles[index].id);
+        if (facts.categories.empty()) unknown.push_back(index);
+        for (const std::string& g : facts.categories) by_genre[g].push_back(index);
+    }
+    std::vector<std::pair<std::string, std::vector<size_t>>> shelves(by_genre.begin(), by_genre.end());
+    std::stable_sort(shelves.begin(), shelves.end(), [](const auto& a, const auto& b) {
+        // "Other" with the games not known, at the end.
+        if ((a.first == "Other") != (b.first == "Other")) return b.first == "Other";
+        return a.second.size() > b.second.size();
+    });
+    if (!unknown.empty()) shelves.emplace_back("", std::move(unknown));
+    for (auto& [genre, games] : shelves) {
+        auto* header = new brls::Header();
+        header->setTitle(genre.empty() ? "playshelf/library/shelf_unknown"_i18n : nlib_flow::genre_name(genre));
+        header->setSubtitle(std::to_string(games.size()));
+        header->setMarginTop(this->tiles.empty() ? 8 : 24);
+        header->setMarginBottom(8);
+        header->setWidth(room());
+        grid->addView(header);
+        cadran::List::section(header);
+        auto* frame = new brls::HScrollingFrame();
+        frame->setWidth(room());
+        frame->setHeight(GameTile::WIDTH + 64);
+        auto* row = new brls::Box(brls::Axis::ROW);
+        frame->addView(row);
+        grid->addView(frame);
+        for (size_t i = 0; i < games.size() && i < SHELF_MAX; i++) row->addView(this->make_tile(games[i]));
+        // The whole genre: the grid, filtered by it.
+        if (games.size() > SHELF_MAX && !genre.empty()) {
+            auto* all = new GameTile();
+            all->set_name("playshelf/library/shelf_all"_i18n);
+            all->set_detail(brls::getStr("playshelf/library/shelf_games", games.size()));
+            all->set_detail_color(cadran::kit::color("cadran/teal"));
+            const std::string g = genre;
+            // The grid built again once this click is over (it frees this cover).
+            all->registerClickAction([this, g](brls::View*) {
+                brls::sync(ui::guarded(this->alive, [this, g]() {
+                    s_filter.genre = g;
+                    s_order = 0;
+                    this->refresh();
+                }));
+                return true;
+            });
+            row->addView(all);
+        }
+    }
 }
 
 void CatalogueTab::open_title(size_t index)
@@ -450,9 +536,9 @@ void CatalogueTab::server_sheet()
 void CatalogueTab::pick_sort()
 {
     std::vector<std::string> labels;
-    for (size_t i = 0; i < sizeof(SORTS) / sizeof(SORTS[0]); i++) labels.push_back(sort_text((library::Sort)i));
-    ui::pick("playshelf/library/sort"_i18n, labels, (int)s_sort, ui::guarded(this->alive, [this](int i) {
-                 s_sort = (library::Sort)i;
+    for (size_t i = 0; i < sizeof(ORDERS) / sizeof(ORDERS[0]); i++) labels.push_back(order_text(i));
+    ui::pick("playshelf/library/sort"_i18n, labels, (int)s_order, ui::guarded(this->alive, [this](int i) {
+                 s_order = (size_t)i;
                  this->refresh();
              }));
 }

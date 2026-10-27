@@ -69,7 +69,8 @@
             "name": "Par nom",
             "newest": "Les plus récents",
             "largest": "Les plus gros",
-            "publisher": "Par éditeur"
+            "publisher": "Par éditeur",
+            "shelves": "Par genre, en rayons"
         },
         "section": "Section",
         "section_all": "Toutes les sections",
@@ -131,7 +132,10 @@
         "installed": "Installé",
         "update_available": "Mise à jour disponible",
         "install_missing": "Installer ce qui manque",
-        "installed_version": "Installé : v{}"
+        "installed_version": "Installé : v{}",
+        "shelf_unknown": "Pas encore connus",
+        "shelf_all": "Tout voir",
+        "shelf_games": "{} jeux"
     },
     "installed": {
         "summary": "Sur cette console",
