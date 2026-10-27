@@ -77,6 +77,12 @@ PreferencesTab::PreferencesTab()
         ui::pick_theme(this->refresher());
         return true;
     });
+    // The theme's colours: PlayShelf's own, Aurore's presets or the user's
+    // files (sd:/config/playshelf/themes, docs/themes.md), switched at once.
+    palette->registerClickAction([this](brls::View*) {
+        ui::pick_palette(this->refresher());
+        return true;
+    });
     text_size->registerClickAction([this](brls::View*) {
         ui::pick_text_size(this->refresher());
         return true;
@@ -96,8 +102,8 @@ PreferencesTab::PreferencesTab()
         std::vector<std::string> labels;
         for (const char* t : config::START_TABS) labels.push_back(tab_name(t));
         // Each tab's icon, as the sidebar draws it (ui/cadran_frame.cpp).
-        const std::vector<std::string> icons = { "shelf", "server", "settings", "info" };
-        static_assert(sizeof(config::START_TABS) / sizeof(config::START_TABS[0]) == 4, "an icon for each tab");
+        const std::vector<std::string> icons = { "home", "shelf", "server", "settings", "info" };
+        static_assert(sizeof(config::START_TABS) / sizeof(config::START_TABS[0]) == 5, "an icon for each tab");
         ui::pick_grid("playshelf/tools/start_tab"_i18n, labels, icons, index_of(config::START_TABS, config::get().start_tab), [this](int i) {
             config::get().start_tab = config::START_TABS[i];
             ui::save_config();
@@ -135,18 +141,19 @@ PreferencesTab::PreferencesTab()
         this->sources_sheet();
         return true;
     });
-    // The icons none of them has, from Nlib API (action/library_icons).
-    online_icons->init("playshelf/titledb/online_icons"_i18n, config::get().online_icons, [](bool on) {
-        config::get().online_icons = on;
+    // The icons none of them has and the games' pages, from Nlib API.
+    nlib_api->init("playshelf/titledb/nlib_api"_i18n, config::get().nlib_api, [](bool on) {
+        config::get().nlib_api = on;
         ui::save_config();
     });
     this->titledb_listener = titledb_flow::listen(ui::guarded(this->alive, [this]() { this->show_titledb(); }));
 
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
-    this->list.apply({ { "pf_effects", "sparkle" }, { "pf_intro", "bolt" }, { "pf_support_reminder", "heart" },
+    this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_intro", "bolt" },
+                       { "pf_support_reminder", "heart" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
-                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_online_icons", "globe" } });
+                       { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" } });
 }
 
 PreferencesTab::~PreferencesTab()
@@ -277,13 +284,14 @@ void PreferencesTab::refresh()
     const auto& cfg = config::get();
     language->setDetailText(ui::language_name(true));
     theme->setDetailText(ui::theme_name(true));
+    palette->setDetailText(ui::palette_name());
     text_size->setDetailText(ui::text_size_name(true));
     effects->setDetailText(brls::getStr("playshelf/prefs/effects_values/" + std::string(config::EFFECTS[index_of(config::EFFECTS, cfg.look.effects)])));
     start_tab->setDetailText(tab_name(config::START_TABS[index_of(config::START_TABS, cfg.start_tab)]));
     intro->setOn(cfg.intro, false);
     support_reminder->setOn(cfg.support_reminder, false);
     update_daily->setOn(cfg.update_daily, false);
-    online_icons->setOn(cfg.online_icons, false);
+    nlib_api->setOn(cfg.nlib_api, false);
     update_via->setDetailText(update_flow::method_text());
     this->show_titledb();
     this->list.sync();

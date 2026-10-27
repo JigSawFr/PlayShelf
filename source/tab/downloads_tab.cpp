@@ -12,8 +12,11 @@
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
 #include "install/split_stream.hpp"
+#include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "view/banner_card.hpp"
+#include "view/cover_placeholder.hpp"
 
 using namespace brls::literals;
 
@@ -201,17 +204,25 @@ void DownloadsTab::update()
             r.card->setAlignItems(brls::AlignItems::CENTER);
             r.card->setPadding(16, 24, 16, 16);
             r.card->setMarginBottom(12);
+            // The game's banner behind its right half, once it came.
+            auto* backdrop = new BannerBackdrop();
+            backdrop->setPositionTop(0);
+            backdrop->setPositionBottom(0);
+            backdrop->setPositionRight(0);
+            backdrop->setWidthPercentage(55);
+            r.card->addView(backdrop);
+            r.backdrop = backdrop;
             // The game's icon, on the well until (and unless) the cache has it.
             auto* cover = new brls::Box(brls::Axis::ROW);
             cover->setWidth(ICON);
             cover->setHeight(ICON);
             cover->setShrink(0);
             cover->setCornerRadius(cadran::kit::RADIUS_ICON);
-            cover->setBackgroundColor(cadran::kit::color("cadran/well"));
+            cover->setThemeColor("backgroundColor", "cadran/well");
             cover->setAlignItems(brls::AlignItems::CENTER);
             cover->setJustifyContent(brls::JustifyContent::CENTER);
             cover->setMarginRight(20);
-            cover->addView(cadran::kit::icon("gamepad", 36, "cadran/text3"));
+            cover->addView(new CoverPlaceholder(ICON, 36, cadran::kit::RADIUS_ICON));
             r.icon = new brls::Image();
             r.icon->setWidth(ICON);
             r.icon->setHeight(ICON);
@@ -244,21 +255,23 @@ void DownloadsTab::update()
             const int    gen = this->generation;
             // The cache's (a cover shown before), else the title database's.
             const uint64_t game_id = g.jobs.empty() ? 0 : jobs[g.jobs.front()].game_id;
-            auto           shown = ui::guarded(this->alive, [this, at, gen](int texture) {
-                if (gen != this->generation || at >= this->rows.size() || !texture) {
-                    if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
-                    return;
-                }
+            auto           shown = ui::guarded(this->alive, [this, at, gen](const library_icons::Picture& p) {
+                if (gen != this->generation || at >= this->rows.size()) return;
                 Row& row = this->rows[at];
-                row.icon->innerSetImage(texture);
-                row.icon->setFreeTexture(true);
+                if (!library_icons::show(row.icon, p)) return;
                 row.icon->setVisibility(brls::Visibility::VISIBLE);
                 row.icon->getParent()->getChildren()[0]->setVisibility(brls::Visibility::GONE);
             });
-            library_icons::cached(g.icon_url, [shown, game_id](int texture) {
-                if (texture || !game_id) shown(texture);
+            library_icons::cached(g.icon_url, [shown, game_id](const library_icons::Picture& p) {
+                if (p || !game_id) shown(p);
                 else library_icons::local(game_id, shown);
             });
+            if (game_id && config::get().nlib_api)
+                library_icons::picture(titledb::nlib_banner_url(game_id), 854, 480,
+                                       ui::guarded(this->alive, [this, at, gen](const library_icons::Picture& p) {
+                                           if (p && gen == this->generation && at < this->rows.size())
+                                               this->rows[at].backdrop->set_picture(p->rgba.data(), p->width, p->height);
+                                       }));
             this->rows.push_back(r);
         }
         if (!this->rows.empty() && !brls::Application::getCurrentFocus()->isFocusable())
@@ -334,7 +347,7 @@ void DownloadsTab::fill(Row& row)
         break;
     }
     if (size && download::group_state(g, jobs) != download::State::Running) text += " · " + library_flow::size_text(size);
-    row.state->setTextColor(cadran::kit::color(color));
+    row.state->setThemeColor("textColor", color);
     ui::set_text(row.state, text);
 }
 

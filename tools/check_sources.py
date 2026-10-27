@@ -67,6 +67,7 @@ ACTION_SCREENS = {
     "source/kit/action/support_flow.cpp": {"activity/whats_new_activity.hpp"},      # What's new
     "source/kit/action/update_flow.cpp": {"activity/update_activity.hpp"},          # the update screen
     "source/action/library_flow.cpp": {"activity/server_activity.hpp"},             # a library server's editor
+    "source/action/game_page.cpp": {"activity/game_activity.hpp"},                  # a game's page
 }
 
 for folder in LOWER:

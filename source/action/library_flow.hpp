@@ -66,14 +66,44 @@ void reread_installed(const std::function<void()>& after);
 // waiting or running is not added twice).
 size_t install(const Loaded& l, const std::vector<size_t>& items);
 
-// A game of a catalogue (`index` in data->titles) as a sheet: everything
-// the console does not have of it at once (the base game, its newest update
-// when newer than the one installed, its add-ons), then each item, its size
-// or that the console has it; A on one adds it to the downloads. `more`:
-// lines of the caller's after them (the Library's: delete the game).
-void game_sheet(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more = {});
+// What a game of a catalogue (`index` in data->titles) offers, for its
+// page (activity/game_activity), by the page's tabs: everything the console
+// does not have of it at once (the base game, its newest update when newer
+// than the one installed, its add-ons) and the base game; its updates,
+// newest first, and its newest at once when the console has an older one;
+// its add-ons, and the missing ones at once. Each line: its size, or that
+// the console has it; A on one adds it to the downloads. `more`: lines of
+// the caller's (the Library's: delete the game). `facts`: its title id,
+// its size, the version installed.
+struct GameLines
+{
+    std::vector<ui::Choice> main;      // everything missing, then the base game
+    std::vector<ui::Choice> updates;   // the newest at once (when to get), then each
+    std::vector<ui::Choice> dlcs;      // the missing ones at once (two or more), then each
+    std::vector<ui::Choice> more;
+    std::string             facts;
+    size_t                  update_count = 0, dlc_count = 0, dlcs_installed = 0;
+    uint64_t                base_size = 0, updates_size = 0, dlcs_size = 0;
+    uint32_t                installed_version = 0, latest_version = 0;   // 0: none
+    bool                    installed = false;   // the base game is on the console
+};
+GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more = {});
 
 // "734 MB", "4,2 GB" (the language's decimal mark): a package's size.
 std::string size_text(uint64_t bytes);
+
+// Where a game is to be had: each server whose catalogue was read in this
+// run and has it, in servers.json's order, with what it has of it ("Base
+// game · 2 updates, the newest v65536 · 1 add-on").
+struct Source
+{
+    std::string server_id;
+    std::string server;   // its name
+    std::string what;
+    bool        base = false;
+    size_t      updates = 0, dlcs = 0;
+    uint32_t    newest = 0;   // its newest update's version, 0: none
+};
+std::vector<Source> sources(uint64_t title_id);
 
 }   // namespace library_flow

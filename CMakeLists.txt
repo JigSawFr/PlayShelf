@@ -35,53 +35,6 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 project(playshelf LANGUAGES CXX C)
 
-# borealis' toolchain.cmake sets CMAKE_C_FLAGS / CMAKE_CXX_FLAGS as normal
-# variables (include paths), which hides the cache values devkitPro's
-# NintendoSwitch platform file initialises: the Cortex-A57 tuning, the crc and
-# crypto extensions and the thread-local model libnx is built with. Put them
-# back for every target (borealis, yoga, fmt, tinyxml2 and the app).
-if (PLATFORM_SWITCH AND NX_ARCH_SETTINGS)
-    string(PREPEND CMAKE_C_FLAGS "${NX_ARCH_SETTINGS} ")
-    string(PREPEND CMAKE_CXX_FLAGS "${NX_ARCH_SETTINGS} ")
-endif ()
-# devkitPro's platform file defaults to Release (-O2 -g; elf2nro keeps no
-# debug data). borealis prints its "Build Type:" line before project() picks
-# that default, so say what is actually used.
-# deko3d draws with precompiled shaders: borealis' nanovg loads them from
-# romfs:/shaders/. uam (part of switch-dev) does not always give the same
-# bytes for the same GLSL (one scheduling word of fill_vsh differs from run to
-# run), which broke the reproducible zips, so the compiled shaders are kept in
-# shaders/ and copied as they are. shaders/glsl.sha256 is the GLSL they were
-# compiled from: after a borealis bump changes it, configure with
-# -DPLAYSHELF_UAM=ON, copy build/dksh/*.dksh to shaders/ and update the checksums.
-option(PLAYSHELF_UAM "Switch: compile the deko3d shaders with uam instead of using shaders/" OFF)
-set(PLAYSHELF_DKSH_DIR ${CMAKE_BINARY_DIR}/dksh)
-set(PLAYSHELF_SHADERS fill_vsh fill_fsh fill_aa_fsh)
-if (PLATFORM_SWITCH AND USE_DEKO3D)
-    if (PLAYSHELF_UAM)
-        gen_dksh(${PLAYSHELF_DKSH_DIR})
-        foreach (shader ${PLAYSHELF_SHADERS})
-            if (NOT EXISTS ${PLAYSHELF_DKSH_DIR}/${shader}.dksh)
-                message(FATAL_ERROR "uam did not produce ${shader}.dksh")
-            endif ()
-        endforeach ()
-    else ()
-        file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glsl.sha256 PLAYSHELF_GLSL_SUMS)
-        foreach (line ${PLAYSHELF_GLSL_SUMS})
-            string(REGEX MATCH "^([0-9a-f]+)  (.+)$" _ "${line}")
-            file(SHA256 ${BOREALIS_LIBRARY}/lib/extern/nanovg/deko3d/shaders/${CMAKE_MATCH_2} PLAYSHELF_GLSL_SUM)
-            if (NOT PLAYSHELF_GLSL_SUM STREQUAL CMAKE_MATCH_1)
-                message(FATAL_ERROR "borealis' ${CMAKE_MATCH_2} changed since shaders/ was compiled: "
-                        "configure with -DPLAYSHELF_UAM=ON, copy build/dksh/*.dksh to shaders/ "
-                        "and update shaders/glsl.sha256")
-            endif ()
-        endforeach ()
-        file(REMOVE_RECURSE ${PLAYSHELF_DKSH_DIR})
-        foreach (shader ${PLAYSHELF_SHADERS})
-            file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders/${shader}.dksh DESTINATION ${PLAYSHELF_DKSH_DIR})
-        endforeach ()
-    endif ()
-endif ()
 if (PLATFORM_SWITCH)
     if (USE_DEKO3D)
         message(STATUS "PlayShelf renderer: deko3d")
@@ -89,6 +42,9 @@ if (PLATFORM_SWITCH)
         message(STATUS "PlayShelf renderer: OpenGL (mesa)")
     endif ()
 endif ()
+# devkitPro's platform file defaults to Release (-O2 -g; elf2nro keeps no
+# debug data). borealis prints its "Build Type:" line before project() picks
+# that default, so say what is actually used.
 string(TOUPPER "${CMAKE_BUILD_TYPE}" PLAYSHELF_BUILD_TYPE_UC)
 message(STATUS "PlayShelf build type: ${CMAKE_BUILD_TYPE}; C++ flags: ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${PLAYSHELF_BUILD_TYPE_UC}}")
 
@@ -124,8 +80,19 @@ endif ()
 
 add_subdirectory(${BOREALIS_LIBRARY} ${CMAKE_BINARY_DIR}/borealis_library)
 
+# deko3d draws with nanovg's shaders, which Aurore compiles with uam (part of
+# switch-dev) and builds into the library (<build>/borealis_library/dksh/).
+# Without uam it only warns and looks for them in the romfs, where PlayShelf
+# puts none: the app would stop at its first frame, so stop here instead.
+if (PLATFORM_SWITCH AND USE_DEKO3D)
+    file(READ ${CMAKE_BINARY_DIR}/borealis_library/dksh/dk_shaders.h PLAYSHELF_DKSH_HEADER)
+    if (PLAYSHELF_DKSH_HEADER MATCHES "nullptr")
+        message(FATAL_ERROR "Aurore could not compile the deko3d shaders: install uam (dkp-pacman -S uam)")
+    endif ()
+endif ()
+
 find_package(Threads REQUIRED)
-list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND PLAYSHELF_LIBS ${CMAKE_THREAD_LIBS_INIT})
 
 # libcurl for the update check (util/http.cpp). On the Switch: devkitPro's
 # switch-curl portlib (TLS through the console's ssl service), static, so its
@@ -134,7 +101,7 @@ list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 # libzstd on a desktop. libwebp for the title database's icons
 # (action/library_icons.cpp): switch-libwebp, the system's libwebp.
 if (PLATFORM_SWITCH)
-    list(APPEND APP_PLATFORM_LIB curl zstd webp z nx)
+    list(APPEND PLAYSHELF_LIBS curl zstd webp z nx)
 elseif (PLAYSHELF_WEB)
     # No libcurl in a browser (source/sim/web_http.cpp answers instead);
     # zstd and libwebp, which Emscripten has no port of, built from their
@@ -164,7 +131,7 @@ elseif (PLAYSHELF_WEB)
     add_library(playshelf_webp STATIC ${PLAYSHELF_WEBP_SRC})
     target_include_directories(playshelf_webp PUBLIC ${libwebp_SOURCE_DIR}/src PRIVATE ${libwebp_SOURCE_DIR})
     target_compile_options(playshelf_webp PRIVATE -w)
-    list(APPEND APP_PLATFORM_LIB playshelf_zstd playshelf_webp)
+    list(APPEND PLAYSHELF_LIBS playshelf_zstd playshelf_webp)
 else ()
     find_package(CURL REQUIRED)
     find_package(ZLIB REQUIRED)   # util/zip_read.cpp (the Switch links z above)
@@ -172,8 +139,8 @@ else ()
     find_path(ZSTD_INCLUDE_DIR zstd.h REQUIRED)
     find_library(WEBP_LIBRARY webp REQUIRED)
     find_path(WEBP_INCLUDE_DIR webp/decode.h REQUIRED)
-    list(APPEND APP_PLATFORM_LIB CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY} ${WEBP_LIBRARY})
-    list(APPEND APP_PLATFORM_INCLUDE ${ZSTD_INCLUDE_DIR} ${WEBP_INCLUDE_DIR})
+    list(APPEND PLAYSHELF_LIBS CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY} ${WEBP_LIBRARY})
+    list(APPEND PLAYSHELF_INCLUDES ${ZSTD_INCLUDE_DIR} ${WEBP_INCLUDE_DIR})
 endif ()
 
 # Sources: UI (C++) + service layer. The real service layer (source/core/*.c)
@@ -199,9 +166,9 @@ endif ()
 list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp)
 
 program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
 
-target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${APP_PLATFORM_INCLUDE})
+target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${PLAYSHELF_INCLUDES})
 # -ffunction-sections / -fdata-sections come from borealis (PUBLIC) and
 # --gc-sections from libnx's switch.specs.
 # Warnings on PlayShelf's own sources (not borealis, not the vendored
@@ -214,7 +181,7 @@ set(PLAYSHELF_WARNINGS -Wall -Wextra -Wimplicit-fallthrough -Wshadow $<$<COMPILE
 if (PLAYSHELF_WERROR)
     list(APPEND PLAYSHELF_WARNINGS -Werror)
 endif ()
-target_compile_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_OPTION} ${PLAYSHELF_WARNINGS})
+target_compile_options(${PROJECT_NAME} PRIVATE ${PLAYSHELF_WARNINGS})
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "-w")
 # The commit built (at configure time): development builds are told apart by
 # it (util/dev_builds.hpp). PLAYSHELF_COMMIT (CI: a pull request's head)
@@ -249,7 +216,7 @@ message(STATUS "PlayShelf release build: ${APP_RELEASE}")
 # (the desktop's precompiled header, below, would be built anew every time).
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source/app.cpp APPEND PROPERTY COMPILE_DEFINITIONS
              APP_VERSION="${APP_VERSION}" APP_COMMIT="${APP_COMMIT}" APP_PR=${APP_PR} APP_RELEASE=${APP_RELEASE})
-target_link_libraries(${PROJECT_NAME} PRIVATE borealis ${APP_PLATFORM_LIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE Aurore::aurore ${PLAYSHELF_LIBS})
 # On the desktop: borealis, fmt and the standard headers most files include,
 # parsed once (a precompiled header) instead of in each of the 200-odd C++
 # files: a change to a header many include (ui/ui.hpp, app.hpp) rebuilds in
@@ -271,10 +238,12 @@ if (PLATFORM_DESKTOP AND NOT CMAKE_VERSION VERSION_LESS 3.16)
                                 PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif ()
 # borealis' headers as system headers: their warnings are not PlayShelf's.
-get_target_property(BOREALIS_INCLUDES borealis INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(BOREALIS_INCLUDES Aurore::aurore INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${BOREALIS_INCLUDES})
-# On the Switch: a linker map (build/borealis.map) to see what makes the .nro big.
-target_link_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_LINK_OPTION})
+# On the Switch: a linker map (build/playshelf.map) to see what makes the .nro big.
+if (PLATFORM_SWITCH)
+    target_link_options(${PROJECT_NAME} PRIVATE -Wl,-Map,${CMAKE_BINARY_DIR}/playshelf.map)
+endif ()
 # The web simulator: threads (a pool started with the page: a thread asked
 # for later waits for the browser, which a busy main thread never lets it
 # have), WebGL 2, the resources and the demo library server packaged
@@ -330,7 +299,6 @@ set(ASSEMBLE_RESOURCES
     COMMAND ${CMAKE_COMMAND} -E remove -f ${MERGED_RESOURCES}/release-notes/README.md ${MERGED_RESOURCES}/img/emoji/README.md
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_ICON} ${MERGED_RESOURCES}/img/app_icon.jpg)
 
-set(PLAYSHELF_COPY_SHADERS)
 # The web simulator: Japanese, Korean and Chinese drawn with the characters
 # the catalogs use, cut out of Noto Sans CJK (tools/web_cjk_font.py), as the
 # console draws them with its system fonts. It is served next to the page, not
@@ -346,8 +314,12 @@ if (PLAYSHELF_WEB)
                         OUTPUT_QUIET ERROR_QUIET)
     endif ()
     if (Python3_FOUND AND NOT PLAYSHELF_NO_FONTTOOLS AND EXISTS "${PLAYSHELF_WEB_CJK_FONT}")
-        file(GLOB PLAYSHELF_CJK_CATALOGS ${PROJECT_RESOURCES}/i18n/ja/*.json ${PROJECT_RESOURCES}/i18n/ko/*.json
-             ${PROJECT_RESOURCES}/i18n/zh-Hans/*.json ${PROJECT_RESOURCES}/i18n/zh-Hant/*.json)
+        set(PLAYSHELF_CJK_CATALOGS)
+        foreach (resources ${PROJECT_RESOURCES} ${BOREALIS_RESOURCES})
+            file(GLOB catalogs ${resources}/i18n/ja/*.json ${resources}/i18n/ko/*.json
+                 ${resources}/i18n/zh-Hans/*.json ${resources}/i18n/zh-Hant/*.json)
+            list(APPEND PLAYSHELF_CJK_CATALOGS ${catalogs})
+        endforeach ()
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/cjk.otf
             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/web_cjk_font.py
                     ${PLAYSHELF_WEB_CJK_FONT} ${CMAKE_BINARY_DIR}/cjk.otf ${CMAKE_CURRENT_SOURCE_DIR}
@@ -361,16 +333,11 @@ if (PLAYSHELF_WEB)
                         "Japanese, Korean and Chinese will show boxes")
     endif ()
 endif ()
-if (PLATFORM_SWITCH AND USE_DEKO3D)
-    set(PLAYSHELF_COPY_SHADERS COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLAYSHELF_DKSH_DIR} ${MERGED_RESOURCES}/shaders)
-endif ()
-
 if (PLATFORM_SWITCH)
     add_custom_target(${PROJECT_NAME}.nro ALL DEPENDS ${PROJECT_NAME}
         COMMAND ${NX_NACPTOOL_EXE} --create "PlayShelf" "${PROJECT_AUTHOR}"
                 "${APP_VERSION}" ${PROJECT_NAME}.nacp --titleid=${PROJECT_TITLEID}
         ${ASSEMBLE_RESOURCES}
-        ${PLAYSHELF_COPY_SHADERS}
         COMMAND ${CMAKE_COMMAND} -E remove -f ${MERGED_RESOURCES}/font/switch_font.ttf ${MERGED_RESOURCES}/font/switch_icons.ttf
         COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro
                 --icon=${PROJECT_ICON} --nacp=${PROJECT_NAME}.nacp

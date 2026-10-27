@@ -3,8 +3,9 @@
 // else its title id), and under it what stands out: an update or add-ons a
 // catalogue read this run has and the console has not (in amber), else the
 // version it runs. A line on top says how many games, and how many have
-// something to get (A reads them again). A on a game: its sheet in the catalogue that has it
-// (library_flow::game_sheet: install its update, its add-ons, everything
+// something to get (A reads them again). A on a game: its page
+// (activity/game_activity), with what the catalogue that has it offers
+// (library_flow::game_lines: install its update, its add-ons, everything
 // missing at once), else what the console has of it; and to delete it
 // (installed_flow::remove, asked first). The catalogues are the
 // Catalogue tab's (action/library_flow): the shown server's is read when
@@ -18,10 +19,12 @@
 #include <vector>
 
 #include "action/installed_flow.hpp"
+#include "action/library_icons.hpp"
 #include "action/library_flow.hpp"
 #include "tab/tab_base.hpp"
 
 class GameTile;
+class ToolChip;
 
 class LibraryTab : public TabBase
 {
@@ -29,6 +32,9 @@ class LibraryTab : public TabBase
     LibraryTab();
     ~LibraryTab() override;
     static brls::View* create();
+    // The Library shown next with only the games in this state (the Home
+    // tab's tiles); its order kept.
+    static void preset(library::Filter::State state);
 
   protected:
     void refresh() override;
@@ -45,23 +51,27 @@ class LibraryTab : public TabBase
 
     void show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
+    void pick_filter();
     void open(size_t i);
     void set_hints();
 
     std::shared_ptr<const std::vector<installed_flow::Game>> shown_games;
     std::vector<Entry>     entries;   // by name
-    std::vector<std::function<void(int)>> icons;   // puts an icon on each entry built, in order
+    std::vector<library_icons::Done> icons;   // puts an icon on each entry built, in order
     brls::Box*             grid_row = nullptr;   // covers: the row being filled
     brls::Box*             rows = nullptr;       // list: the card of rows (in list_box, made once)
     size_t                 built = 0;
     int                    generation = 0;
     int                    listener = 0;
     int                    titledb_listener = 0;
+    int                    nlib_listener = 0;
     int                    titledb_opened = 0;   // titledb_flow::Status::opened when its names were read
     size_t                 done_jobs = 0;   // the downloads installed when last read: one more, read again
 
     BRLS_BIND(brls::Box,    empty_box, "li_empty");
-    BRLS_BIND(brls::DetailCell, summary, "li_summary");
+    BRLS_BIND(brls::Box,    bar,       "li_bar");
+    ToolChip* summary = nullptr;
+    ToolChip* filter_cell = nullptr;
     BRLS_BIND(brls::Box,    grid,      "li_grid");
     BRLS_BIND(brls::Box,    list_box,  "li_list");
     BRLS_BIND(brls::Button, more,      "li_more");

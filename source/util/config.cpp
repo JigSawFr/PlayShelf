@@ -99,7 +99,7 @@ void sanitize(Config& c)
     one_of(c.library_view, { "grid", "list" }, "grid");
     bool tab_ok = false;
     for (const char* t : START_TABS) tab_ok |= c.start_tab == t;
-    if (!tab_ok) c.start_tab = "library";
+    if (!tab_ok) c.start_tab = "home";
     bool keep_ok = false;
     for (int k : LOGS_KEEP) keep_ok |= c.logs_keep == k;
     if (!keep_ok) c.logs_keep = 20;
@@ -163,6 +163,7 @@ static void load_shared()
     Config& c = s_config;
     read_string(j, "language", c.look.language);
     read_string(j, "theme", c.look.theme);
+    read_string(j, "theme_file", c.look.theme_file);
     read_string(j, "text_size", c.look.text_size);
     read_string(j, "effects", c.look.effects);
     read_bool(j, "dev_mode", c.dev_mode);
@@ -186,7 +187,7 @@ static void load_shared()
     read_int(j, "connections", c.connections);
     read_int(j, "prefetch", c.prefetch);
     read_strings(j, "title_sources", c.title_sources);
-    read_bool(j, "online_icons", c.online_icons);
+    read_bool(j, "nlib_api", c.nlib_api);
     read_string(j, "support_reminded", c.support_reminded);
     read_string(j, "seen_version", c.seen_version);
     read_string(j, "crash_seen", c.crash_seen);
@@ -215,6 +216,7 @@ bool snapshot(Snapshot& snap)
     j["schema"]          = SCHEMA;
     j["language"]        = s_config.look.language;
     j["theme"]           = s_config.look.theme;
+    j["theme_file"]      = s_config.look.theme_file;
     j["text_size"]       = s_config.look.text_size;
     j["effects"]         = s_config.look.effects;
     j["dev_mode"]        = s_config.dev_mode;
@@ -238,7 +240,7 @@ bool snapshot(Snapshot& snap)
     j["connections"] = s_config.connections;
     j["prefetch"] = s_config.prefetch;
     j["title_sources"] = s_config.title_sources;
-    j["online_icons"] = s_config.online_icons;
+    j["nlib_api"] = s_config.nlib_api;
     j["support_reminded"] = s_config.support_reminded;
     j["seen_version"]    = s_config.seen_version;
     j["crash_seen"]      = s_config.crash_seen;

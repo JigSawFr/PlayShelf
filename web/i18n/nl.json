@@ -53,6 +53,7 @@
     "replaying": "Stappen worden herhaald: {n} van {total}",
     "tour": "Rondleiding",
     "report": "Een probleem melden",
+    "tour_home": "Start: hoe de console en de servers ervoor staan, wat je games missen, het nieuwste van de servers en games voor jou.",
     "tour_library": "Bibliotheek: de games op deze console, hun versies en wat een server nieuwer heeft.",
     "tour_catalogue": "Catalogus: de games van een bibliotheekserver, hier de verzonnen games van de demoplank.",
     "tour_game": "De pagina van een game: de basisgame, de updates en de add-ons, elk om te installeren.",
@@ -72,7 +73,8 @@
     "tab": {
       "label": "Opent op",
       "options": {
-        "": "Bibliotheek",
+        "": "Start",
+        "library": "Bibliotheek",
         "catalogue": "Catalogus",
         "preferences": "Voorkeuren",
         "about": "Info"
@@ -175,6 +177,9 @@
     },
     "no_game": {
       "label": "Niets open achter PlayShelf"
+    },
+    "no_play": {
+      "label": "Geen speeltijd op de console"
     },
     "no_demo": {
       "label": "Geen bibliotheekserver (een eerste start)"

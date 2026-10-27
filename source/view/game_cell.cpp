@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "view/game_cell.hpp"
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
+#include "view/cover_placeholder.hpp"
 
 namespace
 {
@@ -16,10 +16,10 @@ GameCell::GameCell()
     this->slot->setMarginRight(16);
     this->slot->setShrink(0);
     this->slot->setCornerRadius(8);
-    this->slot->setBackgroundColor(cadran::kit::color("cadran/well"));
+    this->slot->setThemeColor("backgroundColor", "cadran/well");
     this->slot->setAlignItems(brls::AlignItems::CENTER);
     this->slot->setJustifyContent(brls::JustifyContent::CENTER);
-    this->placeholder = cadran::kit::icon("gamepad", 22, "cadran/text3");
+    this->placeholder = new CoverPlaceholder(ICON, 22, 8);
     this->slot->addView(this->placeholder);
     this->icon = new brls::Image();
     this->icon->setWidth(ICON);
@@ -31,11 +31,10 @@ GameCell::GameCell()
     this->addView(this->slot, 0);   // before the title
 }
 
-void GameCell::set_icon_texture(int texture, bool owned)
+void GameCell::set_icon(const uint8_t* rgba, int width, int height)
 {
-    if (texture <= 0) return;
-    this->icon->innerSetImage(texture);
-    this->icon->setFreeTexture(owned);
+    this->icon->setImageFromRGBA(rgba, width, height);
+    if (!this->icon->getTexture()) return;
     this->icon->setVisibility(brls::Visibility::VISIBLE);
     this->placeholder->setVisibility(brls::Visibility::GONE);
 }

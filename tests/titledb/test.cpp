@@ -181,6 +181,52 @@ void test_nlib()
     CHECK(nlib_icon_url(0).empty());
     // A size out of the API's range.
     CHECK(nlib_icon_url(0x0100000000010000, 29).empty() && nlib_icon_url(0x0100000000010000, 4097).empty());
+
+    // Its language: PlayShelf's, its region dropped; English for another.
+    CHECK(nlib_language("fr-CA") == "fr" && nlib_language("pt-BR") == "pt" && nlib_language("zh-Hant") == "zh");
+    CHECK(nlib_language("en-US") == "en" && nlib_language("ja") == "ja" && nlib_language("pl") == "en");
+    CHECK(nlib_details_url(0x01007EF00011E000, "fr-CA") ==
+          "https://api.nlib.cc/nx/01007EF00011E000?lang=fr&fields=name,publisher,developer,releaseDate,category,intro,"
+          "description,screens,numberOfPlayers,languages,ratingContent,isDemo,nsuId");
+    CHECK(nlib_details_url(0x01007EF00011E800, "fr").empty());
+    CHECK(nlib_banner_url(0x01007EF00011E000) == "https://api.nlib.cc/nx/01007EF00011E000/banner/480p");
+    CHECK(nlib_screen_url(0x01007EF00011E000, 1) == "https://api.nlib.cc/nx/01007EF00011E000/screen/1");
+    CHECK(nlib_screen_url(0x01007EF00011E000, 0).empty() && nlib_screen_url(0x01007EF00011E000, NLIB_MAX_SCREENS + 1).empty());
+
+    // A game's details, as the API answers them.
+    Details d;
+    CHECK(parse_nlib_details(R"({"id":"0100000000010000","name":"Copper\tCanyon","publisher":"Studio",
+        "releaseDate":"2024-05-17","category":["Racing",4,"","Arcade"],"intro":"Dust.\r\nOne more lap? ",
+        "description":"Race.\n\n\n\nTwelve tracks\nfour seasons\n\n","screens":{"count":12,"screenshots":[]},
+        "banner":"http://api.nlib.cc/nx/0100000000010000/banner"})", 0x0100000000010000, &d));
+    CHECK(d.name == "Copper Canyon" && d.publisher == "Studio" && d.release_date == "2024-05-17");
+    CHECK(d.categories == (std::vector<std::string>{ "Racing", "Arcade" }));
+    // Its line breaks kept, one blank line at most between paragraphs.
+    CHECK(d.intro == "Dust.\nOne more lap?");
+    CHECK(d.description == "Race.\n\nTwelve tracks\nfour seasons");
+    CHECK(d.screens == NLIB_MAX_SCREENS);
+    // What else it knows: its players, languages (each once), rating, eShop id.
+    CHECK(parse_nlib_details(R"({"id":"0100000000010000","developer":"Dev","numberOfPlayers":4,
+        "languages":["ja","en","zh","zh",""],"ratingContent":["Fantasy Violence"],"isDemo":true,"nsuId":"70010000000025"})",
+                             0x0100000000010000, &d));
+    CHECK(d.developer == "Dev" && d.players == 4 && d.demo && d.nsu_id == 70010000000025ull);
+    CHECK(d.languages == (std::vector<std::string>{ "ja", "en", "zh" }) && d.rating == (std::vector<std::string>{ "Fantasy Violence" }));
+    // Not what they should be: left unknown.
+    CHECK(parse_nlib_details(R"({"id":"0100000000010000","numberOfPlayers":"two","isDemo":1,"nsuId":"70A","languages":"en"})",
+                             0x0100000000010000, &d));
+    CHECK(d.players == 0 && !d.demo && d.nsu_id == 0 && d.languages.empty());
+    // A date that is not one, no screenshots.
+    CHECK(parse_nlib_details(R"({"id":"0100000000010000","releaseDate":"soon"})", 0x0100000000010000, &d));
+    CHECK(d.release_date.empty() && d.screens == 0 && d.name.empty());
+    // Not its answer: another game's, a refusal, not JSON, not an object.
+    CHECK(!parse_nlib_details(R"({"id":"0100000000020000","name":"x"})", 0x0100000000010000, &d));
+    CHECK(!parse_nlib_details(R"({"success":false,"error":"Game not found"})", 0x0100000000010000, &d));
+    CHECK(!parse_nlib_details("{\"id\":", 0x0100000000010000, &d));
+    CHECK(!parse_nlib_details("[1]", 0x0100000000010000, &d));
+    // Long text cut on a character, within its bound.
+    const std::string long_text(9000, 'a');
+    CHECK(parse_nlib_details("{\"id\":\"0100000000010000\",\"description\":\"" + long_text + "\"}", 0x0100000000010000, &d));
+    CHECK(d.description.size() == 8192);
 }
 }   // namespace
 
@@ -192,5 +238,5 @@ int main()
     test_manifest();
     test_list();
     test_nlib();
-    return CHECK_DONE("title database: packs read, broken ones refused, safe text, manifests and their aliases, title lists, Nlib API's addresses passed");
+    return CHECK_DONE("title database: packs read, broken ones refused, safe text, manifests and their aliases, title lists, Nlib API's addresses and details passed");
 }

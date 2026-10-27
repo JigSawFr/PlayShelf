@@ -23,21 +23,20 @@ void DevBuildActivity::show(const dev_builds::Build& build, bool newer)
     brls::Application::pushActivity(new DevBuildActivity(build, newer));
 }
 
-void DevBuildActivity::add_fact(const std::string& name, const std::string& value, NVGcolor color)
+void DevBuildActivity::add_fact(const std::string& name, const std::string& value, const char* color)
 {
     auto* row = new brls::Box(brls::Axis::ROW);
     row->setAlignItems(brls::AlignItems::FLEX_START);
     row->setPadding(10, 0, 10, 0);
     if (!facts->getChildren().empty()) {
         row->setLineTop(1);
-        row->setLineColor(cadran::kit::color("cadran/line"));
+        row->setThemeColor("lineColor", "cadran/line");
     }
     brls::Label* n = cadran::kit::label(name, cadran::kit::TEXT_BODY, "cadran/text2");
     n->setWidth(230);
     n->setShrink(0.0f);
     row->addView(n);
-    brls::Label* v = cadran::kit::label(value, cadran::kit::TEXT_BODY);
-    v->setTextColor(color);
+    brls::Label* v = cadran::kit::label(value, cadran::kit::TEXT_BODY, color);
     v->setGrow(1.0f);
     v->setShrink(1.0f);
     row->addView(v);
@@ -70,8 +69,8 @@ void DevBuildActivity::onContentAvailable()
     headline->setSingleLine(false);
     warning->setSingleLine(false);
     // The facts as a card of the boards, the buttons as their pills.
-    facts->setBackgroundColor(cadran::kit::color("cadran/surf"));
-    facts->setBorderColor(cadran::kit::color("cadran/line"));
+    facts->setThemeColor("backgroundColor", "cadran/surf");
+    facts->setThemeColor("borderColor", "cadran/line");
     facts->setBorderThickness(1);
     facts->setCornerRadius(cadran::kit::RADIUS_CARD);
     cadran::style_button(install.getView(), cadran::Emphasis::PRIMARY);
@@ -79,7 +78,7 @@ void DevBuildActivity::onContentAvailable()
 
     // Tags: its kind, then the list's (kind of change, scope, pull request,
     // checks, pre-release, installed or new).
-    const NVGcolor kind_color = cadran::kit::color("cadran/teal");
+    const char* kind_color = "cadran/teal";
     switch (b.kind) {
         case dev_builds::Kind::Release: tags->addView(tag_view({ "playshelf/dev_build/kind_release"_i18n, kind_color }, 18)); break;
         case dev_builds::Kind::Main: tags->addView(tag_view({ "main", kind_color }, 18)); break;
@@ -93,19 +92,19 @@ void DevBuildActivity::onContentAvailable()
     std::string built = dev_builds::short_date(b.date);
     const std::string age = dev_build_flow::age_text(b.date);
     if (!age.empty()) built += " · " + age;
-    add_fact("playshelf/dev_build/fact_built"_i18n, built, cadran::kit::color("cadran/text"));
+    add_fact("playshelf/dev_build/fact_built"_i18n, built, "cadran/text");
     add_fact("playshelf/dev_build/fact_size"_i18n,
              brls::getStr("playshelf/dev_build/size_mb", fmt::format("{:.1f}", (double)b.size / (1024.0 * 1024.0))),
-             cadran::kit::color("cadran/text"));
-    if (!b.commit.empty()) add_fact("playshelf/dev_build/fact_commit"_i18n, b.commit, cadran::kit::color("cadran/text"));
+             "cadran/text");
+    if (!b.commit.empty()) add_fact("playshelf/dev_build/fact_commit"_i18n, b.commit, "cadran/text");
     if (b.kind == dev_builds::Kind::Commit && !b.branch.empty())
-        add_fact("playshelf/dev_build/fact_branch"_i18n, b.branch, cadran::kit::color("cadran/text"));
-    if (b.sha256.empty()) add_fact("playshelf/dev_build/fact_checksum"_i18n, "playshelf/dev_build/no_digest"_i18n, cadran::kit::color("cadran/amber"));
-    else add_fact("playshelf/dev_build/fact_checksum"_i18n, b.sha256.substr(0, 16) + "…", cadran::kit::color("cadran/text"));
+        add_fact("playshelf/dev_build/fact_branch"_i18n, b.branch, "cadran/text");
+    if (b.sha256.empty()) add_fact("playshelf/dev_build/fact_checksum"_i18n, "playshelf/dev_build/no_digest"_i18n, "cadran/amber");
+    else add_fact("playshelf/dev_build/fact_checksum"_i18n, b.sha256.substr(0, 16) + "…", "cadran/text");
     if (!b.expires.empty()) {
         const int days = std::max(0, dev_builds::days_left(b.expires, dev_build_flow::now()));
         add_fact("playshelf/dev_build/fact_expires"_i18n, brls::getStr("playshelf/dev_build/expires_in", days),
-                 days < 7 ? cadran::kit::color("cadran/amber") : cadran::kit::color("cadran/text"));
+                 days < 7 ? "cadran/amber" : "cadran/text");
     }
 
     const std::string running = rollback_flow::running_label();

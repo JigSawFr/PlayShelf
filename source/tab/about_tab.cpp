@@ -82,7 +82,7 @@ AboutTab::AboutTab()
         badge->setHeight(84);
         badge->setCornerRadius(24);
         badge->setShrink(0);
-        badge->setBackgroundColor(brls::Application::getTheme()["cadran/teal_soft"]);
+        badge->setThemeColor("backgroundColor", "cadran/teal_soft");
         badge->setAlignItems(brls::AlignItems::CENTER);
         badge->setJustifyContent(brls::JustifyContent::CENTER);
         badge->setMarginRight(22);
@@ -144,7 +144,7 @@ void AboutTab::refresh()
     const std::string status = newer ? brls::getStr("playshelf/about/version_newer", app::version(), cfg.update_latest)
                                      : app::version();
     version->setDetailText(ui::opens(status + commit + flags));
-    version->setDetailTextColor(newer ? cadran::kit::color("cadran/amber") : cadran::kit::color("cadran/text2"));
+    version->detail->setThemeColor("textColor", newer ? "cadran/amber" : "cadran/text2");
     this->list.sync();
     if (this->version_line) {
         const std::string version_text = app::commit().empty() ? app::version() : app::version() + " · " + app::commit();

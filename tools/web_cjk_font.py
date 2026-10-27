@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""The web simulator's CJK font (web/README.md): the characters PlayShelf's
-Japanese, Korean and Chinese catalogs use, cut out of Noto Sans CJK (SIL Open
+"""The web simulator's CJK font (web/README.md): the characters the Japanese,
+Korean and Chinese catalogs use (PlayShelf's and Aurore's, whose theme and
+Cadran names PlayShelf shows), cut out of Noto Sans CJK (SIL Open
 Font License 1.1), so the browser draws those languages as the console does
 with its system fonts. The desktop build has none on Linux (borealis looks for
 a system font only on Windows, macOS and Android).
@@ -10,6 +11,7 @@ face is taken, the one the console's own fallback is.
 
 Usage: tools/web_cjk_font.py <NotoSansCJK-Regular.ttc> <out.otf> [repo-root]   (needs fontTools)
 """
+import glob
 import json
 import os
 import sys
@@ -39,10 +41,12 @@ def main():
     root = sys.argv[3] if len(sys.argv) > 3 else "."
 
     chars = set()
-    for lang in LANGUAGES:
-        with open(os.path.join(root, "resources", "i18n", lang, "playshelf.json"), encoding="utf-8") as f:
-            for s in strings(json.load(f)):
-                chars.update(c for c in s if ord(c) >= 0x2E80)   # CJK, kana, hangul and their punctuation
+    for resources in (os.path.join(root, "resources"), os.path.join(root, "library", "aurore", "resources")):
+        for lang in LANGUAGES:
+            for catalog in sorted(glob.glob(os.path.join(resources, "i18n", lang, "*.json"))):
+                with open(catalog, encoding="utf-8") as f:
+                    for s in strings(json.load(f)):
+                        chars.update(c for c in s if ord(c) >= 0x2E80)   # CJK, kana, hangul and their punctuation
     # Every kana, for the names the catalogs do not spell (hiragana and katakana).
     chars.update(chr(c) for c in range(0x3040, 0x3100))
 

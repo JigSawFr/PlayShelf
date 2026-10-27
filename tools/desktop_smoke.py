@@ -216,7 +216,9 @@ m = re.search(r"after (\d+) ms", ready[0]) if ready else None
 if not m or int(m.group(1)) < 2000:
     fail("the first screen came before the end of the intro: " + (ready[0].strip() if ready else "no line"))
 
-# The tabs, down the rail: Library, Catalogue, Downloads | Preferences, About.
+# The tabs, down the rail: Home, Library, Catalogue, Downloads | Preferences, About.
+shot("00_home")
+key("Down")
 shot("01_library")
 key("Down")
 shot("12_catalogue")
@@ -231,11 +233,11 @@ key("Escape")
 go_to("Theme", "Right")
 key("Return")
 shot("04_theme_picker")
-key("Down")                  # Light
+key("Up")                    # Light (the focus starts on the theme chosen, Dark)
 key("Return")
 shot("05_light_theme")
-key("Return")                # the picker again: back to Dark
-key("Down", 2)
+key("Return")                # the picker again, on Light: back to Dark
+key("Down")
 key("Return")
 key("Left", 3)
 key("Left")                  # back to the rail

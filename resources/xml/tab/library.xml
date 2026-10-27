@@ -25,7 +25,9 @@
             paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
-            <brls:DetailCell id="li_summary" title="@i18n/playshelf/installed/summary"/>
+            <!-- How many games (A: read them again) and the order and filters,
+                 as pills (view/tool_chip, made in code). -->
+            <brls:Box id="li_bar" width="auto" height="auto" axis="row"/>
             <brls:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
             <brls:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
             <brls:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>

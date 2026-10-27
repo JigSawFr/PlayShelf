@@ -53,6 +53,7 @@
     "replaying": "Ripetizione dei passaggi: {n} di {total}",
     "tour": "Tour",
     "report": "Segnala un problema",
+    "tour_home": "Home: lo stato della console e dei server, ciò che manca ai tuoi giochi, le novità dei server e giochi per te.",
     "tour_library": "Libreria: i giochi di questa console, le loro versioni e ciò che un server ha di più recente.",
     "tour_catalogue": "Catalogo: i giochi di un server di libreria, qui quelli inventati dello scaffale demo.",
     "tour_game": "La scheda di un gioco: il gioco base, gli aggiornamenti e i DLC, ognuno da installare.",
@@ -72,7 +73,8 @@
     "tab": {
       "label": "Si apre su",
       "options": {
-        "": "Libreria",
+        "": "Home",
+        "library": "Libreria",
         "catalogue": "Catalogo",
         "preferences": "Preferenze",
         "about": "Informazioni"
@@ -175,6 +177,9 @@
     },
     "no_game": {
       "label": "Niente aperto dietro PlayShelf"
+    },
+    "no_play": {
+      "label": "Nessun tempo di gioco sulla console"
     },
     "no_demo": {
       "label": "Nessun server di libreria (un primo avvio)"

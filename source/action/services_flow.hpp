@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "action/library_flow.hpp"
 
@@ -26,6 +27,10 @@ namespace services_flow
 
 // Whether the server `l` was read from has these services (AeroFoil's API).
 bool offered(const library_flow::Loaded& l);
+
+// A game's lines for its page (`title_id`'s of `l`): its cheats and its
+// save backups; none when the server has no such services.
+std::vector<ui::Choice> game_choices(const std::shared_ptr<const library_flow::Loaded>& l, uint64_t title_id);
 
 // The server's cheats: every game's (a list of games first), or `title_id`'s.
 void cheats(const std::shared_ptr<const library_flow::Loaded>& l, uint64_t title_id = 0);

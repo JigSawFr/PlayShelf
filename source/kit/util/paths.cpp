@@ -30,6 +30,7 @@ std::string crashes_dir()  { return logs_dir() + "/crashes"; }
 std::string sessions_dir() { return logs_dir() + "/sessions"; }
 std::string uploads_dir()  { return logs_dir() + "/uploads"; }
 std::string config_file()  { return data_dir() + "/config.json"; }
+std::string themes_dir()   { return data_dir() + "/themes"; }
 std::string migrations_file() { return data_dir() + "/migrations.json"; }
 std::string cache_dir()    { return data_dir() + "/cache"; }
 

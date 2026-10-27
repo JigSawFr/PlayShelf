@@ -18,6 +18,7 @@
 #include "tab/tab_base.hpp"
 #include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
+#include "util/paths.hpp"
 #include "util/config.hpp"
 
 namespace
@@ -81,7 +82,7 @@ void install_screen_hooks()
     h.is_tab = [](brls::View* v) { return dynamic_cast<TabBase*>(v) != nullptr; };
     h.tab_position = [](const std::string& screen) { return tabs::position_of(screen); };
     h.settings_tab = []() { return tabs::preferences; };
-    h.rail_icons = []() { return std::vector<std::string>{ "shelf", "server", "download", "", "settings", "info" }; };
+    h.rail_icons = []() { return std::vector<std::string>{ "home", "shelf", "server", "download", "", "settings", "info" }; };
 
     h.send_report = []() { upload_flow::choose(); };
 
@@ -99,6 +100,9 @@ void install_screen_hooks()
     // The look's preferences live in config.json; the simulators' flags are
     // PLAYSHELF_SIM_* (core/sim_env.h).
     h.save_prefs = []() { return ui::save_config(); };
+    // The user's own theme files, after Aurore's presets in the palette
+    // picker (docs/themes.md): sd:/config/playshelf/themes.
+    h.themes_dir = []() { return paths::themes_dir(); };
     h.env_flag = [](const char* name) { return sim_env_flag((std::string("PLAYSHELF_SIM_") + name).c_str()); };
     ui::use_prefs(config::get().look);
 

@@ -53,6 +53,7 @@
     "replaying": "Repetindo os passos: {n} de {total}",
     "tour": "Tour",
     "report": "Relatar um problema",
+    "tour_home": "Início: como estão o console e os servidores, o que falta aos seus jogos, as novidades dos servidores e jogos para você.",
     "tour_library": "Biblioteca: os jogos deste console, suas versões e o que um servidor tem de mais novo.",
     "tour_catalogue": "Catálogo: os jogos de um servidor de biblioteca, aqui os inventados da prateleira de demonstração.",
     "tour_game": "A página de um jogo: o jogo base, as atualizações e os DLCs, cada um para instalar.",
@@ -72,7 +73,8 @@
     "tab": {
       "label": "Abre em",
       "options": {
-        "": "Biblioteca",
+        "": "Início",
+        "library": "Biblioteca",
         "catalogue": "Catálogo",
         "preferences": "Preferências",
         "about": "Sobre"
@@ -175,6 +177,9 @@
     },
     "no_game": {
       "label": "Nada aberto por trás do PlayShelf"
+    },
+    "no_play": {
+      "label": "Sem tempo de jogo no console"
     },
     "no_demo": {
       "label": "Nenhum servidor de biblioteca (uma primeira inicialização)"

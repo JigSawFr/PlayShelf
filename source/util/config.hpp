@@ -26,7 +26,7 @@ constexpr size_t MAX_TITLE_SOURCES = 8;
 struct Config
 {
     // The look Aurore's Cadran draws (ui::use_prefs): the language, the
-    // theme, the text size ("auto": larger while docked), the effects ("auto":
+    // theme and its palette (a preset or a theme file, docs/themes.md), the text size ("auto": larger while docked), the effects ("auto":
     // lighter off the dock) and the screens' background glow (Developer ›
     // glow).
     ui::Prefs look;
@@ -45,7 +45,7 @@ struct Config
     std::string update_latest;
     std::string update_snooze_version;
     std::string update_snooze_until;
-    std::string start_tab = "library";   // tab shown at start-up (main.xml order: START_TABS)
+    std::string start_tab = "home";   // tab shown at start-up (main.xml order: START_TABS)
     // The saved reports and the crash files kept, each folder on its own
     // (util/log_files.hpp; 0: no limit): the newest logs_keep, those of the
     // last logs_keep_days days, the newest that fit in logs_keep_mb MB.
@@ -69,9 +69,10 @@ struct Config
     // knows a title naming it: HTTPS addresses, MAX_TITLE_SOURCES at most;
     // DEFAULT_TITLE_SOURCES unless changed, none for no database.
     std::vector<std::string> title_sources{ std::begin(DEFAULT_TITLE_SOURCES), std::end(DEFAULT_TITLE_SOURCES) };
-    // The icons neither a server nor the title databases have, asked of Nlib
-    // API (titledb/nlib), one game at a time (action/library_icons).
-    bool online_icons = true;
+    // Nlib API (titledb/nlib) asked, one game at a time, for the icons
+    // neither a server nor the title databases have (action/library_icons)
+    // and for a game's page: its details, banner, screenshots (action/nlib_flow).
+    bool nlib_api = true;
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means
@@ -93,7 +94,7 @@ inline constexpr const auto& TEXT_SIZES = ui::TEXT_SIZES;
 // What effects may be: the default first.
 inline constexpr const auto& EFFECTS = ui::EFFECTS;
 // What start_tab may be, in the sidebar's order.
-constexpr const char* START_TABS[] = { "library", "catalogue", "preferences", "about" };
+constexpr const char* START_TABS[] = { "home", "library", "catalogue", "preferences", "about" };
 // What About › Help & diagnostics offers for the reports and crash files kept.
 constexpr int LOGS_KEEP[]      = { 0, 5, 10, 20, 50 };
 constexpr int LOGS_KEEP_DAYS[] = { 0, 7, 30, 90, 365 };

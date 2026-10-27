@@ -711,7 +711,7 @@ const PRESS_MS = 60;
 const AFTER_MS = 400;
 // The tour (tour=1): the Library, the demo server's Catalogue, a game added
 // to the downloads and installed, the Downloads tab, the Preferences.
-const TOUR = 'w10.say:library.w40.left.down.say:catalogue.w50.right.down*4.say:game.w20.a.w30.say:download.a.w40' +
+const TOUR = 'w10.say:home.w40.left.down.say:library.w30.down.say:catalogue.w50.right.down*2.say:game.w20.a.w30.say:download.a.w40' +
              '.b.left.down.say:downloads.right.w60.left.down.say:preferences.w45.say:end.w60';
 
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));

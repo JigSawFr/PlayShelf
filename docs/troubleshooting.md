@@ -28,11 +28,11 @@ The package says why, with what to do: see [When a download stops](downloads.md#
 
 - sys-patch or sigpatches are missing, or older than the console's firmware: update them.
 - An update or an add-on needs a newer firmware than the console's.
-- The base game is missing: an update or an add-on alone does not start. The game's sheet installs what is missing.
+- The base game is missing: an update or an add-on alone does not start. The game's page installs what is missing.
 
 ## Names or icons are missing
 
-A game known only by its file name takes its name and icon from the title database: *Preferences › Title database › Download*, then **Update now** from time to time. A source that fails says so under *Sources*, with the reason. An icon still missing comes from Nlib API when the console is online and *Missing icons from Nlib API* is on; a game it does not know is asked again only once PlayShelf restarts.
+A game known only by its file name takes its name and icon from the title database: *Preferences › Title database › Download*, then **Update now** from time to time. A source that fails says so under *Sources*, with the reason. An icon still missing comes from Nlib API when the console is online and *Icons and game pages from Nlib API* is on; a game it does not know is asked again only once PlayShelf restarts.
 
 ## Sending a report
 

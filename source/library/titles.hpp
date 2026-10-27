@@ -8,11 +8,13 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "library/catalog.hpp"
+#include "library/facts.hpp"
 
 namespace library
 {
@@ -30,16 +32,9 @@ struct Title
     std::vector<std::string> sections;    // the ids of the sections its items are in
 };
 
-enum class Sort : uint8_t { Name, Newest, Largest };
+enum class Sort : uint8_t { Name, Newest, Largest, Publisher };
 
 std::vector<Title> group_titles(const Catalog& catalog);
-
-// The games whose name (or title id: 8 hex digits at least) holds `query` (case and the
-// Latin accents aside; "" keeps every one) and that have an item in
-// `section` ("" for any), as indexes in `titles`, sorted by `sort` (by name
-// after that).
-std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::string& query, Sort sort,
-                                  const std::string& section = "");
 
 // A name made for comparing: lower case, the Latin accents dropped
 // ("Pokémon" -> "pokemon"); other scripts as they are.
@@ -65,5 +60,22 @@ TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint6
 
 // The item installed already, at this version or a newer one.
 bool is_installed(const Item& item, const std::map<uint64_t, uint32_t>& installed);
+
+// What a list keeps beyond its search and its section: a filter, with what
+// is known of each game (its facts) and what the console has of it.
+struct Selection
+{
+    Filter                                  filter;
+    std::function<Facts(uint64_t)>          facts;   // by title id; nullptr: none known
+    std::function<TitleState(const Title&)> state;   // nullptr: the filter's state is not applied
+};
+
+// The games whose name (or title id: 8 hex digits at least) holds `query` (case and the
+// Latin accents aside; "" keeps every one), that have an item in `section`
+// ("" for any) and that `selection` keeps, as indexes in `titles`, sorted by
+// `sort` (by name after that; Newest by the facts' date when the catalogue
+// has none, Publisher those with none last).
+std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::string& query, Sort sort,
+                                  const std::string& section = "", const Selection& selection = {});
 
 }   // namespace library

@@ -14,6 +14,10 @@
         title="@i18n/playshelf/title"
         icon="@res/img/app_icon.jpg">
 
+        <brls:Tab label="@i18n/playshelf/tabs/home">
+            <HomeTab/>
+        </brls:Tab>
+
         <brls:Tab label="@i18n/playshelf/tabs/library">
             <LibraryTab/>
         </brls:Tab>

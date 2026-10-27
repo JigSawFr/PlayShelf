@@ -243,9 +243,9 @@ def run(fn):
 def tabs(new_page):
     page = new_page()
     if open_page(page, FIXED, "tabs"):
-        shot(page, "library")
+        shot(page, "home")
         steps(page, "left")
-        for name in ["catalogue", "downloads", "preferences", "about"]:
+        for name in ["library", "catalogue", "downloads", "preferences", "about"]:
             steps(page, "down")
             if name == "catalogue":
                 time.sleep(2)   # its catalogue and icons, from the demo server
@@ -265,7 +265,7 @@ def install(new_page):
     if not open_page(page, FIXED + "&tab=catalogue&speed=0", "install"):
         return
     time.sleep(2)   # the catalogue, from the demo server
-    steps(page, "right.down*3.a")
+    steps(page, "right.down.a")
     shot(page, "game_sheet")
     steps(page, "a")
     if not wait_logged(page, "downloads: Copper Canyon Rally · Update v65536 installed", 30):

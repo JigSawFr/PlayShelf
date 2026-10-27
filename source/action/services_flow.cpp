@@ -564,6 +564,17 @@ bool offered(const library_flow::Loaded& l)
     return l.fetch.status == library::FetchStatus::Ok && l.fetch.dialect == library::Dialect::Sections;
 }
 
+std::vector<Choice> game_choices(const Loaded& l, uint64_t title_id)
+{
+    std::vector<Choice> out;
+    if (!l || !title_id || !offered(*l)) return out;
+    out.emplace_back("playshelf/services/cheats"_i18n, [l, title_id]() { cheats(l, title_id); }, "code", "",
+                     "playshelf/services/group_server_more"_i18n);
+    out.emplace_back("playshelf/services/saves"_i18n, [l, title_id]() { saves(l, title_id); }, "save", "",
+                     "playshelf/services/group_server_more"_i18n);
+    return out;
+}
+
 void cheats(const Loaded& l, uint64_t title_id)
 {
     if (!l) return;

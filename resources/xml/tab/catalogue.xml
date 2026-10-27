@@ -27,11 +27,10 @@
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
             <brls:Box id="lb_empty" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            <brls:DetailCell id="lb_server" title="@i18n/playshelf/library/server"/>
-            <brls:DetailCell id="lb_search" title="@i18n/playshelf/library/search"/>
-            <brls:DetailCell id="lb_sort" title="@i18n/playshelf/library/sort"/>
-            <brls:DetailCell id="lb_section" title="@i18n/playshelf/library/section"/>
-            <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="16">
+            <!-- The server, search, order, filters and section as pills
+                 (view/tool_chip, made in code). -->
+            <brls:Box id="lb_bar" width="auto" height="auto" axis="row"/>
+            <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="4">
                 <brls:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
             </brls:Box>
             <brls:Box id="lb_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>

@@ -3,8 +3,9 @@
 // service probe, the SD-card reads, the main screen's build) and left the
 // screen black until then. main.cpp runs the start-up one step per frame and
 // moves the progress bar along; the first real screen is then pushed over this
-// one, which stays at the bottom of the stack (borealis' Application::clear(),
-// to remove it, is private).
+// one, which stays at the bottom of the stack, holding the focus the first
+// screen hands back. In the theme's background and texts; the wordmark and
+// the bar in the brand's colours on a dark one.
 // The intro (Preferences › Show the intro): the start-up takes
 // a fraction of a second, too short to see this screen, so it stays at least
 // INTRO_US, its bar filling at a steady pace; Ⓐ or Ⓑ skip the rest. Nothing
@@ -30,6 +31,7 @@ class LoadingActivity : public brls::Activity
     };
 
     explicit LoadingActivity(Mode shown = Mode::Start) : mode(shown) {}
+    ~LoadingActivity() override;
 
     // The start-up steps, in order.
     enum class Step
@@ -59,7 +61,14 @@ class LoadingActivity : public brls::Activity
     BRLS_BIND(brls::Image, wordmark, "loading_wordmark");
     BRLS_BIND(brls::Label, tagline, "loading_tagline");
 
+    // The wordmark and the bar for the theme's background, again when it
+    // changes.
+    void follow_theme();
+
     Mode       mode;
+    bool       light_wordmark = false;   // the wordmark shown is the light one (the XML's: the dark one)
+    bool       themed = false;     // theme_changed holds a subscription
+    brls::Event<brls::ThemeVariant>::Subscription theme_changed;
     brls::Time introStart = 0;   // 0: no intro
     bool       skipped    = false;
 };
