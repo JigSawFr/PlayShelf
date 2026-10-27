@@ -35,15 +35,6 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 project(playshelf LANGUAGES CXX C)
 
-# borealis' toolchain.cmake sets CMAKE_C_FLAGS / CMAKE_CXX_FLAGS as normal
-# variables (include paths), which hides the cache values devkitPro's
-# NintendoSwitch platform file initialises: the Cortex-A57 tuning, the crc and
-# crypto extensions and the thread-local model libnx is built with. Put them
-# back for every target (borealis, yoga, fmt, tinyxml2 and the app).
-if (PLATFORM_SWITCH AND NX_ARCH_SETTINGS)
-    string(PREPEND CMAKE_C_FLAGS "${NX_ARCH_SETTINGS} ")
-    string(PREPEND CMAKE_CXX_FLAGS "${NX_ARCH_SETTINGS} ")
-endif ()
 # devkitPro's platform file defaults to Release (-O2 -g; elf2nro keeps no
 # debug data). borealis prints its "Build Type:" line before project() picks
 # that default, so say what is actually used.
@@ -125,7 +116,7 @@ endif ()
 add_subdirectory(${BOREALIS_LIBRARY} ${CMAKE_BINARY_DIR}/borealis_library)
 
 find_package(Threads REQUIRED)
-list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND PLAYSHELF_LIBS ${CMAKE_THREAD_LIBS_INIT})
 
 # libcurl for the update check (util/http.cpp). On the Switch: devkitPro's
 # switch-curl portlib (TLS through the console's ssl service), static, so its
@@ -134,7 +125,7 @@ list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 # libzstd on a desktop. libwebp for the title database's icons
 # (action/library_icons.cpp): switch-libwebp, the system's libwebp.
 if (PLATFORM_SWITCH)
-    list(APPEND APP_PLATFORM_LIB curl zstd webp z nx)
+    list(APPEND PLAYSHELF_LIBS curl zstd webp z nx)
 elseif (PLAYSHELF_WEB)
     # No libcurl in a browser (source/sim/web_http.cpp answers instead);
     # zstd and libwebp, which Emscripten has no port of, built from their
@@ -164,7 +155,7 @@ elseif (PLAYSHELF_WEB)
     add_library(playshelf_webp STATIC ${PLAYSHELF_WEBP_SRC})
     target_include_directories(playshelf_webp PUBLIC ${libwebp_SOURCE_DIR}/src PRIVATE ${libwebp_SOURCE_DIR})
     target_compile_options(playshelf_webp PRIVATE -w)
-    list(APPEND APP_PLATFORM_LIB playshelf_zstd playshelf_webp)
+    list(APPEND PLAYSHELF_LIBS playshelf_zstd playshelf_webp)
 else ()
     find_package(CURL REQUIRED)
     find_package(ZLIB REQUIRED)   # util/zip_read.cpp (the Switch links z above)
@@ -172,8 +163,8 @@ else ()
     find_path(ZSTD_INCLUDE_DIR zstd.h REQUIRED)
     find_library(WEBP_LIBRARY webp REQUIRED)
     find_path(WEBP_INCLUDE_DIR webp/decode.h REQUIRED)
-    list(APPEND APP_PLATFORM_LIB CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY} ${WEBP_LIBRARY})
-    list(APPEND APP_PLATFORM_INCLUDE ${ZSTD_INCLUDE_DIR} ${WEBP_INCLUDE_DIR})
+    list(APPEND PLAYSHELF_LIBS CURL::libcurl ZLIB::ZLIB ${ZSTD_LIBRARY} ${WEBP_LIBRARY})
+    list(APPEND PLAYSHELF_INCLUDES ${ZSTD_INCLUDE_DIR} ${WEBP_INCLUDE_DIR})
 endif ()
 
 # Sources: UI (C++) + service layer. The real service layer (source/core/*.c)
@@ -199,9 +190,9 @@ endif ()
 list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp)
 
 program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
 
-target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${APP_PLATFORM_INCLUDE})
+target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${PLAYSHELF_INCLUDES})
 # -ffunction-sections / -fdata-sections come from borealis (PUBLIC) and
 # --gc-sections from libnx's switch.specs.
 # Warnings on PlayShelf's own sources (not borealis, not the vendored
@@ -214,7 +205,7 @@ set(PLAYSHELF_WARNINGS -Wall -Wextra -Wimplicit-fallthrough -Wshadow $<$<COMPILE
 if (PLAYSHELF_WERROR)
     list(APPEND PLAYSHELF_WARNINGS -Werror)
 endif ()
-target_compile_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_OPTION} ${PLAYSHELF_WARNINGS})
+target_compile_options(${PROJECT_NAME} PRIVATE ${PLAYSHELF_WARNINGS})
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "-w")
 # The commit built (at configure time): development builds are told apart by
 # it (util/dev_builds.hpp). PLAYSHELF_COMMIT (CI: a pull request's head)
@@ -249,7 +240,7 @@ message(STATUS "PlayShelf release build: ${APP_RELEASE}")
 # (the desktop's precompiled header, below, would be built anew every time).
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source/app.cpp APPEND PROPERTY COMPILE_DEFINITIONS
              APP_VERSION="${APP_VERSION}" APP_COMMIT="${APP_COMMIT}" APP_PR=${APP_PR} APP_RELEASE=${APP_RELEASE})
-target_link_libraries(${PROJECT_NAME} PRIVATE borealis ${APP_PLATFORM_LIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE Aurore::aurore ${PLAYSHELF_LIBS})
 # On the desktop: borealis, fmt and the standard headers most files include,
 # parsed once (a precompiled header) instead of in each of the 200-odd C++
 # files: a change to a header many include (ui/ui.hpp, app.hpp) rebuilds in
@@ -271,10 +262,12 @@ if (PLATFORM_DESKTOP AND NOT CMAKE_VERSION VERSION_LESS 3.16)
                                 PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif ()
 # borealis' headers as system headers: their warnings are not PlayShelf's.
-get_target_property(BOREALIS_INCLUDES borealis INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(BOREALIS_INCLUDES Aurore::aurore INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${BOREALIS_INCLUDES})
-# On the Switch: a linker map (build/borealis.map) to see what makes the .nro big.
-target_link_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_LINK_OPTION})
+# On the Switch: a linker map (build/playshelf.map) to see what makes the .nro big.
+if (PLATFORM_SWITCH)
+    target_link_options(${PROJECT_NAME} PRIVATE -Wl,-Map,${CMAKE_BINARY_DIR}/playshelf.map)
+endif ()
 # The web simulator: threads (a pool started with the page: a thread asked
 # for later waits for the browser, which a busy main thread never lets it
 # have), WebGL 2, the resources and the demo library server packaged

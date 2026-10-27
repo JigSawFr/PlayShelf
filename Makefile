@@ -246,7 +246,7 @@ i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp tests/i18n_threads/test.cpp
 i18n_threads_FLAGS := -std=c++17 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \
-                        include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga/src) \
+                        include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
                       -DBRLS_RESOURCES='"./"'
 i18n_threads_LIBS  := -pthread
 session_log_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/session_log.cpp $(K)/util/crash_report.cpp tests/session_log/test.cpp

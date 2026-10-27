@@ -3,22 +3,18 @@
 
 using namespace brls::literals;
 
+LoadingActivity::~LoadingActivity()
+{
+    if (this->themed) brls::Application::getThemeChangedEvent()->unsubscribe(this->theme_changed);
+}
+
 void LoadingActivity::onContentAvailable()
 {
-    // The light theme: its cool white, the wordmark and the bar in its inks,
-    // so the screen does not flash navy before the first one (the icon keeps
-    // its tile). Else the brand's navy, as the store banner.
-    const bool light = brls::Application::getPlatform()->getThemeVariant() == brls::ThemeVariant::LIGHT;
-    this->bar->setBrand(!light);
-    this->dial->setLight(light);
-    if (light) {
-        brls::Theme theme = brls::Application::getTheme();
-        this->root->setBackgroundColor(theme["brls/background"]);
-        this->anchor->setColor(theme["brls/background"]);
-        this->wordmark->setImageFromRes("img/wordmark-light.png");
-        this->tagline->setTextColor(theme["cadran/text2"]);
-        this->step_text->setTextColor(theme["cadran/text2"]);
-    }
+    this->follow_theme();
+    this->theme_changed = brls::Application::getThemeChangedEvent()->subscribe([this](brls::ThemeVariant) {
+        this->follow_theme();
+    });
+    this->themed = true;
     if (this->mode == Mode::Closing) {
         this->step_text->setText("playshelf/loading/step_closing"_i18n);
         this->bar->setProgress(1.0f);
@@ -59,6 +55,20 @@ void LoadingActivity::startIntro()
             this->skipped = true;
             return true;
         }, true);
+}
+
+void LoadingActivity::follow_theme()
+{
+    // On a light background (the light theme's cool white), the wordmark and
+    // the bar in its inks, so the screen does not flash navy before the
+    // first one (the icon keeps its tile); else the brand's, as the store
+    // banner. The background and the texts are the theme's (XML).
+    const NVGcolor bg = brls::Application::getTheme()["brls/background"];
+    const bool light = 0.2126f * bg.r + 0.7152f * bg.g + 0.0722f * bg.b > 0.5f;
+    this->bar->setBrand(!light);
+    if (this->light_wordmark == light) return;
+    this->light_wordmark = light;
+    this->wordmark->setImageFromRes(light ? "img/wordmark-light.png" : "img/wordmark.png");
 }
 
 bool LoadingActivity::inIntro() const

@@ -52,7 +52,7 @@ An icon that none of them has is asked of [Nlib API](https://api.nlib.cc/nx/) ov
 
 ## Preferences
 
-*Preferences* sets the language (the console's, or one of 15), the theme, the text size, the tab PlayShelf starts on, the updates and the title database. Every setting is also in [`config.json`](config.md).
+*Preferences* sets the language (the console's, or one of 15), the theme and its palette (PlayShelf's, a preset or [your own](themes.md)), the text size, the tab PlayShelf starts on, the updates and the title database. Every setting is also in [`config.json`](config.md).
 
 ![The Preferences](../images/screenshots/preferences.png)
 

@@ -16,7 +16,7 @@ GameCell::GameCell()
     this->slot->setMarginRight(16);
     this->slot->setShrink(0);
     this->slot->setCornerRadius(8);
-    this->slot->setBackgroundColor(cadran::kit::color("cadran/well"));
+    this->slot->setThemeColor("backgroundColor", "cadran/well");
     this->slot->setAlignItems(brls::AlignItems::CENTER);
     this->slot->setJustifyContent(brls::JustifyContent::CENTER);
     this->placeholder = cadran::kit::icon("gamepad", 22, "cadran/text3");
