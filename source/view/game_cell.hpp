@@ -5,14 +5,15 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <cstdint>
 
 class GameCell : public brls::DetailCell
 {
   public:
     GameCell();
 
-    // An NVG image in place of the gamepad; `owned`, this cell frees it.
-    void set_icon_texture(int texture, bool owned);
+    // Its icon (width × height RGBA pixels) in place of the gamepad.
+    void set_icon(const uint8_t* rgba, int width, int height);
 
   private:
     brls::Box*   slot = nullptr;   // the well, the gamepad, the icon

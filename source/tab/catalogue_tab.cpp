@@ -251,7 +251,7 @@ void CatalogueTab::build_grid(bool force)
     grid->clearViews(true);
     this->tiles.clear();
     // The icons of the covers gone are not wanted; one already on its way
-    // finds its cover gone (the generation changed) and is freed.
+    // finds its cover gone (the generation changed) and is dropped.
     library_icons::drop_pending();
     this->generation++;
     this->password = data ? library::password_of(data->server) : "";
@@ -286,10 +286,10 @@ void CatalogueTab::add_page()
         this->tiles.push_back(tile);
         const size_t at = this->tiles.size() - 1;
         const int    gen = this->generation;
-        auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+        auto shown = [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& p) {
             const ui::Alive held = weak.lock();
-            if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
-            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+            if (p && held && *held && gen == this->generation && at < this->tiles.size())
+                this->tiles[at]->set_icon(p->rgba.data(), p->width, p->height);
         };
         // The server's icon, else the title database's, else Nlib API's.
         if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown, t.id);
@@ -312,7 +312,7 @@ void CatalogueTab::open_title(size_t index)
     // The server's icon, else the title database's, else Nlib API's.
     const std::string pass = this->password, url = t.icon_url;
     const uint64_t    game_id = t.id;
-    page.icon = [data, pass, url, game_id](std::function<void(int)> shown) {
+    page.icon = [data, pass, url, game_id](library_icons::Done shown) {
         if (!url.empty()) library_icons::get(data, pass, url, std::move(shown), game_id);
         else library_icons::local(game_id, std::move(shown));
     };
