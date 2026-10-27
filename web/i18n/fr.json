@@ -73,6 +73,7 @@
       "label": "Ouvre sur",
       "options": {
         "": "Bibliothèque",
+        "home": "Accueil",
         "catalogue": "Catalogue",
         "preferences": "Préférences",
         "about": "À propos"

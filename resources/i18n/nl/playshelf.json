@@ -8,6 +8,7 @@
         "step_closing": "Terug naar het HOME-menu…"
     },
     "tabs": {
+        "home": "Start",
         "preferences": "Voorkeuren",
         "about": "Info",
         "library": "Bibliotheek",
@@ -136,7 +137,6 @@
         "shelf_unknown": "Nog niet bekend",
         "shelf_all": "Alles bekijken",
         "shelf_games": "{} games",
-        "featured": "Uitgelicht",
         "new": "Nieuw"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "Nieuwste eerst",
             "to_get_first": "Aan te vullen eerst"
         },
-        "stat_games": "Games",
         "stat_updates": "Updates te halen",
         "stat_dlcs": "Extra content te halen",
-        "stat_genres": "Genres",
         "featured": "Aan te vullen"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "Geïnstalleerde versie",
         "eshop": "Zijn eShop-pagina",
         "eshop_caption": "Scan de code met een telefoon",
-        "update_line": "Update {} · v{}"
+        "update_line": "Update {} · v{}",
+        "sources": "Beschikbaar op",
+        "source_base": "Basisgame",
+        "source_update_one": "1 update (v{})",
+        "source_update": "{} updates, de nieuwste v{}",
+        "source_dlc_one": "1 extra content",
+        "source_dlc": "{} extra content"
     },
     "genres": {
         "action": "Actie",
@@ -709,5 +713,18 @@
         "clear": "Filters wissen",
         "known": "Details bekend: {} van {} games",
         "shown": "{} getoond"
+    },
+    "home": {
+        "hello_morning": "Goedemorgen",
+        "hello_afternoon": "Goedemiddag",
+        "hello_evening": "Goedenavond",
+        "server_games": "{} games op je servers",
+        "stat_games": "Games op de console",
+        "stat_downloads": "Downloads",
+        "newest": "Nieuw op je servers",
+        "for_you": "Voor jou",
+        "for_you_line": "Op basis van de genres van je games",
+        "welcome_title": "Welkom bij PlayShelf",
+        "welcome_text": "Voeg je bibliotheekserver toe om je games te bekijken en te installeren: nieuwe games, wat je games missen en vergelijkbare games verschijnen hier."
     }
 }

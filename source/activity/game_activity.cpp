@@ -398,6 +398,21 @@ void GameActivity::add_tabs()
     std::vector<ui::Choice> main = l.main;
     main.insert(main.end(), l.more.begin(), l.more.end());
     this->add_lines(lines_box, main);
+    // Where it is to be had: a chip a server (Details says what each has).
+    const std::vector<library_flow::Source> sources = library_flow::sources(this->page.title_id);
+    if (!sources.empty()) {
+        auto* row = new brls::Box(brls::Axis::ROW);
+        row->setAlignItems(brls::AlignItems::CENTER);
+        row->setMarginTop(14);
+        brls::Label* label = kit::label("playshelf/game/sources"_i18n, 15, "cadran/text3");
+        label->setMarginRight(12);
+        label->setMarginBottom(6);
+        row->addView(label);
+        for (const library_flow::Source& src : sources)
+            row->addView(chip(src.server, "server", "cadran/text2", "cadran/surf2"));
+        kit::wrap(row);
+        lines_box->addView(row);
+    }
 
     // Updates: the versions installed and newest, then the lines.
     if (l.update_count) {
@@ -586,6 +601,21 @@ void GameActivity::fill_details_tab()
     if (l.updates_size) fact(card, "playshelf/game/size_updates"_i18n, library_flow::size_text(l.updates_size));
     if (l.dlcs_size) fact(card, "playshelf/game/size_dlcs"_i18n, library_flow::size_text(l.dlcs_size));
     if (l.installed) fact(card, "playshelf/game/installed"_i18n, brls::getStr("playshelf/library/update", l.installed_version));
+    // The servers that have it, each with what it has of it.
+    const std::vector<library_flow::Source> sources = library_flow::sources(this->page.title_id);
+    if (!sources.empty()) {
+        auto* header = new brls::Header();
+        header->setTitle("playshelf/game/sources"_i18n);
+        header->setMarginTop(24);
+        header->setMarginBottom(8);
+        facts->addView(header);
+        cadran::List::section(header);
+        auto* box = new brls::Box(brls::Axis::COLUMN);
+        box->setAlignItems(brls::AlignItems::STRETCH);
+        facts->addView(box);
+        brls::Box* rows = cadran::List::rows_in(box);
+        for (const library_flow::Source& src : sources) fact(rows, src.server, src.what);
+    }
     if (f.nsu_id) {
         brls::Box* qr = kit::qr(eshop_url(f.nsu_id), 200, "playshelf/game/eshop"_i18n, "playshelf/game/eshop_caption"_i18n);
         qr->setMarginTop(24);

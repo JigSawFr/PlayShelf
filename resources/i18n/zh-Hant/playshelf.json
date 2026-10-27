@@ -8,6 +8,7 @@
         "step_closing": "正在返回 HOME 選單…"
     },
     "tabs": {
+        "home": "首頁",
         "preferences": "偏好設定",
         "about": "關於",
         "library": "遊戲庫",
@@ -136,7 +137,6 @@
         "shelf_unknown": "尚未知曉",
         "shelf_all": "查看全部",
         "shelf_games": "{} 款遊戲",
-        "featured": "精選",
         "new": "新作"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "最新優先",
             "to_get_first": "有可補全內容優先"
         },
-        "stat_games": "遊戲",
         "stat_updates": "可用更新",
         "stat_dlcs": "可用追加內容",
-        "stat_genres": "類型",
         "featured": "待補全"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "已安裝版本",
         "eshop": "eShop 頁面",
         "eshop_caption": "用手機掃描 QR 碼",
-        "update_line": "更新 {} · v{}"
+        "update_line": "更新 {} · v{}",
+        "sources": "可用伺服器",
+        "source_base": "本體",
+        "source_update_one": "1 個更新（v{}）",
+        "source_update": "{} 個更新，最新 v{}",
+        "source_dlc_one": "1 個追加內容",
+        "source_dlc": "{} 個追加內容"
     },
     "genres": {
         "action": "動作",
@@ -709,5 +713,18 @@
         "clear": "清除篩選",
         "known": "已知詳情：{}/{} 款遊戲",
         "shown": "顯示 {} 款"
+    },
+    "home": {
+        "hello_morning": "早安",
+        "hello_afternoon": "午安",
+        "hello_evening": "晚安",
+        "server_games": "伺服器上的 {} 款遊戲",
+        "stat_games": "主機上的遊戲",
+        "stat_downloads": "下載",
+        "newest": "伺服器上的新遊戲",
+        "for_you": "為你推薦",
+        "for_you_line": "根據你的遊戲類型",
+        "welcome_title": "歡迎使用 PlayShelf",
+        "welcome_text": "新增你的程式庫伺服器以瀏覽和安裝遊戲：新遊戲、你的遊戲缺少的內容和類似的遊戲會顯示在這裡。"
     }
 }

@@ -8,6 +8,7 @@
         "step_closing": "HOME メニューに戻ります…"
     },
     "tabs": {
+        "home": "ホーム",
         "preferences": "オプション",
         "about": "情報",
         "library": "ライブラリ",
@@ -136,7 +137,6 @@
         "shelf_unknown": "まだ分からないゲーム",
         "shelf_all": "すべて見る",
         "shelf_games": "{} 本",
-        "featured": "注目",
         "new": "新作"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "新しい順",
             "to_get_first": "足りないものがある順"
         },
-        "stat_games": "ゲーム",
         "stat_updates": "更新データ",
         "stat_dlcs": "追加コンテンツ",
-        "stat_genres": "ジャンル",
         "featured": "足りないもの"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "インストール済みのバージョン",
         "eshop": "ニンテンドーeショップのページ",
         "eshop_caption": "スマートフォンでコードを読み取ってください",
-        "update_line": "更新データ {} · v{}"
+        "update_line": "更新データ {} · v{}",
+        "sources": "入手先",
+        "source_base": "本編",
+        "source_update_one": "更新データ 1件（v{}）",
+        "source_update": "更新データ {}件（最新 v{}）",
+        "source_dlc_one": "追加コンテンツ 1件",
+        "source_dlc": "追加コンテンツ {}件"
     },
     "genres": {
         "action": "アクション",
@@ -709,5 +713,18 @@
         "clear": "フィルターを消去",
         "known": "詳細が分かっているゲーム：{}／{}",
         "shown": "{} 件表示"
+    },
+    "home": {
+        "hello_morning": "おはようございます",
+        "hello_afternoon": "こんにちは",
+        "hello_evening": "こんばんは",
+        "server_games": "サーバーのゲーム {} 本",
+        "stat_games": "本体のゲーム",
+        "stat_downloads": "ダウンロード",
+        "newest": "サーバーの新着",
+        "for_you": "おすすめ",
+        "for_you_line": "あなたのゲームのジャンルから",
+        "welcome_title": "PlayShelf へようこそ",
+        "welcome_text": "ライブラリサーバーを追加して、ゲームを閲覧・インストールしましょう。新着、足りないもの、似たゲームがここに表示されます。"
     }
 }

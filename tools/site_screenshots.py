@@ -79,7 +79,7 @@ def take(browser, base, lang, theme, out):
 
         time.sleep(2)   # the catalogue and its icons, from the demo server
         shot("catalogue")
-        page.evaluate("(s) => runSteps(s)", "right.down*4.a")
+        page.evaluate("(s) => runSteps(s)", "right.down.a")
         shot("game_sheet")
         page.evaluate("(s) => runSteps(s)", "a")
         # Its packages are named in the page's language: their version alone is waited for.

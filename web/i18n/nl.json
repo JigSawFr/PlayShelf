@@ -73,6 +73,7 @@
       "label": "Opent op",
       "options": {
         "": "Bibliotheek",
+        "home": "Start",
         "catalogue": "Catalogus",
         "preferences": "Voorkeuren",
         "about": "Info"

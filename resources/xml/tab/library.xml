@@ -2,9 +2,7 @@
 
 <!-- Library: the games on the console (tab/library_tab.cpp). With none, an
      empty state; else a line saying how many and how many the catalogues
-     have more of (A reads them again), tiles counting them (A on one
-     filters by it), the games with something to get as wide banners, then
-     the games as a grid of covers
+     have more of (A reads them again), then the games as a grid of covers
      (a page at a time, "Show more" after it). -->
 
 <brls:Box
@@ -27,10 +25,9 @@
             paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
-            <brls:DetailCell id="li_summary" title="@i18n/playshelf/installed/summary"/>
-            <brls:Box id="li_stats" width="auto" height="auto" axis="row" marginTop="12" visibility="gone"/>
-            <brls:Box id="li_featured" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
-            <brls:DetailCell id="li_filter" title="@i18n/playshelf/filters/row_sort" marginTop="12" visibility="gone"/>
+            <!-- How many games (A: read them again) and the order and filters,
+                 as pills (view/tool_chip, made in code). -->
+            <brls:Box id="li_bar" width="auto" height="auto" axis="row"/>
             <brls:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
             <brls:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
             <brls:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>

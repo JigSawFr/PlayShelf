@@ -73,6 +73,7 @@
       "label": "最初に開くタブ",
       "options": {
         "": "ライブラリ",
+        "home": "ホーム",
         "catalogue": "カタログ",
         "preferences": "オプション",
         "about": "情報"

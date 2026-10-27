@@ -8,6 +8,7 @@
         "step_closing": "Zurück zum HOME-Menü…"
     },
     "tabs": {
+        "home": "Start",
         "preferences": "Optionen",
         "about": "Info",
         "library": "Bibliothek",
@@ -136,7 +137,6 @@
         "shelf_unknown": "Noch nicht bekannt",
         "shelf_all": "Alle ansehen",
         "shelf_games": "{} Spiele",
-        "featured": "Im Rampenlicht",
         "new": "Neu"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "Neueste zuerst",
             "to_get_first": "Zu Ergänzendes zuerst"
         },
-        "stat_games": "Spiele",
         "stat_updates": "Updates zu holen",
         "stat_dlcs": "Zusatzinhalte zu holen",
-        "stat_genres": "Genres",
         "featured": "Zu ergänzen"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "Installierte Version",
         "eshop": "Seine eShop-Seite",
         "eshop_caption": "Scanne den Code mit einem Handy",
-        "update_line": "Update {} · v{}"
+        "update_line": "Update {} · v{}",
+        "sources": "Verfügbar auf",
+        "source_base": "Hauptspiel",
+        "source_update_one": "1 Update (v{})",
+        "source_update": "{} Updates, das neueste v{}",
+        "source_dlc_one": "1 Zusatzinhalt",
+        "source_dlc": "{} Zusatzinhalte"
     },
     "genres": {
         "action": "Action",
@@ -709,5 +713,18 @@
         "clear": "Filter löschen",
         "known": "Details bekannt: {} von {} Spielen",
         "shown": "{} angezeigt"
+    },
+    "home": {
+        "hello_morning": "Guten Morgen",
+        "hello_afternoon": "Guten Tag",
+        "hello_evening": "Guten Abend",
+        "server_games": "{} Spiele auf deinen Servern",
+        "stat_games": "Spiele auf der Konsole",
+        "stat_downloads": "Downloads",
+        "newest": "Neu auf deinen Servern",
+        "for_you": "Für dich",
+        "for_you_line": "Nach den Genres deiner Spiele",
+        "welcome_title": "Willkommen bei PlayShelf",
+        "welcome_text": "Füge deinen Bibliotheksserver hinzu, um deine Spiele zu durchsuchen und zu installieren: Neuheiten, was deinen Spielen fehlt und ähnliche Spiele erscheinen hier."
     }
 }

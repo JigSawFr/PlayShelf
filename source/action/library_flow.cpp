@@ -13,6 +13,7 @@
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
 #include "library/http_transport.hpp"
+#include "library/installed.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 
@@ -91,6 +92,35 @@ void open_editor(const library::Server& server, bool is_new, const std::function
     }));
 }
 }   // namespace
+
+std::vector<Source> sources(uint64_t title_id)
+{
+    std::vector<Source> out;
+    if (!title_id) return out;
+    for (const library::Server& s : library::load_servers()) {
+        const auto l = loaded(s.id);
+        if (!l) continue;
+        const long at = library::title_of(l->titles, title_id);
+        if (at < 0) continue;
+        const library::Title& t = l->titles[(size_t)at];
+        Source src;
+        src.server_id = s.id;
+        src.server = s.name;
+        src.base = t.base >= 0;
+        src.updates = t.updates.size();
+        src.dlcs = t.dlcs.size();
+        if (!t.updates.empty()) src.newest = l->fetch.catalog.items[t.updates.front()].version;
+        std::vector<std::string> parts;
+        if (src.base) parts.push_back("playshelf/game/source_base"_i18n);
+        if (src.updates == 1) parts.push_back(brls::getStr("playshelf/game/source_update_one", src.newest));
+        else if (src.updates) parts.push_back(brls::getStr("playshelf/game/source_update", src.updates, src.newest));
+        if (src.dlcs == 1) parts.push_back("playshelf/game/source_dlc_one"_i18n);
+        else if (src.dlcs) parts.push_back(brls::getStr("playshelf/game/source_dlc", src.dlcs));
+        for (size_t i = 0; i < parts.size(); i++) src.what += (i ? " · " : "") + parts[i];
+        out.push_back(std::move(src));
+    }
+    return out;
+}
 
 std::string size_text(uint64_t bytes)
 {

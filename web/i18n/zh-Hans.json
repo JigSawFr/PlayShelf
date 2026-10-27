@@ -73,6 +73,7 @@
       "label": "打开时显示",
       "options": {
         "": "游戏库",
+        "home": "主页",
         "catalogue": "目录",
         "preferences": "偏好设置",
         "about": "关于"

@@ -73,6 +73,7 @@
       "label": "처음 여는 탭",
       "options": {
         "": "라이브러리",
+        "home": "홈",
         "catalogue": "카탈로그",
         "preferences": "환경 설정",
         "about": "정보"

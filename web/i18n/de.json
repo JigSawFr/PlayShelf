@@ -73,6 +73,7 @@
       "label": "Öffnet mit",
       "options": {
         "": "Bibliothek",
+        "home": "Start",
         "catalogue": "Katalog",
         "preferences": "Optionen",
         "about": "Info"

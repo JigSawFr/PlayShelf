@@ -8,6 +8,7 @@
         "step_closing": "正在返回 HOME 菜单…"
     },
     "tabs": {
+        "home": "主页",
         "preferences": "偏好设置",
         "about": "关于",
         "library": "游戏库",
@@ -136,7 +137,6 @@
         "shelf_unknown": "尚未知晓",
         "shelf_all": "查看全部",
         "shelf_games": "{} 款游戏",
-        "featured": "精选",
         "new": "新作"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "最新优先",
             "to_get_first": "有可补全内容优先"
         },
-        "stat_games": "游戏",
         "stat_updates": "可用更新",
         "stat_dlcs": "可用追加内容",
-        "stat_genres": "类型",
         "featured": "待补全"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "已安装版本",
         "eshop": "eShop 页面",
         "eshop_caption": "用手机扫描二维码",
-        "update_line": "更新 {} · v{}"
+        "update_line": "更新 {} · v{}",
+        "sources": "可用服务器",
+        "source_base": "本体",
+        "source_update_one": "1 个更新（v{}）",
+        "source_update": "{} 个更新，最新 v{}",
+        "source_dlc_one": "1 个追加内容",
+        "source_dlc": "{} 个追加内容"
     },
     "genres": {
         "action": "动作",
@@ -709,5 +713,18 @@
         "clear": "清除筛选",
         "known": "已知详情：{}/{} 款游戏",
         "shown": "显示 {} 款"
+    },
+    "home": {
+        "hello_morning": "早上好",
+        "hello_afternoon": "下午好",
+        "hello_evening": "晚上好",
+        "server_games": "服务器上的 {} 款游戏",
+        "stat_games": "主机上的游戏",
+        "stat_downloads": "下载",
+        "newest": "服务器上的新游戏",
+        "for_you": "为你推荐",
+        "for_you_line": "根据你的游戏类型",
+        "welcome_title": "欢迎使用 PlayShelf",
+        "welcome_text": "添加你的库服务器以浏览和安装游戏：新游戏、你的游戏缺少的内容和类似的游戏会显示在这里。"
     }
 }

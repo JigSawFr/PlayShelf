@@ -8,6 +8,7 @@
         "step_closing": "HOME 메뉴로 돌아가는 중…"
     },
     "tabs": {
+        "home": "홈",
         "preferences": "환경 설정",
         "about": "정보",
         "library": "라이브러리",
@@ -136,7 +137,6 @@
         "shelf_unknown": "아직 모르는 게임",
         "shelf_all": "모두 보기",
         "shelf_games": "게임 {}개",
-        "featured": "추천",
         "new": "신작"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "최신순",
             "to_get_first": "받을 것이 있는 게임 먼저"
         },
-        "stat_games": "게임",
         "stat_updates": "받을 업데이트",
         "stat_dlcs": "받을 추가 콘텐츠",
-        "stat_genres": "장르",
         "featured": "보완할 게임"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "설치된 버전",
         "eshop": "eShop 페이지",
         "eshop_caption": "휴대폰으로 코드를 스캔하세요",
-        "update_line": "업데이트 {} · v{}"
+        "update_line": "업데이트 {} · v{}",
+        "sources": "이용 가능한 서버",
+        "source_base": "본편",
+        "source_update_one": "업데이트 1개 (v{})",
+        "source_update": "업데이트 {}개, 최신 v{}",
+        "source_dlc_one": "추가 콘텐츠 1개",
+        "source_dlc": "추가 콘텐츠 {}개"
     },
     "genres": {
         "action": "액션",
@@ -709,5 +713,18 @@
         "clear": "필터 지우기",
         "known": "세부 정보 확인: {}/{}개 게임",
         "shown": "{}개 표시"
+    },
+    "home": {
+        "hello_morning": "좋은 아침이에요",
+        "hello_afternoon": "좋은 오후예요",
+        "hello_evening": "좋은 저녁이에요",
+        "server_games": "서버의 게임 {}개",
+        "stat_games": "본체의 게임",
+        "stat_downloads": "다운로드",
+        "newest": "서버의 새 게임",
+        "for_you": "추천",
+        "for_you_line": "내 게임의 장르를 바탕으로",
+        "welcome_title": "PlayShelf에 오신 것을 환영합니다",
+        "welcome_text": "라이브러리 서버를 추가해 게임을 둘러보고 설치하세요. 새 게임, 내 게임에 없는 것, 비슷한 게임이 여기에 표시됩니다."
     }
 }

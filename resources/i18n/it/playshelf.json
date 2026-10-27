@@ -8,6 +8,7 @@
         "step_closing": "Ritorno al menu HOME…"
     },
     "tabs": {
+        "home": "Home",
         "preferences": "Preferenze",
         "about": "Informazioni",
         "library": "Libreria",
@@ -136,7 +137,6 @@
         "shelf_unknown": "Non ancora noti",
         "shelf_all": "Vedi tutti",
         "shelf_games": "{} giochi",
-        "featured": "In evidenza",
         "new": "Novità"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "I più recenti",
             "to_get_first": "Da completare prima"
         },
-        "stat_games": "Giochi",
         "stat_updates": "Aggiornamenti da scaricare",
         "stat_dlcs": "Contenuti da scaricare",
-        "stat_genres": "Generi",
         "featured": "Da completare"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "Versione installata",
         "eshop": "La sua pagina sull'eShop",
         "eshop_caption": "Scansiona il codice con un telefono",
-        "update_line": "Aggiornamento {} · v{}"
+        "update_line": "Aggiornamento {} · v{}",
+        "sources": "Disponibile su",
+        "source_base": "Gioco base",
+        "source_update_one": "1 aggiornamento (v{})",
+        "source_update": "{} aggiornamenti, il più recente v{}",
+        "source_dlc_one": "1 contenuto aggiuntivo",
+        "source_dlc": "{} contenuti aggiuntivi"
     },
     "genres": {
         "action": "Azione",
@@ -709,5 +713,18 @@
         "clear": "Cancella i filtri",
         "known": "Dettagli noti: {} giochi su {}",
         "shown": "{} mostrati"
+    },
+    "home": {
+        "hello_morning": "Buongiorno",
+        "hello_afternoon": "Buon pomeriggio",
+        "hello_evening": "Buonasera",
+        "server_games": "{} giochi sui tuoi server",
+        "stat_games": "Giochi sulla console",
+        "stat_downloads": "Download",
+        "newest": "Novità sui tuoi server",
+        "for_you": "Per te",
+        "for_you_line": "In base ai generi dei tuoi giochi",
+        "welcome_title": "Benvenuto in PlayShelf",
+        "welcome_text": "Aggiungi il tuo server di libreria per sfogliare e installare i tuoi giochi: le novità, ciò che manca ai tuoi giochi e giochi simili appaiono qui."
     }
 }

@@ -92,4 +92,18 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
 // "734 MB", "4,2 GB" (the language's decimal mark): a package's size.
 std::string size_text(uint64_t bytes);
 
+// Where a game is to be had: each server whose catalogue was read in this
+// run and has it, in servers.json's order, with what it has of it ("Base
+// game · 2 updates, the newest v65536 · 1 add-on").
+struct Source
+{
+    std::string server_id;
+    std::string server;   // its name
+    std::string what;
+    bool        base = false;
+    size_t      updates = 0, dlcs = 0;
+    uint32_t    newest = 0;   // its newest update's version, 0: none
+};
+std::vector<Source> sources(uint64_t title_id);
+
 }   // namespace library_flow

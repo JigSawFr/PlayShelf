@@ -39,6 +39,7 @@
 #include "tab/about_tab.hpp"
 #include "tab/catalogue_tab.hpp"
 #include "tab/downloads_tab.hpp"
+#include "tab/home_tab.hpp"
 #include "tab/library_tab.hpp"
 #include "tab/preferences_tab.hpp"
 #include "ui/ui.hpp"
@@ -254,6 +255,7 @@ void register_views()
 {
     brls::Application::registerXMLView("ScrollView",      ScrollView::create);
     brls::Application::registerXMLView("MadeInFrance",    MadeInFrance::create);
+    brls::Application::registerXMLView("HomeTab",         HomeTab::create);
     brls::Application::registerXMLView("LibraryTab",      LibraryTab::create);
     brls::Application::registerXMLView("CatalogueTab",    CatalogueTab::create);
     brls::Application::registerXMLView("DownloadsTab",    DownloadsTab::create);

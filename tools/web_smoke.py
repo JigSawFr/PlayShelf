@@ -265,7 +265,7 @@ def install(new_page):
     if not open_page(page, FIXED + "&tab=catalogue&speed=0", "install"):
         return
     time.sleep(2)   # the catalogue, from the demo server
-    steps(page, "right.down*4.a")
+    steps(page, "right.down.a")
     shot(page, "game_sheet")
     steps(page, "a")
     if not wait_logged(page, "downloads: Copper Canyon Rally · Update v65536 installed", 30):

@@ -8,6 +8,7 @@
         "step_closing": "Voltando ao menu HOME…"
     },
     "tabs": {
+        "home": "Início",
         "preferences": "Preferências",
         "about": "Sobre",
         "library": "Biblioteca",
@@ -136,7 +137,6 @@
         "shelf_unknown": "Ainda não conhecidos",
         "shelf_all": "Ver tudo",
         "shelf_games": "{} jogos",
-        "featured": "Em destaque",
         "new": "Novo"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "Os mais recentes",
             "to_get_first": "Por completar primeiro"
         },
-        "stat_games": "Jogos",
         "stat_updates": "Atualizações por instalar",
         "stat_dlcs": "Conteúdos por instalar",
-        "stat_genres": "Gêneros",
         "featured": "Por completar"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "Versão instalada",
         "eshop": "A sua página na eShop",
         "eshop_caption": "Leia o código com um celular",
-        "update_line": "Atualização {} · v{}"
+        "update_line": "Atualização {} · v{}",
+        "sources": "Disponível em",
+        "source_base": "Jogo base",
+        "source_update_one": "1 atualização (v{})",
+        "source_update": "{} atualizações, a mais recente v{}",
+        "source_dlc_one": "1 conteúdo adicional",
+        "source_dlc": "{} conteúdos adicionais"
     },
     "genres": {
         "action": "Ação",
@@ -709,5 +713,18 @@
         "clear": "Limpar os filtros",
         "known": "Detalhes conhecidos: {} de {} jogos",
         "shown": "{} mostrados"
+    },
+    "home": {
+        "hello_morning": "Bom dia",
+        "hello_afternoon": "Boa tarde",
+        "hello_evening": "Boa noite",
+        "server_games": "{} jogos nos seus servidores",
+        "stat_games": "Jogos no console",
+        "stat_downloads": "Downloads",
+        "newest": "Novidades nos seus servidores",
+        "for_you": "Para você",
+        "for_you_line": "Pelos gêneros dos seus jogos",
+        "welcome_title": "Boas-vindas ao PlayShelf",
+        "welcome_text": "Adicione seu servidor de biblioteca para explorar e instalar seus jogos: as novidades, o que falta aos seus jogos e jogos parecidos aparecem aqui."
     }
 }

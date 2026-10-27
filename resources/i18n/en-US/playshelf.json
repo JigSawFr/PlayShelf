@@ -8,6 +8,7 @@
         "step_closing": "Back to the HOME menu…"
     },
     "tabs": {
+        "home": "Home",
         "preferences": "Preferences",
         "about": "About",
         "library": "Library",
@@ -136,7 +137,6 @@
         "shelf_unknown": "Not known yet",
         "shelf_all": "See all",
         "shelf_games": "{} games",
-        "featured": "Featured",
         "new": "New"
     },
     "installed": {
@@ -164,10 +164,8 @@
             "newest": "Newest first",
             "to_get_first": "Something to get first"
         },
-        "stat_games": "Games",
         "stat_updates": "Updates to get",
         "stat_dlcs": "Add-ons to get",
-        "stat_genres": "Genres",
         "featured": "Something to get"
     },
     "tiles": {
@@ -642,7 +640,13 @@
         "installed": "Installed version",
         "eshop": "Its eShop page",
         "eshop_caption": "Scan the code with a phone",
-        "update_line": "Update {} · v{}"
+        "update_line": "Update {} · v{}",
+        "sources": "Available on",
+        "source_base": "Base game",
+        "source_update_one": "1 update (v{})",
+        "source_update": "{} updates, the newest v{}",
+        "source_dlc_one": "1 add-on",
+        "source_dlc": "{} add-ons"
     },
     "genres": {
         "action": "Action",
@@ -709,5 +713,18 @@
         "clear": "Clear the filters",
         "known": "Details known: {} of {} games",
         "shown": "{} shown"
+    },
+    "home": {
+        "hello_morning": "Good morning",
+        "hello_afternoon": "Good afternoon",
+        "hello_evening": "Good evening",
+        "server_games": "{} games on your servers",
+        "stat_games": "Games on the console",
+        "stat_downloads": "Downloads",
+        "newest": "New on your servers",
+        "for_you": "For you",
+        "for_you_line": "From the genres of your games",
+        "welcome_title": "Welcome to PlayShelf",
+        "welcome_text": "Add your library server to browse and install your games: its newest games, what your games are missing and games like them show here."
     }
 }

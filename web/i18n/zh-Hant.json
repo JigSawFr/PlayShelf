@@ -73,6 +73,7 @@
       "label": "開啟時顯示",
       "options": {
         "": "遊戲庫",
+        "home": "首頁",
         "catalogue": "目錄",
         "preferences": "偏好設定",
         "about": "關於"

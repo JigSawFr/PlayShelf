@@ -73,6 +73,7 @@
       "label": "Opens on",
       "options": {
         "": "Library",
+        "home": "Home",
         "catalogue": "Catalogue",
         "preferences": "Preferences",
         "about": "About"
