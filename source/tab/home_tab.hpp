@@ -3,12 +3,13 @@
 // console's games, the servers' games); tiles counting the console's games,
 // the updates and add-ons the servers have that it has not, and the
 // downloads under way (A on one: the Library with only those games, the
-// Downloads); then rows: the console's games with something to get and the
-// servers' newest games as wide banners (Nlib API's), and games like the
-// console's (their genres weighed by how many of its games have each) as
-// covers. A on a game: its page (action/game_page). The servers'
-// catalogues not read yet in this run are read one after the other. With
-// no server and no game, a welcome to add a server or find one.
+// Downloads); then rows: the console's games played lately (core/play), the
+// games with something to get (the most played first) and the servers'
+// newest games as wide banners (Nlib API's), and games like the console's
+// (their genres weighed by how many of its games have each and how much
+// they were played) as covers. A on a game: its page (action/game_page).
+// The servers' catalogues not read yet in this run are read one after the
+// other. With no server and no game, a welcome to add a server or find one.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -51,6 +52,9 @@ class HomeTab : public TabBase
     void add_tiles(size_t console_games, size_t updates, size_t dlcs, size_t downloads);
     void add_banners(const std::string& title, const std::vector<Pick>& picks, bool to_get);
     void add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks);
+    // The console's games played lately, by when (core/play).
+    void add_recent(const std::vector<const installed_flow::Game*>& recent,
+                    const std::vector<std::shared_ptr<const library_flow::Loaded>>& all);
     brls::Box* add_row(const std::string& title, const std::string& line, float height);
 
     std::shared_ptr<const std::vector<installed_flow::Game>> games;

@@ -162,7 +162,9 @@
             "name": "Op naam",
             "publisher": "Op uitgever",
             "newest": "Nieuwste eerst",
-            "to_get_first": "Aan te vullen eerst"
+            "to_get_first": "Aan te vullen eerst",
+            "most_played": "Meest gespeeld",
+            "recently_played": "Onlangs gespeeld"
         },
         "stat_updates": "Updates te halen",
         "stat_dlcs": "Extra content te halen",
@@ -646,7 +648,11 @@
         "source_update_one": "1 update (v{})",
         "source_update": "{} updates, de nieuwste v{}",
         "source_dlc_one": "1 extra content",
-        "source_dlc": "{} extra content"
+        "source_dlc": "{} extra content",
+        "play_time": "Speeltijd",
+        "launches_one": "één keer gestart",
+        "launches": "{} keer gestart",
+        "last_played": "Laatst gespeeld"
     },
     "genres": {
         "action": "Actie",
@@ -725,6 +731,10 @@
         "for_you": "Voor jou",
         "for_you_line": "Op basis van de genres van je games",
         "welcome_title": "Welkom bij PlayShelf",
-        "welcome_text": "Voeg je bibliotheekserver toe om je games te bekijken en te installeren: nieuwe games, wat je games missen en vergelijkbare games verschijnen hier."
+        "welcome_text": "Voeg je bibliotheekserver toe om je games te bekijken en te installeren: nieuwe games, wat je games missen en vergelijkbare games verschijnen hier.",
+        "recent": "Onlangs gespeeld",
+        "recent_line": "Op deze console",
+        "played_hours": "{} u gespeeld",
+        "played_minutes": "{} min gespeeld"
     }
 }

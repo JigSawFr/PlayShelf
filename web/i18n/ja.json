@@ -178,6 +178,9 @@
     "no_game": {
       "label": "PlayShelfの裏で何も開いていない"
     },
+    "no_play": {
+      "label": "本体にプレイ時間なし"
+    },
     "no_demo": {
       "label": "ライブラリサーバーなし（初回起動）"
     },

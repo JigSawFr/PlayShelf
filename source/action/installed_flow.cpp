@@ -1,12 +1,15 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/installed_flow.hpp"
 
+#include <algorithm>
+
 #include <borealis.hpp>
 #include <map>
 #include <mutex>
 
 #include "action/library_flow.hpp"
 #include "core/games.h"
+#include "core/play.h"
 #include "ui/ui.hpp"
 
 namespace installed_flow
@@ -66,16 +69,24 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
     library_flow::reread_installed([]() {
         const auto installed = library_flow::installed();
         ui::in_background("installed games", [installed]() {
-            auto out = std::make_shared<std::vector<Game>>();
+            auto       out = std::make_shared<std::vector<Game>>();
+            const bool play = core_play_open();
             for (library::InstalledGame& g : library::installed_games(*installed)) {
                 Game game;
                 const Control c = control_of(g.id, library::running_version(g));
                 game.name = c.name;
                 game.version = c.version;
                 game.icon = c.icon;
+                CorePlay stats;
+                if (play && core_play_stats(g.id, &stats)) {
+                    game.play_s = stats.total_s;
+                    game.launches = stats.launches;
+                    game.last_played = stats.last_played;
+                }
                 game.game = std::move(g);
                 out->push_back(std::move(game));
             }
+            if (play) core_play_close();
             brls::sync([out]() {
                 s_games = out;
                 const std::vector<Done> waiting = std::move(s_waiting);
@@ -102,6 +113,12 @@ void remove(uint64_t id, const std::string& name, const std::function<void(std::
             read(done);
         });
     });
+}
+
+std::string play_text(uint64_t seconds)
+{
+    if (seconds >= 3600) return brls::getStr("playshelf/home/played_hours", seconds / 3600);
+    return brls::getStr("playshelf/home/played_minutes", std::max<uint64_t>(1, seconds / 60));
 }
 
 std::shared_ptr<const std::vector<Game>> games()

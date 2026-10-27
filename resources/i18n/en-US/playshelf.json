@@ -162,7 +162,9 @@
             "name": "By name",
             "publisher": "By publisher",
             "newest": "Newest first",
-            "to_get_first": "Something to get first"
+            "to_get_first": "Something to get first",
+            "most_played": "Most played",
+            "recently_played": "Played lately"
         },
         "stat_updates": "Updates to get",
         "stat_dlcs": "Add-ons to get",
@@ -646,7 +648,11 @@
         "source_update_one": "1 update (v{})",
         "source_update": "{} updates, the newest v{}",
         "source_dlc_one": "1 add-on",
-        "source_dlc": "{} add-ons"
+        "source_dlc": "{} add-ons",
+        "play_time": "Play time",
+        "launches_one": "started once",
+        "launches": "started {} times",
+        "last_played": "Last played"
     },
     "genres": {
         "action": "Action",
@@ -725,6 +731,10 @@
         "for_you": "For you",
         "for_you_line": "From the genres of your games",
         "welcome_title": "Welcome to PlayShelf",
-        "welcome_text": "Add your library server to browse and install your games: its newest games, what your games are missing and games like them show here."
+        "welcome_text": "Add your library server to browse and install your games: its newest games, what your games are missing and games like them show here.",
+        "recent": "Played lately",
+        "recent_line": "On this console",
+        "played_hours": "{} h played",
+        "played_minutes": "{} min played"
     }
 }

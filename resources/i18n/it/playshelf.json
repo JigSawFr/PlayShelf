@@ -162,7 +162,9 @@
             "name": "Per nome",
             "publisher": "Per editore",
             "newest": "I più recenti",
-            "to_get_first": "Da completare prima"
+            "to_get_first": "Da completare prima",
+            "most_played": "I più giocati",
+            "recently_played": "Giocati di recente"
         },
         "stat_updates": "Aggiornamenti da scaricare",
         "stat_dlcs": "Contenuti da scaricare",
@@ -646,7 +648,11 @@
         "source_update_one": "1 aggiornamento (v{})",
         "source_update": "{} aggiornamenti, il più recente v{}",
         "source_dlc_one": "1 contenuto aggiuntivo",
-        "source_dlc": "{} contenuti aggiuntivi"
+        "source_dlc": "{} contenuti aggiuntivi",
+        "play_time": "Tempo di gioco",
+        "launches_one": "avviato una volta",
+        "launches": "avviato {} volte",
+        "last_played": "Ultima partita"
     },
     "genres": {
         "action": "Azione",
@@ -725,6 +731,10 @@
         "for_you": "Per te",
         "for_you_line": "In base ai generi dei tuoi giochi",
         "welcome_title": "Benvenuto in PlayShelf",
-        "welcome_text": "Aggiungi il tuo server di libreria per sfogliare e installare i tuoi giochi: le novità, ciò che manca ai tuoi giochi e giochi simili appaiono qui."
+        "welcome_text": "Aggiungi il tuo server di libreria per sfogliare e installare i tuoi giochi: le novità, ciò che manca ai tuoi giochi e giochi simili appaiono qui.",
+        "recent": "Giocati di recente",
+        "recent_line": "Su questa console",
+        "played_hours": "{} h di gioco",
+        "played_minutes": "{} min di gioco"
     }
 }

@@ -178,6 +178,9 @@
     "no_game": {
       "label": "PlayShelf 後面沒有開啟任何內容"
     },
+    "no_play": {
+      "label": "主機上沒有遊戲時間"
+    },
     "no_demo": {
       "label": "沒有庫伺服器（首次啟動）"
     },

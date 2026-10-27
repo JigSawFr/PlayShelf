@@ -178,6 +178,9 @@
     "no_game": {
       "label": "Nichts hinter PlayShelf geöffnet"
     },
+    "no_play": {
+      "label": "Keine Spielzeit auf der Konsole"
+    },
     "no_demo": {
       "label": "Kein Bibliotheksserver (ein erster Start)"
     },

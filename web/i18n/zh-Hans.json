@@ -178,6 +178,9 @@
     "no_game": {
       "label": "PlayShelf 后面没有打开任何内容"
     },
+    "no_play": {
+      "label": "主机上没有游戏时间"
+    },
     "no_demo": {
       "label": "没有库服务器（首次启动）"
     },

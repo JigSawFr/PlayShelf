@@ -19,6 +19,7 @@
   {"name": "region", "group": "console", "type": "select", "options": ["", "0", "1", "2", "3", "4", "5"]},
   {"name": "applet", "group": "console", "type": "bool"},
   {"name": "no_game", "group": "console", "type": "bool"},
+  {"name": "no_play", "group": "console", "type": "bool"},
   {"name": "background", "live": true, "group": "console", "type": "bool"},
   {"name": "hbloader", "live": true, "group": "console", "type": "bool"},
   {"name": "docked", "group": "console", "type": "bool"},

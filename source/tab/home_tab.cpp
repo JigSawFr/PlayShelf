@@ -2,6 +2,7 @@
 #include "tab/home_tab.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <ctime>
 #include <map>
 
@@ -151,23 +152,42 @@ void HomeTab::build(bool force)
         }
 
     // The console's games with something to get, and what they lack.
-    std::vector<Pick> to_get;
-    size_t            updates = 0, dlcs = 0;
-    std::map<std::string, size_t> genres;   // how many of the console's games have each
+    // The console's games with something to get, the most played first, and
+    // what they lack; the genres of its games, each weighed by how many have
+    // it and how much they were played.
+    std::vector<std::pair<uint64_t, Pick>> getting;
+    size_t                                 updates = 0, dlcs = 0;
+    std::map<std::string, double>          genres;
     if (this->games)
         for (const installed_flow::Game& g : *this->games) {
+            const double weight = 1.0 + std::log2(1.0 + (double)g.play_s / 3600.0);
             for (const std::string& c : nlib_flow::facts(g.game.id).categories)
-                if (c != "Other") genres[c]++;
+                if (c != "Other") genres[c] += weight;
             for (const auto& l : all) {
                 const long t = library::title_of(l->titles, g.game.id);
                 if (t < 0) continue;
                 const library::TitleState st = library::state_of(l->titles[(size_t)t], l->fetch.catalog, *installed);
                 updates += st.update_available ? 1 : 0;
                 dlcs += st.dlcs_missing;
-                if ((st.update_available || st.dlcs_missing) && to_get.size() < BANNERS) to_get.push_back({ l, (size_t)t });
+                if (st.update_available || st.dlcs_missing) getting.push_back({ g.play_s, { l, (size_t)t } });
                 break;
             }
         }
+    std::stable_sort(getting.begin(), getting.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+    std::vector<Pick> to_get;
+    for (const auto& g : getting) {
+        if (to_get.size() >= BANNERS) break;
+        to_get.push_back(g.second);
+    }
+
+    // The console's games played lately, the latest first.
+    std::vector<const installed_flow::Game*> recent;
+    if (this->games)
+        for (const installed_flow::Game& g : *this->games)
+            if (g.last_played) recent.push_back(&g);
+    std::stable_sort(recent.begin(), recent.end(),
+                     [](const installed_flow::Game* a, const installed_flow::Game* b) { return a->last_played > b->last_played; });
+    if (recent.size() > COVERS) recent.resize(COVERS);
 
     // The servers' newest games the console has not.
     std::vector<Pick> newest;
@@ -186,15 +206,15 @@ void HomeTab::build(bool force)
     // Games like the console's: by the genres its games have, weighed by
     // how many have each; newer first among equals.
     std::vector<std::pair<double, Pick>> scored;
-    size_t                               weight = 0;
+    double                               weight = 0;
     for (const auto& [g, n] : genres) weight += n;
-    if (weight)
+    if (weight > 0)
         for (const Pick& p : fresh) {
             const library::Title& t = p.data->titles[p.index];
             double                score = 0;
             for (const std::string& c : nlib_flow::facts(t.id).categories) {
                 const auto it = genres.find(c);
-                if (it != genres.end()) score += (double)it->second / (double)weight;
+                if (it != genres.end()) score += it->second / weight;
             }
             if (score > 0) scored.emplace_back(score + date_of(t) / 1e12, p);
         }
@@ -214,6 +234,7 @@ void HomeTab::build(bool force)
     std::string key = fmt::format("{} {} {} {} {} {}|", game_count, server_games, updates, dlcs, downloads, all.size());
     for (const auto* list : { &to_get, &newest, &like })
         for (const Pick& p : *list) key += fmt::format("{:x},", p.data->titles[p.index].id);
+    for (const installed_flow::Game* g : recent) key += fmt::format("{:x}.{},", g->game.id, g->last_played);
     if (!force && key == this->built_key) return;
     this->built_key = key;
 
@@ -227,6 +248,7 @@ void HomeTab::build(bool force)
     if (!game_count && library::load_servers().empty()) return this->add_welcome();
     this->add_hero(game_count, server_games);
     this->add_tiles(game_count, updates, dlcs, downloads);
+    this->add_recent(recent, all);
     if (config::get().nlib_api) {
         this->add_banners("playshelf/installed/featured"_i18n, to_get, true);
         this->add_banners("playshelf/home/newest"_i18n, newest, false);
@@ -433,6 +455,51 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
         };
         if (!t.icon_url.empty()) library_icons::get(data, library::password_of(data->server), t.icon_url, shown, t.id);
         else library_icons::local(t.id, shown);
+    }
+}
+
+void HomeTab::add_recent(const std::vector<const installed_flow::Game*>& recent,
+                         const std::vector<std::shared_ptr<const library_flow::Loaded>>& all)
+{
+    if (recent.empty()) return;
+    brls::Box* row = this->add_row("playshelf/home/recent"_i18n, "playshelf/home/recent_line"_i18n, GameTile::WIDTH + 64);
+    const int  gen = this->generation;
+    for (const installed_flow::Game* g : recent) {
+        auto* tile = new GameTile();
+        std::string name = g->name;
+        if (name.empty()) name = nlib_flow::facts(g->game.id).name;
+        if (name.empty()) name = fmt::format("{:016X}", g->game.id);
+        tile->set_name(name);
+        tile->set_detail(installed_flow::play_text(g->play_s));
+        tile->set_detail_color(kit::color("cadran/teal"));
+        // Its page from a catalogue that has it, else the Library.
+        Pick found;
+        for (const auto& l : all) {
+            const long t = library::title_of(l->titles, g->game.id);
+            if (t < 0) continue;
+            found = { l, (size_t)t };
+            break;
+        }
+        tile->registerClickAction([found](brls::View*) {
+            if (found.data) game_page::open(found.data, found.index);
+            else ui::open_tab(tabs::library);
+            return true;
+        });
+        row->addView(tile);
+        this->tiles.push_back(tile);
+        const size_t at = this->tiles.size() - 1;
+        auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+            const ui::Alive held = weak.lock();
+            if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
+            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+        };
+        // The console's own icon, else the title database's or Nlib API's.
+        const auto bytes = g->icon;
+        const int  texture = bytes ? nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)bytes->data(),
+                                                       (int)bytes->size())
+                                   : 0;
+        if (texture > 0) shown(texture);
+        else library_icons::local(g->game.id, shown);
     }
 }
 

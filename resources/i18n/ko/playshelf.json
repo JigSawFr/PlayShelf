@@ -162,7 +162,9 @@
             "name": "이름순",
             "publisher": "퍼블리셔순",
             "newest": "최신순",
-            "to_get_first": "받을 것이 있는 게임 먼저"
+            "to_get_first": "받을 것이 있는 게임 먼저",
+            "most_played": "가장 많이 플레이",
+            "recently_played": "최근 플레이"
         },
         "stat_updates": "받을 업데이트",
         "stat_dlcs": "받을 추가 콘텐츠",
@@ -646,7 +648,11 @@
         "source_update_one": "업데이트 1개 (v{})",
         "source_update": "업데이트 {}개, 최신 v{}",
         "source_dlc_one": "추가 콘텐츠 1개",
-        "source_dlc": "추가 콘텐츠 {}개"
+        "source_dlc": "추가 콘텐츠 {}개",
+        "play_time": "플레이 시간",
+        "launches_one": "1회 실행",
+        "launches": "{}회 실행",
+        "last_played": "마지막 플레이"
     },
     "genres": {
         "action": "액션",
@@ -725,6 +731,10 @@
         "for_you": "추천",
         "for_you_line": "내 게임의 장르를 바탕으로",
         "welcome_title": "PlayShelf에 오신 것을 환영합니다",
-        "welcome_text": "라이브러리 서버를 추가해 게임을 둘러보고 설치하세요. 새 게임, 내 게임에 없는 것, 비슷한 게임이 여기에 표시됩니다."
+        "welcome_text": "라이브러리 서버를 추가해 게임을 둘러보고 설치하세요. 새 게임, 내 게임에 없는 것, 비슷한 게임이 여기에 표시됩니다.",
+        "recent": "최근 플레이",
+        "recent_line": "이 본체",
+        "played_hours": "{}시간 플레이",
+        "played_minutes": "{}분 플레이"
     }
 }

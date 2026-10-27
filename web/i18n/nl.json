@@ -178,6 +178,9 @@
     "no_game": {
       "label": "Niets open achter PlayShelf"
     },
+    "no_play": {
+      "label": "Geen speeltijd op de console"
+    },
     "no_demo": {
       "label": "Geen bibliotheekserver (een eerste start)"
     },

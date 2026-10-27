@@ -178,6 +178,9 @@
     "no_game": {
       "label": "PlayShelf 뒤에 열린 것 없음"
     },
+    "no_play": {
+      "label": "본체에 플레이 시간 없음"
+    },
     "no_demo": {
       "label": "라이브러리 서버 없음(처음 시작)"
     },

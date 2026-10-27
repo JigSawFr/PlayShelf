@@ -178,6 +178,9 @@
     "no_game": {
       "label": "Rien d'ouvert derrière PlayShelf"
     },
+    "no_play": {
+      "label": "Aucun temps de jeu sur la console"
+    },
     "no_demo": {
       "label": "Aucun serveur de bibliothèque (un premier lancement)"
     },

@@ -162,7 +162,9 @@
             "name": "按名称",
             "publisher": "按发行商",
             "newest": "最新优先",
-            "to_get_first": "有可补全内容优先"
+            "to_get_first": "有可补全内容优先",
+            "most_played": "玩得最多",
+            "recently_played": "最近玩过"
         },
         "stat_updates": "可用更新",
         "stat_dlcs": "可用追加内容",
@@ -646,7 +648,11 @@
         "source_update_one": "1 个更新（v{}）",
         "source_update": "{} 个更新，最新 v{}",
         "source_dlc_one": "1 个追加内容",
-        "source_dlc": "{} 个追加内容"
+        "source_dlc": "{} 个追加内容",
+        "play_time": "游戏时间",
+        "launches_one": "启动 1 次",
+        "launches": "启动 {} 次",
+        "last_played": "上次游玩"
     },
     "genres": {
         "action": "动作",
@@ -725,6 +731,10 @@
         "for_you": "为你推荐",
         "for_you_line": "根据你的游戏类型",
         "welcome_title": "欢迎使用 PlayShelf",
-        "welcome_text": "添加你的库服务器以浏览和安装游戏：新游戏、你的游戏缺少的内容和类似的游戏会显示在这里。"
+        "welcome_text": "添加你的库服务器以浏览和安装游戏：新游戏、你的游戏缺少的内容和类似的游戏会显示在这里。",
+        "recent": "最近玩过",
+        "recent_line": "在这台主机上",
+        "played_hours": "已玩 {} 小时",
+        "played_minutes": "已玩 {} 分钟"
     }
 }

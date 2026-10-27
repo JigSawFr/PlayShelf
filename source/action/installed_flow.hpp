@@ -2,7 +2,8 @@
 // installed read again (library_flow::reread_installed, the covers of the
 // Catalogue tab updated with it) and put together by game
 // (library/installed), each game's name and icon from the console
-// (core/games), read once a run.
+// (core/games), read once a run, and how much each was played (core/play),
+// read with them.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -22,6 +23,11 @@ struct Game
     std::string                                 name;   // the console's, "" when it has none
     std::string                                 version;   // the one it shows ("1.2.0"), "" when none
     std::shared_ptr<const std::vector<uint8_t>> icon;   // a JPEG, nullptr when none
+    // How much it was played (core/play), every account together: 0 when
+    // never, or the console does not say.
+    uint64_t                                    play_s = 0;
+    uint32_t                                    launches = 0;
+    uint64_t                                    last_played = 0;   // POSIX
 };
 
 // Reads them on a worker thread; `done` on the UI thread, in title id order.
@@ -32,6 +38,9 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done);
 // update and add-ons; its saves stay) on a worker thread, says so, then
 // reads the games again: `done` as read()'s.
 void remove(uint64_t id, const std::string& name, const std::function<void(std::shared_ptr<const std::vector<Game>>)>& done);
+
+// "12 h played", "40 min played": a game's play time.
+std::string play_text(uint64_t seconds);
 
 // The last read's, nullptr before the first.
 std::shared_ptr<const std::vector<Game>> games();

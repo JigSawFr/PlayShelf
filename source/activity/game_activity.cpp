@@ -2,6 +2,7 @@
 #include "activity/game_activity.hpp"
 
 #include <algorithm>
+#include <ctime>
 #include <utility>
 
 #include <fmt/format.h>
@@ -11,6 +12,7 @@
 #include <borealis/cadran/ui/live_prefs.hpp>
 #include <borealis/cadran/view/cadran_icon.hpp>
 
+#include "action/installed_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
 #include "library/catalog.hpp"
@@ -601,6 +603,22 @@ void GameActivity::fill_details_tab()
     if (l.updates_size) fact(card, "playshelf/game/size_updates"_i18n, library_flow::size_text(l.updates_size));
     if (l.dlcs_size) fact(card, "playshelf/game/size_dlcs"_i18n, library_flow::size_text(l.dlcs_size));
     if (l.installed) fact(card, "playshelf/game/installed"_i18n, brls::getStr("playshelf/library/update", l.installed_version));
+    // How much the console played it (core/play).
+    if (const auto games = installed_flow::games())
+        for (const installed_flow::Game& g : *games) {
+            if (g.game.id != this->page.title_id || !g.play_s) continue;
+            std::string played = installed_flow::play_text(g.play_s);
+            played += " · " + (g.launches == 1 ? "playshelf/game/launches_one"_i18n : brls::getStr("playshelf/game/launches", g.launches));
+            fact(card, "playshelf/game/play_time"_i18n, played);
+            if (g.last_played) {
+                const std::time_t when = (std::time_t)g.last_played;
+                std::tm           day{};
+                localtime_r(&when, &day);
+                fact(card, "playshelf/game/last_played"_i18n,
+                     date_text((uint32_t)((day.tm_year + 1900) * 10000 + (day.tm_mon + 1) * 100 + day.tm_mday)));
+            }
+            break;
+        }
     // The servers that have it, each with what it has of it.
     const std::vector<library_flow::Source> sources = library_flow::sources(this->page.title_id);
     if (!sources.empty()) {

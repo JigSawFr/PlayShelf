@@ -76,8 +76,8 @@ bool something_to_get(const library::TitleState& st)
 }
 
 // The order and the filter chosen: they stay for this run.
-enum class Order : int { Name, Publisher, Newest, ToGetFirst };
-const char* const ORDERS[] = { "name", "publisher", "newest", "to_get_first" };
+enum class Order : int { Name, Publisher, Newest, ToGetFirst, MostPlayed, RecentlyPlayed };
+const char* const ORDERS[] = { "name", "publisher", "newest", "to_get_first", "most_played", "recently_played" };
 Order           s_order = Order::Name;
 library::Filter s_filter;
 
@@ -225,8 +225,14 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
     // In the order chosen, by name after it.
     std::stable_sort(this->entries.begin(), this->entries.end(), [](const Entry& a, const Entry& b) {
         if (s_order == Order::ToGetFirst) {
+            // Something to get first, the most played of them first.
             const bool x = something_to_get(state_in(a.data, a.title)), y = something_to_get(state_in(b.data, b.title));
             if (x != y) return x;
+            if (x && a.game->play_s != b.game->play_s) return a.game->play_s > b.game->play_s;
+        } else if (s_order == Order::MostPlayed) {
+            if (a.game->play_s != b.game->play_s) return a.game->play_s > b.game->play_s;
+        } else if (s_order == Order::RecentlyPlayed) {
+            if (a.game->last_played != b.game->last_played) return a.game->last_played > b.game->last_played;
         } else if (s_order == Order::Publisher) {
             const std::string x = library::fold(nlib_flow::facts(a.game->game.id).publisher);
             const std::string y = library::fold(nlib_flow::facts(b.game->game.id).publisher);
@@ -289,6 +295,9 @@ void LibraryTab::add_page()
         // What stands out: something to get (amber), else its version.
         const library::TitleState st = state_in(e.data, e.title);
         std::string               detail = version_text(*e.game);
+        // Ordered by play: how much, unless something is to get.
+        if ((s_order == Order::MostPlayed || s_order == Order::RecentlyPlayed) && e.game->play_s)
+            detail = installed_flow::play_text(e.game->play_s);
         if (st.update_available) detail = "playshelf/library/update_available"_i18n;
         else if (st.dlcs_missing == 1) detail = "playshelf/installed/dlcs_missing_one"_i18n;
         else if (st.dlcs_missing) detail = brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing);

@@ -162,7 +162,9 @@
             "name": "名前順",
             "publisher": "発売元順",
             "newest": "新しい順",
-            "to_get_first": "足りないものがある順"
+            "to_get_first": "足りないものがある順",
+            "most_played": "よく遊ぶ順",
+            "recently_played": "最近遊んだ順"
         },
         "stat_updates": "更新データ",
         "stat_dlcs": "追加コンテンツ",
@@ -646,7 +648,11 @@
         "source_update_one": "更新データ 1件（v{}）",
         "source_update": "更新データ {}件（最新 v{}）",
         "source_dlc_one": "追加コンテンツ 1件",
-        "source_dlc": "追加コンテンツ {}件"
+        "source_dlc": "追加コンテンツ {}件",
+        "play_time": "プレイ時間",
+        "launches_one": "1 回起動",
+        "launches": "{} 回起動",
+        "last_played": "最後に遊んだ日"
     },
     "genres": {
         "action": "アクション",
@@ -725,6 +731,10 @@
         "for_you": "おすすめ",
         "for_you_line": "あなたのゲームのジャンルから",
         "welcome_title": "PlayShelf へようこそ",
-        "welcome_text": "ライブラリサーバーを追加して、ゲームを閲覧・インストールしましょう。新着、足りないもの、似たゲームがここに表示されます。"
+        "welcome_text": "ライブラリサーバーを追加して、ゲームを閲覧・インストールしましょう。新着、足りないもの、似たゲームがここに表示されます。",
+        "recent": "最近遊んだゲーム",
+        "recent_line": "この本体",
+        "played_hours": "{} 時間プレイ",
+        "played_minutes": "{} 分プレイ"
     }
 }
