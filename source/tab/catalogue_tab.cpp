@@ -71,8 +71,10 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
     if (st.base) {
         tile->set_detail(st.update_available ? "playshelf/library/update_available"_i18n : "playshelf/library/installed"_i18n);
         tile->set_detail_color(cadran::kit::color(st.update_available ? "cadran/amber" : "cadran/teal"));
+        tile->set_badge(st.update_available ? "download" : "check", st.update_available ? "cadran/amber" : "cadran/teal");
         return;
     }
+    tile->set_badge(nullptr, nullptr);
     tile->set_detail_color(cadran::kit::color("cadran/text3"));
     std::string text = library_flow::size_text(t.size);
     if (t.base < 0) text += " · " + "playshelf/library/no_base"_i18n;
@@ -348,6 +350,8 @@ void CatalogueTab::build_grid(bool force)
     this->password = data ? library::password_of(data->server) : "";
     this->grid_row = nullptr;
     this->built = 0;
+    // The covers centred in the tab's room; a shelf scrolls across it all.
+    grid->setPaddingLeft(shelves() ? 0 : (room() - (float)columns() * GameTile::WIDTH) / 2);
     this->selection = this->select();
     this->ask_facts();
     if (shelves()) this->add_shelves();
@@ -459,14 +463,26 @@ void CatalogueTab::add_shelves()
     });
     if (!unknown.empty()) shelves.emplace_back("", std::move(unknown));
     for (auto& [genre, games] : shelves) {
-        auto* header = new brls::Header();
-        header->setTitle(genre.empty() ? "playshelf/library/shelf_unknown"_i18n : nlib_flow::genre_name(genre));
-        header->setSubtitle(std::to_string(games.size()));
-        header->setMarginTop(this->tiles.empty() ? 8 : 24);
-        header->setMarginBottom(8);
-        header->setWidth(room());
+        // Its genre in the display face, how many games in a soft chip.
+        auto* header = new brls::Box(brls::Axis::ROW);
+        header->setAlignItems(brls::AlignItems::CENTER);
+        header->setMarginTop(this->tiles.empty() ? 12 : 28);
+        header->setMarginBottom(4);
+        header->setMarginLeft(8);
+        header->addView(cadran::kit::display(
+            genre.empty() ? "playshelf/library/shelf_unknown"_i18n : nlib_flow::genre_name(genre), 24,
+            genre.empty() ? "cadran/text2" : "cadran/text"));
+        auto* count = new brls::Box(brls::Axis::ROW);
+        count->setHeight(26);
+        count->setAlignItems(brls::AlignItems::CENTER);
+        count->setPaddingLeft(10);
+        count->setPaddingRight(10);
+        count->setCornerRadius(13);
+        count->setMarginLeft(12);
+        count->setBackgroundColor(cadran::kit::color(genre.empty() ? "cadran/surf2" : "cadran/teal_soft"));
+        count->addView(cadran::kit::label(std::to_string(games.size()), 15, genre.empty() ? "cadran/text2" : "cadran/teal"));
+        header->addView(count);
         grid->addView(header);
-        cadran::List::section(header);
         auto* frame = new brls::HScrollingFrame();
         frame->setWidth(room());
         frame->setHeight(GameTile::WIDTH + 64);

@@ -295,6 +295,8 @@ void LibraryTab::add_page()
             tile->set_name(e.name);
             tile->set_detail(detail);
             tile->set_detail_color(color);
+            // Something to get: marked on the cover too.
+            if (something_to_get(st)) tile->set_badge(st.update_available ? "download" : "plus", "cadran/amber");
             this->grid_row->addView(tile);
             this->icons.push_back([tile](int texture) { tile->set_icon_texture(texture, true); });
             view = tile;

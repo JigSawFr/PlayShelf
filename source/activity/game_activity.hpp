@@ -76,6 +76,7 @@ class GameActivity : public brls::Activity
     std::vector<brls::Box*>  tabs;      // the tab bar's tabs
     std::vector<brls::Box*>  panes;     // each tab's content
     size_t                   current = 0;
+    brls::Image*             banner = nullptr;   // gp_hero's first child
     std::shared_ptr<const titledb::Details> details;
 
     void add_head();
@@ -84,11 +85,13 @@ class GameActivity : public brls::Activity
     void add_lines(brls::Box* pane, const std::vector<ui::Choice>& lines);
     void show_details(std::shared_ptr<const titledb::Details> d);
     void show_chips();
+    // The head over the banner, on a shade fading into the page.
+    void over_banner();
     void fill_details_tab();
     void add_screens(int count);
     void add_others(const std::string& title, std::vector<Other> others);
 
-    BRLS_BIND(brls::Image, banner,   "gp_banner");
+    BRLS_BIND(brls::Box,   hero,     "gp_hero");
     BRLS_BIND(brls::Box,   head,     "gp_head");
     BRLS_BIND(brls::Box,   tab_bar,  "gp_tabs");
     BRLS_BIND(brls::Box,   overview, "gp_overview");

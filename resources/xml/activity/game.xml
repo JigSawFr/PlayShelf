@@ -29,9 +29,10 @@
             paddingBottom="@style/brls/sidebar/padding_bottom"
             paddingLeft="@style/brls/sidebar/padding_left">
 
-            <brls:Image id="gp_banner" width="auto" height="240" scalingType="fill" cornerRadius="14"
-                marginBottom="20" visibility="gone"/>
-            <brls:Box id="gp_head" width="auto" height="auto" axis="row" alignItems="center" marginBottom="16"/>
+            <!-- The banner, once it came, with the head laid over its lower part. -->
+            <brls:Box id="gp_hero" width="auto" height="auto" axis="column" alignItems="stretch" marginBottom="18">
+                <brls:Box id="gp_head" width="auto" height="auto" axis="row" alignItems="flexEnd"/>
+            </brls:Box>
             <brls:Box id="gp_tabs" width="auto" height="auto" axis="row" marginBottom="20"/>
 
             <brls:Box id="gp_overview" width="auto" height="auto" axis="column" alignItems="stretch">

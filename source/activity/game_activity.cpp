@@ -34,6 +34,96 @@ constexpr size_t MAX_OTHERS = 12;   // games in a row of more like it
 enum Tab : size_t { OVERVIEW, UPDATES, DLCS, DETAILS };
 
 // A texture that came after its view went: freed.
+constexpr float HERO_RADIUS = 16;   // the banner's corners
+
+// The banner: its picture, its lower part fading into the page for the
+// head laid over it to read on any picture.
+class Banner : public brls::Image
+{
+  public:
+    Banner()
+    {
+        this->setHeight(360);
+        this->setCornerRadius(HERO_RADIUS);
+        this->setScalingType(brls::ImageScalingType::FILL);
+        this->setClipsToBounds(true);
+        this->setFreeTexture(true);
+        this->setVisibility(brls::Visibility::GONE);
+    }
+
+    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
+              brls::FrameContext* ctx) override
+    {
+        brls::Image::draw(vg, x, y, width, height, style, ctx);
+        NVGcolor solid = brls::Application::getTheme()["brls/background"];
+        solid.a = 0.96f * this->getAlpha();
+        NVGcolor clear = solid;
+        clear.a = 0.0f;
+        nvgBeginPath(vg);
+        nvgRoundedRect(vg, x, y, width, height, HERO_RADIUS);
+        nvgFillPaint(vg, nvgLinearGradient(vg, x, y + height * 0.2f, x, y + height * 0.85f, clear, solid));
+        nvgFill(vg);
+    }
+};
+
+// A chip: its mark and its text, on a tint of its ink.
+brls::Box* chip(const std::string& text, const char* icon_name, const char* ink, const char* tint)
+{
+    auto* box = new brls::Box(brls::Axis::ROW);
+    box->setAlignItems(brls::AlignItems::CENTER);
+    box->setHeight(32);
+    box->setPaddingLeft(12);
+    box->setPaddingRight(15);
+    box->setCornerRadius(16);
+    box->setBackgroundColor(kit::color(tint));
+    box->setMarginRight(8);
+    box->setMarginBottom(6);
+    CadranIcon* mark = kit::icon(icon_name, 16, ink);
+    mark->setMarginRight(7);
+    box->addView(mark);
+    brls::Label* l = kit::label(text, 15, ink);
+    l->setSingleLine(true);
+    box->addView(l);
+    return box;
+}
+
+// Where the console stands on a tab's items: a mark in a round of its tint,
+// a line in the display face, a line under it.
+brls::Box* status_card(const std::string& title, const std::string& line, const char* icon_name, const char* ink,
+                       const char* tint)
+{
+    auto* card = new brls::Box(brls::Axis::ROW);
+    card->setAlignItems(brls::AlignItems::CENTER);
+    card->setPadding(16, 20, 16, 16);
+    card->setCornerRadius(16);
+    card->setBackgroundColor(kit::color("cadran/surf"));
+    card->setBorderColor(kit::color("cadran/line"));
+    card->setBorderThickness(1);
+    card->setMarginBottom(16);
+    auto* round = new brls::Box(brls::Axis::ROW);
+    round->setWidth(48);
+    round->setHeight(48);
+    round->setShrink(0);
+    round->setCornerRadius(24);
+    round->setBackgroundColor(kit::color(tint));
+    round->setAlignItems(brls::AlignItems::CENTER);
+    round->setJustifyContent(brls::JustifyContent::CENTER);
+    round->setMarginRight(16);
+    round->addView(kit::icon(icon_name, 24, ink));
+    card->addView(round);
+    auto* text = new brls::Box(brls::Axis::COLUMN);
+    text->setGrow(1);
+    text->setShrink(1);
+    text->addView(kit::display(title, 21, ink));
+    if (!line.empty()) {
+        brls::Label* under = kit::label(line, 16, "cadran/text3");
+        under->setMarginTop(4);
+        text->addView(under);
+    }
+    card->addView(text);
+    return card;
+}
+
 void drop(int texture)
 {
     if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
@@ -168,6 +258,8 @@ GameActivity::~GameActivity()
 void GameActivity::onContentAvailable()
 {
     if (auto* applet = dynamic_cast<brls::AppletFrame*>(this->getContentView())) applet->setTitle(this->page.name);
+    this->banner = new Banner();
+    hero->addView(this->banner, 0);
     cadran::List::section(screens_header);
     cadran::List::section(about_header);
     this->add_head();
@@ -196,6 +288,8 @@ void GameActivity::add_head()
     cover->setAlignItems(brls::AlignItems::CENTER);
     cover->setJustifyContent(brls::JustifyContent::CENTER);
     cover->setMarginRight(24);
+    cover->setShadowType(brls::ShadowType::GENERIC);
+    cover->setShadowVisibility(true);
     CadranIcon* placeholder = kit::icon("gamepad", 48, "cadran/text3");
     cover->addView(placeholder);
     this->icon = new brls::Image();
@@ -211,7 +305,7 @@ void GameActivity::add_head()
     auto* text = new brls::Box(brls::Axis::COLUMN);
     text->setGrow(1);
     text->setShrink(1);
-    this->title = kit::display(this->page.name, 28);
+    this->title = kit::display(this->page.name, 32);
     text->addView(this->title);
     this->meta = kit::label("", 17, "cadran/text2");
     this->meta->setMarginTop(6);
@@ -296,20 +390,24 @@ void GameActivity::add_tabs()
 
     // Updates: the versions installed and newest, then the lines.
     if (l.update_count) {
-        std::string line = l.installed ? brls::getStr("playshelf/game/version_installed", l.installed_version)
-                                       : "playshelf/game/not_installed"_i18n;
-        if (l.latest_version) line += " · " + brls::getStr("playshelf/game/version_latest", l.latest_version);
-        brls::Label* summary = kit::label(line, 18, "cadran/text2");
-        summary->setMarginBottom(14);
-        updates->addView(summary);
+        std::string line = l.installed ? brls::getStr("playshelf/game/version_installed", l.installed_version) : "";
+        if (l.latest_version)
+            line += (line.empty() ? "" : " · ") + brls::getStr("playshelf/game/version_latest", l.latest_version);
+        const bool behind = l.installed && l.installed_version < l.latest_version;
+        if (!l.installed) updates->addView(status_card("playshelf/game/not_installed"_i18n, line, "gamepad", "cadran/text2", "cadran/surf2"));
+        else if (behind)
+            updates->addView(status_card("playshelf/library/update_available"_i18n, line, "download", "cadran/amber", "cadran/amber_surf"));
+        else updates->addView(status_card("playshelf/library/installed"_i18n, line, "check", "cadran/teal", "cadran/teal_soft"));
         this->add_lines(updates, l.updates);
     }
     // Add-ons: how many the console has, then the lines.
     if (l.dlc_count) {
-        brls::Label* summary = kit::label(brls::getStr("playshelf/game/dlcs_installed", l.dlcs_installed, l.dlc_count), 18,
-                                          l.dlcs_installed == l.dlc_count ? "cadran/teal" : "cadran/text2");
-        summary->setMarginBottom(14);
-        dlcs->addView(summary);
+        const std::string count = brls::getStr("playshelf/game/dlcs_installed", l.dlcs_installed, l.dlc_count);
+        if (l.dlcs_installed == l.dlc_count)
+            dlcs->addView(status_card(count, l.dlcs_size ? library_flow::size_text(l.dlcs_size) : "", "check", "cadran/teal", "cadran/teal_soft"));
+        else
+            dlcs->addView(status_card(count, l.dlcs_size ? library_flow::size_text(l.dlcs_size) : "", "plus",
+                                      l.installed ? "cadran/amber" : "cadran/text2", l.installed ? "cadran/amber_surf" : "cadran/surf2"));
         this->add_lines(dlcs, l.dlcs);
     }
     this->select(OVERVIEW, false);
@@ -406,7 +504,16 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
         if (!held || !*held || !texture) return drop(texture);
         banner->innerSetImage(texture);
         banner->setVisibility(brls::Visibility::VISIBLE);
+        this->over_banner();
     });
+}
+
+void GameActivity::over_banner()
+{
+    head->setPositionType(brls::PositionType::ABSOLUTE);
+    head->setPositionLeft(28);
+    head->setPositionRight(28);
+    head->setPositionBottom(22);
 }
 
 // Publisher · developer · year on top; its genres, how many play, the
@@ -422,20 +529,18 @@ void GameActivity::show_chips()
         this->meta->setVisibility(brls::Visibility::VISIBLE);
     }
     this->chips->clearViews(true);
-    auto add = [this](const std::string& text, const char* dot) {
-        brls::Box* p = kit::pill(text, dot);
-        p->setMarginRight(8);
-        p->setMarginBottom(6);
-        this->chips->addView(p);
+    auto add = [this](const std::string& text, const char* icon_name, const char* ink, const char* tint) {
+        this->chips->addView(chip(text, icon_name, ink, tint));
     };
     for (const std::string& g : f.categories)
-        if (g != "Other") add(nlib_flow::genre_name(g), "cadran/teal");
-    if (f.players == 1) add("playshelf/game/players_one"_i18n, "cadran/text3");
-    else if (f.players > 1) add(brls::getStr("playshelf/game/players_many", f.players), "cadran/text3");
+        if (g != "Other") add(nlib_flow::genre_name(g), "tag", "cadran/teal", "cadran/teal_soft");
+    if (f.players == 1) add("playshelf/game/players_one"_i18n, "user", "cadran/text2", "cadran/surf2");
+    else if (f.players > 1)
+        add(brls::getStr("playshelf/game/players_many", f.players), "user", "cadran/text2", "cadran/surf2");
     const std::string own = titledb::nlib_language(live_prefs::locale());
     if (std::find(f.languages.begin(), f.languages.end(), own) != f.languages.end())
-        add("playshelf/game/language_chip"_i18n, "cadran/text3");
-    if (f.demo) add("playshelf/game/demo"_i18n, "cadran/amber");
+        add("playshelf/game/language_chip"_i18n, "language", "cadran/text2", "cadran/surf2");
+    if (f.demo) add("playshelf/game/demo"_i18n, "flag", "cadran/amber", "cadran/amber_surf");
     kit::wrap(this->chips);
     this->chips->setVisibility(this->chips->getChildren().empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
 }

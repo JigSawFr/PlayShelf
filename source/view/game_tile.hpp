@@ -1,6 +1,6 @@
 // GameTile — a game as a cover in a grid (tab/catalogue_tab, tab/library_tab):
 // its icon (a gamepad on the well until one arrives, or for a game without
-// one), its name on one line and a value under it (its size, what the server
+// one), a mark on its corner when the console has it, its name on one line and a value under it (its size, what the server
 // has of it). From PlayGuard's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -22,6 +22,9 @@ class GameTile : public brls::Box
     void set_name(const std::string& text);
     void set_detail(const std::string& text);
     void set_detail_color(NVGcolor color);
+    // A round mark on the cover's corner: `icon_name` on `ink` ("cadran/teal"
+    // installed, "cadran/amber" an update to get); nullptr, none.
+    void set_badge(const char* icon_name, const char* ink);
     // An NVG image in place of the gamepad; `owned`, this tile frees it.
     void set_icon_texture(int texture, bool owned);
     bool has_icon() const { return this->iconed; }
@@ -35,6 +38,7 @@ class GameTile : public brls::Box
     brls::Image* icon = nullptr;
     brls::Label* name = nullptr;
     brls::Label* detail = nullptr;
+    brls::Box*   badge = nullptr;
     bool         iconed = false;
     brls::Time   icon_since = 0;   // the icon arrived then (µs): it fades in; 0 at rest
 };
