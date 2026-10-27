@@ -18,6 +18,7 @@
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
+#include "view/cover_placeholder.hpp"
 #include "view/game_tile.hpp"
 
 using namespace brls::literals;
@@ -295,7 +296,7 @@ void GameActivity::add_head()
     cover->setMarginRight(24);
     cover->setShadowType(brls::ShadowType::GENERIC);
     cover->setShadowVisibility(true);
-    CadranIcon* placeholder = kit::icon("gamepad", 48, "cadran/text3");
+    auto* placeholder = new CoverPlaceholder(ICON, 48, 12);
     cover->addView(placeholder);
     this->icon = new brls::Image();
     this->icon->setWidth(ICON);

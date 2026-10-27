@@ -163,6 +163,20 @@ void TitlePack::released(uint32_t from, uint32_t to, size_t max, std::vector<uin
     }
 }
 
+void TitlePack::each_base_name(const std::function<bool(uint64_t, const std::string&)>& each) const
+{
+    for (const Entry& e : this->index) {
+        // A base game: its id ends in 000, bit 12 clear (an add-on's set).
+        if ((e.id & 0xfff) || ((e.id >> 12) & 1) || !(e.flags & HAS_NAME)) continue;
+        std::string name;
+        {
+            const std::lock_guard<std::mutex> g(this->lock);
+            name = this->read_string(e.name);
+        }
+        if (!name.empty() && !each(e.id, name)) return;
+    }
+}
+
 IconPack::~IconPack()
 {
     if (this->file) std::fclose(this->file);

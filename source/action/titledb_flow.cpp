@@ -12,6 +12,7 @@
 #include <sys/statvfs.h>
 
 #include "install/split_stream.hpp"
+#include "library/titles.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
@@ -193,6 +194,26 @@ bool icon(uint64_t id, std::vector<uint8_t>* bytes, std::string* ext)
 {
     const auto db = current();
     return db && db->icon(id, bytes, ext);
+}
+
+std::vector<std::pair<uint64_t, std::string>> search(const std::string& query, size_t max)
+{
+    std::vector<std::pair<uint64_t, std::string>> out;
+    const std::string                             q = library::fold(query);
+    const auto                                    db = current();
+    if (!db || q.empty() || !max) return out;
+    std::map<uint64_t, std::string> found;   // a source before the next ones
+    for (const titledb::Database::Source& s : db->sources()) {
+        if (!s.titles) continue;
+        s.titles->each_base_name([&](uint64_t id, const std::string& name) {
+            if (!found.count(id) && library::fold(name).find(q) != std::string::npos) found.emplace(id, name);
+            return found.size() < max * 4;   // enough to sort and cut
+        });
+    }
+    for (auto& [id, name] : found) out.emplace_back(id, name);
+    std::sort(out.begin(), out.end(), [](const auto& a, const auto& b) { return library::fold(a.second) < library::fold(b.second); });
+    if (out.size() > max) out.resize(max);
+    return out;
 }
 
 const Status& status()

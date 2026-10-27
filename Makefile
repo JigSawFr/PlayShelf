@@ -169,6 +169,12 @@ notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
 library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 # When each game was first seen on a server; the wishlist's ids.
 library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
+# A game's save as a zip archive, and back.
+save_archive_SRC  := source/saves/archive.cpp $(K)/util/zip_write.cpp $(K)/util/paths.cpp tests/save_archive/test.cpp
+save_archive_LIBS := -lz
+# AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
+library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(K)/util/paths.cpp \
+                        tests/library_services/test.cpp
 # The console's games by title (base game, update, add-ons) and what a
 # catalogue has beyond them.
 library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp
@@ -237,7 +243,8 @@ cadran_text_FLAGS := $(format_text_FLAGS)
 # borealis' own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
-# it, rewritten only then).
+# it, rewritten only then). C++20, as borealis is built (its headers use
+# defaulted comparisons).
 I18N_COPY    := $(TESTOUT)/borealis_i18n
 I18N_STAMP   := $(TESTOUT)/borealis_i18n.commit
 I18N_COMMIT  := $(shell git -C library/aurore rev-parse HEAD 2>/dev/null)
@@ -252,7 +259,7 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@# in this copy only: borealis itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp tests/i18n_threads/test.cpp
-i18n_threads_FLAGS := -std=c++17 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
+i18n_threads_FLAGS := -std=c++20 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \
                         include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
@@ -341,6 +348,9 @@ install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz
 install_package_FUZZ_LIBS := -lzstd
 library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
 library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
+save_archive_FUZZ      := source/saves/archive.cpp tests/fuzz/save_archive/fuzz.cpp
+save_archive_FUZZ_LIBS := -lz
+library_services_FUZZ  := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp tests/fuzz/library_services/fuzz.cpp
 titledb_FUZZ           := $(filter-out tests/%,$(titledb_SRC)) tests/fuzz/titledb/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))

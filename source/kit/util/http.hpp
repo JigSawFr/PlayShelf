@@ -82,9 +82,36 @@ struct Response
     long        status = 0;
     std::string body;
     bool        tls_failed = false;
+    // call(): the cookies the answer sets ("name=value", without their
+    // attributes), and where it redirects to when the redirect is not followed.
+    std::vector<std::string> cookies;
+    std::string              location;
 };
 bool request(const std::string& url, const Headers& headers, const std::string& pinned_key, Response* response,
              std::string* error, size_t max_bytes = 4 * 1024 * 1024, long timeout_s = 30);
+
+// A request beyond a GET, made as request() makes one (its pinned key, its
+// TLS failure told): its method, a body sent as it is or a form (multipart/
+// form-data: its fields, then a file's part read from the disk as it goes),
+// the answer's body kept in memory or written to a file.
+struct Call
+{
+    std::string method;                  // "" a GET (a POST when it has a body or a form); "DELETE", "OPTIONS"…
+    std::string body, content_type;      // sent as it is
+    std::vector<std::pair<std::string, std::string>> fields;   // multipart/form-data
+    std::string file_field, file_path, file_name;               // its file's part, when `file_path` is set
+    std::string to_path;                 // the answer's body into this file (created or truncated), not Response::body
+    bool        follow = true;           // redirects followed: a GET's only, never a POST's
+    const std::atomic<bool>* cancel = nullptr;                   // set by another thread: stops within a second
+    // The bytes sent so far and their total (a file sent), else received and
+    // the total announced (0 when unknown); from the request's thread.
+    std::function<void(uint64_t done, uint64_t total)> progress = nullptr;
+};
+// False as request() is (a status >= 400 included, the status told); a file
+// sent or received gives up on 30 s without a byte rather than on
+// `timeout_s` (0: no overall limit).
+bool call(const std::string& url, const Call& c, const Headers& headers, const std::string& pinned_key, Response* response,
+          std::string* error, size_t max_bytes = 4 * 1024 * 1024, long timeout_s = 30);
 
 // The certificate `url`'s server presents, as PEM, without checking it and
 // without sending anything but the request line (no header, no

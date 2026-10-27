@@ -8,6 +8,7 @@
 #include <borealis/cadran/ui/motion.hpp>
 
 #include "ui/ui.hpp"
+#include "view/cover_placeholder.hpp"
 
 namespace
 {
@@ -35,7 +36,7 @@ GameTile::GameTile()
     this->cover->setThemeColor("backgroundColor", "cadran/well");
     this->cover->setAlignItems(brls::AlignItems::CENTER);
     this->cover->setJustifyContent(brls::JustifyContent::CENTER);
-    this->placeholder = cadran::kit::icon("gamepad", 56, "cadran/text3");
+    this->placeholder = new CoverPlaceholder(COVER, 56, 8);
     this->cover->addView(this->placeholder);
     this->icon = new brls::Image();
     this->icon->setWidth(COVER);

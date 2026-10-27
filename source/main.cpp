@@ -53,6 +53,7 @@
 #include "util/paths.hpp"
 #include "util/session_log.hpp"
 #include "util/startup.h"
+#include "view/cover_placeholder.hpp"
 #include "view/loading_dial.hpp"
 #include "view/loading_mark.hpp"
 #include "view/made_in_france.hpp"
@@ -356,9 +357,10 @@ int main(int argc, char* argv[])
     config::load();
     startup_mark(StartupStep_Preferences);
 
-    // PlayShelf's own theme keys, before borealis starts: the theme file the
-    // preferences name, read then, knows them.
+    // PlayShelf's own theme keys and image slot, before borealis starts: the
+    // theme file the preferences name, read then, knows them.
     LoadingDial::addColors();
+    CoverPlaceholder::declare();
 
     if (!brls::Application::init()) {
         brls::Logger::error("Unable to init borealis Application");

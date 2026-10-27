@@ -62,7 +62,13 @@ void LoadingActivity::follow_theme()
     // On a light background (the light theme's cool white), the wordmark and
     // the bar in its inks, so the screen does not flash navy before the
     // first one (the icon keeps its tile); else the brand's, as the store
-    // banner. The background and the texts are the theme's (XML).
+    // banner. The background and the texts are the theme's (XML); with a
+    // theme's background picture the screen has no fill of its own, so that
+    // the picture shows behind it as behind the other screens.
+    if (brls::Theme::getBackground(brls::Application::getThemeVariant()).hasImage())
+        this->root->setBackgroundColor(nvgRGBA(0, 0, 0, 0));
+    else
+        this->root->setThemeColor("backgroundColor", "brls/background");
     const NVGcolor bg = brls::Application::getTheme()["brls/background"];
     const bool light = 0.2126f * bg.r + 0.7152f * bg.g + 0.0722f * bg.b > 0.5f;
     this->bar->setBrand(!light);

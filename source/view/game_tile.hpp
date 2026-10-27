@@ -1,6 +1,6 @@
 // GameTile — a game as a cover in a grid (tab/catalogue_tab, tab/library_tab):
-// its icon (a gamepad on the well until one arrives, or for a game without
-// one), a mark on its corner when the console has it, its name on one line
+// its icon (a CoverPlaceholder on the well until one arrives, or for a game
+// without one), a mark on its corner when the console has it, its name on one line
 // and a value under it (its size, what the server has of it). From
 // PlayGuard's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -9,8 +9,6 @@
 #include <borealis.hpp>
 #include <cstdint>
 #include <string>
-
-class CadranIcon;
 
 class GameTile : public brls::Box
 {
@@ -36,7 +34,7 @@ class GameTile : public brls::Box
 
   private:
     brls::Box*   cover = nullptr;
-    CadranIcon*  placeholder = nullptr;
+    brls::View*  placeholder = nullptr;   // a CoverPlaceholder
     brls::Image* icon = nullptr;
     brls::Label* name = nullptr;
     brls::Label* detail = nullptr;

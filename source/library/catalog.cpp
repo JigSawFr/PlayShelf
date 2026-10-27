@@ -60,6 +60,15 @@ bool hex_u64(const std::string& text, uint64_t* out)
     return true;
 }
 
+std::string fmt_id(uint64_t id)
+{
+    static const char* const hex = "0123456789ABCDEF";
+    std::string              out(16, '0');
+    for (int i = 15; i >= 0; i--, id >>= 4)
+        out[(size_t)i] = hex[id & 15];
+    return out;
+}
+
 bool u64_at(const json& j, const char* key, uint64_t* out)
 {
     const auto it = j.find(key);
@@ -415,14 +424,136 @@ std::optional<Catalog> parse_api(const std::string& body, const std::string& bas
         Section sec;
         sec.id = display_text(str_at(s, "id").empty() ? "all" : str_at(s, "id"), MAX_TITLE);
         sec.title = display_text(str_at(s, "title").empty() ? sec.id : str_at(s, "title"), MAX_TITLE);
+        const auto truncated = s.find("truncated");
+        if (truncated != s.end() && truncated->is_boolean() && truncated->get<bool>()) c.truncated = true;
         for (const json& e : *items) {
-            // Cheats, AeroFoil's, are no package to install.
+            // Cheats, AeroFoil's, are no package to install (services.hpp
+            // reads them).
             if (sec.id == "cheats" || (e.is_object() && str_at(e, "app_type") == "CHEAT")) continue;
+            // A frozen account's placeholder, in every section: no game.
+            if (e.is_object() && str_at(e, "url").rfind("/api/frozen/notice", 0) == 0) {
+                c.frozen = true;
+                continue;
+            }
             if (add_item(c, e, base_url, sec.id, seen)) sec.items.push_back(c.items.size() - 1);
         }
         c.sections.push_back(std::move(sec));
     }
     return c;
+}
+
+std::optional<ServerInfo> parse_handshake(const std::string& body)
+{
+    json j;
+    if (!parse_json(body, &j) || !j.is_object() || str_at(j, "uid").empty() || !j.contains("name")) return std::nullopt;
+    ServerInfo info;
+    info.name = display_text(str_at(j, "name"), MAX_TITLE);
+    info.version = display_text(str_at(j, "version"), 24);
+    info.motd = display_text(str_at(j, "motd"), MAX_MOTD);
+    uint64_t protocol = 0;
+    if (u64_at(j, "protocol_version", &protocol) && protocol < 1000) info.protocol = (int)protocol;
+    const auto pub = j.find("public");
+    info.public_shop = pub != j.end() && pub->is_boolean() && pub->get<bool>();
+    const auto features = j.find("features");
+    if (features != j.end() && features->is_object()) {
+        const auto saves = features->find("save_backup");
+        info.save_backup = saves != features->end() && saves->is_boolean() && saves->get<bool>();
+    }
+    return info;
+}
+
+std::string url_encode(const std::string& s)
+{
+    static const char* const hex = "0123456789ABCDEF";
+    std::string              out;
+    for (unsigned char c : s) {
+        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            out += (char)c;
+        } else {
+            out += '%';
+            out += hex[c >> 4];
+            out += hex[c & 15];
+        }
+    }
+    return out;
+}
+
+std::string graphql_apps_query(int page, int page_size)
+{
+    // The owned apps with what an item needs: the file's address and size,
+    // the app's id, version and kind, its game's name and icon (a DLC's own
+    // name from its titledb entry).
+    const std::string q = "{apps(owned:true,page:" + std::to_string(page) + ",pageSize:" + std::to_string(page_size) +
+                          "){total items{appId titleId appVersion appType releaseDate downloadUrl downloadSize "
+                          "downloadExtension titledb{name} title{name icon(size:THUMB){url}}}}}";
+    return url_encode(q);
+}
+
+bool add_graphql_apps(Catalog& c, const std::string& body, const std::string& base_url, uint64_t* total, std::string* why)
+{
+    json j;
+    if (!parse_json(body, &j) || !j.is_object()) return fail(why, "the server's answer is not GraphQL");
+    const auto errors = j.find("errors");
+    if (errors != j.end() && errors->is_array() && !errors->empty()) {
+        const json& e = (*errors)[0];
+        return fail(why, e.is_object() && !str_at(e, "message").empty() ? display_text(str_at(e, "message"), MAX_TITLE * 2)
+                                                                         : "the server refused the query");
+    }
+    const auto data = j.find("data");
+    if (data == j.end() || !data->is_object()) return fail(why, "the server's answer has no data");
+    const auto apps = data->find("apps");
+    if (apps == data->end() || !apps->is_object()) return fail(why, "the server's answer has no apps");
+    *total = 0;
+    u64_at(*apps, "total", total);
+    const auto items = apps->find("items");
+    if (items == apps->end() || !items->is_array()) return fail(why, "the server's answer has no apps");
+    std::set<std::string> seen;
+    for (const Item& i : c.items)
+        seen.insert(i.url);
+    for (const json& a : *items) {
+        if (!a.is_object()) continue;
+        if (c.items.size() >= MAX_ITEMS) {
+            c.skipped++;
+            continue;
+        }
+        const std::string ref = str_at(a, "downloadUrl");
+        Item              item;
+        item.url = ref.size() <= MAX_URL ? resolve(base_url, ref) : std::string();
+        uint64_t id = 0;
+        if (item.url.empty() || !hex_u64(str_at(a, "appId"), &id) || !id || !seen.insert(item.url).second) {
+            c.skipped++;
+            continue;
+        }
+        item.title_id = id;
+        u64_at(a, "downloadSize", &item.size);
+        item.has_version = version_at(a, &item.version);
+        if (!item.has_version) {
+            uint64_t v;
+            if (u64_at(a, "appVersion", &v) && v <= 0xffffffffu) {
+                item.version = (uint32_t)v;
+                item.has_version = true;
+            }
+        }
+        item.kind = kind_from_text(str_at(a, "appType"));
+        if (item.kind == Kind::Unknown) item.kind = kind_of(id);
+        item.release_date = date_at(a);
+        const auto title = a.find("title");
+        const auto own = a.find("titledb");
+        std::string name;
+        if (item.kind == Kind::Dlc && own != a.end() && own->is_object()) name = str_at(*own, "name");
+        if (name.empty() && title != a.end() && title->is_object()) name = str_at(*title, "name");
+        if (title != a.end() && title->is_object()) {
+            const auto icon = title->find("icon");
+            if (icon != title->end() && icon->is_object()) {
+                const std::string u = str_at(*icon, "url");
+                if (!u.empty() && u.size() <= MAX_URL) item.icon_url = resolve(base_url, u);
+            }
+        }
+        if (name.empty()) name = fmt_id(id);
+        item.name = display_text(name, MAX_NAME);
+        c.items.push_back(std::move(item));
+    }
+    return true;
 }
 
 std::optional<Catalog> parse_index(const std::string& body, const std::string& base_url, std::string* why)

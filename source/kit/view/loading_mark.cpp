@@ -2,7 +2,10 @@
 #include "view/loading_mark.hpp"
 
 #include <cmath>
+#include <memory>
 #include <string>
+
+#include <borealis/core/theme_image.hpp>
 
 #include "util/paths.hpp"
 #ifndef __SWITCH__
@@ -75,7 +78,15 @@ void LoadingMark::draw(NVGcontext* vg, float x, float y, float width, float heig
         nvgFill(vg);
     }
 
-    // The icon, rounded as the HOME menu rounds it.
+    // The theme's logo when it has one (`logo =`, loaded), fitted in the
+    // icon's square as Cadran fits it in its mark; asked at each frame, so
+    // a theme chosen live shows its own at once.
+    const std::shared_ptr<brls::ThemeImage> logo = brls::Theme::logo();
+    if (logo && logo->draw(vg, cx - size / 2.0f, cy - size / 2.0f, size, size, brls::BackgroundFit::CONTAIN, nullptr,
+                           this->getAlpha()))
+        return;
+
+    // Else the icon, rounded as the HOME menu rounds it.
     const int texture = icon_texture(vg);
     if (!texture) return;
     nvgBeginPath(vg);

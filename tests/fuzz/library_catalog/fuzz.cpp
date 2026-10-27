@@ -1,5 +1,6 @@
 // libFuzzer target: source/library/catalog.cpp on any bytes, a library
-// server's answer, read both as the API's and as a JSON index. Beyond the
+// server's answer, read as the API's, as a JSON index, as a page of
+// Ownfoil's GraphQL apps and as its handshake. Beyond the
 // sanitizers: every address kept is https:// and every name non-empty,
 // valid UTF-8 and free of control characters; a section's items exist.
 #include <string>
@@ -32,6 +33,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     const std::string body((const char*)data, size);
     if (const auto c = library::parse_api(body, "https://shelf.example.org:8443/api/remote")) check(*c);
     if (const auto c = library::parse_index(body, "https://files.example.org/lib/index.json")) check(*c);
+    library::Catalog g;
+    uint64_t         total = 0;
+    if (library::add_graphql_apps(g, body, "https://shelf.example.org", &total)) check(g);
+    if (const auto info = library::parse_handshake(body)) {
+        FUZZ_ASSERT(fuzz_utf8_ok(info->name.data(), info->name.size()) && fuzz_utf8_ok(info->motd.data(), info->motd.size()));
+    }
     (void)library::resolve("https://h.example/a/", body);
     return 0;
 }
