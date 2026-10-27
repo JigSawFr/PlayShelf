@@ -126,3 +126,50 @@ void BannerCard::draw(NVGcontext* vg, float x, float y, float width, float heigh
 
     brls::Box::draw(vg, x, y, width, height, style, ctx);
 }
+
+BannerBackdrop::BannerBackdrop()
+{
+    this->setPositionType(brls::PositionType::ABSOLUTE);
+    this->setFocusable(false);
+}
+
+BannerBackdrop::~BannerBackdrop()
+{
+    if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
+}
+
+void BannerBackdrop::set_picture(int tex, int w, int h)
+{
+    if (!tex) return;
+    if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
+    this->texture = tex;
+    this->picture_w = w;
+    this->picture_h = h;
+    this->since = effects::motion() ? motion::now() : 0;
+}
+
+void BannerBackdrop::draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style, brls::FrameContext*)
+{
+    if (!this->texture || this->picture_w <= 0 || this->picture_h <= 0) return;
+    float fade = 1.0f;
+    if (this->since) {
+        fade = motion::ease_out(motion::progress(this->since, FADE_US));
+        if (fade >= 1.0f) this->since = 0;
+    }
+    const float shown = this->getAlpha() * fade;
+    const float scale = std::max(width / (float)this->picture_w, height / (float)this->picture_h);
+    const float w = (float)this->picture_w * scale, h = (float)this->picture_h * scale;
+    nvgBeginPath(vg);
+    nvgRoundedRectVarying(vg, x, y, width, height, 0, RADIUS, RADIUS, 0);
+    nvgFillPaint(vg, nvgImagePattern(vg, x + (width - w) / 2, y + (height - h) / 2, w, h, 0, this->texture, shown * 0.55f));
+    nvgFill(vg);
+    // From the card's surface on the left to the picture on the right.
+    NVGcolor solid = brls::Application::getTheme()["cadran/surf"];
+    solid.a = this->getAlpha();
+    NVGcolor clear = solid;
+    clear.a = 0.0f;
+    nvgBeginPath(vg);
+    nvgRect(vg, x, y, width * 0.7f, height);
+    nvgFillPaint(vg, nvgLinearGradient(vg, x, y, x + width * 0.7f, y, solid, clear));
+    nvgFill(vg);
+}
