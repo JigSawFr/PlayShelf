@@ -1,4 +1,4 @@
-<!-- translated from docs/themes.md, sha256 882270661001 -->
+<!-- translated from docs/themes.md, sha256 1f6825f23495 -->
 # Thèmes
 
 PlayShelf prend toutes ses couleurs dans son thème : le thème clair ou sombre, puis une **palette** par-dessus. La palette peut être celle de PlayShelf, l'une de celles qui l'accompagnent, ou un fichier de thème à vous. Un changement se voit tout de suite, sur tous les écrans, sans redémarrer.
@@ -17,6 +17,8 @@ PlayShelf prend toutes ses couleurs dans son thème : le thème clair ou sombre,
   | Océan | sombre | Bleu profond, un accent bleu ciel |
   | Améthyste | clair et sombre | Violet, selon le thème choisi |
   | Sable | clair | Papier chaud, un accent terre cuite |
+  | Hiver, Saint-Valentin, Nouvel An lunaire, Printemps, Été, Automne, Halloween, Noël, Nouvel An | clair et sombre | Une par saison et par fête : givre et argent, rose, laque rouge et or, fleurs de cerisier, mer et coucher de soleil, érable, citrouille sur une nuit violette, sapin et or, minuit et champagne |
+  | Au fil des saisons | clair et sombre | Celle du jour, selon le calendrier : Halloween à partir du 17 octobre, Noël en décembre, et ainsi de suite. Elle change d'elle-même : le jour où commence une saison ou une fête, les écrans prennent sa palette à minuit, ou dès que la console sort de veille. Les saisons sont celles de l'hémisphère nord ; le [guide des thèmes d'Aurore](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#the-seasons) (en anglais) donne les jours exacts |
 
 - Vos propres fichiers de thème (plus bas), par leur nom.
 
