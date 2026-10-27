@@ -60,6 +60,29 @@ bool redirect_ok(long status, const std::string& target, std::string* error)
     return true;
 }
 
+bool parse_set_cookie(const std::string& line, std::string* cookie)
+{
+    const size_t colon = line.find(':');
+    if (colon == std::string::npos) return false;
+    std::string name = line.substr(0, colon);
+    for (char& c : name)
+        c = (char)std::tolower((unsigned char)c);
+    if (name != "set-cookie") return false;
+    std::string v = line.substr(colon + 1, line.find(';', colon) == std::string::npos ? std::string::npos
+                                                                                     : line.find(';', colon) - colon - 1);
+    auto space = [](char c) { return c == ' ' || c == '\t' || c == '\r' || c == '\n'; };
+    while (!v.empty() && space(v.front()))
+        v.erase(v.begin());
+    while (!v.empty() && space(v.back()))
+        v.pop_back();
+    const size_t eq = v.find('=');
+    if (eq == 0 || eq == std::string::npos) return false;
+    for (char c : v)
+        if ((unsigned char)c < 32 || c == 127) return false;
+    *cookie = v;
+    return true;
+}
+
 bool parse_content_range(const std::string& line, ContentRange* out)
 {
     const size_t colon = line.find(':');

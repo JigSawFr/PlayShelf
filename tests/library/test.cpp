@@ -180,6 +180,18 @@ void test_discovery()
     const std::string http_remote = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":80,"public":true,"remote":"http://x"})";
     const auto h = parse_discovery(http_remote.data(), http_remote.size(), "10.0.0.2");
     CHECK(h && h->remote.empty());
+    // Ownfoil's host alone: over https; anything else in it, dropped.
+    const std::string bare = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":8465,"public":true,"remote":"shop.example.org"})";
+    const auto b = parse_discovery(bare.data(), bare.size(), "10.0.0.2");
+    CHECK(b && b->remote == "https://shop.example.org");
+    const std::string odd = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":8465,"public":true,"remote":"shop example/x"})";
+    const auto o = parse_discovery(odd.data(), odd.size(), "10.0.0.2");
+    CHECK(o && o->remote.empty());
+    // Ownfoil 2's handshake.
+    const auto info = parse_handshake(R"({"uid":"u","name":"Home\nShop","version":"2.5.0","protocol_version":1,"motd":"Hi","public":true,"features":{"save_backup":true}})");
+    CHECK(info && info->name == "Home Shop" && info->motd == "Hi" && info->protocol == 1 && info->public_shop && info->save_backup);
+    CHECK(!parse_handshake("<html>") && !parse_handshake(R"({"name":"no uid"})"));
+    CHECK(url_encode("{a b&c}") == "%7Ba%20b%26c%7D");
     for (const char* bad : {R"({"magic":"OTHER","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":80,"public":true})",
                             R"({"magic":"OWNFOIL","uid":"not-a-uuid","name":"a","version":"1","port":80,"public":true})",
                             R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":70000,"public":true})",

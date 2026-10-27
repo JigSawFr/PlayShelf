@@ -12,6 +12,7 @@
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/services_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
@@ -421,6 +422,9 @@ void LibraryTab::open(size_t i)
     page.name = name;
     page.title_id = game_id;
     if (e.data) {
+        // Its server's cheats and save backups, when it is an AeroFoil one.
+        const auto services = services_flow::game_choices(e.data, game_id);
+        lines.insert(lines.end(), services.begin(), services.end());
         page.lines = library_flow::game_lines(e.data, (size_t)e.title, lines);
     } else {
         // In no catalogue read: what the console has of it.

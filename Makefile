@@ -163,6 +163,12 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 # What is known of the games beyond their catalogue (Nlib API's), kept on
 # the SD card.
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
+# A game's save as a zip archive, and back.
+save_archive_SRC  := source/saves/archive.cpp $(K)/util/zip_write.cpp $(K)/util/paths.cpp tests/save_archive/test.cpp
+save_archive_LIBS := -lz
+# AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
+library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(K)/util/paths.cpp \
+                        tests/library_services/test.cpp
 # The console's games by title (base game, update, add-ons) and what a
 # catalogue has beyond them.
 library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp
@@ -336,6 +342,9 @@ install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz
 install_package_FUZZ_LIBS := -lzstd
 library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
 library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
+save_archive_FUZZ      := source/saves/archive.cpp tests/fuzz/save_archive/fuzz.cpp
+save_archive_FUZZ_LIBS := -lz
+library_services_FUZZ  := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp tests/fuzz/library_services/fuzz.cpp
 titledb_FUZZ           := $(filter-out tests/%,$(titledb_SRC)) tests/fuzz/titledb/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))

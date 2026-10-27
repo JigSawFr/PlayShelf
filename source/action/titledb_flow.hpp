@@ -31,6 +31,10 @@ void start();
 std::optional<titledb::Title> title(uint64_t id);
 // A title's icon, as an image (WebP, PNG or JPEG) and its kind.
 bool icon(uint64_t id, std::vector<uint8_t>* bytes, std::string* ext);
+// The base games whose name holds `query` (case and Latin accents aside,
+// library::fold), `max` at most, by name: a game to ask a server for. Off
+// the UI thread (every name of every source is read).
+std::vector<std::pair<uint64_t, std::string>> search(const std::string& query, size_t max);
 
 struct Status
 {

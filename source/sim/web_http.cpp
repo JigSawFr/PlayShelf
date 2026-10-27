@@ -198,6 +198,28 @@ bool request(const std::string& url, const Headers&, const std::string&, Respons
     return whole(path, &response->body, error, max_bytes, &response->status);
 }
 
+bool call(const std::string& url, const Call& c, const Headers&, const std::string&, Response* response,
+          std::string* error, size_t max_bytes, long)
+{
+    std::string path;
+    if (!demo_file(url, &path)) return sim_net::offline(error);
+    response->cookies.clear();
+    response->location.clear();
+    // The demo server's sign-in always lets in (a session for its other
+    // services); what it is sent is not kept: a form, a deletion.
+    if (c.method == "POST" && url == std::string(web_demo::DEMO_ORIGIN) + "/login") {
+        response->status = 302;
+        response->location = "/";
+        response->cookies.push_back("session=demo");
+        return true;
+    }
+    if (!c.method.empty() && c.method != "GET" && c.method != "OPTIONS") return sim_net::offline(error);
+    if (c.to_path.empty()) return whole(path, &response->body, error, max_bytes, &response->status);
+    const bool ok = download(url, c.to_path, error, max_bytes, 0, c.progress, 0, c.cancel);
+    response->status = ok ? 200 : 404;
+    return ok;
+}
+
 bool peer_certificate(const std::string&, std::string*, std::string* error)
 {
     return sim_net::offline(error);

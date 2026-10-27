@@ -14,6 +14,7 @@
 #include "action/game_page.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/services_flow.hpp"
 #include "library/servers.hpp"
 #include "tab/filter_sheet.hpp"
 #include "ui/ui.hpp"
@@ -266,6 +267,7 @@ void CatalogueTab::show_status()
         const library::Fetch& f = this->shown_data->fetch;
         text = brls::getStr(f.on_lan ? "playshelf/library/count_lan" : "playshelf/library/count_wan",
                             this->selection.size(), this->shown_data->titles.size());
+        if (f.catalog.truncated) text += "\n" + "playshelf/library/truncated"_i18n;
         if (needs_facts()) {
             size_t known = 0;
             for (const library::Title& t : this->shown_data->titles)
@@ -509,6 +511,15 @@ void CatalogueTab::server_sheet()
                              "refresh", "", "playshelf/library/group_this"_i18n);
         choices.emplace_back("playshelf/library/edit_server"_i18n, [copy, saved]() { library_flow::edit(copy, saved); },
                              "pencil", "", "playshelf/library/group_this"_i18n);
+        // An AeroFoil server's services, once its catalogue is read.
+        if (const auto data = this->shown_data; data && services_flow::offered(*data)) {
+            choices.emplace_back("playshelf/services/cheats"_i18n, [data]() { services_flow::cheats(data); }, "code", "",
+                                 "playshelf/library/group_this"_i18n);
+            choices.emplace_back("playshelf/services/saves"_i18n, [data]() { services_flow::saves(data); }, "save", "",
+                                 "playshelf/library/group_this"_i18n);
+            choices.emplace_back("playshelf/services/requests"_i18n, [data]() { services_flow::requests(data); }, "plus", "",
+                                 "playshelf/library/group_this"_i18n);
+        }
     }
     if (this->servers.size() < library::MAX_SERVERS) {
         choices.emplace_back("playshelf/library/add_server"_i18n, [saved]() { library_flow::add(saved); }, "plus", "",

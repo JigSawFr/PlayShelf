@@ -1,9 +1,11 @@
 // client — a library server's catalogue fetched for a profile (Server): its
 // address chosen (the LAN one when it answers, by the profile's
 // connection), the credentials sent (HTTP Basic, over TLS only), the API
-// asked (/api/remote/sections and /api/shop/sections, then the older
-// /api/remote and /api/shop) or the address read as a JSON index
-// (its "directories" followed, a few levels down), the answer parsed
+// asked (/api/remote/sections and /api/shop/sections, the whole catalogue
+// rather than AeroFoil's first few hundred games, then the older
+// /api/remote and /api/shop; Ownfoil 2's GraphQL API, a page at a time,
+// and its handshake) or the address read as a JSON index (its
+// "directories" followed, a few levels down), the answer parsed
 // (catalog.hpp).
 //
 // TLS: a WAN address is vouched for by the CA store; a LAN one by the pin
@@ -22,6 +24,7 @@
 
 #include "library/catalog.hpp"
 #include "library/server.hpp"
+#include "util/http.hpp"
 
 namespace library
 {
@@ -47,6 +50,8 @@ struct Answer
     std::string body;
     bool        tls_failed = false;   // the certificate or key refused
     std::string error;
+    std::vector<std::string> cookies;   // call(): "name=value" each
+    std::string              location;  // call(): a redirect not followed
 };
 
 class Transport
@@ -54,6 +59,11 @@ class Transport
   public:
     virtual ~Transport() = default;
     virtual Answer get(const std::string& url, const std::vector<std::string>& headers, const std::string& pin) = 0;
+    // Any other request (a method, a form, a file sent or written to):
+    // http::call's. Unless a transport makes it, a plain GET goes to get()
+    // and anything else is not sent ("not supported").
+    virtual Answer call(const std::string& url, const http::Call& c, const std::vector<std::string>& headers,
+                        const std::string& pin);
     // Whether `url`'s host answers at all (a LAN address tried first).
     virtual bool reachable(const std::string& url) = 0;
     // The certificate `url` presents, as PEM; "" with `why` when it cannot be read.
@@ -61,6 +71,11 @@ class Transport
 };
 
 enum class FetchStatus { Ok, Failed, UnknownCertificate };
+
+// Which API answered: AeroFoil's sections (its other services, services.hpp,
+// go with it), an older /api/remote or /api/shop, Ownfoil 2's GraphQL, or
+// none (an index).
+enum class Dialect : uint8_t { None, Sections, Shop, GraphQl };
 
 struct Fetch
 {
@@ -70,10 +85,16 @@ struct Fetch
     std::string endpoint;   // the address used
     bool        on_lan = false;
     Format      format = Format::Auto;   // the one that answered (Api or Index)
+    Dialect     dialect = Dialect::None;
+    ServerInfo  info;                     // GraphQl: its handshake, when it answered
     // UnknownCertificate: the key the LAN server showed.
     std::string offered_pin;     // pin_text()
     std::string offered_short;   // pin_short(), for the user to compare
 };
+
+// What AeroFoil is asked for at most in a section ("?limit="): without it,
+// its "All" stops at a few hundred games.
+constexpr size_t SECTIONS_LIMIT = MAX_ITEMS;
 
 constexpr int    MAX_INDEX_DEPTH = 3;
 constexpr size_t MAX_INDEX_FETCHES = 16;

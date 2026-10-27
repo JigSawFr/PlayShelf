@@ -5,6 +5,7 @@
 
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/services_flow.hpp"
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
 
@@ -19,7 +20,8 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
     GameActivity::Page    page;
     page.name = t.name;
     page.title_id = t.id;
-    page.lines = library_flow::game_lines(data, index);
+    // An AeroFoil server's own for this game: its cheats, its save backups.
+    page.lines = library_flow::game_lines(data, index, services_flow::game_choices(data, t.id));
     auto icon_of = [data, password](size_t i) -> GameActivity::IconAsk {
         const std::string url = data->titles[i].icon_url;
         const uint64_t    game_id = data->titles[i].id;
