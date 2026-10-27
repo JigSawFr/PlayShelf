@@ -91,13 +91,13 @@ void GameTile::set_badge(const char* icon_name, const char* ink)
     this->badge->setHeight(SIDE);
     this->badge->setCornerRadius(SIDE / 2);
     this->badge->setBackgroundColor(cadran::kit::color(ink));
-    this->badge->setBorderColor(cadran::kit::color("cadran/navy"));
+    this->badge->setBorderColor(cadran::kit::color("brls/background"));
     this->badge->setBorderThickness(2);
     this->badge->setAlignItems(brls::AlignItems::CENTER);
     this->badge->setJustifyContent(brls::JustifyContent::CENTER);
     this->badge->setShadowType(brls::ShadowType::GENERIC);
     this->badge->setShadowVisibility(true);
-    this->badge->addView(cadran::kit::icon(icon_name, 15, "cadran/navy"));
+    this->badge->addView(cadran::kit::icon(icon_name, 15, "brls/background"));
     this->cover->addView(this->badge);
 }
 

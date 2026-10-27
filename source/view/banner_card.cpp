@@ -35,7 +35,7 @@ BannerCard::BannerCard(float width, float height)
     this->kicker->setCornerRadius(13);
     this->kicker->setMarginBottom(8);
     this->kicker->setVisibility(brls::Visibility::GONE);
-    this->kicker_text = cadran::kit::label("", 14, "cadran/navy");
+    this->kicker_text = cadran::kit::label("", 14, "brls/background");
     this->kicker_text->setSingleLine(true);
     this->kicker->addView(this->kicker_text);
     this->addView(this->kicker);
