@@ -10,7 +10,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `text_size` | `auto`, `normal`, `large` | `auto` | *Preferences › Text size*: `auto` is larger while docked |
 | `effects` | `auto`, `full`, `reduced` | `auto` | *Preferences › Visual effects*: `auto` keeps the lighter effects off the dock |
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
-| `start_tab` | `home`, `library`, `catalogue`, `preferences`, `about` | `library` | *Preferences › Start on* |
+| `start_tab` | `home`, `library`, `catalogue`, `preferences`, `about` | `home` | *Preferences › Start on* |
 | `support_reminder` | `true`, `false` | `true` | "Support PlayShelf" once a month at start-up |
 | `keep_awake` | `true`, `false` | `true` | *Downloads › Stay awake while downloading*: the console does not go to sleep by itself while downloads run |
 | `connections` | `1` to `8` | `4` | *Downloads › Connections per download*: how many requests a download makes at once, each for a 4 MB piece of the package taken in turn; more help with a server that serves each connection slowly. The packages are still installed one after the other. The title database's packs are fetched the same way |

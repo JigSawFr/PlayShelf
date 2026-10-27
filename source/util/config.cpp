@@ -99,7 +99,7 @@ void sanitize(Config& c)
     one_of(c.library_view, { "grid", "list" }, "grid");
     bool tab_ok = false;
     for (const char* t : START_TABS) tab_ok |= c.start_tab == t;
-    if (!tab_ok) c.start_tab = "library";
+    if (!tab_ok) c.start_tab = "home";
     bool keep_ok = false;
     for (int k : LOGS_KEEP) keep_ok |= c.logs_keep == k;
     if (!keep_ok) c.logs_keep = 20;

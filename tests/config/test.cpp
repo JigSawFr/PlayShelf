@@ -37,7 +37,7 @@ static void test_defaults()
     const auto& c = config::get();
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
     CHECK(!c.dev_mode && !c.frame_stats && c.look.glow && c.intro && c.support_reminder);
-    CHECK(c.start_tab == "library" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
+    CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.update_latest.empty() && !c.update_daily);   // the update method: asked the first time
 
     CHECK(config::loaded() == config::Loaded::Missing);   // a first run: nothing to tell
@@ -139,7 +139,7 @@ static void test_fields()
                     "title_sources": ["http://a/m.json", "https://b/m.json", 4, "https://b/m.json", "https://c/m.json"]})");
     config::load();
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
-    CHECK(c.start_tab == "library" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
+    CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.dev_builds_order == "newest" && c.library_view == "grid" && c.update_checked.empty());
     CHECK(c.update_snooze_version.empty() && c.update_snooze_until.empty());
     CHECK(c.support_reminded.empty() && c.seen_version.empty() && c.connections == 4 && c.prefetch == 0);

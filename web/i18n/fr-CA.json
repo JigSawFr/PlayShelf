@@ -53,6 +53,7 @@
     "replaying": "Rejeu des étapes : {n} sur {total}",
     "tour": "Visite",
     "report": "Signaler un problème",
+    "tour_home": "Accueil : où en sont la console et ses serveurs, ce qui manque à vos jeux, les nouveautés des serveurs et des jeux pour vous.",
     "tour_library": "Bibliothèque : les jeux de cette console, leurs versions, et ce qu'un serveur a de plus récent.",
     "tour_catalogue": "Catalogue : les jeux d'un serveur de bibliothèque, ici les jeux inventés de l'étagère de démo.",
     "tour_game": "La fiche d'un jeu : son jeu de base, ses mises à jour et ses contenus additionnels, chacun à installer.",
@@ -72,8 +73,8 @@
     "tab": {
       "label": "Ouvre sur",
       "options": {
-        "": "Bibliothèque",
-        "home": "Accueil",
+        "": "Accueil",
+        "library": "Bibliothèque",
         "catalogue": "Catalogue",
         "preferences": "Préférences",
         "about": "À propos"

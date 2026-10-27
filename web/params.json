@@ -4,7 +4,7 @@
  "params": [
   {"name": "lang", "config": "language", "group": "app", "type": "select", "options": ["en-US", "fr", "fr-CA", "de", "es", "es-419", "it", "nl", "pt", "pt-BR", "ru", "ja", "ko", "zh-Hans", "zh-Hant"], "panel": false},
   {"name": "theme", "config": "theme", "group": "app", "type": "select", "options": ["light", "dark"], "panel": false},
-  {"name": "tab", "config": "start_tab", "group": "app", "type": "select", "options": ["", "home", "catalogue", "preferences", "about"]},
+  {"name": "tab", "config": "start_tab", "group": "app", "type": "select", "options": ["", "library", "catalogue", "preferences", "about"]},
   {"name": "keep", "page": true, "panel": true, "group": "app", "type": "bool", "sticky": true},
   {"name": "rec", "page": true, "group": "app", "type": "text"},
   {"name": "tour", "page": true, "group": "app", "type": "bool"},

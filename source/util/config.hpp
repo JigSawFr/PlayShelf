@@ -45,7 +45,7 @@ struct Config
     std::string update_latest;
     std::string update_snooze_version;
     std::string update_snooze_until;
-    std::string start_tab = "library";   // tab shown at start-up (main.xml order: START_TABS)
+    std::string start_tab = "home";   // tab shown at start-up (main.xml order: START_TABS)
     // The saved reports and the crash files kept, each folder on its own
     // (util/log_files.hpp; 0: no limit): the newest logs_keep, those of the
     // last logs_keep_days days, the newest that fit in logs_keep_mb MB.

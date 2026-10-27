@@ -243,9 +243,9 @@ def run(fn):
 def tabs(new_page):
     page = new_page()
     if open_page(page, FIXED, "tabs"):
-        shot(page, "library")
+        shot(page, "home")
         steps(page, "left")
-        for name in ["catalogue", "downloads", "preferences", "about"]:
+        for name in ["library", "catalogue", "downloads", "preferences", "about"]:
             steps(page, "down")
             if name == "catalogue":
                 time.sleep(2)   # its catalogue and icons, from the demo server

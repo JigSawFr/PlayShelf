@@ -21,14 +21,14 @@ PlayShelf keeps its settings and its data in `sd:/config/playshelf/`: its server
 
 ## Add your server
 
-The first start opens on the **Library**, which says there is no server yet.
+The first start opens on **Home**, which welcomes you: there is no server yet.
 
 - **Add a server**: its name, its `https://` address on your network, over the Internet or both, and its user name and password if it has an account. See [Adding a server](servers.md#adding-a-server).
 - **Find on this network**: lists the AeroFoil and Ownfoil servers that answer on the console's network, to pick one.
 
 ## Install a game
 
-**Home**, at the top of the rail, says where the console and its servers stand: tiles counting the console's games, the updates and add-ons the servers have that it has not, and the downloads under way (Ⓐ on one opens that list), then the games with something to get and the servers' newest games as wide banners, and **For you**: games of your servers like the console's, by the genres of its games. Every server's catalogue is read from there, one after the other. *Preferences › Start on* can open PlayShelf on it.
+**Home**, at the top of the rail, says where the console and its servers stand: tiles counting the console's games, the updates and add-ons the servers have that it has not, and the downloads under way (Ⓐ on one opens that list), then the games with something to get and the servers' newest games as wide banners, and **For you**: games of your servers like the console's, by the genres of its games. Every server's catalogue is read from there, one after the other. PlayShelf opens on it; *Preferences › Start on* picks another tab.
 
 The **Catalogue** shows the server's games as covers, with their size and their add-ons, and a mark on the cover of a game the console has (in amber when there is an update to get). Its controls are a row of pills above them: the server, the search, the order, the filters and the section, in teal while they narrow the list. **Search** and **Order** (by name, newest, largest, publisher, or by genre as shelves: a row of covers a genre, the games not known yet on the last one, **See all** at the end of a full one for the whole genre) narrow it; a server with sections shows them too. **Filters** keep the games of a genre, of a publisher, for one player or several, in your language, by what the console has of them (not there, there, an update or add-ons to get), demos hidden. Genres, publishers, players and languages come from Nlib API as the games show: while a filter needs them, the games not known yet are asked in the background and join the list as they come (the line under the filters says how many are known). The **Library** has its own pills: how many games (Ⓐ reads them again) and **Order and filters**: by name, publisher, newest, or the games with something to get first.
 

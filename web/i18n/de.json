@@ -53,6 +53,7 @@
     "replaying": "Schritte werden wiederholt: {n} von {total}",
     "tour": "Rundgang",
     "report": "Problem melden",
+    "tour_home": "Start: wo Konsole und Server stehen, was deinen Spielen fehlt, die Neuheiten der Server und Spiele für dich.",
     "tour_library": "Bibliothek: die Spiele dieser Konsole, ihre Versionen und was ein Server Neueres hat.",
     "tour_catalogue": "Katalog: die Spiele eines Bibliotheksservers, hier die erfundenen des Demo-Regals.",
     "tour_game": "Die Seite eines Spiels: sein Hauptspiel, seine Updates und Zusatzinhalte, jedes zum Installieren.",
@@ -72,8 +73,8 @@
     "tab": {
       "label": "Öffnet mit",
       "options": {
-        "": "Bibliothek",
-        "home": "Start",
+        "": "Start",
+        "library": "Bibliothek",
         "catalogue": "Katalog",
         "preferences": "Optionen",
         "about": "Info"

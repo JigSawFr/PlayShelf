@@ -53,6 +53,7 @@
     "replaying": "Repitiendo los pasos: {n} de {total}",
     "tour": "Recorrido",
     "report": "Reportar un problema",
+    "tour_home": "Inicio: cómo están la consola y sus servidores, lo que les falta a tus juegos, las novedades de los servidores y juegos para ti.",
     "tour_library": "Biblioteca: los juegos de esta consola, sus versiones y lo que un servidor tiene más reciente.",
     "tour_catalogue": "Catálogo: los juegos de un servidor de biblioteca, aquí los inventados del estante de demo.",
     "tour_game": "La ficha de un juego: su juego base, sus actualizaciones y contenidos descargables, cada uno para instalar.",
@@ -72,8 +73,8 @@
     "tab": {
       "label": "Se abre en",
       "options": {
-        "": "Biblioteca",
-        "home": "Inicio",
+        "": "Inicio",
+        "library": "Biblioteca",
         "catalogue": "Catálogo",
         "preferences": "Preferencias",
         "about": "Información"

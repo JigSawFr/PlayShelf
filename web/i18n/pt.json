@@ -53,6 +53,7 @@
     "replaying": "A repetir os passos: {n} de {total}",
     "tour": "Visita",
     "report": "Comunicar um problema",
+    "tour_home": "Início: como estão a consola e os servidores, o que falta aos seus jogos, as novidades dos servidores e jogos para si.",
     "tour_library": "Biblioteca: os jogos desta consola, as suas versões e o que um servidor tem de mais recente.",
     "tour_catalogue": "Catálogo: os jogos de um servidor de biblioteca, aqui os inventados da prateleira de demonstração.",
     "tour_game": "A ficha de um jogo: o jogo base, as atualizações e os conteúdos adicionais, cada um para instalar.",
@@ -72,8 +73,8 @@
     "tab": {
       "label": "Abre em",
       "options": {
-        "": "Biblioteca",
-        "home": "Início",
+        "": "Início",
+        "library": "Biblioteca",
         "catalogue": "Catálogo",
         "preferences": "Preferências",
         "about": "Sobre"
