@@ -18,8 +18,8 @@ ToolChip::ToolChip(const char* icon_name, const std::string& words)
     this->setMargins(0, 10, 10, 0);
     this->setCornerRadius(HEIGHT / 2);
     this->setHighlightCornerRadius(HEIGHT / 2 + 2);
-    this->setBackgroundColor(cadran::kit::color("cadran/surf"));
-    this->setBorderColor(cadran::kit::color("cadran/line"));
+    this->setThemeColor("backgroundColor", "cadran/surf");
+    this->setThemeColor("borderColor", "cadran/line");
     this->setBorderThickness(1);
     this->setShrink(0);
     this->setFocusable(true);
@@ -46,8 +46,8 @@ void ToolChip::set_active(bool on)
 {
     if (on == this->active) return;
     this->active = on;
-    this->setBackgroundColor(cadran::kit::color(on ? "cadran/teal_soft" : "cadran/surf"));
-    this->setBorderColor(cadran::kit::color(on ? "cadran/teal" : "cadran/line"));
-    this->icon->setColor(cadran::kit::color(on ? "cadran/teal" : "cadran/text2"));
-    this->value->setTextColor(cadran::kit::color(on ? "cadran/teal" : "cadran/text"));
+    this->setThemeColor("backgroundColor", on ? "cadran/teal_soft" : "cadran/surf");
+    this->setThemeColor("borderColor", on ? "cadran/teal" : "cadran/line");
+    this->icon->setThemeColor("color", on ? "cadran/teal" : "cadran/text2");
+    this->value->setThemeColor("textColor", on ? "cadran/teal" : "cadran/text");
 }

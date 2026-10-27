@@ -23,7 +23,7 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
     auto icon_of = [data, password](size_t i) -> GameActivity::IconAsk {
         const std::string url = data->titles[i].icon_url;
         const uint64_t    game_id = data->titles[i].id;
-        return [data, password, url, game_id](std::function<void(int)> shown) {
+        return [data, password, url, game_id](library_icons::Done shown) {
             if (!url.empty()) library_icons::get(data, password, url, std::move(shown), game_id);
             else library_icons::local(game_id, std::move(shown));
         };

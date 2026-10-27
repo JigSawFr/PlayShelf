@@ -8,6 +8,7 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <cstdint>
 #include <string>
 
 class BannerCard : public brls::Box
@@ -20,9 +21,9 @@ class BannerCard : public brls::Box
     void set_line(const std::string& text);
     // The chip above the name: its text and its ink ("cadran/teal"…); empty, none.
     void set_kicker(const std::string& text, const char* ink);
-    // An NVG image of `w` × `h`, drawn to fill the card (cropped); this card
-    // frees it.
-    void set_picture(int texture, int w, int h);
+    // Its picture, `w` × `h` RGBA pixels, drawn to fill the card (cropped):
+    // a texture of its own, freed with it.
+    void set_picture(const uint8_t* rgba, int w, int h);
 
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
               brls::FrameContext* ctx) override;
@@ -45,8 +46,8 @@ class BannerBackdrop : public brls::View
   public:
     BannerBackdrop();
     ~BannerBackdrop() override;
-    // As BannerCard's: this view frees it.
-    void set_picture(int texture, int w, int h);
+    // As BannerCard's.
+    void set_picture(const uint8_t* rgba, int w, int h);
 
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
               brls::FrameContext* ctx) override;

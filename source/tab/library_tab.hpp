@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "action/installed_flow.hpp"
+#include "action/library_icons.hpp"
 #include "action/library_flow.hpp"
 #include "tab/tab_base.hpp"
 
@@ -56,7 +57,7 @@ class LibraryTab : public TabBase
 
     std::shared_ptr<const std::vector<installed_flow::Game>> shown_games;
     std::vector<Entry>     entries;   // by name
-    std::vector<std::function<void(int)>> icons;   // puts an icon on each entry built, in order
+    std::vector<library_icons::Done> icons;   // puts an icon on each entry built, in order
     brls::Box*             grid_row = nullptr;   // covers: the row being filled
     brls::Box*             rows = nullptr;       // list: the card of rows (in list_box, made once)
     size_t                 built = 0;

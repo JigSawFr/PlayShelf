@@ -20,6 +20,9 @@ std::string crashes_dir();
 std::string sessions_dir();
 std::string uploads_dir();
 std::string config_file();
+// The user's theme files (*.theme), listed by the palette picker: none
+// unless the user made the folder.
+std::string themes_dir();
 // The last migration done and the build that last started (util/migrations.hpp).
 std::string migrations_file();
 // What can be fetched or read again (data_cleanup::cache empties it): the

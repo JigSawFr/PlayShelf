@@ -25,11 +25,6 @@
 #include "util/frame_stats.hpp"
 #include "util/paths.hpp"
 
-// nanovg's per-frame counters, through the getter
-// tools/perf_nanovg_stats.patch adds to the borealis tree. Weak: a build
-// without the patch writes "-" for them.
-extern "C" void nvgDebugGetStats(NVGcontext*, int*, int*, int*, int*) __attribute__((weak));
-
 namespace frame_stats_flow
 {
 
@@ -168,14 +163,10 @@ void sample()
         begin_second(now);
         return;
     }
-    int draws = -1, tris = -1;
-    if (nvgDebugGetStats) {
-        int d = 0, fill = 0, stroke = 0, text = 0;
-        nvgDebugGetStats(brls::Application::getNVGContext(), &d, &fill, &stroke, &text);
-        draws = d;
-        tris  = fill + stroke + text;
-    }
-    s_second.add(now - s_last_wall_us, cpu - s_last_cpu_us, draws, tris);
+    // nanovg's own counters for the frame (Aurore's nvgDebugGetStats).
+    int draws = 0, fill = 0, stroke = 0, text = 0;
+    nvgDebugGetStats(brls::Application::getNVGContext(), &draws, &fill, &stroke, &text);
+    s_second.add(now - s_last_wall_us, cpu - s_last_cpu_us, draws, fill + stroke + text);
     s_last_wall_us = now;
     s_last_cpu_us  = cpu;
     if (now - s_second_start_us >= 1000000) {

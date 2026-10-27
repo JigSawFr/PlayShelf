@@ -5,7 +5,9 @@
   playshelf.json) defines exactly the keys of en-US, with as many "{}";
 - config::LANGUAGES (source/util/config.hpp) lists exactly those languages,
   and each has a name under playshelf/tools/languages/;
-- every "playshelf/..." key referenced from C++ or XML exists in en-US;
+- every "playshelf/..." key referenced from C++ or XML exists in en-US,
+  but PlayShelf's theme colours (THEME_KEYS: "playshelf/dial/...", keys of
+  the theme, not of the catalogs), which docs/themes.md lists each;
 - a key built at runtime ("playshelf/days/{}", "playshelf/error/" + key)
   is under a prefix DYNAMIC_KEYS declares, with the values the code
   can put after it (read from the code's own lists where there is one): each
@@ -194,9 +196,18 @@ def check_key(key, where):
         errors.append(f"{where}: unknown i18n key {key}")
 
 
+# PlayShelf's own theme colours (View::setThemeColor, theme files): the
+# prefixes they are under, documented for theme makers in docs/themes.md.
+THEME_KEYS = ("playshelf/dial/",)
+theme_doc = open(f"{ROOT}/docs/themes.md", encoding="utf-8").read()
+
 for path in glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursive=True) + glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):
     text = open(path, encoding="utf-8").read()
     for m in re.finditer(r'"(playshelf/[A-Za-z0-9_/{}.-]*)"', text):
+        if m.group(1).startswith(THEME_KEYS):
+            if f"`{m.group(1)}`" not in theme_doc:
+                errors.append(f"{path}: the theme key {m.group(1)} is not in docs/themes.md")
+            continue
         check_key(m.group(1), path)
 
 for path in sorted(glob.glob(f"{ROOT}/resources/xml/**/*.xml", recursive=True)):

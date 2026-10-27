@@ -315,8 +315,8 @@ void HomeTab::add_tiles(size_t console_games, size_t updates, size_t dlcs, size_
         box->setMargins(0, 6, 0, 6);
         box->setCornerRadius(16);
         box->setHighlightCornerRadius(18);
-        box->setBackgroundColor(kit::color("cadran/surf"));
-        box->setBorderColor(kit::color("cadran/line"));
+        box->setThemeColor("backgroundColor", "cadran/surf");
+        box->setThemeColor("borderColor", "cadran/line");
         box->setBorderThickness(1);
         box->setFocusable(true);
         auto* top = new brls::Box(brls::Axis::ROW);
@@ -412,11 +412,10 @@ void HomeTab::add_banners(const std::string& title, const std::vector<Pick>& pic
         this->cards.push_back(card);
         const size_t at = this->cards.size() - 1;
         library_icons::picture(titledb::nlib_banner_url(t.id), 854, 480,
-                               [weak = ui::Weak(this->alive), this, at, gen](int texture, int w, int h) {
+                               [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& pic) {
                                    const ui::Alive held = weak.lock();
-                                   if (held && *held && gen == this->generation && at < this->cards.size())
-                                       this->cards[at]->set_picture(texture, w, h);
-                                   else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+                                   if (pic && held && *held && gen == this->generation && at < this->cards.size())
+                                       this->cards[at]->set_picture(pic->rgba.data(), pic->width, pic->height);
                                });
     }
 }
@@ -438,7 +437,7 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
                 break;
             }
         tile->set_detail(detail.empty() ? library_flow::size_text(t.size) : detail);
-        tile->set_detail_color(kit::color("cadran/text3"));
+        tile->set_detail_color("cadran/text3");
         const auto   data = p.data;
         const size_t index = p.index;
         tile->registerClickAction([data, index](brls::View*) {
@@ -448,10 +447,10 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
         row->addView(tile);
         this->tiles.push_back(tile);
         const size_t at = this->tiles.size() - 1;
-        auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+        auto shown = [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& pic) {
             const ui::Alive held = weak.lock();
-            if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
-            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+            if (pic && held && *held && gen == this->generation && at < this->tiles.size())
+                this->tiles[at]->set_icon(pic->rgba.data(), pic->width, pic->height);
         };
         if (!t.icon_url.empty()) library_icons::get(data, library::password_of(data->server), t.icon_url, shown, t.id);
         else library_icons::local(t.id, shown);
@@ -471,7 +470,7 @@ void HomeTab::add_recent(const std::vector<const installed_flow::Game*>& recent,
         if (name.empty()) name = fmt::format("{:016X}", g->game.id);
         tile->set_name(name);
         tile->set_detail(installed_flow::play_text(g->play_s));
-        tile->set_detail_color(kit::color("cadran/teal"));
+        tile->set_detail_color("cadran/teal");
         // Its page from a catalogue that has it, else the Library.
         Pick found;
         for (const auto& l : all) {
@@ -488,18 +487,19 @@ void HomeTab::add_recent(const std::vector<const installed_flow::Game*>& recent,
         row->addView(tile);
         this->tiles.push_back(tile);
         const size_t at = this->tiles.size() - 1;
-        auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+        auto shown = [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& pic) {
             const ui::Alive held = weak.lock();
-            if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
-            else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+            if (pic && held && *held && gen == this->generation && at < this->tiles.size())
+                this->tiles[at]->set_icon(pic->rgba.data(), pic->width, pic->height);
         };
         // The console's own icon, else the title database's or Nlib API's.
-        const auto bytes = g->icon;
-        const int  texture = bytes ? nvgCreateImageMem(brls::Application::getNVGContext(), 0, (unsigned char*)bytes->data(),
-                                                       (int)bytes->size())
-                                   : 0;
-        if (texture > 0) shown(texture);
-        else library_icons::local(g->game.id, shown);
+        const uint64_t game_id = g->game.id;
+        if (!g->icon) library_icons::local(game_id, shown);
+        else
+            library_icons::decode(g->icon, [shown, game_id](const library_icons::Picture& p) {
+                if (p) shown(p);
+                else library_icons::local(game_id, shown);
+            });
     }
 }
 

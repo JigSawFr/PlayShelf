@@ -7,6 +7,7 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <cstdint>
 #include <string>
 
 class CadranIcon;
@@ -22,12 +23,12 @@ class GameTile : public brls::Box
 
     void set_name(const std::string& text);
     void set_detail(const std::string& text);
-    void set_detail_color(NVGcolor color);
+    void set_detail_color(const char* key);   // a theme key ("cadran/amber")
     // A round mark on the cover's corner: `icon_name` on `ink` ("cadran/teal"
     // installed, "cadran/amber" an update to get); nullptr, none.
     void set_badge(const char* icon_name, const char* ink);
-    // An NVG image in place of the gamepad; `owned`, this tile frees it.
-    void set_icon_texture(int texture, bool owned);
+    // Its icon (width × height RGBA pixels) in place of the gamepad.
+    void set_icon(const uint8_t* rgba, int width, int height);
     bool has_icon() const { return this->iconed; }
 
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,

@@ -37,6 +37,7 @@ static void test_defaults()
     const auto& c = config::get();
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
     CHECK(!c.dev_mode && !c.frame_stats && c.look.glow && c.intro && c.support_reminder);
+    CHECK(c.look.theme_file.empty());   // the boards' own palette
     CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.update_latest.empty() && !c.update_daily);   // the update method: asked the first time
 
@@ -163,6 +164,7 @@ static void test_round_trip()
     auto& c = config::get();
     c.look.language = "ja";
     c.look.theme = "light";
+    c.look.theme_file = "builtin:ocean";
     c.look.text_size = "normal";
     c.look.effects = "full";
     c.dev_mode = true;
@@ -195,6 +197,7 @@ static void test_round_trip()
     config::load();
     CHECK(c.look.language == before.look.language && c.look.theme == before.look.theme && c.look.text_size == before.look.text_size);
     CHECK(c.look.effects == before.look.effects && c.dev_mode && c.frame_stats && !c.look.glow);
+    CHECK(c.look.theme_file == "builtin:ocean");
     CHECK(c.update_via == "inplace" && c.update_daily && c.update_checked == "2026-10-24");
     CHECK(c.update_latest == "1.2.0" && c.update_snooze_version == "1.2.0" && c.update_snooze_until == "2026-11-01");
     CHECK(c.start_tab == "preferences" && c.logs_keep == 50 && c.logs_keep_days == 30 && c.logs_keep_mb == 5);

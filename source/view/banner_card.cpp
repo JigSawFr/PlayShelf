@@ -11,6 +11,15 @@ namespace
 {
 constexpr float RADIUS = 16;
 constexpr float FADE_US = 240000.0f;   // a picture's arrival
+
+// A texture of `w` × `h` RGBA pixels in place of `texture` (0: none), 0 when
+// it could not be made.
+int replace_texture(int texture, const uint8_t* rgba, int w, int h)
+{
+    NVGcontext* vg = brls::Application::getNVGContext();
+    if (texture) nvgDeleteImage(vg, texture);
+    return rgba && w > 0 && h > 0 ? nvgCreateImageRGBA(vg, w, h, 0, rgba) : 0;
+}
 }   // namespace
 
 BannerCard::BannerCard(float width, float height)
@@ -70,14 +79,14 @@ void BannerCard::set_kicker(const std::string& text, const char* ink)
     this->kicker->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
     if (text.empty()) return;
     this->kicker_text->setText(text);
-    this->kicker->setBackgroundColor(cadran::kit::color(ink));
+    this->kicker->setThemeColor("backgroundColor", ink);
 }
 
-void BannerCard::set_picture(int tex, int w, int h)
+void BannerCard::set_picture(const uint8_t* rgba, int w, int h)
 {
-    if (!tex) return;
-    if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
+    const int tex = replace_texture(this->texture, rgba, w, h);
     this->texture = tex;
+    if (!tex) return;
     this->picture_w = w;
     this->picture_h = h;
     this->since = effects::motion() ? motion::now() : 0;
@@ -138,11 +147,11 @@ BannerBackdrop::~BannerBackdrop()
     if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
 }
 
-void BannerBackdrop::set_picture(int tex, int w, int h)
+void BannerBackdrop::set_picture(const uint8_t* rgba, int w, int h)
 {
-    if (!tex) return;
-    if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
+    const int tex = replace_texture(this->texture, rgba, w, h);
     this->texture = tex;
+    if (!tex) return;
     this->picture_w = w;
     this->picture_h = h;
     this->since = effects::motion() ? motion::now() : 0;

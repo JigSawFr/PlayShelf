@@ -35,7 +35,6 @@ constexpr size_t MAX_OTHERS = 12;   // games in a row of more like it
 
 enum Tab : size_t { OVERVIEW, UPDATES, DLCS, DETAILS };
 
-// A texture that came after its view went: freed.
 constexpr float HERO_RADIUS = 16;   // the banner's corners
 
 // The banner: its picture, its lower part fading into the page for the
@@ -49,7 +48,6 @@ class Banner : public brls::Image
         this->setCornerRadius(HERO_RADIUS);
         this->setScalingType(brls::ImageScalingType::FILL);
         this->setClipsToBounds(true);
-        this->setFreeTexture(true);
         this->setVisibility(brls::Visibility::GONE);
     }
 
@@ -77,7 +75,7 @@ brls::Box* chip(const std::string& text, const char* icon_name, const char* ink,
     box->setPaddingLeft(12);
     box->setPaddingRight(15);
     box->setCornerRadius(16);
-    box->setBackgroundColor(kit::color(tint));
+    box->setThemeColor("backgroundColor", tint);
     box->setMarginRight(8);
     box->setMarginBottom(6);
     CadranIcon* mark = kit::icon(icon_name, 16, ink);
@@ -98,8 +96,8 @@ brls::Box* status_card(const std::string& title, const std::string& line, const 
     card->setAlignItems(brls::AlignItems::CENTER);
     card->setPadding(16, 20, 16, 16);
     card->setCornerRadius(16);
-    card->setBackgroundColor(kit::color("cadran/surf"));
-    card->setBorderColor(kit::color("cadran/line"));
+    card->setThemeColor("backgroundColor", "cadran/surf");
+    card->setThemeColor("borderColor", "cadran/line");
     card->setBorderThickness(1);
     card->setMarginBottom(16);
     auto* round = new brls::Box(brls::Axis::ROW);
@@ -107,7 +105,7 @@ brls::Box* status_card(const std::string& title, const std::string& line, const 
     round->setHeight(48);
     round->setShrink(0);
     round->setCornerRadius(24);
-    round->setBackgroundColor(kit::color(tint));
+    round->setThemeColor("backgroundColor", tint);
     round->setAlignItems(brls::AlignItems::CENTER);
     round->setJustifyContent(brls::JustifyContent::CENTER);
     round->setMarginRight(16);
@@ -124,11 +122,6 @@ brls::Box* status_card(const std::string& title, const std::string& line, const 
     }
     card->addView(text);
     return card;
-}
-
-void drop(int texture)
-{
-    if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
 }
 
 // A game's language in the language PlayShelf speaks ("ko" -> "coréen"),
@@ -187,7 +180,6 @@ class ShotActivity : public brls::Activity
         this->image->setWidth(FULL_W);
         this->image->setHeight(FULL_H);
         this->image->setScalingType(brls::ImageScalingType::FIT);
-        this->image->setFreeTexture(true);
         box->addView(this->image);
         this->counter = kit::label("", 18, "cadran/text3");
         this->counter->setMarginTop(12);
@@ -226,10 +218,9 @@ class ShotActivity : public brls::Activity
         const int wanted = this->at;
         ui::Weak  weak(this->alive);
         library_icons::picture(titledb::nlib_screen_url(this->base, wanted), FULL_W, FULL_H,
-                               [this, weak, wanted](int texture, int, int) {
+                               [this, weak, wanted](const library_icons::Picture& p) {
                                    const ui::Alive held = weak.lock();
-                                   if (!held || !*held || wanted != this->at || !texture) return drop(texture);
-                                   this->image->innerSetImage(texture);
+                                   if (held && *held && wanted == this->at) library_icons::show(this->image, p);
                                });
     }
 };
@@ -297,7 +288,7 @@ void GameActivity::add_head()
     cover->setHeight(ICON);
     cover->setShrink(0);
     cover->setCornerRadius(12);
-    cover->setBackgroundColor(kit::color("cadran/well"));
+    cover->setThemeColor("backgroundColor", "cadran/well");
     cover->setAlignItems(brls::AlignItems::CENTER);
     cover->setJustifyContent(brls::JustifyContent::CENTER);
     cover->setMarginRight(24);
@@ -310,7 +301,6 @@ void GameActivity::add_head()
     this->icon->setHeight(ICON);
     this->icon->setCornerRadius(12);
     this->icon->setScalingType(brls::ImageScalingType::FIT);
-    this->icon->setFreeTexture(true);
     this->icon->setVisibility(brls::Visibility::GONE);
     cover->addView(this->icon);
     head->addView(cover);
@@ -340,10 +330,9 @@ void GameActivity::add_head()
 
     if (this->page.icon) {
         ui::Weak weak(this->alive);
-        this->page.icon([this, weak, placeholder](int texture) {
+        this->page.icon([this, weak, placeholder](const library_icons::Picture& p) {
             const ui::Alive held = weak.lock();
-            if (!held || !*held || !texture) return drop(texture);
-            this->icon->innerSetImage(texture);
+            if (!held || !*held || !library_icons::show(this->icon, p)) return;
             this->icon->setVisibility(brls::Visibility::VISIBLE);
             placeholder->setVisibility(brls::Visibility::GONE);
         });
@@ -445,12 +434,11 @@ void GameActivity::select(size_t tab, bool focus)
 {
     if (tab >= this->tabs.size()) return;
     this->current = tab;
-    brls::Theme theme = brls::Application::getTheme();
     for (size_t i = 0; i < this->tabs.size(); i++) {
         const bool on = i == tab;
-        this->tabs[i]->setBackgroundColor(theme[on ? "cadran/teal_soft" : "cadran/surf2"]);
+        this->tabs[i]->setThemeColor("backgroundColor", on ? "cadran/teal_soft" : "cadran/surf2");
         if (auto* label = dynamic_cast<brls::Label*>(this->tabs[i]->getChildren()[0]))
-            label->setTextColor(theme[on ? "cadran/teal" : "cadran/text2"]);
+            label->setThemeColor("textColor", on ? "cadran/teal" : "cadran/text2");
         this->panes[i]->setVisibility(on ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
     }
     if (focus) brls::Application::giveFocus(this->tabs[tab]);
@@ -461,7 +449,6 @@ void GameActivity::select(size_t tab, bool focus)
 void GameActivity::add_lines(brls::Box* pane, const std::vector<ui::Choice>& lines)
 {
     if (lines.empty()) return;
-    brls::Theme theme = brls::Application::getTheme();
     auto*       holder = new brls::Box(brls::Axis::COLUMN);
     holder->setAlignItems(brls::AlignItems::STRETCH);
     pane->addView(holder);
@@ -478,8 +465,8 @@ void GameActivity::add_lines(brls::Box* pane, const std::vector<ui::Choice>& lin
                          : c.tone == ui::Choice::Tone::WARN   ? "cadran/amber"
                          : c.tone == ui::Choice::Tone::DANGER ? "cadran/coral"
                                                               : nullptr;
-        cell->detail->setTextColor(theme[tint ? tint : "cadran/text2"]);
-        if (c.tone == ui::Choice::Tone::DANGER) cell->title->setTextColor(theme["cadran/coral"]);
+        cell->detail->setThemeColor("textColor", tint ? tint : "cadran/text2");
+        if (c.tone == ui::Choice::Tone::DANGER) cell->title->setThemeColor("textColor", "cadran/coral");
         if (tint && c.icon)
             cadran::List::recolor_icon(cell, nullptr, tint,
                                        c.tone == ui::Choice::Tone::DANGER ? "cadran/coral_soft"
@@ -527,10 +514,9 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
 
     // Its banner, over the page once it came.
     ui::Weak weak(this->alive);
-    library_icons::picture(titledb::nlib_banner_url(base), 854, 480, [this, weak](int texture, int, int) {
+    library_icons::picture(titledb::nlib_banner_url(base), 854, 480, [this, weak](const library_icons::Picture& p) {
         const ui::Alive held = weak.lock();
-        if (!held || !*held || !texture) return drop(texture);
-        banner->innerSetImage(texture);
+        if (!held || !*held || !library_icons::show(banner, p)) return;
         banner->setVisibility(brls::Visibility::VISIBLE);
         this->over_banner();
     });
@@ -661,7 +647,7 @@ void GameActivity::add_screens(int count)
         tile->setMarginRight(16);
         tile->setCornerRadius(10);
         tile->setHighlightCornerRadius(12);
-        tile->setBackgroundColor(kit::color("cadran/well"));
+        tile->setThemeColor("backgroundColor", "cadran/well");
         tile->setAlignItems(brls::AlignItems::CENTER);
         tile->setJustifyContent(brls::JustifyContent::CENTER);
         tile->setFocusable(true);
@@ -670,7 +656,6 @@ void GameActivity::add_screens(int count)
         image->setHeight(SHOT_H);
         image->setCornerRadius(10);
         image->setScalingType(brls::ImageScalingType::FIT);
-        image->setFreeTexture(true);
         tile->addView(image);
         tile->registerClickAction([base, count, n](brls::View*) {
             brls::Application::pushActivity(new ShotActivity(base, count, n), brls::TransitionAnimation::FADE);
@@ -678,10 +663,9 @@ void GameActivity::add_screens(int count)
         });
         row->addView(tile);
         ui::Weak weak(this->alive);
-        library_icons::picture(titledb::nlib_screen_url(base, n), SHOT_W, SHOT_H, [weak, image](int texture, int, int) {
+        library_icons::picture(titledb::nlib_screen_url(base, n), SHOT_W, SHOT_H, [weak, image](const library_icons::Picture& p) {
             const ui::Alive held = weak.lock();
-            if (!held || !*held || !texture) return drop(texture);
-            image->innerSetImage(texture);
+            if (held && *held) library_icons::show(image, p);
         });
     }
 }
@@ -715,10 +699,9 @@ void GameActivity::add_others(const std::string& title_text, std::vector<Other> 
         row->addView(tile);
         if (o.icon) {
             ui::Weak weak(this->alive);
-            o.icon([weak, tile](int texture) {
+            o.icon([weak, tile](const library_icons::Picture& p) {
                 const ui::Alive held = weak.lock();
-                if (!held || !*held || !texture) return drop(texture);
-                tile->set_icon_texture(texture, true);
+                if (held && *held && p) tile->set_icon(p->rgba.data(), p->width, p->height);
             });
         }
     }

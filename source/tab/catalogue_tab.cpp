@@ -71,12 +71,12 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
     const library::TitleState st = library::state_of(t, catalog, installed);
     if (st.base) {
         tile->set_detail(st.update_available ? "playshelf/library/update_available"_i18n : "playshelf/library/installed"_i18n);
-        tile->set_detail_color(cadran::kit::color(st.update_available ? "cadran/amber" : "cadran/teal"));
+        tile->set_detail_color(st.update_available ? "cadran/amber" : "cadran/teal");
         tile->set_badge(st.update_available ? "download" : "check", st.update_available ? "cadran/amber" : "cadran/teal");
         return;
     }
     tile->set_badge(nullptr, nullptr);
-    tile->set_detail_color(cadran::kit::color("cadran/text3"));
+    tile->set_detail_color("cadran/text3");
     std::string text = library_flow::size_text(t.size);
     if (t.base < 0) text += " · " + "playshelf/library/no_base"_i18n;
     else if (t.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
@@ -274,7 +274,7 @@ void CatalogueTab::show_status()
         }
         if (!f.catalog.motd.empty()) text += "\n" + f.catalog.motd;
     }
-    status->setTextColor(cadran::kit::color(color));
+    status->setThemeColor("textColor", color);
     ui::set_text(status, text.empty() ? " " : text);
 }
 
@@ -314,7 +314,7 @@ void CatalogueTab::build_grid(bool force)
     this->tiles.clear();
     this->tile_titles.clear();
     // The icons of the covers gone are not wanted; one already on its way
-    // finds its cover gone (the generation changed) and is freed.
+    // finds its cover gone (the generation changed) and is dropped.
     library_icons::drop_pending();
     this->generation++;
     this->password = data ? library::password_of(data->server) : "";
@@ -401,10 +401,10 @@ GameTile* CatalogueTab::make_tile(size_t index)
     this->tile_titles.push_back(index);
     const size_t at = this->tiles.size() - 1;
     const int    gen = this->generation;
-    auto shown = [weak = ui::Weak(this->alive), this, at, gen](int texture) {
+    auto shown = [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& p) {
         const ui::Alive held = weak.lock();
-        if (held && *held && gen == this->generation && at < this->tiles.size()) this->tiles[at]->set_icon_texture(texture, true);
-        else if (texture) nvgDeleteImage(brls::Application::getNVGContext(), texture);
+        if (p && held && *held && gen == this->generation && at < this->tiles.size())
+            this->tiles[at]->set_icon(p->rgba.data(), p->width, p->height);
     };
     // The server's icon, else the title database's, else Nlib API's.
     if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown, t.id);
@@ -450,7 +450,7 @@ void CatalogueTab::add_shelves()
         count->setPaddingRight(10);
         count->setCornerRadius(13);
         count->setMarginLeft(12);
-        count->setBackgroundColor(cadran::kit::color(genre.empty() ? "cadran/surf2" : "cadran/teal_soft"));
+        count->setThemeColor("backgroundColor", genre.empty() ? "cadran/surf2" : "cadran/teal_soft");
         count->addView(cadran::kit::label(std::to_string(games.size()), 15, genre.empty() ? "cadran/text2" : "cadran/teal"));
         header->addView(count);
         grid->addView(header);
@@ -466,7 +466,7 @@ void CatalogueTab::add_shelves()
             auto* all = new GameTile();
             all->set_name("playshelf/library/shelf_all"_i18n);
             all->set_detail(brls::getStr("playshelf/library/shelf_games", games.size()));
-            all->set_detail_color(cadran::kit::color("cadran/teal"));
+            all->set_detail_color("cadran/teal");
             const std::string g = genre;
             // The grid built again once this click is over (it frees this cover).
             all->registerClickAction([this, g](brls::View*) {

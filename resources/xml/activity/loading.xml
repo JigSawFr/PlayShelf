@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- The loading screen (activity/loading_activity.hpp), in the brand colours of
-     the store banner, Cadran's dial on the right (the light theme: its cool white, the wordmark and the
-     bar in its inks, LoadingActivity::onContentAvailable): the icon over
+<!-- The loading screen (activity/loading_activity.hpp), in the theme's background
+     and texts (the store banner's navy on the dark theme), Cadran's dial on the right (on a light
+     background, the wordmark and the bar in its inks, LoadingActivity::follow_theme): the icon over
      Aurore's aurora glow, breathing, the wordmark, the tagline, and a progress bar over the
      start-up steps. -->
 
@@ -13,7 +13,7 @@
     axis="column"
     justifyContent="center"
     alignItems="center"
-    backgroundColor="#0B1424">
+    backgroundColor="@theme/brls/background">
 
     <!-- Cadran's dial on the right, behind the rest (as the PIN gate's). -->
     <LoadingDial
@@ -40,7 +40,7 @@
         text="@i18n/playshelf/loading/tagline"
         fontSize="22"
         horizontalAlign="center"
-        textColor="#A9B5C9"
+        textColor="@theme/cadran/text2"
         marginBottom="64"/>
 
     <LoadingBar
@@ -54,7 +54,7 @@
         text=" "
         fontSize="18"
         horizontalAlign="center"
-        textColor="#A9B5C9"/>
+        textColor="@theme/cadran/text2"/>
 
     <!-- Holds the focus while this screen is the top one (nothing to press
          here): pushed over it, the first screen hands it back to a view of
@@ -63,7 +63,7 @@
         id="loading_anchor"
         width="1"
         height="1"
-        color="#0B1424"
+        color="@theme/brls/background"
         focusable="true"
         hideHighlight="true"/>
 

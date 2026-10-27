@@ -28,6 +28,7 @@
 #include <borealis/cadran/ui/ui.hpp>
 
 #include "action/library_flow.hpp"
+#include "action/library_icons.hpp"
 #include "titledb/nlib.hpp"
 
 class GameActivity : public brls::Activity
@@ -35,9 +36,9 @@ class GameActivity : public brls::Activity
   public:
     CONTENT_FROM_XML_RES("activity/game.xml");
 
-    // Asks for an icon: the setter given, called with a texture its view
-    // then owns (0: none).
-    using IconAsk = std::function<void(std::function<void(int)>)>;
+    // Asks for an icon: the setter given, called on the UI thread with its
+    // pixels (library_icons; nullptr: none).
+    using IconAsk = std::function<void(library_icons::Done)>;
 
     // Another game the page offers (more of its publisher, of its genre).
     struct Other

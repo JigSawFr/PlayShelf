@@ -233,11 +233,11 @@ key("Escape")
 go_to("Theme", "Right")
 key("Return")
 shot("04_theme_picker")
-key("Down")                  # Light
+key("Up")                    # Light (the focus starts on the theme chosen, Dark)
 key("Return")
 shot("05_light_theme")
-key("Return")                # the picker again: back to Dark
-key("Down", 2)
+key("Return")                # the picker again, on Light: back to Dark
+key("Down")
 key("Return")
 key("Left", 3)
 key("Left")                  # back to the rail
