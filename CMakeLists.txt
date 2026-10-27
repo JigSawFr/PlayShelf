@@ -314,8 +314,12 @@ if (PLAYSHELF_WEB)
                         OUTPUT_QUIET ERROR_QUIET)
     endif ()
     if (Python3_FOUND AND NOT PLAYSHELF_NO_FONTTOOLS AND EXISTS "${PLAYSHELF_WEB_CJK_FONT}")
-        file(GLOB PLAYSHELF_CJK_CATALOGS ${PROJECT_RESOURCES}/i18n/ja/*.json ${PROJECT_RESOURCES}/i18n/ko/*.json
-             ${PROJECT_RESOURCES}/i18n/zh-Hans/*.json ${PROJECT_RESOURCES}/i18n/zh-Hant/*.json)
+        set(PLAYSHELF_CJK_CATALOGS)
+        foreach (resources ${PROJECT_RESOURCES} ${BOREALIS_RESOURCES})
+            file(GLOB catalogs ${resources}/i18n/ja/*.json ${resources}/i18n/ko/*.json
+                 ${resources}/i18n/zh-Hans/*.json ${resources}/i18n/zh-Hant/*.json)
+            list(APPEND PLAYSHELF_CJK_CATALOGS ${catalogs})
+        endforeach ()
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/cjk.otf
             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/web_cjk_font.py
                     ${PLAYSHELF_WEB_CJK_FONT} ${CMAKE_BINARY_DIR}/cjk.otf ${CMAKE_CURRENT_SOURCE_DIR}

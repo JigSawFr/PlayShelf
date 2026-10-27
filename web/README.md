@@ -118,8 +118,9 @@ builds `build-web/simulator/`; `make web-serve` serves it at
   `brls_web_button()`, which the page calls to press a button, and the CJK
   font below as borealis' fallback when it is there at start-up.
 - **Japanese, Korean and Chinese**: a browser has no system font for
-  borealis to fall back on. The web build cuts the characters the four
-  catalogs use out of Noto Sans CJK (SIL Open Font License,
+  borealis to fall back on. The web build cuts the characters those four
+  languages' catalogs use (PlayShelf's and Aurore's, for the theme names) out
+  of Noto Sans CJK (SIL Open Font License,
   `tools/web_cjk_font.py`, which needs fontTools) into `cjk.otf`, served next
   to the page: in those four languages the page fetches it before PlayShelf
   starts; in the others, once PlayShelf runs, behind the Latin font
