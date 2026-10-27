@@ -11,6 +11,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
+#include "action/services_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "library/servers.hpp"
 #include "library/titles.hpp"
@@ -299,6 +300,14 @@ void LibraryTab::open(size_t i)
                       }),
                       "trash", "", "playshelf/installed/group_console"_i18n, ui::Choice::Tone::DANGER);
     if (e.data) {
+        // Its server's cheats and save backups, when it is an AeroFoil one.
+        if (services_flow::offered(*e.data)) {
+            const auto data = e.data;
+            lines.emplace_back("playshelf/services/cheats"_i18n, [data, game_id]() { services_flow::cheats(data, game_id); }, "code",
+                               "", "playshelf/services/group_server_more"_i18n);
+            lines.emplace_back("playshelf/services/saves"_i18n, [data, game_id]() { services_flow::saves(data, game_id); }, "save",
+                               "", "playshelf/services/group_server_more"_i18n);
+        }
         library_flow::game_sheet(e.data, (size_t)e.title, lines);
         return;
     }

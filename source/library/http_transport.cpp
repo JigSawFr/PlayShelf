@@ -29,6 +29,24 @@ Answer HttpTransport::get(const std::string& url, const std::vector<std::string>
     return a;
 }
 
+Answer HttpTransport::call(const std::string& url, const http::Call& c, const std::vector<std::string>& headers,
+                           const std::string& pin)
+{
+    http::Response r;
+    Answer         a;
+    // A file sent or written: no overall limit (http::call gives up on a
+    // stall instead); else a minute, as get().
+    const bool file = !c.file_path.empty() || !c.to_path.empty();
+    const bool ok = http::call(url, c, headers, pin, &r, &a.error, 32u << 20, file ? 0 : 60);
+    a.status = r.status;
+    a.tls_failed = r.tls_failed;
+    a.cookies = std::move(r.cookies);
+    a.location = std::move(r.location);
+    if (ok || r.status >= 400) a.body = std::move(r.body);
+    if (!ok && r.status >= 400) a.error.clear();
+    return a;
+}
+
 bool HttpTransport::reachable(const std::string& url)
 {
     // Any answer, a TLS refusal included, says the host is there.

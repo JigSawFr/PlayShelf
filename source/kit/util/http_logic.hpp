@@ -76,6 +76,11 @@ struct ContentRange
 };
 bool parse_content_range(const std::string& line, ContentRange* out);
 
+// A "Set-Cookie:" header line (the name in any case): its "name=value",
+// without the attributes after it (Path, Secure…). False for any other line,
+// or a cookie without a name or with a control character.
+bool parse_set_cookie(const std::string& line, std::string* cookie);
+
 // What a range() answer may be: a 206 for exactly the range asked.
 bool range_ok(long status, const ContentRange* got, uint64_t first, uint64_t length, std::string* error);
 

@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -42,6 +43,9 @@ class TitlePack
     size_t count() const { return this->index.size(); }
     // `id`'s entry, nothing when the pack has none (or nothing of it).
     std::optional<Title> find(uint64_t id) const;
+    // Each base game's id and name (those it names), by id, until `each`
+    // answers false.
+    void each_base_name(const std::function<bool(uint64_t id, const std::string& name)>& each) const;
 
   private:
     struct Entry

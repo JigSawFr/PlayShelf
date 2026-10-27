@@ -4,7 +4,8 @@ PlayShelf installs from a library server you run yourself, on a computer or a NA
 
 ## What PlayShelf reads
 
-- **AeroFoil and Ownfoil**, through their API (`/api/remote`, else `/api/shop`): the server's sections, its games with their sizes, versions and icons, and its message of the day.
+- **AeroFoil**, and Ownfoil before its version 2, through their API (`/api/remote`, else `/api/shop`): the server's sections, its games with their sizes, versions and icons, and its message of the day. PlayShelf asks for the whole catalogue: AeroFoil otherwise stops its *All* section at a few hundred games. An account AeroFoil has frozen is said as such.
+- **Ownfoil 2**, through its GraphQL API (`/api/graphql`, a page of games at a time) and its handshake (its name and message of the day).
 - **A JSON index** on any web server: an object with `files`, `directories`, `titledb` or `success`.
 
 *Catalogue*, in a server's profile, is **Found out** by default: PlayShelf tries the API first, then reads the address as an index. Set it to the one your server speaks to skip the guess.
@@ -40,6 +41,16 @@ PlayShelf does not read encrypted Tinfoil indexes, and sends neither Tinfoil's a
 - **User name** and **Password**, when the server asks for them (HTTP Basic, over HTTPS only). The password is sealed for this console (encrypted and authenticated with keys derived from the console's own), so a copy of the SD card opens nothing elsewhere.
 
 **Find on this network** sends a discovery request on the console's network (UDP port 8465, as AeroFoil and Ownfoil answer it) and lists the servers that answer, to add one with its address filled in.
+
+## What else an AeroFoil server offers
+
+Once an AeroFoil server's catalogue is read, its **Server** row in the *Catalogue* has three more lines, and a game's sheet two (in the *Catalogue*, and in the *Library* for a game of that server):
+
+- **Cheats**: the server's cheats, by game and build. **Install** writes a build's file where Atmosphère looks for it, `sd:/atmosphere/contents/<title id>/cheats/<build id>.txt`; **Install every build** writes them all, and Atmosphère loads the one that matches the game's version. A build's codes can be shown, and a file removed. The account needs AeroFoil's *Cheats* permission.
+- **Save backups**: a user's saves (chosen first when the console has several) and the server's copies of them. **Back up this save now** sends the game's save, with a note to tell it apart; **Put back on this console** replaces the save with a copy. The save it replaces is kept on the SD card first, in `sd:/config/playshelf/saves/<title id>/`, and put back if anything goes wrong. A game must have been played once on the console to have a save to put one in. The account needs AeroFoil's *Backup* permission.
+- **Requests**: the games you asked the server for, and how each stands; **Ask for a game** finds one by its name in the title databases, or by its title id.
+
+The cheats' list and the requests are pages AeroFoil serves to a signed-in browser: PlayShelf signs in on them with the server's user name and password, over the same verified connection.
 
 ## Certificates
 
