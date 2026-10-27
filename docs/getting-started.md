@@ -30,11 +30,11 @@ The first start opens on the **Library**, which says there is no server yet.
 
 The **Catalogue** shows the server's games as covers, with their size and their add-ons. **Search** and **Order** narrow it; a server with sections shows them too.
 
-| Catalogue | A game's sheet |
+| Catalogue | A game's page |
 |---|---|
-| ![The Catalogue](../images/screenshots/catalogue.png) | ![A game's sheet](../images/screenshots/game_sheet.png) |
+| ![The Catalogue](../images/screenshots/catalogue.png) | ![A game's page](../images/screenshots/game_sheet.png) |
 
-Press Ⓐ on a game for its sheet: **Install everything**, or its base game, one of its updates or one of its add-ons. Each one goes to the **Downloads**.
+Press Ⓐ on a game for its page: **Install everything**, or its base game, one of its updates or one of its add-ons. Each one goes to the **Downloads**. When the console is online, the page also shows what [Nlib API](https://api.nlib.cc/nx/) knows of the game in PlayShelf's language: its banner, publisher, year and categories, a summary, its screenshots (Ⓐ shows one on the whole screen, ◀ ▶ the others) and its description. The Library opens the same page for a game on the console.
 
 ## Follow the downloads
 
@@ -48,7 +48,7 @@ The **Downloads** install the packages one after the other, each with its progre
 
 A game that neither the console nor the server names takes its name and icon from the title database, kept on the SD card: *Preferences › Title database › Download*. Its sources are CyberFoil-DB, NXMeta and Ghostland by default, and you can add your own. See [`title_sources`](config.md).
 
-An icon that none of them has is asked of [Nlib API](https://api.nlib.cc/nx/) over the Internet, for the games on screen only, then kept in the cache. Base games only: an update or an add-on shows its game's icon. *Preferences › Title database › Missing icons from Nlib API* turns it off ([`online_icons`](config.md)).
+An icon that none of them has is asked of [Nlib API](https://api.nlib.cc/nx/) over the Internet, for the games on screen only, then kept in the cache. Base games only: an update or an add-on shows its game's icon. *Preferences › Title database › Icons and game pages from Nlib API* turns it off ([`nlib_api`](config.md)).
 
 ## Preferences
 

@@ -1,6 +1,6 @@
 # Downloads
 
-A game's sheet in the *Catalogue* adds its packages to the **Downloads**: its base game, its updates and its add-ons, each a package. They are installed one after the other, straight from the server to the console: nothing is first saved whole to the SD card.
+A game's page in the *Catalogue* adds its packages to the **Downloads**: its base game, its updates and its add-ons, each a package. They are installed one after the other, straight from the server to the console: nothing is first saved whole to the SD card.
 
 ## The queue
 

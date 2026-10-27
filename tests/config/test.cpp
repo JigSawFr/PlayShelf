@@ -128,7 +128,7 @@ static void test_fields()
     // No title_sources: CyberFoil-DB's, NXMeta's, then Ghostland's.
     CHECK(c.title_sources == (std::vector<std::string>{ config::CYBERFOIL_TITLE_SOURCE, config::NXMETA_TITLE_SOURCE,
                                                         config::GHOSTLAND_TITLE_SOURCE }));
-    CHECK(c.online_icons);
+    CHECK(c.nlib_api);
 
     // Out of range: back to the default, one field at a time.
     write_config(R"({"language": "xx", "theme": "blue", "text_size": "huge", "effects": "wild",
@@ -190,7 +190,7 @@ static void test_round_trip()
     c.connections = 2;
     c.prefetch = 1;
     c.title_sources = { "https://mine.test/m.json", config::CYBERFOIL_TITLE_SOURCE };
-    c.online_icons = false;
+    c.nlib_api = false;
     const config::Config before = c;
     CHECK(save_config());
     c = config::Config{};
@@ -203,7 +203,7 @@ static void test_round_trip()
     CHECK(c.start_tab == "preferences" && c.logs_keep == 50 && c.logs_keep_days == 30 && c.logs_keep_mb == 5);
     CHECK(!c.intro && c.dev_builds_order == "number" && c.library_view == "list" && !c.support_reminder && c.support_reminded == "2026-10-01");
     CHECK(c.seen_version == "1.1.0" && c.crash_seen == "crash_20261024_101010.txt" && c.connections == 2 && c.prefetch == 1);
-    CHECK(c.title_sources == before.title_sources && !c.online_icons);
+    CHECK(c.title_sources == before.title_sources && !c.nlib_api);
     std::string text;
     CHECK(paths::read_file(paths::config_file(), text) && text.find("\"schema\": 1") != std::string::npos);
 }

@@ -4,7 +4,7 @@
 // server's own address; 1 MB at most) and kept there, then made a texture
 // on the UI thread. One worker fetches them one after the other, in the
 // order asked. An icon neither the server nor the title database has is
-// asked of Nlib API (titledb/nlib) when config online_icons allows it, kept
+// asked of Nlib API (titledb/nlib) when config nlib_api allows it, kept
 // in the same cache; a game it does not know is not asked again until
 // PlayShelf starts again.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -32,12 +32,19 @@ void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& passw
 // API, as get() gives it (`done(0)`: neither has one).
 void local(uint64_t title_id, std::function<void(int)> done);
 
+// A picture at `url` (Nlib API's banner, a screenshot: no credentials, no
+// pin), from the cache or fetched and kept there like an icon, decoded and
+// made at most `max_w` × `max_h` (its proportions kept) off the UI thread:
+// `done(texture, width, height)` on the UI thread, texture 0 when there is
+// none. Not dropped by drop_pending().
+void picture(const std::string& url, int max_w, int max_h, std::function<void(int, int, int)> done);
+
 // An icon from the cache only (one a cover showed before), as get() gives
 // it; `done(0)` when it is not there.
 void cached(const std::string& url, const std::function<void(int)>& done);
 
 // The icons asked and not fetched yet are not wanted any more (the covers
-// were built again).
+// were built again); the pictures stay.
 void drop_pending();
 
 }   // namespace library_icons

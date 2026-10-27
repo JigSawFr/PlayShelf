@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- A game's page (the Catalogue's, the Library's): its banner, its icon,
+     name and facts, what it is about in a line or two, what to install of
+     it (or do with it), its screenshots, then its description. What Nlib
+     API knows of it fills in once it answers. Filled by
+     source/activity/game_activity.cpp. -->
+
+<brls:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        icon="@res/img/app_icon.jpg"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <brls:Box
+            id="gp_column"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingTop="@style/brls/sidebar/padding_top"
+            paddingRight="@style/brls/sidebar/padding_right"
+            paddingBottom="@style/brls/sidebar/padding_bottom"
+            paddingLeft="@style/brls/sidebar/padding_left">
+
+            <brls:Image id="gp_banner" width="auto" height="240" scalingType="fill" cornerRadius="14"
+                marginBottom="20" visibility="gone"/>
+            <brls:Box id="gp_head" width="auto" height="auto" axis="row" alignItems="center" marginBottom="16"/>
+            <brls:Label id="gp_intro" text="" fontSize="20" marginBottom="20" visibility="gone"
+                textColor="@theme/cadran/text2"/>
+            <brls:Box id="gp_lines" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <brls:Header id="gp_screens_header" title="@i18n/playshelf/game/screenshots" marginTop="24" marginBottom="8"
+                visibility="gone"/>
+            <brls:Box id="gp_screens" width="auto" height="auto" axis="column" alignItems="flexStart"/>
+            <brls:Header id="gp_about_header" title="@i18n/playshelf/game/about" marginTop="24" marginBottom="8"
+                visibility="gone"/>
+            <brls:Label id="gp_description" text="" fontSize="18" visibility="gone"/>
+            <brls:Label id="gp_source" text="@i18n/playshelf/game/source" fontSize="15" marginTop="16"
+                visibility="gone" textColor="@theme/cadran/text3"/>
+
+        </brls:Box>
+
+    </ScrollView>
+
+</brls:AppletFrame>
