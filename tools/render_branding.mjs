@@ -39,7 +39,7 @@ for (const job of jobs.filter((j) => !only.length || only.some((p) => j.out.star
   const page = await browser.newPage({ viewport: { width: job.w, height: job.h }, deviceScaleFactor: job.scale });
   const svg = inline(readFileSync(join(root, job.svg), 'utf8'));
   await page.setContent(`<!doctype html><html><head>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;700&display=block" rel="stylesheet">
 <style>html,body{margin:0;overflow:hidden;background:transparent}svg{display:block;width:100vw;height:100vh}</style></head><body>${svg}</body></html>`,
     { waitUntil: 'networkidle' });
   await page.evaluate(async () => {
