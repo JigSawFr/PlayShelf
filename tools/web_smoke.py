@@ -361,7 +361,9 @@ def japanese(new_page):
     page = new_page()
     if open_page(page, "lang=ja&theme=light&now=1791471600&still_focus=1&version=1.0.0:1a2b3c4", "japanese"):
         log = log_text(page)
-        if "Using zh-Hans font" not in log or log.index("Using zh-Hans font") > log.index("start-up: first screen ready"):
+        # Aurore loads the app's font/cjk for the four languages at once.
+        loaded = "Using the app's font for Chinese, Japanese and Korean"
+        if loaded not in log or log.index(loaded) > log.index("start-up: first screen ready"):
             fail("japanese: the CJK font was not there at start-up")
         else:
             shot(page, "japanese")
