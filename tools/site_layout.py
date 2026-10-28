@@ -17,8 +17,8 @@ in the pages (width, height), and the check takes seconds, not minutes.
 
 With SITE_AXE set to axe-core's axe.min.js, also what axe finds against WCAG
 2.2 A and AA (contrast, names, labels, landmarks, keyboard), on an iPhone:
-every English page in both themes, and each other language's home page (its
-texts, not its layout nor its colours, differ). Every page in every language
+every English page, and each other language's home page (its texts, not
+its layout nor its colours, differ). Every page in every language
 would take a minute more; this, about fifteen seconds.
 
 Usage: tools/site_layout.py <site-dir>   (needs Playwright for Python with
@@ -135,12 +135,12 @@ async def check(browser, base, screen, paths, failures):
     return len(paths)
 
 
-async def accessible(browser, base, theme, paths, failures):
-    """axe's violations on each page, in the light or the dark theme."""
+async def accessible(browser, base, paths, failures):
+    """axe's violations on each page (the site has one look, dark)."""
     name, width, height, phone = PHONE
     # axe is a script added to the page, which the site's CSP refuses.
     context = await browser.new_context(viewport={"width": width, "height": height}, is_mobile=phone,
-                                        has_touch=phone, color_scheme=theme, bypass_csp=True)
+                                        has_touch=phone, color_scheme="dark", bypass_csp=True)
     await context.route("**/*.{png,webp,jpg,jpeg,gif,mp4}", lambda route: route.abort())
     source = open(AXE, encoding="utf-8").read()
     queue = list(paths)
@@ -156,7 +156,7 @@ async def accessible(browser, base, theme, paths, failures):
               .then((r) => r.violations.map((v) => ({ id: v.id, help: v.help,
                 where: v.nodes.slice(0, 3).map((n) => n.target.join(' ')) })))""", AXE_TAGS)
             for v in found:
-                failures.append(f"axe, {theme} theme, /{path}: {v['id']} ({v['help']}): {', '.join(v['where'])}")
+                failures.append(f"axe, /{path}: {v['id']} ({v['help']}): {', '.join(v['where'])}")
 
     await asyncio.gather(*(worker() for _ in range(min(JOBS, len(paths)))))
     await context.close()
@@ -174,8 +174,7 @@ async def main():
             count += await check(browser, base, screen, widest, failures)
         if AXE:
             others = [f for f in widest if f.count("/") == 1 and f not in english]   # "fr/": a home page
-            checked = await accessible(browser, base, "light", english + others, failures)
-            checked += await accessible(browser, base, "dark", english, failures)
+            checked = await accessible(browser, base, english + others, failures)
         await browser.close()
     for f in failures:
         print(f"::error::{f}" if os.environ.get("GITHUB_ACTIONS") else f)
