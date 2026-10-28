@@ -52,3 +52,26 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       tag: ${{ needs.release-please.outputs.tag_name }}
+
+  # boreale.dev shows each project's latest version: tell it once the release
+  # and its assets are out. Needs BOREALE_DISPATCH_TOKEN, a token allowed to
+  # send repository_dispatch to JigSawFr/boreale (Contents: read and write on
+  # it alone); without it, boreale.dev catches up within a day.
+  boreale:
+    needs: [ release-please, assets ]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - name: Tell boreale.dev
+        env:
+          BOREALE_DISPATCH_TOKEN: ${{ secrets.BOREALE_DISPATCH_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          if [ -z "$BOREALE_DISPATCH_TOKEN" ]; then
+            echo "No BOREALE_DISPATCH_TOKEN: boreale.dev shows $TAG at its daily build." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          GH_TOKEN="$BOREALE_DISPATCH_TOKEN" gh api repos/JigSawFr/boreale/dispatches -f event_type=release > /dev/null \
+            && echo "$TAG: boreale.dev told" >> "$GITHUB_STEP_SUMMARY" \
+            || echo "::warning::$TAG: boreale.dev not told (its daily build will show the release)"
