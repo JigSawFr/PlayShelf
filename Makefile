@@ -258,7 +258,8 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@# The suffix without a space, as newer clang wants it (-Wdeprecated-literal-operator),
 	@# in this copy only: borealis itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
-i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp tests/i18n_threads/test.cpp
+# With its string and file helpers (core/util.cpp), as it is.
+i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp library/aurore/library/lib/core/util.cpp tests/i18n_threads/test.cpp
 i18n_threads_FLAGS := -std=c++20 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \

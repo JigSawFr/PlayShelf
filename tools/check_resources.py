@@ -35,7 +35,13 @@
   "anchor"), a QR code on the console) is docs/<page>.md, with a heading
   whose anchor is that one: an app already installed keeps the link, so a
   page renamed or a heading reworded breaks it; and the app links to the
-  documentation only through doc_url, never a link of its own to docs/.
+  documentation only through doc_url, never a link of its own to docs/;
+- no font of the repository or of Aurore's resources (what the builds ship)
+  names a console maker or its type foundry (Nintendo, Morisawa): their
+  system fonts are not free, the console has its own;
+- no file of the repository (Aurore's included) is a console's key file
+  (prod.keys, title.keys…) or a game package or one of its parts (.nsp, .xci,
+  .nca, .tik…): PlayShelf never carries what belongs to the console or a game.
 
 It also warns, without failing:
 - about sentence-like values a catalog still has in English (English is a
@@ -550,6 +556,31 @@ for page, anchor, rel in sorted(doc_links):
         if anchor and len(heading_slugs(read(translation))) != len(slugs):
             warnings.append(f"{os.path.relpath(translation, ROOT)} has not the sections of docs/{page}.md: "
                             f"the app's link to #{anchor} opens the page, not the section")
+
+# What a build ships must be free to ship: no proprietary system font (its
+# name table names its maker; a WOFF2's is compressed, so only the others are
+# read), no key file, no game package or part of one.
+FONT_MAKERS = ["Nintendo", "Morisawa"]
+FONT_EXTENSIONS = (".ttf", ".otf", ".ttc", ".woff")
+GAME_EXTENSIONS = (".nsp", ".nsz", ".xci", ".xcz", ".nca", ".ncz", ".tik")
+KEY_FILES = re.compile(r"\.keys$|^(PRODINFO|BOOT0|BOOT1)(\.bin)?$", re.I)
+# The whole tree, Aurore's submodule (library/aurore) included, but git's
+# data and the build folders (build, build-web...).
+for folder, dirs, files in os.walk(ROOT):
+    dirs[:] = [d for d in dirs if d not in (".git", "node_modules") and not d.startswith("build")]
+    for name in files:
+        path = os.path.join(folder, name)
+        rel = os.path.relpath(path, ROOT)
+        lower = name.lower()
+        if lower.endswith(FONT_EXTENSIONS):
+            data = open(path, "rb").read()
+            for maker in FONT_MAKERS:
+                if maker.encode() in data or maker.encode("utf-16-be") in data:
+                    errors.append(f"{rel} names {maker}: a proprietary font, which no build may ship")
+        if lower.endswith(GAME_EXTENSIONS):
+            errors.append(f"{rel}: a game package or a part of one, which the repository never carries")
+        if KEY_FILES.search(name):
+            errors.append(f"{rel}: a console's key file, which the repository never carries")
 
 for w in warnings:
     print("WARNING:", w)
