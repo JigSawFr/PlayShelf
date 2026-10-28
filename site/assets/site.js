@@ -1,48 +1,124 @@
-// PlayShelf's website (site/README.md): the language and theme menus of the
-// header, and the home page's first visit in the browser's language.
-// The theme is kept as the web simulator keeps it ('ps-theme'), so both agree.
+// PlayShelf's website (site/README.md): the aurora of the home page, the
+// language menu of the header, and the home page's first visit in the
+// browser's language. One dark look, Boréale's, as Aurore's and boreale.dev.
 'use strict';
+
+// The aurora behind the home page's header and hero (canvas#sky), boreale.dev's
+// own (boreale/site/assets/site.js): three soft curtains in the brand's
+// colours under a few stars; they move only while the sky is in view, the
+// page visible and the visitor has not asked for less motion. Without
+// script, site.css's gradient stands in.
+(function () {
+  const canvas = document.getElementById('sky');
+  if (!canvas || !canvas.getContext) return;
+  const ctx = canvas.getContext('2d');
+  // The curtains are drawn here at a quarter of the size, then laid on the
+  // sky blurred and scaled up in one go: blurring each strip would be slow.
+  const glow = document.createElement('canvas');
+  const gtx = glow.getContext('2d');
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const curtains = [
+    { rgb: [0, 255, 204], y: 0.34, amp: 0.08, freq: 1.2, speed: 0.00012, height: 0.42, alpha: 0.34 },
+    { rgb: [51, 187, 255], y: 0.26, amp: 0.06, freq: 1.7, speed: -0.00009, height: 0.34, alpha: 0.26 },
+    { rgb: [138, 92, 255], y: 0.18, amp: 0.05, freq: 0.9, speed: 0.00007, height: 0.3, alpha: 0.26 },
+  ];
+  let w = 0, h = 0, stars = [];
+
+  function size() {
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.clientWidth; h = canvas.clientHeight;
+    canvas.width = Math.max(1, Math.round(w * ratio));
+    canvas.height = Math.max(1, Math.round(h * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    glow.width = Math.max(1, Math.round(w / 4));
+    glow.height = Math.max(1, Math.round(h / 4));
+    let seed = 7; // the same stars at each load
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    stars = Array.from({ length: Math.round((w * h) / 2600) }, () => ({
+      x: random() * w, y: random() * h * 0.75, r: random() * 1.1 + 0.2, a: random() * 0.6 + 0.2,
+    }));
+  }
+
+  function draw(t) {
+    const gw = glow.width, gh = glow.height;
+    gtx.globalCompositeOperation = 'source-over';
+    gtx.clearRect(0, 0, gw, gh);
+    gtx.globalCompositeOperation = 'lighter';
+    const step = Math.max(2, gw / 120);
+    for (const c of curtains) {
+      const [r, g, b] = c.rgb;
+      const phase = t * c.speed;
+      for (let x = -step; x < gw + step; x += step) {
+        const u = x / gw;
+        const base = gh * (c.y + c.amp * Math.sin((u * c.freq + phase) * 2 * Math.PI) + 0.03 * Math.sin(u * 17 + phase * 20));
+        const length = gh * c.height * (0.6 + 0.4 * Math.sin(u * 9 + phase * 11));
+        const flicker = 0.65 + 0.35 * Math.sin(u * 31 + phase * 40);
+        const fill = gtx.createLinearGradient(0, base - length, 0, base);
+        fill.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+        fill.addColorStop(0.75, `rgba(${r}, ${g}, ${b}, ${c.alpha * flicker * 0.6})`);
+        fill.addColorStop(1, `rgba(${r}, ${g}, ${b}, ${c.alpha * flicker})`);
+        gtx.fillStyle = fill;
+        gtx.fillRect(x, base - length, step + 1, length);
+      }
+    }
+
+    ctx.fillStyle = '#0b1424';
+    ctx.fillRect(0, 0, w, h);
+    ctx.filter = 'blur(8px)'; // where the browser can; scaling up softens it anyway
+    ctx.drawImage(glow, 0, 0, w, h);
+    ctx.filter = 'none';
+    for (const s of stars) {
+      ctx.fillStyle = `rgba(232, 238, 247, ${s.a})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 2 * Math.PI); ctx.fill();
+    }
+  }
+
+  // The curtains drift slowly: 30 frames a second is plenty, and half the
+  // work on a 60 or 120Hz screen. Nothing is drawn while the sky is scrolled
+  // out of view, the page hidden, or less motion asked.
+  const FRAME = 1000 / 30;
+  let frame = 0, last = 0, seen = true;
+  function loop(t) {
+    if (t - last >= FRAME - 1) { last = t; draw(t); }
+    frame = requestAnimationFrame(loop);
+  }
+  function start() {
+    cancelAnimationFrame(frame);
+    if (still.matches || document.hidden || !seen) draw(last);
+    else frame = requestAnimationFrame(loop);
+  }
+
+  size();
+  start();
+  let resizing = 0; // once per frame, however many resize events come
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizing);
+    resizing = requestAnimationFrame(() => { size(); draw(last); });
+  });
+  document.addEventListener('visibilitychange', start);
+  still.addEventListener('change', start);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      seen = entries[entries.length - 1].isIntersecting;
+      start();
+    }).observe(canvas);
+  }
+})();
 
 (function () {
   const store = {
     get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
     set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* storage refused */ } },
   };
-  const dark = matchMedia('(prefers-color-scheme: dark)');
-  const theme = document.getElementById('site-theme');
-  const show = () => {
-    const choice = theme.value;
-    const shown = choice === 'auto' ? (dark.matches ? 'dark' : 'light') : choice;
-    document.documentElement.dataset.themeChoice = choice;
-    document.documentElement.dataset.theme = shown;
-    // The browser's bar the colour of the header (as theme.js).
-    for (const m of document.querySelectorAll('meta[name="theme-color"]')) m.content = shown === 'dark' ? '#111d31' : '#ffffff';
-  };
-  const kept = store.get('ps-theme');
-  theme.value = kept === 'light' || kept === 'dark' ? kept : 'auto';
-  theme.addEventListener('change', () => { store.set('ps-theme', theme.value); show(); });
-  dark.addEventListener('change', show);
 
-  // On a phone or a small tablet (the header on two rows): the header out
-  // of the way while scrolling down, back when scrolling up. The way back
-  // to the top, far down any page.
-  const phone = matchMedia('(max-width: 1080px)');
-  const header = document.querySelector('.top');
+  // The way back to the top, far down any page.
   const toTop = document.querySelector('.to-top');
-  let lastY = scrollY;
   let ticking = false;
   const scrolled = () => {
     ticking = false;
-    const y = Math.max(0, scrollY);
-    // Not while a field of the header is in use, nor for a few pixels.
-    if (Math.abs(y - lastY) < 8) return;
-    const away = phone.matches && y > lastY && y > header.offsetHeight && !header.contains(document.activeElement);
-    header.classList.toggle('away', away);
-    toTop.hidden = y < innerHeight * 2;
-    lastY = y;
+    toTop.hidden = scrollY < innerHeight * 2;
   };
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(scrolled); } }, { passive: true });
-  phone.addEventListener('change', () => header.classList.remove('away'));
 
   // The header's links on a phone, a row to scroll: its edge fades while
   // there are more of them to scroll to.
@@ -181,7 +257,7 @@
     let at = 0;
     const show = () => {
       const figure = group[at];
-      // The screenshot in the theme shown (its light or its dark one).
+      // The screenshot shown (a page could have more than one image).
       const img = [...figure.querySelectorAll('img')].find((i) => getComputedStyle(i).display !== 'none');
       big.src = img.currentSrc || img.src;
       big.alt = img.alt;
