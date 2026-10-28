@@ -39,6 +39,6 @@ Everything else: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-**GPLv3**, see [`LICENSE`](LICENSE). Maintained by [JigSawFr](https://github.com/JigSawFr).
+**GPLv3**, see [`LICENSE`](LICENSE). Maintained by [JigSawFr](https://github.com/JigSawFr), part of [Boréale](https://boreale.dev/) with [PlayGuard](https://github.com/JigSawFr/PlayGuard) and [Aurore](https://github.com/JigSawFr/Aurore).
 
 <sub>PlayShelf is not affiliated with or endorsed by Nintendo. Nintendo Switch is a trademark of Nintendo.</sub>
