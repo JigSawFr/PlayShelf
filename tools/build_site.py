@@ -361,6 +361,42 @@ def rewrite_links(body, source, lang, to_root, assets):
     return body
 
 
+# Boréale's sites, in the header's menu (switcher()): the same in each of
+# Boréale's sites (boreale/tools/build_site.py's the reference). boreale.dev
+# first, then the homebrew, then the libraries, each group under its title.
+SITES = [(None, [("boreale", "Boréale", "https://boreale.dev/")]),
+         ("sites_homebrew", [("playguard", "PlayGuard", "https://guard.boreale.dev/"),
+                             ("playshelf", "PlayShelf", "https://shelf.boreale.dev/")]),
+         ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")])]
+
+
+def switcher(t, lang, to_root, home, here, name):
+    """The header's name (`name`, leading to `home`), and beside it the menu of
+    Boréale's sites, `here` marked, each in French where the page is (the
+    four sites have it). A popover: the browser closes it on Esc or a click
+    elsewhere; site.css's and site.js's "site switcher" blocks."""
+    label = t("sites_label")
+    french = lang.lower().startswith("fr")
+    groups = []
+    for title, sites in SITES:
+        items = []
+        for key, site, url in sites:
+            href = home if key == here else url + ("fr/" if french else "")
+            soon = f'<em class="soon">{t("sites_soon")}</em>' if key == "playshelf" else ""
+            current = ' aria-current="true"' if key == here else ""
+            items.append(f'<li><a href="{href}"{current}>'
+                         f'<img src="{to_root}assets/marks/{key}.svg" alt="" width="36" height="36">'
+                         f'<span><strong>{site}</strong><small>{t(f"sites_{key}")}</small></span>{soon}</a></li>')
+        heading = f'<p class="sites-title">{t(title)}</p>' if title else ""
+        groups.append(f'        {heading}<ul>\n          ' + "\n          ".join(items) + '\n        </ul>')
+    return (f'<div class="switcher">\n'
+            f'      <a class="brand" href="{home}">{name}</a>\n'
+            f'      <button class="switch" type="button" popovertarget="sites" aria-label="{label}">'
+            f'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>\n'
+            f'      <div id="sites" class="sites" popover aria-label="{label}">\n'
+            + "\n".join(groups) + '\n      </div>\n    </div>')
+
+
 def lang_dir(lang):
     folder = next(d for code, d, _, _ in LANGUAGES if code == lang)
     return f"{folder}/" if folder else ""
@@ -542,7 +578,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <div class="sky{' sky-home' if hero else ''}">
   {'<canvas id="sky" aria-hidden="true"></canvas>' if hero else ''}
   <header class="top">
-    <a class="brand" href="{home}"><img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span></a>
+    {switcher(t, lang, to_root, home, "playshelf", f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>')}
     <nav class="nav" aria-label="PlayShelf">
       <a href="{home}#features">{t('nav_features')}</a>
       <a href="{home}#install">{t('nav_install')}</a>
@@ -646,7 +682,7 @@ def home_body(t, lang, to_root):
               else f'<a class="button" href="#install">{t("install_cta")}</a>')
     wip_callout = (f'    <aside class="callout caution wide"><p><strong>{t("wip_title")}</strong> {t("wip_text")}</p></aside>\n'
                    if wip else "")
-    install_note = f'\n        <p class="soon">{t("install_soon")}</p>' if wip else ""
+    install_note = f'\n        <p class="install-soon">{t("install_soon")}</p>' if wip else ""
     return f"""    <section class="hero">
       <div class="hero-text">
         {status}
