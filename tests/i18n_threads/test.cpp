@@ -20,14 +20,11 @@
 
 using namespace brls::literals;
 
-// What i18n.cpp needs of the rest of borealis.
+// What i18n.cpp needs of the rest of borealis (util.cpp, its string and
+// file helpers, is built with it).
 namespace brls
 {
 std::string Application::getLocale() { return LOCALE_FR; }
-bool endsWith(const std::string& data, const std::string& suffix)
-{
-    return data.size() >= suffix.size() && data.compare(data.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
 Point::Point() : x(0), y(0) {}
 } // namespace brls
 // The theme colours the headers set up (never drawn here).
