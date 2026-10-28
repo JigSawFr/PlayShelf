@@ -51,6 +51,13 @@ REPO_URL = "https://github.com/JigSawFr/PlayShelf"
 SITE_URL = os.environ.get("SITE_URL", "https://shelf.boreale.dev/").rstrip("/") + "/"
 # A pull request's preview: not for search engines (main's site is the one).
 NOINDEX = os.environ.get("SITE_NOINDEX") == "1"
+# The audience, counted by Umami Cloud (site/README.md): its tracker, served
+# from assets/, sends each page seen to gateway.umami.is, without cookie, and
+# only from the site's own address; a pull request's preview has none. The
+# site in Umami is Boréale's, shared by its projects' sites: Umami tells them
+# apart by their address (its "Hostname" filter).
+UMAMI_WEBSITE = "6410ffdd-ae2e-4ddb-8e18-0a77e9fa374e"
+UMAMI_DOMAIN = urlsplit(SITE_URL).hostname
 # The screenshots of tools/site_screenshots.mjs: <folder>/<language>/<screen>.webp.
 SCREENSHOT_DIR = os.environ.get("SITE_SCREENSHOTS", "")
 # The built simulator (CI's build-web/simulator), to say on its buttons how
@@ -91,8 +98,10 @@ DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide
 DOC_FOLDERS = {"fr-CA": "fr"}
 # The pages' Content-Security-Policy (GitHub Pages sends no headers): only the
 # site's own files, no inline script, nothing from elsewhere.
+# connect-src: also Umami's, which counts the audience (UMAMI_WEBSITE).
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; "
-       "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'")
+       "font-src 'self'; connect-src 'self' https://gateway.umami.is; object-src 'none'; base-uri 'none'; "
+       "form-action 'none'")
 # The gallery's screens (tools/site_screenshots.py), the first one the home page's.
 SCREENSHOTS = ["catalogue", "game_sheet", "downloads", "library", "preferences"]
 # The screenshots in each language: the gallery's, which the documentation shows too.
@@ -514,6 +523,8 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
     home = f"{to_root}{lang_dir(lang)}"
     full_title = full_title or ("PlayShelf" if not title else f"{title} · PlayShelf")
     head_extra = "\n".join(head)
+    umami = "" if NOINDEX else (f'  <script src="{to_root}assets/umami.js" defer data-website-id="{UMAMI_WEBSITE}" '
+                               f'data-domains="{UMAMI_DOMAIN}"></script>\n')
     return f"""<!doctype html>
 <html lang="{html_lang}" data-lang="{code}">
 <head>
@@ -545,7 +556,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <link rel="alternate" type="application/atom+xml" title="PlayShelf releases" href="{SITE_URL}releases.atom">
 {"".join(json_ld(d) for d in structured)}  <script src="{to_root}assets/theme.js"></script>
   <link rel="stylesheet" href="{to_root}assets/site.css">
-</head>
+{umami}</head>
 <body class="{body_class}">
   <a class="skip" href="#main">{t('skip')}</a>
   <header class="top">
