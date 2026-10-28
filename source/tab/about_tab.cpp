@@ -63,6 +63,7 @@ AboutTab::AboutTab()
         const std::string text = line("playshelf/about/credit_author", "JigSawFr") + "\n" +
                                  line("playshelf/about/credit_base", "PlayGuard") + "\n" +
                                  line("playshelf/about/credit_ui", "borealis (Apache 2.0)") + "\n" +
+                                 line("playshelf/about/credit_family", "Boréale (boreale.dev)") + "\n" +
                                  line("playshelf/tools/license", "GPLv3") + "\n" +
                                  line("playshelf/tools/source", app::repo_url());
         ui::qr_dialog(text, app::repo_url());
