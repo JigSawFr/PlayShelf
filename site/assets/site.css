@@ -121,6 +121,16 @@ pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
   padding: 5px 8px;
 }
 
+/* Until the first release: where PlayShelf stands, over the hero's title,
+   and the install's steps said to come (build_site.py's home_body()). */
+.status {
+  display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin: 0 0 18px; padding: 5px 12px 5px 10px;
+  border: 1px solid rgb(255 184 107 / 0.45); border-radius: 999px; background: rgb(255 184 107 / 0.1);
+  color: var(--amber); font: 500 13px var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px rgb(255 184 107 / 0.2); }
+.soon { margin: -14px 0 22px; color: var(--amber); }
+
 /* Eyebrows: a section's subject over its title, in the aurora's colour. */
 .eyebrow { margin: 0 0 10px; font: 400 13px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--aurora); }
 
@@ -465,9 +475,9 @@ pre.has-copy { position: relative; padding-right: 76px; }
   .hero { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding-top: 24px; padding-bottom: 40px; }
   .hero-text { display: contents; }
   .hero-shot { order: 1; margin: 6px 0 22px; }
-  .hero-text > p:not(.eyebrow, .sub), .actions, .hero .source { order: 2; }
+  .hero-text > p:not(.status, .eyebrow, .sub), .actions, .hero .source { order: 2; }
   .hero .sub { margin-bottom: 0; }
-  .hero-text > p:not(.eyebrow, .sub) { margin-top: 0; }
+  .hero-text > p:not(.status, .eyebrow, .sub) { margin-top: 0; }
   .actions { margin-top: 6px; }
   .actions .button { flex: 1 1 100%; text-align: center; }
   .hero .source a, .footer a { display: inline-block; padding: 10px 0; }

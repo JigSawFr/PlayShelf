@@ -637,15 +637,26 @@ def home_body(t, lang, to_root):
                     f' · <a href="{home}changelog/#v{version}"><time class="release-date" datetime="{date}">{date}</time></a>')
     else:
         released = t("no_release")
+    # Until the first release, PlayShelf is a work in progress: a badge over
+    # the title, a callout before the rest, the way to follow it rather than
+    # to install it, and the install's steps marked as to come.
+    wip = not releases
+    status = f'<p class="status">{t("status_wip")}</p>' if wip else ""
+    second = (f'<a class="button" href="{REPO_URL}">{t("follow_cta")}</a>' if wip
+              else f'<a class="button" href="#install">{t("install_cta")}</a>')
+    wip_callout = (f'    <aside class="callout caution wide"><p><strong>{t("wip_title")}</strong> {t("wip_text")}</p></aside>\n'
+                   if wip else "")
+    install_note = f'\n        <p class="soon">{t("install_soon")}</p>' if wip else ""
     return f"""    <section class="hero">
       <div class="hero-text">
+        {status}
         <p class="eyebrow">{t('hero_eyebrow')}</p>
         <h1>{hero_title(t)}</h1>
         <p class="sub">{t('hero_sub')}</p>
         <p>{t('hero_text')}</p>
         <div class="actions">
           <a class="button primary" href="{to_root}simulator/?lang={code}">{t('try')}{size}</a>
-          <a class="button" href="#install">{t('install_cta')}</a>
+          {second}
         </div>
         <p class="source">{released}</p>
       </div>
@@ -653,7 +664,7 @@ def home_body(t, lang, to_root):
         <a href="{to_root}assets/{screenshot(lang, SCREENSHOTS[0])}">{gallery_image(t, lang, to_root, SCREENSHOTS[0], lazy=False)}</a>
       </div>
     </section>
-""", f"""    <aside class="callout warning wide"><p><strong>{t('own_title')}</strong> {t('own_text')}</p></aside>
+""", f"""{wip_callout}    <aside class="callout warning wide"><p><strong>{t('own_title')}</strong> {t('own_text')}</p></aside>
 
     <section id="features" class="section">
       <p class="eyebrow">{t('features_eyebrow')}</p>
@@ -686,8 +697,8 @@ def home_body(t, lang, to_root):
 
     <section id="install" class="section columns">
       <div>
-        <p class="eyebrow">{t('install_eyebrow')}</p>
-        <h2>{t('install_title')}</h2>
+        <p class="eyebrow">{t('install_eyebrow_soon') if wip else t('install_eyebrow')}</p>
+        <h2>{t('install_title')}</h2>{install_note}
         <ol class="steps">
           <li>{t('install_1')}</li>
           <li>{t('install_2')}{f' <a href="{REPO_URL}/releases/latest">{t("download")}</a>' if releases else ""}</li>
