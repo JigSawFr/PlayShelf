@@ -14,10 +14,10 @@ PlayShelf is a Nintendo Switch homebrew that browses a library server you run yo
 
 It is built on the same technical base and the same *Cadran* look as [PlayGuard](https://github.com/JigSawFr/PlayGuard).
 
-**[Website](https://jigsawfr.github.io/PlayShelf/)** · **[Try it in your browser](https://jigsawfr.github.io/PlayShelf/simulator/)** · **[Documentation](docs/getting-started.md)**
+**[Website](https://shelf.boreale.dev/)** · **[Try it in your browser](https://shelf.boreale.dev/simulator/)** · **[Documentation](docs/getting-started.md)**
 
 > [!WARNING]
-> **Early development.** Nothing is released yet: the catalogue, the downloads and the title database work in the [web simulator](https://jigsawfr.github.io/PlayShelf/simulator/), and are still to be checked on a console.
+> **Early development.** Nothing is released yet: the catalogue, the downloads and the title database work in the [web simulator](https://shelf.boreale.dev/simulator/), and are still to be checked on a console.
 
 | Catalogue | Downloads |
 |---|---|
