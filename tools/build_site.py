@@ -106,7 +106,7 @@ CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' 
 SCREENSHOTS = ["catalogue", "game_sheet", "downloads", "library", "preferences"]
 # The screenshots in each language: the gallery's, which the documentation shows too.
 LOCALIZED_SHOTS = SCREENSHOTS
-FAQ = ["what", "own", "servers", "tinfoil", "https", "cfw", "switch2", "free"]
+FAQ = ["what", "own", "servers", "https", "cfw", "switch2", "free"]
 FEATURES = ["catalogue", "downloads", "security", "lan", "titles", "library", "updates", "languages"]
 # The three the home page puts first; the others in a shorter list under them.
 FEATURED = ["catalogue", "downloads", "security"]
