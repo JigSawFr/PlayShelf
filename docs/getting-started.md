@@ -3,7 +3,7 @@
 PlayShelf browses a library server you run yourself and installs your own backups and homebrew from it: a game's base, its updates and its add-ons, as NSP, NSZ, XCI or XCZ, over HTTPS. This page goes from the SD card to a first game installed.
 
 > [!WARNING]
-> **Early development.** No release is published yet. The [web simulator](https://jigsawfr.github.io/PlayShelf/simulator/) shows where PlayShelf stands, against a demo server of made-up games.
+> **Early development.** No release is published yet. The [web simulator](https://shelf.boreale.dev/simulator/) shows where PlayShelf stands, against a demo server of made-up games.
 
 ## What you need
 
