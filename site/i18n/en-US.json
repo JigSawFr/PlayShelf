@@ -30,7 +30,7 @@
   "f_lan_title": "Found on your network",
   "f_lan_text": "“{{app:library/discover}}” lists the AeroFoil and Ownfoil servers of your network; a server can have an address at home and one over the Internet.",
   "f_titles_title": "Names and icons offline",
-  "f_titles_text": "A title database on the SD card, from CyberFoil-DB, NXMeta and Ghostland or your own sources, each pack checked by its SHA-256.",
+  "f_titles_text": "A title database on the SD card, from CyberFoil-DB or your own sources, each pack checked by its SHA-256.",
   "f_library_title": "Your installed games",
   "f_library_text": "The Library shows what the console has, and what the server has newer: an update to install, the add-ons still missing.",
   "f_updates_title": "Updates itself",

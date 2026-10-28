@@ -1,10 +1,10 @@
 // list — a title list as some databases publish it, rather than
 // CyberFoil-DB's packs: one JSON object, each title id holding what is known
-// of it. Ghostland's ({"0100000000010000": {"Game Name": "…", "Version":
-// "0", "Size": 3751207164}, …}) and a Tinfoil index's "titledb" (NXMeta's:
-// {"titledb": {"0100…": {"name": "…", "publisher": "…", "releaseDate":
-// "20231220", "version": 0, "size": …}}}). Read as a stream (a list of every
-// title is several MB, NXMeta's 46: no tree of it is built) and made a
+// of it ({"0100000000010000": {"Game Name": "…", "Version": "0", "Size":
+// 3751207164}, …}), or a Tinfoil index's "titledb" ({"titledb": {"0100…":
+// {"name": "…", "publisher": "…", "releaseDate": "20231220", "version": 0,
+// "size": …}}}). Read as a stream (a list of every title is several MB, some
+// tens of MB: no tree of it is built) and made a
 // titles pack, so it is opened and looked up as CyberFoil-DB's are. No
 // icons; no SHA-256 is published for it, so HTTPS alone vouches for it.
 //

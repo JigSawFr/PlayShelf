@@ -713,8 +713,6 @@
         "failed_toast": "De titeldatabase is niet bijgewerkt: {}",
         "remove_body": "{} uit de bronnen verwijderen? De namen en pictogrammen ervan worden van de SD-kaart gewist.",
         "source_line_list": "{} · {} titels · alleen namen, geen SHA-256 gepubliceerd",
-        "ghostland": "Ghostland",
-        "nxmeta": "NXMeta",
         "nlib_api": "Pictogrammen en spelpagina's van Nlib API",
         "popular_online": "Populaire games van Wikipedia"
     },

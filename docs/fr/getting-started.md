@@ -57,9 +57,9 @@ Les **Téléchargements** installent les paquets l'un après l'autre, chacun ave
 
 ## Noms et icônes
 
-Un jeu que ni la console ni le serveur ne nomment prend son nom et son icône dans la base de titres, gardée sur la carte SD : *Préférences › Base de titres › Télécharger*. Ses sources sont CyberFoil-DB, NXMeta et Ghostland par défaut, et vous pouvez ajouter les vôtres. Voir [`title_sources`](../config.md).
+Un jeu que ni la console ni le serveur ne nomment prend son nom et son icône dans la base de titres, gardée sur la carte SD : *Préférences › Base de titres › Télécharger*. Sa source est CyberFoil-DB par défaut, et vous pouvez ajouter les vôtres. Voir [`title_sources`](../config.md).
 
-Une icône qu'aucune d'elles n'a est demandée à [Nlib API](https://api.nlib.cc/nx/) par Internet, pour les seuls jeux à l'écran, puis gardée en cache. Jeux de base seulement : une mise à jour ou un contenu additionnel montre l'icône de son jeu. *Préférences › Base de titres › Icônes et fiches de jeu depuis Nlib API* la désactive ([`nlib_api`](../config.md)).
+Une icône qu'aucune source n'a est demandée à [Nlib API](https://api.nlib.cc/nx/) par Internet, pour les seuls jeux à l'écran, puis gardée en cache. Jeux de base seulement : une mise à jour ou un contenu additionnel montre l'icône de son jeu. *Préférences › Base de titres › Icônes et fiches de jeu depuis Nlib API* la désactive ([`nlib_api`](../config.md)).
 
 ## Préférences
 

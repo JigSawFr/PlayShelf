@@ -125,9 +125,8 @@ static void test_fields()
     CHECK(!c.dev_mode && c.frame_stats && !c.intro && c.start_tab == "about");
     CHECK(c.logs_keep == 5 && c.logs_keep_days == 7 && c.logs_keep_mb == 0);
     CHECK(c.update_daily && c.update_via == "sphaira" && c.connections == 8 && c.prefetch == 2);
-    // No title_sources: CyberFoil-DB's, NXMeta's, then Ghostland's.
-    CHECK(c.title_sources == (std::vector<std::string>{ config::CYBERFOIL_TITLE_SOURCE, config::NXMETA_TITLE_SOURCE,
-                                                        config::GHOSTLAND_TITLE_SOURCE }));
+    // No title_sources: CyberFoil-DB's alone.
+    CHECK(c.title_sources == (std::vector<std::string>{ config::CYBERFOIL_TITLE_SOURCE }));
     CHECK(c.nlib_api && c.popular_online);
 
     // Out of range: back to the default, one field at a time.

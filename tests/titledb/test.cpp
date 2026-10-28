@@ -1,8 +1,8 @@
 // titledb/: CyberFoil-DB's packs read (a title's name, publisher, version;
 // an icon's bytes), the ones whose index does not hold together refused, a
 // pack's text made safe; its manifest read with its aliases, relative
-// addresses resolved, the ones not HTTPS refused; a title list (Ghostland's
-// kind) read as it streams and made a titles pack; Nlib API's icon
+// addresses resolved, the ones not HTTPS refused; a title list (a JSON
+// object of title ids) read as it streams and made a titles pack; Nlib API's icon
 // addresses.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
@@ -124,7 +124,7 @@ void test_list()
     TempDir                tmp("titledb_list", TempDir::Enter);
     std::vector<ListEntry> e;
     std::string            why;
-    // Ghostland's: versions as text, a size; an id twice (the last kept), a
+    // Ids at the top: versions as text, a size; an id twice (the last kept), a
     // key that is no title id, a name with a control character.
     CHECK(parse_title_list(R"({"0100000000010800": {"Game Name": "Mario", "Version": "393216", "Size": 306880574},
         "0100000000010000": {"Game Name": "Super Mario Odyssey™", "Version": "0", "Size": 3751207164},
@@ -147,7 +147,7 @@ void test_list()
     CHECK(t && t->name == "Super Mario Odyssey™" && t->size == 3751207164ull && t->version && *t->version == 0);
     CHECK(p.find(0x0100000000010800)->name == "Mario" && !p.find(0x0100000000020000));
 
-    // A Tinfoil index's "titledb" (NXMeta's): its other keys aside.
+    // A Tinfoil index's "titledb": its other keys aside.
     CHECK(parse_title_list(R"({"files": [{"url": "x"}], "titledb": {
         "0100FFC01BE60000": {"id": "0100FFC01BE60000", "name": "My Child Lebensborn Remastered", "publisher": "Sarepta Studio",
                              "releaseDate": "20231220", "description": "long\ntext", "version": 0, "size": 1234,

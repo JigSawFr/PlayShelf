@@ -713,8 +713,6 @@
         "failed_toast": "A base de dados de títulos não foi atualizada: {}",
         "remove_body": "Remover {} das fontes? Os seus nomes e ícones são apagados do cartão SD.",
         "source_line_list": "{} · {} títulos · só nomes, sem SHA-256 publicado",
-        "ghostland": "Ghostland",
-        "nxmeta": "NXMeta",
         "nlib_api": "Ícones e páginas de jogo a partir da Nlib API",
         "popular_online": "Jogos populares da Wikipédia"
     },

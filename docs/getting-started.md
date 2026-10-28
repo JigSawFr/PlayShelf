@@ -56,9 +56,9 @@ The **Downloads** install the packages one after the other, each with its progre
 
 ## Names and icons
 
-A game that neither the console nor the server names takes its name and icon from the title database, kept on the SD card: *Preferences › Title database › Download*. Its sources are CyberFoil-DB, NXMeta and Ghostland by default, and you can add your own. See [`title_sources`](config.md).
+A game that neither the console nor the server names takes its name and icon from the title database, kept on the SD card: *Preferences › Title database › Download*. Its source is CyberFoil-DB by default, and you can add your own. See [`title_sources`](config.md).
 
-An icon that none of them has is asked of [Nlib API](https://api.nlib.cc/nx/) over the Internet, for the games on screen only, then kept in the cache. Base games only: an update or an add-on shows its game's icon. *Preferences › Title database › Icons and game pages from Nlib API* turns it off ([`nlib_api`](config.md)).
+An icon that no source has is asked of [Nlib API](https://api.nlib.cc/nx/) over the Internet, for the games on screen only, then kept in the cache. Base games only: an update or an add-on shows its game's icon. *Preferences › Title database › Icons and game pages from Nlib API* turns it off ([`nlib_api`](config.md)).
 
 ## Preferences
 

@@ -12,15 +12,11 @@
 namespace config
 {
 
-// The title database's default sources, in their order: CyberFoil-DB's
-// manifest (names, icons, packs checked by their SHA-256), then NXMeta's
-// Tinfoil index (names, publishers, dates) and Ghostland's title list
-// (names).
+// The title database's default source: CyberFoil-DB's manifest (names,
+// icons, packs checked by their SHA-256). Any other is the user's to add.
 constexpr const char* CYBERFOIL_TITLE_SOURCE =
     "https://github.com/luketanti/CyberFoil-DB/releases/latest/download/offline_db_manifest.json";
-constexpr const char* NXMETA_TITLE_SOURCE = "https://nx-meta.nlib.cc/index.json";
-constexpr const char* GHOSTLAND_TITLE_SOURCE = "https://data.ghostland.at/nx/owned.json";
-constexpr const char* DEFAULT_TITLE_SOURCES[] = { CYBERFOIL_TITLE_SOURCE, NXMETA_TITLE_SOURCE, GHOSTLAND_TITLE_SOURCE };
+constexpr const char* DEFAULT_TITLE_SOURCES[] = { CYBERFOIL_TITLE_SOURCE };
 constexpr size_t MAX_TITLE_SOURCES = 8;
 
 struct Config

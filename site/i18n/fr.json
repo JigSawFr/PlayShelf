@@ -30,7 +30,7 @@
   "f_lan_title": "Trouvé sur votre réseau",
   "f_lan_text": "« {{app:library/discover}} » liste les serveurs AeroFoil et Ownfoil de votre réseau ; un serveur peut avoir une adresse à la maison et une autre sur Internet.",
   "f_titles_title": "Noms et icônes hors ligne",
-  "f_titles_text": "Une base de titres sur la carte SD, issue de CyberFoil-DB, NXMeta et Ghostland ou de vos propres sources, chaque pack vérifié par son SHA-256.",
+  "f_titles_text": "Une base de titres sur la carte SD, issue de CyberFoil-DB ou de vos propres sources, chaque pack vérifié par son SHA-256.",
   "f_library_title": "Vos jeux installés",
   "f_library_text": "La Bibliothèque montre ce que contient la console, et ce que le serveur a de plus récent : une mise à jour à installer, les contenus additionnels qui manquent.",
   "f_updates_title": "Se met à jour seul",

@@ -144,7 +144,7 @@ void test_update()
 void test_list_source()
 {
     TempDir           tmp("titledb_list_source", TempDir::Enter);
-    const char* const LIST = "https://list.test/owned.json";
+    const char* const LIST = "https://list.test/titles.json";
     const std::string dir = source_dir(tmp.path(), LIST);
     Server            s;
     s.files[LIST] = R"({"0100000000010000": {"Game Name": "Mario", "Version": "0", "Size": 5}})";
