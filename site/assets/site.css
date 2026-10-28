@@ -533,18 +533,21 @@ pre.has-copy { position: relative; padding-right: 76px; }
   .card { box-shadow: none; }
 }
 
-/* ---- Boréale's site switcher: the name, and beside it the menu of the four
-   sites (a popover: the browser closes it on Esc or a click elsewhere). The
-   same block in boreale.dev's, PlayGuard's, PlayShelf's and Aurore's
-   site.css; boreale's is the reference. Its colours are the brand's. */
-.switcher { display: flex; flex-shrink: 0; align-items: center; gap: 2px; }
+/* ---- Boréale's site switcher: the name, a button that opens the menu of
+   the four sites (a popover: the browser closes it on Esc or a click
+   elsewhere), the site's own leading home. The same block in boreale.dev's,
+   PlayGuard's, PlayShelf's and Aurore's site.css; boreale's is the
+   reference. The name keeps the site's .brand look; the colours are the
+   brand's. */
+.switcher { display: flex; flex-shrink: 0; align-items: center; }
 .switch {
-  display: grid; place-items: center; width: 32px; height: 44px; padding: 0; border: 0; border-radius: 10px;
-  background: transparent; color: #a9b6cc; cursor: pointer;
+  min-height: 44px; margin-left: -8px; padding: 0 8px; border: 0; border-radius: 12px;
+  background: transparent; color: #e8eef7; cursor: pointer; text-align: left;
 }
-.switch svg { width: 16px; height: 16px; transition: transform 0.2s; }
-.switch:hover { color: #e8eef7; background: rgb(232 238 247 / 0.06); }
-.switcher:has(.sites:popover-open) .switch svg { transform: rotate(180deg); }
+.switch .chevron { width: 16px; height: 16px; color: #a9b6cc; transition: transform 0.2s, color 0.2s; }
+.switch:hover { background: rgb(232 238 247 / 0.06); }
+.switch:hover .chevron { color: #e8eef7; }
+.switcher:has(.sites:popover-open) .chevron { transform: rotate(180deg); color: #00ffcc; }
 .sites {
   position: absolute; inset: auto; top: 72px; left: 16px; margin: 0;
   width: min(400px, calc(100vw - 24px)); max-height: calc(100vh - 96px); overflow: auto; padding: 8px;
@@ -569,4 +572,4 @@ pre.has-copy { position: relative; padding-right: 76px; }
   font: 500 11px/1.6 var(--mono); font-style: normal; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
   color: #ffb86b; border: 1px solid rgb(255 184 107 / 0.45); border-radius: 999px; padding: 1px 8px;
 }
-@media (prefers-reduced-motion: reduce) { .switch svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .switch .chevron { transition: none; } }
