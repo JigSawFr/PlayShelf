@@ -146,7 +146,7 @@ void ServerActivity::ask_url(std::string* url)
     ui::prompt_text("playshelf/library/url_header"_i18n, initial, 1024, [this, url](const std::string& text) {
         std::string value = text == "https://" ? "" : text;
         while (!value.empty() && value.back() == ' ') value.pop_back();
-        if (!value.empty() && (value.size() <= 8 || value.compare(0, 8, "https://") != 0)) {
+        if (!value.empty() && (value.size() <= 8 || !value.starts_with("https://"))) {
             ui::error("playshelf/library/https_only"_i18n);
             return;
         }

@@ -167,7 +167,7 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
         out.titles += (out.titles.empty() ? "" : ", ") + fmt::format("{:016X}", t.meta.title_id);
     progress.written(0, inst.bytes_to_write());
     out.ok = inst.run(&out.why);
-    out.unsigned_content = !out.ok && out.why.find("not signed by Nintendo") != std::string::npos;
+    out.unsigned_content = !out.ok && out.why.contains("not signed by Nintendo");
     out.written = inst.bytes_to_write();
     return out;
 }
@@ -217,7 +217,7 @@ void from_url()
 {
     if (ui::refuse_read_only()) return;
     ui::prompt_text("playshelf/install/url_header"_i18n, s_last_url, 1024, [](const std::string& url) {
-        if (url.rfind("https://", 0) != 0 || url.size() <= 8) {
+        if (!url.starts_with("https://") || url.size() <= 8) {
             ui::error("playshelf/install/https_only"_i18n);
             return;
         }

@@ -147,7 +147,7 @@ bool same_origin(const std::string& a, const std::string& b)
         // Credentials in the address ("user@host") are not part of it.
         const size_t at = o.find('@', scheme + 3);
         if (at != std::string::npos) o.erase(scheme + 3, at - scheme - 2);
-        if (o.size() > 4 && o.compare(o.size() - 4, 4, ":443") == 0 && o.compare(0, 8, "https://") == 0) o.resize(o.size() - 4);
+        if (o.size() > 4 && o.compare(o.size() - 4, 4, ":443") == 0 && o.starts_with("https://")) o.resize(o.size() - 4);
         return o;
     };
     const std::string oa = origin(a);
@@ -165,7 +165,7 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
 {
     const Endpoints   e{server.lan_url, server.wan_url, server.connection};
     const std::string endpoint = without_slash(choose_endpoint(e, [&](const std::string& u) { return t.reachable(u); }));
-    if (endpoint.compare(0, 8, "https://") != 0) return failed("the server has no https:// address");
+    if (!endpoint.starts_with("https://")) return failed("the server has no https:// address");
     const bool        on_lan = !server.lan_url.empty() && endpoint == without_slash(server.lan_url);
     const std::string pin = on_lan ? server.pin : "";
     const auto        headers = auth_headers(server.username, password);

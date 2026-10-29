@@ -8,11 +8,6 @@ namespace download
 {
 namespace
 {
-bool has(const std::string& text, const char* part)
-{
-    return text.find(part) != std::string::npos;
-}
-
 std::string lower(std::string s)
 {
     for (char& c : s) c = (char)std::tolower((unsigned char)c);
@@ -54,20 +49,20 @@ Cause cause_of(const std::string& why, bool unsigned_content)
     if (unsigned_content) return Cause::Unsigned;
     if (why == SERVER_GONE) return Cause::ServerGone;
     const std::string w = lower(why);
-    if (has(w, "not enough free space")) return Cause::NoSpace;
+    if (w.contains("not enough free space")) return Cause::NoSpace;
     const int status = http_status(why);
     if (status == 401 || status == 403 || status == 407) return Cause::Auth;
     if (status == 404 || status == 410) return Cause::Gone;
     if (status == 429 || status >= 500) return Cause::Server;
-    if (has(w, "pinned public key") || has(w, "certificate") || has(w, "ssl")) return Cause::Certificate;
-    if (has(w, "sha-256 differs") || has(w, "came out shorter") || has(w, "does not decompress") ||
-        has(w, "more decompressed data") || has(w, "cut short") || has(w, "differs from what the content meta"))
+    if (w.contains("pinned public key") || w.contains("certificate") || w.contains("ssl")) return Cause::Certificate;
+    if (w.contains("sha-256 differs") || w.contains("came out shorter") || w.contains("does not decompress") ||
+        w.contains("more decompressed data") || w.contains("cut short") || w.contains("differs from what the content meta"))
         return Cause::Corrupt;
     static const char* const NETWORK[] = { "resolve", "connect", "timed out", "timeout", "too slow", "reset",
                                            "recv failure", "send failure", "empty reply", "transfer closed",
                                            "connection", "network", "unreachable", "range came out short" };
     for (const char* n : NETWORK)
-        if (has(w, n)) return Cause::Network;
+        if (w.contains(n)) return Cause::Network;
     return Cause::Other;
 }
 

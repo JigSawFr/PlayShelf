@@ -75,7 +75,7 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
     std::vector<Suggestion> out;
     for (const Candidate& c : candidates) {
         // One the player does not want: never; like one: less.
-        if (std::find(unwanted.begin(), unwanted.end(), c.id) != unwanted.end()) continue;
+        if (std::ranges::contains(unwanted, c.id)) continue;
         double unlike = 0;
         for (uint64_t u : unwanted) unlike = std::max(unlike, similar.between(u, c.id) / 100.0);
         // Like the console's games: each one's likeness, by its weight.

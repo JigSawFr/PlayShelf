@@ -35,19 +35,19 @@ bool demo_file(const std::string& url, std::string* path, bool* paced = nullptr)
     const std::string origin = web_demo::DEMO_ORIGIN, insights = web_demo::INSIGHTS_BASE, nlib = web_demo::NLIB_BASE;
     std::string       rest;
     if (paced) *paced = false;
-    if (url.compare(0, insights.size(), insights) == 0) rest = "/insights/" + url.substr(insights.size());
+    if (url.starts_with(insights)) rest = "/insights/" + url.substr(insights.size());
     else if (url == web_demo::TITLEDB_URL) rest = "/titledb/index.json";
-    else if (url.compare(0, nlib.size(), nlib) == 0 && url.size() >= nlib.size() + 16) {
+    else if (url.starts_with(nlib) && url.size() >= nlib.size() + 16) {
         // <id>?lang=<language>&fields=…, <id>/icon/<size>, <id>/banner/480p,
         // <id>/screen/<n>: the demo's details in English or French, its
         // pictures.
         const std::string id = url.substr(nlib.size(), 16), what = url.substr(nlib.size() + 16);
-        if (what.rfind("?lang=", 0) == 0) rest = "/nlib/" + id + "/details." + (what.compare(6, 2, "fr") == 0 ? "fr" : "en") + ".json";
-        else if (what.rfind("/icon/", 0) == 0) rest = "/nlib/" + id + "/icon.jpg";
+        if (what.starts_with("?lang=")) rest = "/nlib/" + id + "/details." + (what.compare(6, 2, "fr") == 0 ? "fr" : "en") + ".json";
+        else if (what.starts_with("/icon/")) rest = "/nlib/" + id + "/icon.jpg";
         else if (what == "/banner/480p") rest = "/nlib/" + id + "/banner.jpg";
-        else if (what.rfind("/screen/", 0) == 0) rest = "/nlib/" + id + "/screen" + what.substr(8) + ".jpg";
+        else if (what.starts_with("/screen/")) rest = "/nlib/" + id + "/screen" + what.substr(8) + ".jpg";
         else return false;
-    } else if (url.compare(0, origin.size(), origin) == 0) {
+    } else if (url.starts_with(origin)) {
         rest = url.substr(origin.size());
         if (paced) *paced = true;
     } else
@@ -55,7 +55,7 @@ bool demo_file(const std::string& url, std::string* path, bool* paced = nullptr)
     const size_t query = rest.find_first_of("?#");
     if (query != std::string::npos) rest.resize(query);
     if (rest.empty() || rest == "/") rest = "/index.json";
-    if (rest.find("..") != std::string::npos) return false;
+    if (rest.contains("..")) return false;
     *path = std::string(web_demo::DEMO_DIR) + rest;
     return true;
 }

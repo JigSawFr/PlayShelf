@@ -25,7 +25,7 @@ namespace
 bool has_words(const std::string& text, const std::vector<std::string>& words)
 {
     for (const std::string& w : words)
-        if (text.find(w) == std::string::npos) return false;
+        if (!text.contains(w)) return false;
     return !words.empty();
 }
 
@@ -103,7 +103,7 @@ void SearchActivity::rebuild()
     std::vector<insights::Played> own;
     if (const auto games = installed_flow::games())
         for (const installed_flow::Game& g : *games) {
-            if (at.count(g.game.id)) continue;
+            if (at.contains(g.game.id)) continue;
             const std::string name = insights::name_of(g.game.id, g.name);
             if (has_words(library::fold(name), words)) own.push_back({ g, name, {} });
         }

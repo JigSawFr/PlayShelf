@@ -2,6 +2,7 @@
 #include "tab/catalogue_tab.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <map>
 
 #include <fmt/format.h>
@@ -534,7 +535,7 @@ void CatalogueTab::server_sheet()
 void CatalogueTab::pick_sort()
 {
     std::vector<std::string> labels;
-    for (size_t i = 0; i < sizeof(ORDERS) / sizeof(ORDERS[0]); i++) labels.push_back(order_text(i));
+    for (size_t i = 0; i < std::size(ORDERS); i++) labels.push_back(order_text(i));
     ui::pick("playshelf/library/sort"_i18n, labels, (int)s_order, ui::guarded(this->alive, [this](int i) {
                  s_order = (size_t)i;
                  this->refresh();

@@ -65,7 +65,7 @@ void reopen(const std::vector<std::string>& sources)
     const std::vector<std::string> dirs = dirs_of(sources);
     for (const std::string& d : paths::list_dirs(root())) {
         const std::string dir = root() + "/" + d;
-        if (std::find(dirs.begin(), dirs.end(), dir) == dirs.end()) {
+        if (!std::ranges::contains(dirs, dir)) {
             if (!titledb::remove_source(dir)) aurore::Logger::warning("titledb: {} not removed (in use)", dir);
         } else
             titledb::prune(dir, false);
@@ -111,7 +111,7 @@ bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, 
         const double now = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
         if (now - target_at >= TARGET_AGE) {
             std::string to, unused;
-            target = http::redirect(url, &to, &unused) && to.rfind("https://", 0) == 0 ? to : url;
+            target = http::redirect(url, &to, &unused) && to.starts_with("https://") ? to : url;
             target_at = now;
         }
         return target;
@@ -206,7 +206,7 @@ std::vector<std::pair<uint64_t, std::string>> search(const std::string& query, s
     for (const titledb::Database::Source& s : db->sources()) {
         if (!s.titles) continue;
         s.titles->each_base_name([&](uint64_t id, const std::string& name) {
-            if (!found.count(id) && library::fold(name).find(q) != std::string::npos) found.emplace(id, name);
+            if (!found.contains(id) && library::fold(name).find(q) != std::string::npos) found.emplace(id, name);
             return found.size() < max * 4;   // enough to sort and cut
         });
     }

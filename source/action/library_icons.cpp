@@ -152,7 +152,7 @@ Picture local_picture(const Job& job)
     if (url.empty()) return nullptr;
     {
         std::lock_guard<std::mutex> hold(s_lock);
-        if (s_unknown.count(base)) return nullptr;
+        if (s_unknown.contains(base)) return nullptr;
     }
     std::string data = fetched(url, {}, "", 10);
     if (data.empty()) {
@@ -268,7 +268,7 @@ void decode(std::shared_ptr<const std::vector<uint8_t>> bytes, Done done)
 void drop_pending()
 {
     std::lock_guard<std::mutex> hold(s_lock);
-    s_jobs.erase(std::remove_if(s_jobs.begin(), s_jobs.end(), [](const Job& j) { return !j.max_w; }), s_jobs.end());
+    std::erase_if(s_jobs, [](const Job& j) { return !j.max_w; });
 }
 
 }   // namespace library_icons

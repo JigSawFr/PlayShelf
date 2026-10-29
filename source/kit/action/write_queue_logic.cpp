@@ -39,13 +39,13 @@ std::deque<Queue::Item>::iterator Queue::next_free()
     // The jobs of a key wait in their order: the first whose key is free is
     // the next one of its file.
     for (auto it = items_.begin(); it != items_.end(); ++it)
-        if (!busy_.count(it->key)) return it;
+        if (!busy_.contains(it->key)) return it;
     return items_.end();
 }
 
 std::deque<Queue::Item>::iterator Queue::next_free(const std::string& key)
 {
-    if (busy_.count(key)) return items_.end();
+    if (busy_.contains(key)) return items_.end();
     for (auto it = items_.begin(); it != items_.end(); ++it)
         if (it->key == key) return it;
     return items_.end();
@@ -98,7 +98,7 @@ void Queue::wait(Ticket ticket)
     const auto found = pending_.find(ticket);
     if (found == pending_.end()) return;
     const std::string key = found->second;
-    while (pending_.count(ticket)) {
+    while (pending_.contains(ticket)) {
         // The next job of its file, until its own has run: never another file's.
         const auto it = next_free(key);
         if (it != items_.end()) run_item(lock, it);
