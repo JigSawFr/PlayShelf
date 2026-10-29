@@ -41,7 +41,7 @@ function browserLanguage() {
   return SimLogic.firstConsoleLanguage(navigator.languages?.length ? navigator.languages : [navigator.language]);
 }
 
-// Aurore's ControllerButton values (patches/Aurore/0090-sdl-in-a-browser.patch).
+// Aurore's ControllerButton values (library/include/aurore/core/input.hpp).
 const BUTTON = { ZL: 0, L: 1, UP: 3, RIGHT: 4, DOWN: 5, LEFT: 6, MINUS: 7, PLUS: 9, Y: 11, B: 12, A: 13, X: 14, R: 15, ZR: 16 };
 // The keys the page presses buttons for, by what they say (any layout); the
 // arrows, Enter and Escape reach SDL directly.
@@ -562,7 +562,7 @@ function start() {
 // ---- Input ------------------------------------------------------------
 
 function press(button, down) {
-  window.Module?._brls_web_button?.(button, down ? 1 : 0);
+  window.Module?._aurore_web_button?.(button, down ? 1 : 0);
 }
 
 // The keys SDL reads itself, as the buttons they press, for the steps.
