@@ -2,8 +2,7 @@
 // simulated console (playshelf_data/sim_console/control/):
 //   <title id>.txt   its name, and on a second line the version it shows
 //                    (16 hex digits, the base game's)
-//   <title id>.jpg   its icon (or .png: the web demo's, which PlayShelf
-//                    decodes as well)
+//   <title id>.jpg   its icon
 // A game without them has no control data: the Library tab names it from
 // a catalogue, else by its title id. Its size is made up from its title id
 // (1 to 16 GB, the same at every run); the SD card holds 128 GB, 9.6 GB of
@@ -38,11 +37,10 @@ bool core_game_control(u64 app_id, char* name, size_t name_size, char* version, 
         while (!s->empty() && (s->back() == '\n' || s->back() == '\r')) s->pop_back();
     std::snprintf(name, name_size, "%s", text.c_str());
     std::snprintf(version, version_size, "%s", shown.c_str());
-    std::string picture;
-    if ((paths::read_file(base + ".jpg", picture) || paths::read_file(base + ".png", picture)) &&
-        picture.size() <= CORE_GAME_ICON_MAX) {
-        std::memcpy(icon, picture.data(), picture.size());
-        *icon_size = picture.size();
+    std::string jpg;
+    if (paths::read_file(base + ".jpg", jpg) && jpg.size() <= CORE_GAME_ICON_MAX) {
+        std::memcpy(icon, jpg.data(), jpg.size());
+        *icon_size = jpg.size();
     }
     return true;
 }

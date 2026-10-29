@@ -73,14 +73,15 @@ jobs:
             || { echo "::error::emsdk's $EMSDK_VERSION tag is not $EMSDK_COMMIT any more"; exit 1; }
           "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
           "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
-      # The demo server's packages are made on the host (libzstd, zlib);
+      # The demo server's packages are made on the host (libzstd, zlib), its
+      # games' pictures with Pillow (tools/web_demo_art.py);
       # Japanese, Korean and Chinese drawn with a CJK font cut out of Noto
       # Sans CJK with fontTools (tools/web_cjk_font.py); the website's
       # documentation is Markdown (tools/build_site.py).
       - name: Dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools python3-markdown ccache
+          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools python3-markdown python3-pil ccache
       - name: The simulator
         env:
           PLAYSHELF_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
