@@ -586,6 +586,8 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <link rel="sitemap" type="application/xml" href="{SITE_URL}sitemap.xml">
   <link rel="alternate" type="application/atom+xml" title="PlayShelf releases" href="{SITE_URL}releases.atom">
 {"".join(json_ld(d) for d in structured)}
+  <link rel="preload" href="{to_root}assets/fonts/sora.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{to_root}assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{to_root}assets/site.css">
 {umami}</head>
 <body class="{body_class}">
@@ -1364,8 +1366,9 @@ def main():
         blocks.append(f'      <div class="not-found" data-lang="{lang}" lang="{html_lang}"{" hidden" if lang != "en-US" else ""}>'
                       f'<h1>{tl("not_found_title")}</h1><p>{tl("not_found_text")}</p>'
                       f'<p><a class="button primary" href="{base_url}{f"{folder}/" if folder else ""}">{tl("home")}</a></p></div>')
-    write(out, "404.html", page(t, "en-US", base_url, "", t("not_found_title"),
-                                '    <section class="section narrow">\n' + "\n".join(blocks) + "\n    </section>",
+    # Under the sky, as the home page's hero.
+    write(out, "404.html", page(t, "en-US", base_url, "", t("not_found_title"), "",
+                                hero='    <section class="lost">\n' + "\n".join(blocks) + "\n    </section>\n",
                                 body_class="not-found-page", indexed=False))
     # The site's own files, then what the pages use from the repository and
     # the screenshots of tools/site_screenshots.mjs.
