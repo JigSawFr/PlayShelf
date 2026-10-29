@@ -897,7 +897,8 @@
         "because_like": "{} に似ています",
         "because_series": "シリーズ: {}",
         "because_developer": "{} 開発",
-        "because_popular": "人気"
+        "because_popular": "人気",
+        "because_played": "{1}時間：{0}"
     },
     "wishlist": {
         "add": "ほしいものリストに追加",

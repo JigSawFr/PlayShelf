@@ -96,12 +96,18 @@ std::string genre_of(uint64_t id)
     return "";
 }
 
+constexpr uint32_t PLAYED_HOURS = 10;   // from which a suggestion says the hours played of the game it is like
+
 // Why a game is suggested, under its cover.
 std::pair<std::string, const char*> reason_text(const library::Reason& r)
 {
     using Kind = library::Reason::Kind;
     switch (r.kind) {
-        case Kind::Like: return { aurore::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
+        // Much played: its hours first, so a cut line keeps them.
+        case Kind::Like:
+            if (r.hours >= PLAYED_HOURS)
+                return { aurore::getStr("playshelf/home/because_played", insights::name_of(r.because), r.hours), "cadran/teal" };
+            return { aurore::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
         case Kind::Series: return { aurore::getStr("playshelf/home/because_series", r.label), "cadran/teal" };
         case Kind::Developer: return { aurore::getStr("playshelf/home/because_developer", r.label), "cadran/teal" };
         case Kind::Genre: return { nlib_flow::genre_name(r.label), "cadran/text3" };
@@ -120,7 +126,7 @@ std::string key_of(const insights::Snapshot& s)
         for (const insights::Pick& p : *list) key += fmt::format("{:x},", p.title().id);
         key += '|';
     }
-    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x},", l.pick.title().id, (int)l.reason.kind, l.reason.because);
+    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x}.{},", l.pick.title().id, (int)l.reason.kind, l.reason.because, l.reason.hours);
     for (const insights::InSeries& l : s.series) key += fmt::format("{:x},", l.pick.title().id);
     for (const insights::Played& p : s.recent) key += fmt::format("{:x}.{},", p.game.game.id, p.game.last_played);
     for (const insights::Wished& w : s.wished) key += fmt::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);

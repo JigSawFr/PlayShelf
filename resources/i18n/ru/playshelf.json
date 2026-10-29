@@ -897,7 +897,8 @@
         "because_like": "Как {}",
         "because_series": "Серия: {}",
         "because_developer": "От {}",
-        "because_popular": "Популярное"
+        "because_popular": "Популярное",
+        "because_played": "{1} ч в {0}"
     },
     "wishlist": {
         "add": "В список желаний",

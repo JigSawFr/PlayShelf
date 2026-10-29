@@ -897,7 +897,8 @@
         "because_like": "Come {}",
         "because_series": "Serie: {}",
         "because_developer": "Di {}",
-        "because_popular": "Popolare"
+        "because_popular": "Popolare",
+        "because_played": "{1} h di {0}"
     },
     "wishlist": {
         "add": "Aggiungi alla lista dei desideri",
