@@ -572,7 +572,11 @@
         "downloads_done_one": "ダウンロードを 1 件インストールしました",
         "downloads_done": "ダウンロードを {} 件インストールしました",
         "downloads_failed_one": "ダウンロードが 1 件失敗しました",
-        "downloads_failed": "ダウンロードが {} 件失敗しました"
+        "downloads_failed": "ダウンロードが {} 件失敗しました",
+        "sale": "{} がセール中",
+        "sale_lowest": "{} が過去最安値",
+        "sale_until": "-{0}% · {1}（{2}まで）",
+        "day": "{1}{0}日"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "eShop 価格",
         "free": "無料",
         "price_sale": "{0} → {1}（{2}%オフ）",
-        "price_sale_until": "{0} → {1}（{2}%オフ、{3}まで）"
+        "price_sale_until": "{0} → {1}（{2}%オフ、{3}まで）",
+        "price_lowest_now": "過去最安値",
+        "lowest": "{} 以降の最安値",
+        "lowest_value": "{0}（{1}）"
     },
     "genres": {
         "action": "アクション",

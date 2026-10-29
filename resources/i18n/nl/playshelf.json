@@ -572,7 +572,11 @@
         "downloads_done_one": "Een download is geïnstalleerd",
         "downloads_done": "{} downloads zijn geïnstalleerd",
         "downloads_failed_one": "Een download is mislukt",
-        "downloads_failed": "{} downloads zijn mislukt"
+        "downloads_failed": "{} downloads zijn mislukt",
+        "sale": "{} is in de aanbieding",
+        "sale_lowest": "{} is zo goedkoop als nooit",
+        "sale_until": "-{0}% · {1} tot {2}",
+        "day": "{0} {1}"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "eShop-prijs",
         "free": "Gratis",
         "price_sale": "{0} → {1} (-{2}%)",
-        "price_sale_until": "{0} → {1} (-{2}%) tot {3}"
+        "price_sale_until": "{0} → {1} (-{2}%) tot {3}",
+        "price_lowest_now": "laagste prijs",
+        "lowest": "Laagste sinds {}",
+        "lowest_value": "{0} op {1}"
     },
     "genres": {
         "action": "Actie",

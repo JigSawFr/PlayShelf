@@ -572,7 +572,11 @@
         "downloads_done_one": "Una descarga está instalada",
         "downloads_done": "{} descargas están instaladas",
         "downloads_failed_one": "Una descarga falló",
-        "downloads_failed": "{} descargas fallaron"
+        "downloads_failed": "{} descargas fallaron",
+        "sale": "{} está en oferta",
+        "sale_lowest": "{} está a su precio más bajo",
+        "sale_until": "-{0} % · {1} hasta el {2}",
+        "day": "{0} de {1}"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "Precio en la eShop",
         "free": "Gratis",
         "price_sale": "{0} → {1} (-{2} %)",
-        "price_sale_until": "{0} → {1} (-{2} %) hasta el {3}"
+        "price_sale_until": "{0} → {1} (-{2} %) hasta el {3}",
+        "price_lowest_now": "precio más bajo",
+        "lowest": "Más bajo desde el {}",
+        "lowest_value": "{0} el {1}"
     },
     "genres": {
         "action": "Acción",

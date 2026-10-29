@@ -12,6 +12,7 @@
 #include "action/game_page.hpp"
 #include "action/library_flow.hpp"
 #include "action/notices.hpp"
+#include "action/prices_flow.hpp"
 #include "activity/storage_activity.hpp"
 #include "activity/tabs.hpp"
 #include "tab/library_tab.hpp"
@@ -25,6 +26,7 @@ namespace insight_notices
 namespace
 {
 std::set<std::string> s_wished;   // the wishlist's entries set, to clear those gone
+std::set<std::string> s_sales;    // the wishlist's sales said, to clear those over
 
 // "Ember Vale, Turbo Kart, Ink Squad…": the first names of a list.
 template <typename List, typename Name>
@@ -37,6 +39,14 @@ std::string names(const List& list, Name name)
         out += (n++ ? ", " : "") + name(item);
     }
     return out;
+}
+
+// "12 November": a sale's last day, in the language's words.
+std::string day_text(uint32_t date)
+{
+    const unsigned d = date % 100, m = date / 100 % 100;
+    if (m < 1 || m > 12) return "";
+    return aurore::getStr("playshelf/notices/day", d, aurore::getStr(fmt::format("cadran/months/{}", m)));
 }
 
 // `one` for 1, else `many` with the count.
@@ -98,6 +108,32 @@ void publish(const insights::Snapshot& s)
     for (const std::string& id : s_wished)
         if (!wished.count(id)) notices::clear(id);
     s_wished = wished;
+
+    // The wishlist's games on sale on the eShop of the player's country: for
+    // information, once a sale (its id has the sale's last day: put away, it
+    // comes back with the next sale).
+    std::set<std::string> sales;
+    const std::string     country = prices_flow::country();
+    for (const insights::Wished& w : s.wished) {
+        const library::Price* price = prices_flow::of(w.id);
+        if (w.installed || !price || !price->on_sale()) continue;
+        const std::string id = fmt::format("sale.{:016x}.{}", w.id, price->until);
+        sales.insert(id);
+        const std::string sale = library::price_text(price->sale, country);
+        const std::string until = price->until ? day_text(price->until) : "";
+        const auto        data = w.found.data;
+        const size_t      index = w.found.index;
+        std::function<void()> open;
+        if (data) open = [data, index]() { game_page::open(data, index); };
+        notices::set(id, notices::Level::Info,
+                     aurore::getStr(price->at_lowest() ? "playshelf/notices/sale_lowest" : "playshelf/notices/sale", w.name),
+                     until.empty() ? aurore::getStr("playshelf/home/deal", price->discount(), sale)
+                                   : aurore::getStr("playshelf/notices/sale_until", price->discount(), sale, until),
+                     data ? see : "", open);
+    }
+    for (const std::string& id : s_sales)
+        if (!sales.count(id)) notices::clear(id);
+    s_sales = sales;
 
     // The updates no server has yet: for information.
     if (!s.missing.empty())
