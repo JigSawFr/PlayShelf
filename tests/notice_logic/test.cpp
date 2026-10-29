@@ -14,7 +14,7 @@ void test_order()
     Store s;
     CHECK(s.set("new_games", Level::Info, "3 new games", "On Home"));
     CHECK(s.set("updates", Level::Action, "2 updates to get", ""));
-    CHECK(s.set("download_done", Level::Info, "Zelda installed", ""));
+    CHECK(s.set("download_done", Level::Info, "Aster installed", ""));
     // To do first, then each kind in the order first set.
     const auto v = s.visible();
     CHECK(v.size() == 3 && v[0].id == "updates" && v[1].id == "new_games" && v[2].id == "download_done");

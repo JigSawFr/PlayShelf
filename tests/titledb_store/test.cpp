@@ -75,15 +75,15 @@ std::string manifest(const std::string& version, const std::string& titles, cons
 }
 
 const char* const URL = "https://db.test/m.json";
-const uint64_t    ZELDA = 0x01007EF00011E000, MARIO = 0x0100000000010000;
+const uint64_t    ASTER = 0x01007EF00011E000, COMET = 0x0100000000010000;
 
 void test_update()
 {
     TempDir           tmp("titledb_store", TempDir::Enter);
     const std::string dir = source_dir(tmp.path(), URL);
     Server            s;
-    const std::string t1 = titles_pack({ { MARIO, "Mario", "Nintendo", 0 } });
-    const std::string icons = icons_pack({ { MARIO, std::string(5000, 'i') } });
+    const std::string t1 = titles_pack({ { COMET, "Comet", "Northfox", 0 } });
+    const std::string icons = icons_pack({ { COMET, std::string(5000, 'i') } });
     s.files[URL] = manifest("1", t1, icons);
     s.files["https://db.test/titles.pack"] = t1;
     s.files["https://cdn.test/icons.pack"] = icons;
@@ -101,7 +101,7 @@ void test_update()
 
     // A new version, its icons the same: only the titles pack fetched; the
     // old one gone.
-    const std::string t2 = titles_pack({ { MARIO, "Mario", "Nintendo", 0 }, { ZELDA, "Zelda", "Nintendo", 0 } });
+    const std::string t2 = titles_pack({ { COMET, "Comet", "Northfox", 0 }, { ASTER, "Aster", "Northfox", 0 } });
     s.files[URL] = manifest("2", t2, icons);
     s.files["https://db.test/titles.pack"] = t2;
     const std::string old = st.titles;
@@ -110,7 +110,7 @@ void test_update()
     CHECK(read_state(dir, &st) && st.version == "2" && st.count == 2 && !paths::file_exists(dir + "/" + old));
 
     // Cut: the part kept, resumed from where it stopped.
-    const std::string t3 = titles_pack({ { MARIO, "Mario 3", "", 0 } });
+    const std::string t3 = titles_pack({ { COMET, "Comet 3", "", 0 } });
     s.files[URL] = manifest("3", t3, icons);
     s.files["https://db.test/titles.pack"] = t3;
     s.cut_after = 40;
@@ -122,14 +122,14 @@ void test_update()
     CHECK(read_state(dir, &st) && st.version == "3");
 
     // A pack that is not what the manifest says: refused, the one in use kept.
-    s.files[URL] = manifest("4", titles_pack({ { MARIO, "Mario 4", "", 0 } }), icons);
-    s.files["https://db.test/titles.pack"] = titles_pack({ { MARIO, "Evil", "", 0 } });
+    s.files[URL] = manifest("4", titles_pack({ { COMET, "Comet 4", "", 0 } }), icons);
+    s.files["https://db.test/titles.pack"] = titles_pack({ { COMET, "Evil", "", 0 } });
     CHECK(update(URL, dir, s.net(), nullptr, &why) == Outcome::Failed && why.find("SHA-256") != std::string::npos);
     CHECK(read_state(dir, &st) && st.version == "3" && paths::file_exists(dir + "/" + st.titles));
     CHECK(paths::list_files(dir, ".part").empty());
 
     // No room, no manifest, a manifest over HTTP.
-    s.files["https://db.test/titles.pack"] = titles_pack({ { MARIO, "Mario 4", "", 0 } });
+    s.files["https://db.test/titles.pack"] = titles_pack({ { COMET, "Comet 4", "", 0 } });
     s.free = 10;
     CHECK(update(URL, dir, s.net(), nullptr, &why) == Outcome::Failed && why == "not enough free space");
     s.free = 1ull << 40;
@@ -147,7 +147,7 @@ void test_list_source()
     const char* const LIST = "https://list.test/owned.json";
     const std::string dir = source_dir(tmp.path(), LIST);
     Server            s;
-    s.files[LIST] = R"({"0100000000010000": {"Game Name": "Mario", "Version": "0", "Size": 5}})";
+    s.files[LIST] = R"({"0100000000010000": {"Game Name": "Comet", "Version": "0", "Size": 5}})";
     std::string why;
     CHECK(update(LIST, dir, s.net(), nullptr, &why) == Outcome::Updated);
     State st;
@@ -156,12 +156,12 @@ void test_list_source()
     CHECK(s.asked.empty() && update(LIST, dir, s.net(), nullptr, &why) == Outcome::Current);
     // A new list: its pack, the old one gone.
     const std::string old = st.titles;
-    s.files[LIST] = R"({"0100000000010000": {"Game Name": "Mario 2"}})";
+    s.files[LIST] = R"({"0100000000010000": {"Game Name": "Comet 2"}})";
     CHECK(update(LIST, dir, s.net(), nullptr, &why) == Outcome::Updated);
     CHECK(read_state(dir, &st) && st.titles != old && !paths::file_exists(dir + "/" + old));
     Database db;
     db.open({ dir });
-    CHECK(db.title(MARIO) && db.title(MARIO)->name == "Mario 2");
+    CHECK(db.title(COMET) && db.title(COMET)->name == "Comet 2");
     // Neither a manifest nor a list.
     s.files[LIST] = R"({"hello": "world"})";
     CHECK(update(LIST, dir, s.net(), nullptr, &why) == Outcome::Failed && !why.empty());
@@ -171,9 +171,9 @@ void test_priority()
 {
     TempDir           tmp("titledb_priority", TempDir::Enter);
     Server            s;
-    const std::string mine = titles_pack({ { MARIO, "My Mario", "", 0 }, { ZELDA, "", "Someone", 0 } });
-    const std::string theirs = titles_pack({ { MARIO, "Mario", "Nintendo", 0 }, { ZELDA, "Zelda", "Nintendo", 0 } });
-    const std::string icons = icons_pack({ { ZELDA, "zelda-icon" } });
+    const std::string mine = titles_pack({ { COMET, "My Comet", "", 0 }, { ASTER, "", "Someone", 0 } });
+    const std::string theirs = titles_pack({ { COMET, "Comet", "Northfox", 0 }, { ASTER, "Aster", "Northfox", 0 } });
+    const std::string icons = icons_pack({ { ASTER, "aster-icon" } });
     s.files["https://mine.test/m.json"] = manifest("1", mine, "");
     s.files["https://mine.test/titles.pack"] = mine;
     s.files[URL] = manifest("1", theirs, icons);
@@ -187,16 +187,16 @@ void test_priority()
     Database db;
     db.open({ a, b, tmp.path() + "/missing" });
     CHECK(db.sources().size() == 2);
-    // The first source names Mario; it has no name for Zelda: the second's.
-    const auto m = db.title(MARIO), z = db.title(ZELDA);
-    CHECK(m && m->name == "My Mario" && z && z->name == "Zelda" && z->publisher == "Nintendo");
+    // The first source names Comet; it has no name for Aster: the second's.
+    const auto m = db.title(COMET), z = db.title(ASTER);
+    CHECK(m && m->name == "My Comet" && z && z->name == "Aster" && z->publisher == "Northfox");
     CHECK(!db.title(0x0100000000099000));
     std::vector<uint8_t> bytes;
     std::string          ext;
-    CHECK(db.icon(ZELDA, &bytes, &ext) && std::string(bytes.begin(), bytes.end()) == "zelda-icon" && !db.icon(MARIO, &bytes, &ext));
+    CHECK(db.icon(ASTER, &bytes, &ext) && std::string(bytes.begin(), bytes.end()) == "aster-icon" && !db.icon(COMET, &bytes, &ext));
     // The other order: theirs first.
     db.open({ b, a });
-    CHECK(db.title(MARIO)->name == "Mario");
+    CHECK(db.title(COMET)->name == "Comet");
 }
 }   // namespace
 

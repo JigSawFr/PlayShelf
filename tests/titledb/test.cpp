@@ -82,7 +82,7 @@ void test_icons()
 void test_safe_text()
 {
     CHECK(safe_text("a\tb\x7f") == "a b ");
-    CHECK(safe_text("Pokémon") == "Pokémon");
+    CHECK(safe_text("Créatures") == "Créatures");
     CHECK(safe_text("\xff\xfe").empty());
     CHECK(safe_text("\xc3").empty());
     // Overlong, a surrogate, past U+10FFFF.
@@ -126,14 +126,14 @@ void test_list()
     std::string            why;
     // Ghostland's: versions as text, a size; an id twice (the last kept), a
     // key that is no title id, a name with a control character.
-    CHECK(parse_title_list(R"({"0100000000010800": {"Game Name": "Mario", "Version": "393216", "Size": 306880574},
-        "0100000000010000": {"Game Name": "Super Mario Odyssey™", "Version": "0", "Size": 3751207164},
+    CHECK(parse_title_list(R"({"0100000000010800": {"Game Name": "Comet", "Version": "393216", "Size": 306880574},
+        "0100000000010000": {"Game Name": "Comet Voyage Deluxe™", "Version": "0", "Size": 3751207164},
         "readme": {"Game Name": "not a game"},
         "01000000160F6000": {"Game Name": "Old"},
         "01000000160F6000": {"Game Name": "Bouncy\tBullets 2", "Version": 65536, "extra": [1, {"a": 2}]}})",
                            &e, &why));
     if (!CHECK(e.size() == 3)) return;
-    CHECK(e[0].id == 0x0100000000010000 && e[0].name == "Super Mario Odyssey™" && e[0].has_version && e[0].version == 0 &&
+    CHECK(e[0].id == 0x0100000000010000 && e[0].name == "Comet Voyage Deluxe™" && e[0].has_version && e[0].version == 0 &&
           e[0].size == 3751207164ull);
     CHECK(e[1].id == 0x0100000000010800 && e[1].version == 393216);
     CHECK(e[2].id == 0x01000000160F6000 && e[2].name == "Bouncy Bullets 2" && e[2].version == 65536 && !e[2].size);
@@ -144,8 +144,8 @@ void test_list()
     if (!CHECK(p.open("list.pack", &why))) return;
     CHECK(p.count() == 3);
     const auto t = p.find(0x0100000000010000);
-    CHECK(t && t->name == "Super Mario Odyssey™" && t->size == 3751207164ull && t->version && *t->version == 0);
-    CHECK(p.find(0x0100000000010800)->name == "Mario" && !p.find(0x0100000000020000));
+    CHECK(t && t->name == "Comet Voyage Deluxe™" && t->size == 3751207164ull && t->version && *t->version == 0);
+    CHECK(p.find(0x0100000000010800)->name == "Comet" && !p.find(0x0100000000020000));
 
     // A Tinfoil index's "titledb" (NXMeta's): its other keys aside.
     CHECK(parse_title_list(R"({"files": [{"url": "x"}], "titledb": {

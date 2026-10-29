@@ -37,7 +37,7 @@ enum class Sort : uint8_t { Name, Newest, Largest, Publisher };
 std::vector<Title> group_titles(const Catalog& catalog);
 
 // A name made for comparing: lower case, the Latin accents dropped
-// ("Pokémon" -> "pokemon"); other scripts as they are.
+// ("Créatures" -> "creatures"); other scripts as they are.
 std::string fold(const std::string& text);
 
 // "Game [0100ABCD00010000][v0].nsp" -> "Game": a file name without its

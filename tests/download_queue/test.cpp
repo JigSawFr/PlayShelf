@@ -40,7 +40,7 @@ void test_file()
     a.size = 123456789;
     a.done = 1000;
     a.total = 5000;
-    a.game = "Zelda";
+    a.game = "Aster";
     a.label = "Update v65536";
     a.game_id = 0x0100000000010000ull;
     a.icon_url = "https://shelf.example/icon/1.jpg";
@@ -65,7 +65,7 @@ void test_file()
     CHECK(back[0].name == a.name && back[0].url == a.url && back[0].server_id == a.server_id);
     CHECK(back[0].title_id == a.title_id && back[0].version == a.version && !back[1].version && back[0].size == a.size && back[0].done == 1000 && back[0].total == 5000);
     CHECK(back[0].journal && *back[0].journal == jn);
-    CHECK(back[0].game == "Zelda" && back[0].label == "Update v65536" && back[0].game_id == a.game_id &&
+    CHECK(back[0].game == "Aster" && back[0].label == "Update v65536" && back[0].game_id == a.game_id &&
           back[0].icon_url == a.icon_url);
     CHECK(back[1].state == State::Failed && back[1].error == b.error && back[1].unsigned_content && back[1].accept_unsigned);
     CHECK(!back[1].journal);
