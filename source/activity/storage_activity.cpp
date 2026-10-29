@@ -174,7 +174,7 @@ void StorageActivity::rebuild()
         for (const insights::Played& p : all) add(p, "st_game_");
     }
     std::vector<std::pair<const char*, const char*>> icons;
-    for (const std::string& id : ids) icons.push_back({ id.c_str(), id.rfind("st_idle_", 0) == 0 ? "history" : "gamepad" });
+    for (const std::string& id : ids) icons.push_back({ id.c_str(), id.starts_with("st_idle_") ? "history" : "gamepad" });
     cadran::List(box, box).apply(icons);
 
     root->addView(box);

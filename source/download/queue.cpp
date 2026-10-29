@@ -150,7 +150,7 @@ std::vector<Job> queue_from_json(const std::string& text)
         job.label = str(j, "label", 256);
         job.game_id = u64(j, "game_id");
         job.icon_url = str(j, "icon");
-        if (job.icon_url.compare(0, 8, "https://") != 0) job.icon_url.clear();
+        if (!job.icon_url.starts_with("https://")) job.icon_url.clear();
         job.url = str(j, "url");
         job.server_id = str(j, "server", 64);
         job.title_id = u64(j, "title_id");
@@ -170,7 +170,7 @@ std::vector<Job> queue_from_json(const std::string& text)
         const auto jn = j.find("journal");
         if (jn != j.end()) job.journal = journal_from_json(*jn);
         // Only an https address is ever fetched (a file edited by hand).
-        if (job.id.empty() || job.url.compare(0, 8, "https://") != 0) continue;
+        if (job.id.empty() || !job.url.starts_with("https://")) continue;
         out.push_back(std::move(job));
     }
     return out;

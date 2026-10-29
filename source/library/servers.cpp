@@ -27,7 +27,7 @@ std::string str(const json& j, const char* key, size_t max = 2048)
     return s.size() <= max ? s : "";
 }
 
-bool https_or_empty(const std::string& u) { return u.empty() || (u.size() > 8 && u.compare(0, 8, "https://") == 0); }
+bool https_or_empty(const std::string& u) { return u.empty() || (u.size() > 8 && u.starts_with("https://")); }
 }   // namespace
 
 std::string servers_to_json(const std::vector<Server>& servers)
@@ -77,7 +77,7 @@ std::vector<Server> servers_from_json(const std::string& text)
         if (!https_or_empty(s.lan_url)) s.lan_url.clear();
         if (!https_or_empty(s.wan_url)) s.wan_url.clear();
         if (!s.password_box.empty() && !secret_box::is_sealed(s.password_box)) s.password_box.clear();
-        if (s.pin.compare(0, 8, "sha256//") != 0) s.pin.clear();
+        if (!s.pin.starts_with("sha256//")) s.pin.clear();
         if (s.id.empty() || (s.lan_url.empty() && s.wan_url.empty())) continue;
         out.push_back(std::move(s));
     }
@@ -134,7 +134,7 @@ bool set_password(Server& s, const std::string& password)
 std::string pin_shown(const Server& s)
 {
     const std::string prefix = "sha256//";
-    if (s.pin.compare(0, prefix.size(), prefix) != 0) return "";
+    if (!s.pin.starts_with(prefix)) return "";
     const auto raw = unbase64(s.pin.substr(prefix.size()));
     if (!raw || raw->size() != 32) return "";
     std::array<uint8_t, 32> h{};

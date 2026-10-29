@@ -16,12 +16,6 @@ std::optional<Package> fail(std::string* why, const std::string& text)
     return std::nullopt;
 }
 
-bool ends_with(const std::string& s, const char* suffix)
-{
-    const size_t n = std::char_traits<char>::length(suffix);
-    return s.size() >= n && s.compare(s.size() - n, n, suffix) == 0;
-}
-
 // The archive at `offset` of `src`: its base header, then all of it.
 std::optional<Pfs> read_pfs(Source& src, uint64_t offset, uint64_t limit, std::string* why)
 {
@@ -85,7 +79,7 @@ std::vector<const PackageFile*> Package::metas() const
 {
     std::vector<const PackageFile*> out;
     for (const PackageFile& f : files)
-        if (ends_with(f.name, ".cnmt.nca") || ends_with(f.name, ".cnmt.ncz")) out.push_back(&f);
+        if (f.name.ends_with(".cnmt.nca") || f.name.ends_with(".cnmt.ncz")) out.push_back(&f);
     return out;
 }
 
@@ -93,7 +87,7 @@ std::vector<const PackageFile*> Package::tickets() const
 {
     std::vector<const PackageFile*> out;
     for (const PackageFile& f : files)
-        if (ends_with(f.name, ".tik")) out.push_back(&f);
+        if (f.name.ends_with(".tik")) out.push_back(&f);
     return out;
 }
 

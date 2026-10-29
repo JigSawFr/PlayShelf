@@ -4,6 +4,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <iterator>
 #include <string>
 
 namespace tabs
@@ -20,7 +21,7 @@ constexpr int about       = 6;   // version, help, credits
 constexpr int of(int n)
 {
     constexpr int positions[] = { home, library, catalogue, preferences, about };
-    return n >= 0 && n < (int)(sizeof(positions) / sizeof(positions[0])) ? positions[n] : library;
+    return n >= 0 && n < (int)std::size(positions) ? positions[n] : library;
 }
 
 // The position of the tab named `screen` ("tab/about"), -1 for none.

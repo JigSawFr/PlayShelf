@@ -222,8 +222,7 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
                !(s_filter.state == library::Filter::State::DlcsMissing && !st.dlcs_missing) &&
                !(s_filter.state == library::Filter::State::NeverPlayed && (e.game->launches || e.game->play_s));
     };
-    this->entries.erase(std::remove_if(this->entries.begin(), this->entries.end(), [&](const Entry& e) { return !kept(e); }),
-                        this->entries.end());
+    std::erase_if(this->entries, [&](const Entry& e) { return !kept(e); });
     // In the order chosen, by name after it.
     std::stable_sort(this->entries.begin(), this->entries.end(), [](const Entry& a, const Entry& b) {
         if (s_order == Order::ToGetFirst) {
@@ -477,7 +476,7 @@ void LibraryTab::open(size_t i)
     };
     page.by_genre = [others](const std::string& genre) {
         return others([&](const library::Facts& f) {
-            return std::find(f.categories.begin(), f.categories.end(), genre) != f.categories.end();
+            return std::ranges::contains(f.categories, genre);
         });
     };
     // Its cover as the Library shows it: the console's icon, else the

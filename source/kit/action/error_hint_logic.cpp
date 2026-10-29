@@ -3,6 +3,8 @@
 
 #include "core/nx_types.h"
 
+#include <iterator>
+
 namespace error_hint_logic
 {
 
@@ -20,7 +22,7 @@ const char* hint_key(uint32_t rc)
             "cancelled",          // NXM_RC_CANCELLED
         };
         const uint32_t desc = NXM_RESULT_DESC(rc);
-        return desc < sizeof(OWN) / sizeof(OWN[0]) ? OWN[desc] : "";
+        return desc < std::size(OWN) ? OWN[desc] : "";
     }
     switch (rc) {
         case 0xF601: return "session_closed";   // 2001-0123 SessionClosed

@@ -268,7 +268,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     }
     if (!o.ok && (inst.paused() || ctl->cancel)) return stopped();
     o.undone = !o.ok;
-    o.unsigned_content = !o.ok && o.why.find("not signed by Nintendo") != std::string::npos;
+    o.unsigned_content = !o.ok && o.why.contains("not signed by Nintendo");
     return o;
 }
 
@@ -435,8 +435,7 @@ void finished(const std::string& id, const Outcome& o)
     // take up again.
     if (o.ok || o.cancelled || o.undone) drop_ahead(id);
     if (j && o.cancelled) {
-        s_jobs.erase(std::remove_if(s_jobs.begin(), s_jobs.end(), [&](const download::Job& x) { return x.id == id; }),
-                     s_jobs.end());
+        std::erase_if(s_jobs, [&](const download::Job& x) { return x.id == id; });
     } else if (j && o.ok) {
         aurore::Logger::info("downloads: {} installed", j->name);
         j->state = download::State::Done;
@@ -709,8 +708,7 @@ void resume_all()
 
 void clear_finished()
 {
-    s_jobs.erase(std::remove_if(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) { return j.state == download::State::Done; }),
-                 s_jobs.end());
+    std::erase_if(s_jobs, [](const download::Job& j) { return j.state == download::State::Done; });
     save();
     changed();
 }

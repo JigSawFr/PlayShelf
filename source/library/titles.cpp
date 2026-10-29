@@ -111,7 +111,7 @@ std::vector<Title> group_titles(const Catalog& catalog)
         else if (t->base < 0 || items[(size_t)t->base].version < it.version) t->base = (long)i;
         else t->dlcs.push_back(i);
         t->size += it.size;
-        if (std::find(t->sections.begin(), t->sections.end(), it.section) == t->sections.end())
+        if (!std::ranges::contains(t->sections, it.section))
             t->sections.push_back(it.section);
     }
 
@@ -151,9 +151,9 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
     std::vector<uint32_t>    dates(titles.size());
     for (size_t i = 0; i < titles.size(); i++) {
         const Title& t = titles[i];
-        if (!section.empty() && std::find(t.sections.begin(), t.sections.end(), section) == t.sections.end()) continue;
+        if (!section.empty() && !std::ranges::contains(t.sections, section)) continue;
         names[i] = fold(t.name);
-        if (!q.empty() && names[i].find(q) == std::string::npos && !(by_id && t.id && hex16(t.id).find(q) != std::string::npos))
+        if (!q.empty() && !names[i].contains(q) && !(by_id && t.id && hex16(t.id).find(q) != std::string::npos))
             continue;
         const Facts facts = selection.facts && t.id ? selection.facts(t.id) : Facts();
         if (!matches(f, facts)) continue;

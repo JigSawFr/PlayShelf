@@ -197,7 +197,7 @@ bool add_item(Catalog& c, const json& entry, const std::string& base, const std:
     else if (entry.is_object())
         for (const char* key : {"url", "path", "file", "download_url"})
             if ((ref = str_at(entry, key)).size()) break;
-    if (ref.empty() || ref.size() > MAX_URL || ref.rfind("gdrive:", 0) == 0) {
+    if (ref.empty() || ref.size() > MAX_URL || ref.starts_with("gdrive:")) {
         c.skipped++;
         return false;
     }
@@ -303,7 +303,7 @@ std::string display_text(const std::string& s, size_t max)
 
 std::string resolve(const std::string& base, const std::string& ref)
 {
-    auto https = [](const std::string& u) { return u.size() > 8 && u.compare(0, 8, "https://") == 0 ? u : std::string(); };
+    auto https = [](const std::string& u) { return u.size() > 8 && u.starts_with("https://") ? u : std::string(); };
     if (ref.empty()) return "";
     // Any scheme of its own: kept only when https.
     const size_t colon = ref.find(':');
@@ -313,11 +313,11 @@ std::string resolve(const std::string& base, const std::string& ref)
         std::transform(scheme.begin(), scheme.end(), scheme.begin(), [](unsigned char c) { return (char)std::tolower(c); });
         return scheme == "https" ? https("https" + ref.substr(colon)) : "";
     }
-    if (base.compare(0, 8, "https://") != 0) return "";
+    if (!base.starts_with("https://")) return "";
     const size_t host_end = base.find_first_of("/?#", 8);
     const std::string origin = base.substr(0, host_end);
     if (origin.size() <= 8) return "";
-    if (ref.compare(0, 2, "//") == 0) return https("https:" + ref);
+    if (ref.starts_with("//")) return https("https:" + ref);
     std::string path;
     if (ref[0] == '/') {
         path = ref;
@@ -580,7 +580,7 @@ std::optional<Catalog> parse_index(const std::string& body, const std::string& b
             std::string ref = d.is_string() ? d.get<std::string>() : d.is_object() ? str_at(d, "url") : std::string();
             const std::string url = ref.size() <= MAX_URL ? resolve(base_url, ref) : std::string();
             if (!url.empty() && c.directories.size() < MAX_DIRECTORIES &&
-                std::find(c.directories.begin(), c.directories.end(), url) == c.directories.end())
+                !std::ranges::contains(c.directories, url))
                 c.directories.push_back(url);
         }
     const auto tdb = j.find("titledb");

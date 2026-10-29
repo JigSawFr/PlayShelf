@@ -53,7 +53,7 @@ Start download_start(long status, bool resumed)
 
 bool redirect_ok(long status, const std::string& target, std::string* error)
 {
-    if (status < 300 || status >= 400 || target.compare(0, 8, "https://") != 0) {
+    if (status < 300 || status >= 400 || !target.starts_with("https://")) {
         if (error) *error = "no redirect (HTTP " + std::to_string(status) + ")";
         return false;
     }

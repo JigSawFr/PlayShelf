@@ -76,7 +76,7 @@ bool SeenBook::note(const std::string& server_id, const std::vector<uint64_t>& i
     }
     Server& s = it->second;
     for (uint64_t id : ids) {
-        if (!id || s.known.count(id)) continue;
+        if (!id || s.known.contains(id)) continue;
         if (s.known.size() >= MAX_GAMES) break;
         s.known.insert(id);
         s.dated[id] = day;
@@ -142,7 +142,7 @@ bool SeenBook::from_json(const std::string& text)
         if (j.contains("dated") && j["dated"].is_object())
             for (const auto& [k, day] : j["dated"].items()) {
                 const uint64_t game = parse_hex(k);
-                if (!game || !day.is_number_unsigned() || !is_date(day.get<uint32_t>()) || !s.known.count(game)) continue;
+                if (!game || !day.is_number_unsigned() || !is_date(day.get<uint32_t>()) || !s.known.contains(game)) continue;
                 s.dated[game] = day.get<uint32_t>();
             }
         this->servers.emplace(id, std::move(s));

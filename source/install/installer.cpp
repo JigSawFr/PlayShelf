@@ -27,11 +27,6 @@ std::optional<ContentId> id_of_name(const std::string& name)
     return content_id_from_hex(name.substr(0, dot));
 }
 
-bool ends_with(const std::string& s, const std::string& suffix)
-{
-    return s.size() >= suffix.size() && s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
-
 // A content meta's required system version (major << 26 | minor << 20 |
 // micro << 16 | …) as hosversionGet() counts: major << 16 | minor << 8 | micro.
 uint32_t as_hos_version(uint32_t v) { return (v >> 26) << 16 | ((v >> 20) & 0x3f) << 8 | ((v >> 16) & 0xf); }
@@ -64,7 +59,7 @@ bool Installer::prepare(std::string* why)
         if (f->size > MAX_META_FILE) return fail(why, f->name + ": too big for a content meta");
         std::vector<uint8_t> file((size_t)f->size);
         if (!src.read(f->offset, file.data(), file.size(), why)) return false;
-        if (ends_with(f->name, ".ncz")) {
+        if (f->name.ends_with(".ncz")) {
             // Decompressed into memory: the NCA it stands for.
             ContentStream cs(
                 keys.header_key.data(), std::nullopt, 0, nullptr,
@@ -96,7 +91,7 @@ bool Installer::prepare(std::string* why)
                                  std::to_string((required >> 8) & 0xff) + "." + std::to_string(required & 0xff) + ")");
 
         auto plan_one = [&](const ContentInfo& c) {
-            if (std::find(planned.begin(), planned.end(), c.id) != planned.end()) return true;   // another title's too
+            if (std::ranges::contains(planned, c.id)) return true;   // another title's too
             if (console.has_content(c.id)) return true;
             if (!pkg.content(c.id)) return fail(why, content_id_hex(c.id) + ": a content the package lacks");
             planned.push_back(c.id);
@@ -105,7 +100,7 @@ bool Installer::prepare(std::string* why)
             return true;
         };
         if (!console.has_content(t.meta_content.id) &&
-            std::find(planned.begin(), planned.end(), t.meta_content.id) == planned.end()) {
+            !std::ranges::contains(planned, t.meta_content.id)) {
             planned.push_back(t.meta_content.id);
             t.to_write.push_back(t.meta_content);
             total += t.meta_content.size;
@@ -222,7 +217,7 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
         state.at = cs.checkpoint();
         if (!state.at) {
             console.delete_placeholder(c.id);
-            made.erase(std::remove(made.begin(), made.end(), c.id), made.end());
+            std::erase(made, c.id);
             state.writing.reset();
         }
         was_paused = true;

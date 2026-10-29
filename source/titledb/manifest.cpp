@@ -11,11 +11,6 @@ namespace
 {
 constexpr uint64_t MAX_PACK = 2ull << 30;   // a pack's size at most
 
-bool starts_with(const std::string& s, const char* p)
-{
-    return s.rfind(p, 0) == 0;
-}
-
 // The first of `keys` that holds a string.
 std::string first_string(const nlohmann::json& j, std::initializer_list<const char*> keys)
 {
@@ -49,7 +44,7 @@ bool pack(const nlohmann::json& j, const std::string& base, const char* name, Pa
     out->sha256 = first_string(j, { "sha256", "sha_256" });
     int64_t size = 0;
     json_util::integer_at(j, "size", &size);
-    if (!starts_with(out->url, "https://")) {
+    if (!out->url.starts_with("https://")) {
         if (why) *why = std::string(name) + ": not an HTTPS address";
         return false;
     }
@@ -68,7 +63,7 @@ bool pack(const nlohmann::json& j, const std::string& base, const char* name, Pa
 
 std::string resolve(const std::string& base, const std::string& url)
 {
-    if (url.empty() || url.find("://") != std::string::npos) return url;
+    if (url.empty() || url.contains("://")) return url;
     const size_t scheme = base.find("://");
     if (scheme == std::string::npos) return "";
     if (url[0] == '/') {

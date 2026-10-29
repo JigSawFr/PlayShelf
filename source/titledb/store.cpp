@@ -46,12 +46,6 @@ std::string file_name(const char* kind, const PackFile& p)
     return std::string(kind) + "-" + p.sha256.substr(0, 16) + ".pack";
 }
 
-bool ends_with(const std::string& s, const char* e)
-{
-    const std::string x(e);
-    return s.size() >= x.size() && s.compare(s.size() - x.size(), x.size(), x) == 0;
-}
-
 // The pack fetched into `dir` unless it is there; false (why set) when it
 // does not arrive whole and as its hash says.
 bool fetch(const char* kind, const PackFile& p, const std::string& dir, const Net& net,
@@ -243,8 +237,8 @@ void prune(const std::string& dir, bool parts)
     State s;
     const bool has = read_state(dir, &s);
     for (const std::string& name : paths::list_files(dir, "")) {
-        if (!ends_with(name, ".pack") && !ends_with(name, ".pack.part")) continue;
-        if (ends_with(name, ".pack.part") && !parts) continue;
+        if (!name.ends_with(".pack") && !name.ends_with(".pack.part")) continue;
+        if (name.ends_with(".pack.part") && !parts) continue;
         if (has && (name == s.titles || name == s.icons)) continue;
         std::remove((dir + "/" + name).c_str());
     }

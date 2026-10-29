@@ -106,7 +106,7 @@ void publish(const insights::Snapshot& s)
                      "playshelf/notices/wished_detail"_i18n, see, [data, index]() { game_page::open(data, index); });
     }
     for (const std::string& id : s_wished)
-        if (!wished.count(id)) notices::clear(id);
+        if (!wished.contains(id)) notices::clear(id);
     s_wished = wished;
 
     // The wishlist's games on sale on the eShop of the player's country: for

@@ -46,7 +46,7 @@ void start()
 void add(uint64_t title_id, const std::string& name)
 {
     const uint64_t base = library::base_of(title_id);
-    if (!base || std::find(s_games.begin(), s_games.end(), base) != s_games.end()) return;
+    if (!base || std::ranges::contains(s_games, base)) return;
     s_games.insert(s_games.begin(), base);
     // The oldest go when it is full: what was put away long ago may please now.
     if (s_games.size() > MAX_GAMES) s_games.resize(MAX_GAMES);

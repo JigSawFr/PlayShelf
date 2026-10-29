@@ -251,8 +251,8 @@ void PreferencesTab::sources_sheet()
             if (ui::refuse_read_only()) return;
             ui::prompt_text("playshelf/titledb/add_header"_i18n, "https://", 512, ui::guarded(this->alive, [this](const std::string& url) {
                 auto& urls = config::get().title_sources;
-                if (url.rfind("https://", 0) != 0 || url.size() <= 8) return ui::refuse("playshelf/titledb/not_https"_i18n);
-                if (std::find(urls.begin(), urls.end(), url) != urls.end()) return ui::refuse("playshelf/titledb/duplicate"_i18n);
+                if (!url.starts_with("https://") || url.size() <= 8) return ui::refuse("playshelf/titledb/not_https"_i18n);
+                if (std::ranges::contains(urls, url)) return ui::refuse("playshelf/titledb/duplicate"_i18n);
                 if (urls.size() >= config::MAX_TITLE_SOURCES) return;
                 urls.push_back(url);
                 save_sources();
@@ -262,11 +262,11 @@ void PreferencesTab::sources_sheet()
         }), "plus");
     // A default source removed: offered back.
     for (const char* d : config::DEFAULT_TITLE_SOURCES)
-        if (std::find(sources.begin(), sources.end(), d) == sources.end() && sources.size() < config::MAX_TITLE_SOURCES)
+        if (!std::ranges::contains(sources, d) && sources.size() < config::MAX_TITLE_SOURCES)
             lines.emplace_back(aurore::getStr("playshelf/titledb/restore", source_name(d)), ui::guarded(this->alive, [this, d]() {
                 if (ui::refuse_read_only()) return;
                 auto& urls = config::get().title_sources;
-                if (std::find(urls.begin(), urls.end(), d) != urls.end() || urls.size() >= config::MAX_TITLE_SOURCES) return;
+                if (std::ranges::contains(urls, d) || urls.size() >= config::MAX_TITLE_SOURCES) return;
                 urls.emplace_back(d);
                 save_sources();
                 this->show_titledb();
@@ -311,7 +311,7 @@ void PreferencesTab::source_sheet(size_t index)
         ui::confirm_danger(aurore::getStr("playshelf/titledb/remove_body", source_name(url)), "playshelf/titledb/remove"_i18n,
                            ui::guarded(this->alive, [url, moved]() {
                                auto urls = config::get().title_sources;
-                               urls.erase(std::remove(urls.begin(), urls.end(), url), urls.end());
+                               std::erase(urls, url);
                                moved(urls);
                            }));
     }), "trash", "", "", Choice::Tone::DANGER);

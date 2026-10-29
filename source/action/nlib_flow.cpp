@@ -66,7 +66,7 @@ bool fresh(const std::string& file)
 bool is_unknown(uint64_t base)
 {
     std::lock_guard<std::mutex> hold(s_lock);
-    return s_unknown.count(base) != 0;
+    return s_unknown.contains(base);
 }
 
 // On the worker: the details, from the cache while it is fresh, else from
@@ -149,7 +149,7 @@ void drain()
             base = s_queue.front();
             s_queue.pop_front();
             language = s_language;
-            if (s_unknown.count(base)) continue;
+            if (s_unknown.contains(base)) continue;
         }
         bool offline = false;
         auto d = fetch(base, language, &offline);
@@ -223,7 +223,7 @@ void enrich(const std::vector<uint64_t>& title_ids)
     for (uint64_t id : title_ids) {
         const uint64_t base = library::base_of(id);
         if (titledb::nlib_details_url(base, "en").empty() || s_book.find(base)) continue;
-        if (std::find(wanted.begin(), wanted.end(), base) == wanted.end()) wanted.push_back(base);
+        if (!std::ranges::contains(wanted, base)) wanted.push_back(base);
     }
     bool start_worker = false;
     {

@@ -96,7 +96,7 @@ void install_screen_hooks()
     h.today = []() { return ui::today_date(); };
     h.mark = mark;
     h.tab_title = [](const std::string& screen) {
-        return screen.rfind("tab/", 0) == 0 ? aurore::getStr("playshelf/tabs/" + screen.substr(4)) : std::string();
+        return screen.starts_with("tab/") ? aurore::getStr("playshelf/tabs/" + screen.substr(4)) : std::string();
     };
     // The look's preferences live in config.json; the simulators' flags are
     // PLAYSHELF_SIM_* (core/sim_env.h).
