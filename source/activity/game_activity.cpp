@@ -15,6 +15,7 @@
 #include "action/installed_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
@@ -599,6 +600,9 @@ void GameActivity::fill_details_tab()
     std::string rating;
     for (const std::string& r : f.rating) rating += (rating.empty() ? "" : ", ") + r;
     fact(card, "playshelf/game/rating"_i18n, rating);
+    // What critics gave it (PlayInsights, from Wikidata: OpenCritic's mostly).
+    if (const int critics = popular_flow::of(this->page.title_id).critics)
+        fact(card, "playshelf/game/critics"_i18n, brls::getStr("playshelf/game/critics_score", critics));
     if (f.demo) fact(card, "playshelf/game/demo"_i18n, "playshelf/game/yes"_i18n);
     if (l.base_size) fact(card, "playshelf/game/size_base"_i18n, library_flow::size_text(l.base_size));
     if (l.updates_size) fact(card, "playshelf/game/size_updates"_i18n, library_flow::size_text(l.updates_size));

@@ -768,7 +768,9 @@
         "play_time": "Tiempo de juego",
         "launches_one": "iniciado una vez",
         "launches": "iniciado {} veces",
-        "last_played": "Última partida"
+        "last_played": "Última partida",
+        "critics": "Nota de la crítica",
+        "critics_score": "{}/100"
     },
     "genres": {
         "action": "Acción",

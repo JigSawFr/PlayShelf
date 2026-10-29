@@ -50,6 +50,8 @@ bool PopularBook::from_json(const std::string& text)
         Renown r;
         r.score = std::clamp(value[0].get<int>(), 0, 100);
         r.trend = std::clamp(value[1].get<int>(), -100, 999);
+        // A third field (PlayInsights' schema 1): the critics' score.
+        if (value.size() >= 3 && value[2].is_number_integer()) r.critics = std::clamp(value[2].get<int>(), 0, 100);
         if (r.score > 0) this->games[id] = r;
     }
     this->day = generated->get<std::string>();

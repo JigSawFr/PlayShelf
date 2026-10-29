@@ -1,8 +1,9 @@
-// popular — how well known each game is and whether it is talked about more
-// these days, from popular.json (tools/popular.py makes it from Wikidata and
-// Wikipedia's pageviews; docs/contributing/popular.md): Home's "Popular on
-// your servers" and "Trending" rows. A score from 0 to 100, and the change
-// of its readers last month in percent.
+// popular — how well known each game is, whether it is talked about more
+// these days and what critics gave it, from popular.json (made every week by
+// PlayInsights, https://github.com/JigSawFr/PlayInsights, from Wikidata and
+// Wikipedia's pageviews): Home's "Popular on your servers" and "Trending"
+// rows, a game page's critics' score. A score from 0 to 100, the change of its
+// readers last month in percent, and the critics' score (0 to 100).
 //
 // Plain C++ for the host tests (tests/library_popular).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -20,6 +21,7 @@ struct Renown
 {
     int score = 0;   // 0 to 100; 0: unknown
     int trend = 0;   // last month's readers against the two before, in percent
+    int critics = 0; // the critics' score, 0 to 100; 0: unknown
 };
 
 class PopularBook
