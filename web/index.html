@@ -22,7 +22,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <meta name="theme-color" content="#111d31">
+  <meta name="theme-color" content="#0e1a33">
   <link rel="stylesheet" href="simulator.css">
   <!-- The theme before the first paint (theme.js). -->
   <script src="theme.js"></script>
@@ -33,13 +33,29 @@
 </head>
 <body>
   <header class="top">
-    <!-- As the website's header (site/assets/site.css): on the website the
-         simulator is in simulator/, its home one level up. -->
-    <a class="brand" href="../" id="home-link">
-      <img src="mark.svg" alt="" width="30" height="30">
-      <span class="name">Play<b>Shelf</b></span>
-      <span class="tag" data-i18n="title">Simulator</span>
-    </a>
+    <!-- As the website's header (site/assets/site.css): the name opens the
+         menu of Boréale's sites (its "site switcher" block); on the website
+         the simulator is in simulator/, its home one level up. -->
+    <div class="switcher">
+      <button class="brand switch" type="button" popovertarget="sites" aria-label="PlayShelf · Boréale's projects" id="sites-button">
+        <img src="mark.svg" alt="" width="30" height="30">
+        <span class="name">Play<b>Shelf</b></span>
+        <span class="tag" data-i18n="title">Simulator</span><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div id="sites" class="sites" popover data-i18n-label="sites_label" aria-label="Boréale's projects">
+        <ul>
+          <li><a href="https://boreale.dev/" data-site="https://boreale.dev/"><img src="marks/boreale.svg" alt="" width="36" height="36"><span><strong>Boréale</strong><small data-i18n="sites_boreale">Homebrew for the long nights</small></span></a></li>
+        </ul>
+        <p class="sites-title" data-i18n="sites_homebrew">Switch homebrew</p>
+        <ul>
+          <li><a href="https://guard.boreale.dev/" data-site="https://guard.boreale.dev/"><img src="marks/playguard.svg" alt="" width="36" height="36"><span><strong>PlayGuard</strong><small data-i18n="sites_playguard">Parental controls, on the console</small></span></a></li>
+          <li><a href="../" id="home-link" aria-current="true"><img src="marks/playshelf.svg" alt="" width="36" height="36"><span><strong>PlayShelf</strong><small data-i18n="sites_playshelf">Your game library, on the console</small></span><em class="soon" data-i18n="sites_soon">Coming soon</em></a></li>
+        </ul>
+        <p class="sites-title" data-i18n="sites_libraries">Libraries</p>
+        <ul>
+          <li><a href="https://aurore.boreale.dev/" data-site="https://aurore.boreale.dev/"><img src="marks/aurore.svg" alt="" width="36" height="36"><span><strong>Aurore</strong><small data-i18n="sites_aurore">The interface library behind them</small></span></a></li>
+        </ul>
+      </div>
+    </div>
     <nav class="nav" aria-label="PlayShelf">
       <a id="nav-features" href="../#features" data-i18n="nav_features">Features</a>
       <a id="nav-install" href="../#install" data-i18n="nav_install">Install</a>
