@@ -61,6 +61,9 @@ class GameActivity : public aurore::Activity
         std::function<std::vector<Other>(const std::string& genre)>     by_genre;
         // The games most like it the servers have (PlayInsights' similar.json).
         std::function<std::vector<Other>()> similar;
+        // Its other editions the servers have, the game itself among them
+        // when this is an edition (PlayInsights' editions.json).
+        std::function<std::vector<Other>()> editions;
     };
     static void show(Page page);
 

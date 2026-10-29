@@ -37,6 +37,7 @@ struct File
 File<library::PopularBook> s_popular{ "popular.json" };
 File<library::SignalBook>  s_signals{ "games.json" };
 File<library::SimilarBook> s_similar{ "similar.json" };
+File<library::EditionBook> s_editions{ "editions.json" };
 std::map<int, std::function<void()>> s_listeners;
 int                                  s_next = 1;
 bool                                 s_fetching = false;
@@ -120,6 +121,7 @@ void fetch_all()
     fetch(s_popular);
     fetch(s_signals);
     fetch(s_similar);
+    fetch(s_editions);
     aurore::sync([]() { s_fetching = false; });
 }
 }   // namespace
@@ -132,6 +134,7 @@ void start()
         load(s_popular);
         load(s_signals);
         load(s_similar);
+        load(s_editions);
         long oldest = -1;
         // The oldest cached file decides; a missing one is as old as can be.
         for (const std::string& file : { s_popular.cached(), s_signals.cached(), s_similar.cached() }) {
@@ -168,6 +171,11 @@ std::shared_ptr<const library::SignalBook> signals()
 std::shared_ptr<const library::SimilarBook> similar()
 {
     return s_similar.book;
+}
+
+std::shared_ptr<const library::EditionBook> editions()
+{
+    return s_editions.book;
 }
 
 int listen(std::function<void()> changed)

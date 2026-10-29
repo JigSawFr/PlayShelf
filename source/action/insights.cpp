@@ -43,6 +43,24 @@ std::map<int, std::function<void()>> s_listeners;
 int                                  s_next = 1;
 bool                                 s_started = false;
 bool                                 s_pending = false;   // a make() asked for the next frame
+
+// One cover a game in a row (editions.json): the game itself when the row
+// has it, else the first of its editions.
+template <typename T, typename IdOf>
+void one_per_game(std::vector<T>& row, const library::EditionBook& editions, IdOf id_of)
+{
+    std::set<uint64_t> games;
+    for (const T& x : row)
+        if (editions.game_of(id_of(x)) == id_of(x)) games.insert(id_of(x));
+    std::set<uint64_t> kept;
+    std::vector<T>     out;
+    for (T& x : row) {
+        const uint64_t id = id_of(x), game = editions.game_of(id);
+        if ((id != game && games.contains(game)) || !kept.insert(game).second) continue;
+        out.push_back(std::move(x));
+    }
+    row = std::move(out);
+}
 std::set<std::string>                s_tried;             // the servers whose catalogue was asked in this run
 std::set<std::string>                s_noted;             // and noted in the seen book
 std::string                          s_jobs_key;          // the downloads, as last made
@@ -221,11 +239,16 @@ void make()
     if (s.recent.size() > ROW) s.recent.resize(ROW);
     std::stable_sort(s.idle.begin(), s.idle.end(), [](const Played& a, const Played& b) { return a.game.size > b.game.size; });
 
-    // The games the player put away (not_interested): never suggested, so
-    // out of the rows that pick for them.
+    // The games the player put away (not_interested), and those the console
+    // has another edition of (editions.json): never suggested, so out of the
+    // rows that pick for them.
     const std::vector<uint64_t> unwanted = not_interested::games();
-    auto wanted = [&unwanted](const Pick& p) {
-        return std::find(unwanted.begin(), unwanted.end(), library::base_of(p.title().id)) == unwanted.end();
+    const auto                  editions = popular_flow::editions();
+    std::set<uint64_t>          owned_games;
+    for (const library::Owned& o : owned) owned_games.insert(editions->game_of(o.id));
+    auto wanted = [&unwanted, &editions, &owned_games](const Pick& p) {
+        const uint64_t id = library::base_of(p.title().id);
+        return !std::ranges::contains(unwanted, id) && !owned_games.contains(editions->game_of(id));
     };
 
     // The servers' games the console has not (no demos): by date, by when
@@ -259,8 +282,10 @@ void make()
     std::stable_sort(s.trending.begin(), s.trending.end(), [](const Pick& a, const Pick& b) {
         return popular_flow::of(a.title().id).trend > popular_flow::of(b.title().id).trend;
     });
-    for (auto* row : { &s.newest, &s.month, &s.added, &s.popular, &s.trending })
+    for (auto* row : { &s.newest, &s.month, &s.added, &s.popular, &s.trending }) {
+        one_per_game(*row, *editions, [](const Pick& p) { return p.title().id; });
         if (row->size() > ROW) row->resize(ROW);
+    }
 
     // For the console's player, from every signal: games like the ones it
     // plays, of their series and developers, of their genres, well known and
@@ -280,7 +305,8 @@ void make()
             candidates.push_back(std::move(c));
             by_id[t.id] = p;
         }
-        for (library::Suggestion& sug : library::recommend(owned, candidates, genres, *similar, *signals, unwanted, to_day, ROW))
+        for (library::Suggestion& sug :
+             library::recommend(owned, candidates, genres, *similar, *signals, unwanted, to_day, ROW, *editions))
             s.like.push_back({ by_id[sug.id], std::move(sug.reason) });
     }
 
@@ -305,6 +331,7 @@ void make()
             }
         }
         std::stable_sort(found.begin(), found.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+        one_per_game(found, *editions, [](const auto& f) { return f.second.pick.title().id; });
         for (auto& f : found) {
             if (s.series.size() >= ROW) break;
             s.series.push_back(std::move(f.second));
@@ -320,6 +347,7 @@ void make()
             if (price && price->on_sale() && wanted(p) && !on_sale.count(p.title().id)) on_sale[p.title().id] = { p, *price };
         }
         for (auto& d : on_sale) s.deals.push_back(std::move(d.second));
+        one_per_game(s.deals, *editions, [](const Deal& d) { return d.pick.title().id; });
         std::stable_sort(s.deals.begin(), s.deals.end(), [](const Deal& a, const Deal& b) {
             if (a.price.discount() != b.price.discount()) return a.price.discount() > b.price.discount();
             return popular_flow::of(a.pick.title().id).score > popular_flow::of(b.pick.title().id).score;

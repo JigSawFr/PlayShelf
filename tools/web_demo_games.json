@@ -1,5 +1,5 @@
 {
- "_comment": "The web simulator's demo games (web/README.md), all made up: the one table tools/web_demo.cpp (packages, catalogue, PlayInsights' files, the console's first games) and tools/web_demo_art.py (pictures, Nlib API's answers, the title database) make the demo from. Each game is like a kind of today's best known ones, never one of them: no real game's name, characters, logo or picture. Its title id is its place in the list: 0100DE00000(n)0000, n from 1. `date` is its release; `days` instead, a release that many days from the day of the build (the month's releases, the coming ones). `on_server`: false for a game only the title database knows (coming out soon). `art`: the scene of its pictures (web_demo_art.py's SCENES).",
+ "_comment": "The web simulator's demo games (web/README.md), all made up: the one table tools/web_demo.cpp (packages, catalogue, PlayInsights' files, the console's first games) and tools/web_demo_art.py (pictures, Nlib API's answers, the title database) make the demo from. Each game is like a kind of today's best known ones, never one of them: no real game's name, characters, logo or picture. Its title id is its place in the list: 0100DE00000(n)0000, n from 1. `date` is its release; `days` instead, a release that many days from the day of the build (the month's releases, the coming ones). `on_server`: false for a game only the title database knows (coming out soon). `art`: the scene of its pictures (web_demo_art.py's SCENES). `igdb`: IGDB's players' rating and how many rated it (games.json's igdb_rating). `edition_of`: the game it is an edition of, by its name (editions.json).",
  "games": [
   {"name": "Starlight Garden", "date": "2025-03-14", "hues": [0.55, 0.75], "updates": 2, "dlcs": 2,
    "series": "", "studio": "Fennec Games", "genres": ["life simulation"], "categories": ["Simulation", "Adventure"], "players": 1,
@@ -23,7 +23,7 @@
    "description": {"en": "Move to a sleepy harbour town and make it yours.\nFish, decorate, welcome visitors and throw a festival every month.", "fr": "Installez-vous dans un port endormi et faites-en le vôtre.\nPêchez, décorez, accueillez des visiteurs et organisez une fête chaque mois."}},
   {"name": "Moss & Mortar", "date": "2022-09-09", "hues": [0.28, 0.36], "updates": 0, "dlcs": 2,
    "series": "", "studio": "Mapleleaf", "genres": ["farming", "life simulation"], "categories": ["Simulation", "Role-Playing"], "players": 2,
-   "score": 52, "trend": 0, "critics": 89, "steam": [96000, 3100], "art": "farm", "installed": true,
+   "score": 52, "trend": 0, "critics": 89, "steam": [96000, 3100], "igdb": [84, 3100], "art": "farm", "installed": true,
    "intro": {"en": "Rebuild the old farm, stone by stone.", "fr": "Rebâtissez la vieille ferme, pierre après pierre."},
    "description": {"en": "Clear the fields, mend the walls and grow forty kinds of crops.\nThe valley's people have stories to share, and a few secrets.", "fr": "Défrichez les champs, réparez les murs et cultivez quarante sortes de plantes.\nLes gens de la vallée ont des histoires à raconter, et quelques secrets."}},
   {"name": "Pixel Parade", "date": "2025-07-18", "hues": [0.88, 0.98], "updates": 0, "dlcs": 0,
@@ -38,7 +38,7 @@
    "description": {"en": "Run a restaurant on a space station where nothing stays put.\nChop, toss and serve with up to three friends before the orbit ends.", "fr": "Tenez un restaurant sur une station spatiale où rien ne tient en place.\nCoupez, lancez et servez avec trois amis avant la fin de l'orbite."}},
   {"name": "The Quiet Lighthouse", "date": "2021-12-12", "hues": [0.58, 0.66], "updates": 0, "dlcs": 0, "compressed": true,
    "series": "", "studio": "Lumen Works", "genres": ["puzzle", "adventure"], "categories": ["Puzzle", "Adventure"], "players": 1,
-   "score": 18, "trend": 0, "critics": 82, "steam": [5100, 200], "art": "lighthouse",
+   "score": 18, "trend": 0, "critics": 82, "steam": [5100, 200], "igdb": [79, 12], "art": "lighthouse",
    "intro": {"en": "The light went out. Find out why.", "fr": "La lumière s'est éteinte. Découvrez pourquoi."},
    "description": {"en": "A keeper's notes, a stopped clock and a sea full of riddles.\nA short, calm puzzle story to play on a rainy evening.", "fr": "Les notes d'un gardien, une horloge arrêtée et une mer pleine d'énigmes.\nUne courte histoire d'énigmes, calme, pour un soir de pluie."}},
   {"name": "Fennec Fables", "date": "2025-10-10", "hues": [0.08, 0.15], "updates": 0, "dlcs": 1,
@@ -118,7 +118,7 @@
    "description": {"en": "Inherit a farm in the sunflower hills and bring it back to life.\nUp to four farmers, one shared harvest.", "fr": "Héritez d'une ferme dans les collines de tournesols et rendez-lui vie.\nJusqu'à quatre fermiers, une seule récolte."}},
   {"name": "Summit Ascent", "date": "2018-01-25", "hues": [0.70, 0.80], "updates": 0, "dlcs": 1,
    "series": "", "studio": "Lumen Works", "genres": ["platformer", "precision platformer"], "categories": ["Platformer", "Action"], "players": 1,
-   "score": 55, "trend": 0, "critics": 92, "steam": [74000, 2000], "art": "summit",
+   "score": 55, "trend": 0, "critics": 92, "steam": [74000, 2000], "igdb": [88, 1240], "art": "summit",
    "intro": {"en": "One mountain. Seven hundred screens.", "fr": "Une montagne. Sept cents écrans."},
    "description": {"en": "Climb a mountain one tight jump at a time.\nA dash, a wall to cling to and a long way up.", "fr": "Gravissez une montagne un saut précis à la fois.\nUn élan, un mur où s'accrocher et une longue ascension."}},
   {"name": "Sky Kingdom: Echoes Below", "days": 21, "hues": [0.33, 0.55], "on_server": false,
@@ -140,6 +140,11 @@
    "series": "", "studio": "Ashen Pixel", "genres": ["roguelike", "metroidvania"], "categories": ["Action", "Adventure"], "players": 1,
    "score": 31, "trend": 15, "critics": 0, "art": "caves", "wished": true,
    "intro": {"en": "The deeper, the brighter.", "fr": "Plus c'est profond, plus ça brille."},
-   "description": {"en": "A cave that grows new crystals, and new paths, every time you fall.", "fr": "Une grotte qui fait pousser de nouveaux cristaux, et de nouveaux chemins, à chaque chute."}}
+   "description": {"en": "A cave that grows new crystals, and new paths, every time you fall.", "fr": "Une grotte qui fait pousser de nouveaux cristaux, et de nouveaux chemins, à chaque chute."}},
+  {"name": "Summit Ascent: Deluxe Edition", "date": "2019-06-14", "hues": [0.72, 0.85], "updates": 0, "dlcs": 0,
+   "series": "", "studio": "Lumen Works", "genres": ["platformer", "precision platformer"], "categories": ["Platformer", "Action"], "players": 1,
+   "score": 30, "trend": 0, "critics": 0, "edition_of": "Summit Ascent", "art": "summit",
+   "intro": {"en": "The mountain, its farewell chapter and the soundtrack.", "fr": "La montagne, son chapitre d'adieu et la bande originale."},
+   "description": {"en": "Summit Ascent with its farewell chapter, a hundred more screens to climb, and its soundtrack.", "fr": "Summit Ascent avec son chapitre d'adieu, cent écrans de plus à gravir, et sa bande originale."}}
  ]
 }

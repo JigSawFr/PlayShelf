@@ -49,25 +49,37 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
             return std::ranges::contains(f.categories, genre);
         });
     };
+    // A game of PlayInsights' on any server read, as one of the page's rows.
+    auto other_of = [](uint64_t other, std::vector<GameActivity::Other>& out) {
+        const insights::Pick p = insights::found_of(other);
+        if (!p.data) return;
+        const auto        found = p.data;
+        const size_t      i = p.index;
+        const std::string url = p.title().icon_url;
+        const std::string pass = library::password_of(found->server);
+        out.push_back({ p.title().name,
+                        [found, pass, url, other](library_icons::Done shown) {
+                            if (!url.empty()) library_icons::get(found, pass, url, std::move(shown), other);
+                            else library_icons::local(other, std::move(shown));
+                        },
+                        [found, i]() { open(found, i); } });
+    };
+    // Its other editions (PlayInsights), the game first when this is one.
+    page.editions = [id = t.id, other_of]() {
+        std::vector<GameActivity::Other> out;
+        const auto     editions = popular_flow::editions();
+        const uint64_t game = editions->game_of(id);
+        if (game != id) other_of(game, out);
+        for (uint64_t e : editions->editions_of(game))
+            if (e != id) other_of(e, out);
+        return out;
+    };
     // The games most like it (PlayInsights), on any server read, the most alike first.
-    page.similar = [id = t.id]() {
+    page.similar = [id = t.id, other_of]() {
         std::vector<GameActivity::Other> out;
         const library::SimilarBook::Row* row = popular_flow::similar()->find(id);
         if (!row) return out;
-        for (const auto& [other, score] : *row) {
-            const insights::Pick p = insights::found_of(other);
-            if (!p.data) continue;
-            const auto        found = p.data;
-            const size_t      i = p.index;
-            const std::string url = p.title().icon_url;
-            const std::string pass = library::password_of(found->server);
-            out.push_back({ p.title().name,
-                            [found, pass, url, other](library_icons::Done shown) {
-                                if (!url.empty()) library_icons::get(found, pass, url, std::move(shown), other);
-                                else library_icons::local(other, std::move(shown));
-                            },
-                            [found, i]() { open(found, i); } });
-        }
+        for (const auto& [other, score] : *row) other_of(other, out);
         return out;
     };
     GameActivity::show(std::move(page));
