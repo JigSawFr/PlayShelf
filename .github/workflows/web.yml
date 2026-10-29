@@ -151,8 +151,8 @@ jobs:
             echo "SITE_NOINDEX=${PR:+1}"
           } | tee -a "$GITHUB_ENV"
       # The website's screenshots, each screen of its gallery in each of its
-      # languages and in both themes (tools/site_screenshots.py), from the
-      # simulator just built: about a minute each.
+      # languages, in the dark theme the site shows (tools/site_screenshots.py),
+      # from the simulator just built: about 40 seconds each.
       - name: The website's screenshots
         timeout-minutes: 20
         run: |

@@ -88,6 +88,19 @@ LANGUAGES = [
     ("zh-Hans", "zh-hans", "简体中文", "zh-Hans"),
     ("zh-Hant", "zh-hant", "繁體中文", "zh-Hant"),
 ]
+# Each language's flag in the language menu (fonts/twemoji-flags.woff2 draws
+# them the same everywhere, Windows included): the country of the console's
+# language, Mexico for Latin America's Spanish, Taiwan for Traditional Chinese.
+FLAGS = {"en-US": "US", "fr": "FR", "fr-CA": "CA", "de": "DE", "es": "ES", "es-419": "MX", "it": "IT", "nl": "NL",
+         "pt": "PT", "pt-BR": "BR", "ru": "RU", "ja": "JP", "ko": "KR", "zh-Hans": "CN", "zh-Hant": "TW"}
+
+
+def flag(lang):
+    """`lang`'s flag, two regional indicator letters, for the eyes only."""
+    emoji = "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in FLAGS[lang])
+    return f'<span class="flag" aria-hidden="true">{emoji}</span>'
+
+
 # Open Graph's name of each language.
 OG_LOCALES = {"en-US": "en_US", "fr": "fr_FR", "fr-CA": "fr_CA", "de": "de_DE", "es": "es_ES", "es-419": "es_LA",
               "it": "it_IT", "nl": "nl_NL", "pt": "pt_PT", "pt-BR": "pt_BR", "ru": "ru_RU", "ja": "ja_JP",
@@ -404,17 +417,17 @@ def boreale_versions():
 
 def switcher(t, lang, to_root, home, here, name, versions):
     """The header's name (`name`), a button that opens the menu of Boréale's
-    sites, `here` marked and leading to `home`, each in French where the page
-    is (the four sites have it), with its latest release (`versions`). A
+    sites, `here` marked and leading to `home`, each in the page's language
+    (the four sites share the same 15 folders), with its latest release
+    (`versions`). A
     popover: the browser closes it on Esc or a click elsewhere; site.css's
     and site.js's "site switcher" blocks."""
     label = t("sites_label")
-    french = lang.lower().startswith("fr")
     groups = []
     for title, sites in SITES:
         items = []
         for key, site, url in sites:
-            href = home if key == here else url + ("fr/" if french else "")
+            href = home if key == here else url + lang_dir(lang)
             soon = f'<em class="soon">{t("sites_soon")}</em>' if key == "playshelf" else ""
             version = f' <span class="sites-version">{html.escape(versions[key])}</span>' if key in versions else ""
             current = ' aria-current="true"' if key == here else ""
@@ -567,10 +580,14 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         head.append(f'  <link rel="alternate" type="text/markdown" href="{markdown_url}">')
     if NOINDEX or not indexed:
         head.append('  <meta name="robots" content="noindex">')
+    # The languages, a menu under the header's button (a popover, as the
+    # menu of Boréale's sites): this page in each.
+    current = ' aria-current="true"'
     options = "\n".join(
-        f'        <option value="{to_root}{f"{d}/" if d else ""}{path}" data-lang="{c}" lang="{hl}"'
-        f'{" selected" if c == lang else ""}>{html.escape(n)}</option>'
+        f'        <li><a href="{to_root}{f"{d}/" if d else ""}{path}" data-lang="{c}" lang="{hl}" hreflang="{hl}"'
+        f'{current if c == lang else ""}>{flag(c)}{html.escape(n)}</a></li>'
         for c, d, n, hl in LANGUAGES)
+    language_name = next(n for c, _, n, _ in LANGUAGES if c == lang)
     home = f"{to_root}{lang_dir(lang)}"
     # A page of the documentation: once the header is scrolled away, a slim
     # bar at the top with the way home, the page's name, the search and the
@@ -636,10 +653,14 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
       <a href="{REPO_URL}" class="nav-gh">GitHub</a>
     </nav>
     <div class="settings">
-      <span class="picker picker-lang"><span class="picker-face" aria-hidden="true">{code.split("-")[0].upper()}</span>
-      <select id="site-language" aria-label="{t('language')}">
+      <button class="lang-button" type="button" popovertarget="languages" aria-label="{t('language')} · {html.escape(language_name)}">
+        {flag(lang)}
+        <span class="lang-name">{html.escape(language_name)}</span><span class="lang-code">{code.split("-")[0].upper()}</span>
+        <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul id="languages" class="langs" popover aria-label="{t('language')}">
 {options}
-      </select></span>
+      </ul>
     </div>
   </header>
 {hero}  </div>
@@ -652,7 +673,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         <div>
           <p><img src="{to_root}assets/mark.svg" alt="" width="20" height="20"> <strong>PlayShelf</strong></p>
           <p>{t('footer_license')}</p>
-          <p><a class="boreale" href="https://boreale.dev/">{t('footer_boreale')}</a></p>
+          <p><a class="boreale" href="https://boreale.dev/{lang_dir(code)}">{t('footer_boreale')}</a></p>
         </div>
         <div>
           <h2>{t('docs_title')}</h2>
@@ -666,10 +687,10 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         </div>
         <div>
           <h2>Boréale</h2>
-          <ul><li><a href="https://boreale.dev/{"fr/" if code.startswith("fr") else ""}">boreale.dev</a></li>
-            <li><a href="https://guard.boreale.dev/{"fr/" if code.startswith("fr") else ""}">PlayGuard</a></li>
-            <li><a href="https://aurore.boreale.dev/{"fr/" if code.startswith("fr") else ""}">Aurore</a></li>
-            <li><a href="https://boreale.dev/{"fr/" if code.startswith("fr") else ""}legal/">{t('sites_legal')}</a></li>
+          <ul><li><a href="https://boreale.dev/{lang_dir(code)}">boreale.dev</a></li>
+            <li><a href="https://guard.boreale.dev/{lang_dir(code)}">PlayGuard</a></li>
+            <li><a href="https://aurore.boreale.dev/{lang_dir(code)}">Aurore</a></li>
+            <li><a href="https://boreale.dev/{lang_dir(code)}legal/">{t('sites_legal')}</a></li>
             <li><a href="mailto:contact@boreale.dev">contact@boreale.dev</a></li></ul>
         </div>
         <div>

@@ -23,5 +23,6 @@ A screen that changes without being named here fails the desktop job. -->
 - [ ] `make check` passes
 - [ ] A screen that changes on purpose is named on the `Screens:` line above
 - [ ] New strings are in every `resources/i18n/*/playshelf.json` (English is fine as a placeholder)
+- [ ] New website texts are in every `site/i18n/*.json`, translated
 - [ ] `source/kit/` includes nothing of the app (`tools/check_sources.py`)
 - [ ] Nothing sent or stored in the clear: TLS verified, no secret in a plain file

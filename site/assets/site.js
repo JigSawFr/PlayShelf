@@ -469,13 +469,19 @@
     search.hidden = false;
   }
 
-  const language = document.getElementById('site-language');
-  language.addEventListener('change', () => {
-    store.set('pg-site-lang', language.selectedOptions[0].dataset.lang);
-    location.href = language.value + location.hash;
-  });
+  // The header's languages (a popover): the one chosen is kept, and the
+  // page opens at the same place in it.
+  const languages = [...document.querySelectorAll('#languages a')];
+  for (const link of languages) {
+    link.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      store.set('pg-site-lang', link.dataset.lang);
+      location.href = link.getAttribute('href') + location.hash;
+    });
+  }
 
-  const options = [...language.options].map((o) => [o.dataset.lang, o.value]);
+  const options = languages.map((a) => [a.dataset.lang, a.getAttribute('href')]);
   const find = (code) => options.find(([c]) => c.toLowerCase() === code.toLowerCase());
   // The visitor's language: the one chosen before, else the browser's when
   // the site has it (null: English).
@@ -535,6 +541,23 @@
     const width = Math.min(400, screen - 24); // site.css's width
     menu.style.top = `${box.bottom + window.scrollY + 6}px`;
     menu.style.left = `${Math.max(12, Math.min(box.left, screen - width - 12)) + window.scrollX}px`;
+  });
+})();
+
+// The header's languages: their menu opens under its button, its right edge
+// on the button's.
+(function () {
+  const menu = document.getElementById('languages');
+  const button = document.querySelector('.lang-button');
+  if (!menu || !button || !menu.showPopover) return;
+  menu.addEventListener('beforetoggle', (event) => {
+    if (event.newState !== 'open') return;
+    const box = button.getBoundingClientRect();
+    const screen = document.documentElement.clientWidth;
+    menu.style.top = `${box.bottom + window.scrollY + 6}px`;
+    menu.style.right = `${Math.max(12, screen - box.right)}px`;
+    // The language in use in view, in a long list on a short screen.
+    requestAnimationFrame(() => menu.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest' }));
   });
 })();
 
