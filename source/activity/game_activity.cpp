@@ -35,8 +35,9 @@ constexpr int   SHOT_W = 320, SHOT_H = 180;    // a screenshot's tile
 constexpr int   SHOTS_PER_ROW = 3;
 // A screenshot shown alone: 16:9 above its counter, the picture made that
 // size (a view wider than its picture would draw its edges stretched).
-constexpr int    FULL_H = 660, FULL_W = FULL_H * 16 / 9;
-constexpr size_t MAX_OTHERS = 12;   // games in a row of more like it
+constexpr int      FULL_H = 660, FULL_W = FULL_H * 16 / 9;
+constexpr size_t   MAX_OTHERS = 12;        // games in a row of more like it
+constexpr uint64_t PLAYERS_TRUSTED = 20;   // IGDB ratings below which the players' rating is not shown
 
 enum Tab : size_t { OVERVIEW, UPDATES, DLCS, DETAILS };
 
@@ -525,6 +526,7 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
 
     // The games most like it, then more of its publisher and of its first
     // genre, from the caller.
+    if (this->page.editions) this->add_others("playshelf/game/editions"_i18n, this->page.editions());
     if (this->page.similar) this->add_others("playshelf/game/similar"_i18n, this->page.similar());
     if (this->page.by_publisher && !d->publisher.empty())
         this->add_others(aurore::getStr("playshelf/game/more_publisher", d->publisher), this->page.by_publisher(d->publisher));
@@ -614,6 +616,10 @@ void GameActivity::fill_details_tab()
         if (reviews)
             fact(card, "playshelf/game/steam"_i18n,
                  aurore::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews), reviews));
+        // IGDB's players, from enough of them.
+        if (sig->igdb.count >= PLAYERS_TRUSTED)
+            fact(card, "playshelf/game/players_rating"_i18n,
+                 aurore::getStr("playshelf/game/players_rating_value", (int)sig->igdb.rating, sig->igdb.count));
     }
     // Its eShop price in the player's country (action/prices_flow); on sale,
     // the regular price, the sale's and its last day, and whether it is the

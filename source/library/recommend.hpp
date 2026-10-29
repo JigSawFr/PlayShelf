@@ -73,6 +73,6 @@ double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, ui
 std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::vector<Candidate>& candidates,
                                   const std::map<std::string, double>& genres, const SimilarBook& similar,
                                   const SignalBook& signals, const std::vector<uint64_t>& unwanted, uint32_t today,
-                                  size_t max);
+                                  size_t max, const EditionBook& editions = EditionBook{});
 
 }   // namespace library

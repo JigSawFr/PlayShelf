@@ -64,7 +64,9 @@ none of a real game's names, characters or pictures. 24 are on the server,
   `titledb/`): every game's name, studio and release, the coming ones among
   them, fetched once at the first start, so Home has its games coming soon.
 - **PlayInsights' files** (`https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/`,
-  `insights/`: `popular.json`, `games.json` and `similar.json`, schema 1,
+  `insights/`: `popular.json`, `games.json`, `similar.json` and
+  `editions.json`, schema 1, a few games with an IGDB players' rating and one
+  edition (*Summit Ascent: Deluxe Edition*),
   made on the day of the build, newer than the files PlayShelf ships): Home
   ranks, recommends and groups the demo's games by their series and
   studios, each recommendation with its reason, and a game's page lists the

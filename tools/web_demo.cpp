@@ -9,8 +9,8 @@
 // zlib).
 //
 // With them, what Home reads of PlayInsights about those games, made up as
-// well (insights/: popular.json, games.json and similar.json, in
-// PlayInsights' schema 1), which sim_demo_http.cpp answers in place of
+// well (insights/: popular.json, games.json, similar.json and editions.json,
+// in PlayInsights' schema 1), which sim_demo_http.cpp answers in place of
 // PlayInsights' own, and the console's first games (console/meta/: a content
 // meta record for each, empty; console/control/: its name and icon), which
 // PlayShelf puts on the simulated console at a first start with the demo
@@ -50,11 +50,15 @@ struct Game
     bool        wished = false;       // on its wishlist at a first start
     // What PlayInsights would say of it: its series ("" for none), its
     // studio, its genres, how well known it is, how fast that grows and the
-    // critics' score (popular.json), its Steam reviews (0 and 0: not on Steam).
+    // critics' score (popular.json), its Steam reviews (0 and 0: not on Steam),
+    // its IGDB players' rating (0 and 0: none) and the game it is an edition
+    // of ("" for none: editions.json).
     std::string              series, studio;
     std::vector<std::string> genres;
     int                      score = 0, trend = 0, critics = 0;
     int                      positive = 0, negative = 0;
+    int                      igdb = 0, igdb_count = 0;
+    std::string              edition_of;
 };
 
 // `day` (YYYY-MM-DD) and `days` after it.
@@ -97,6 +101,11 @@ std::vector<Game> read_games(const std::string& path, const std::string& today)
             game.positive = g["steam"].at(0).get<int>();
             game.negative = g["steam"].at(1).get<int>();
         }
+        if (g.contains("igdb")) {
+            game.igdb = g["igdb"].at(0).get<int>();
+            game.igdb_count = g["igdb"].at(1).get<int>();
+        }
+        game.edition_of = g.value("edition_of", "");
         out.push_back(std::move(game));
     }
     return out;
@@ -247,9 +256,9 @@ std::string hex_id(uint64_t id)
     return b;
 }
 
-// popular.json, games.json and similar.json of the table's games, made
-// on `day` (today: newer than the files PlayShelf ships, which it takes in
-// their place).
+// popular.json, games.json, similar.json and editions.json of the table's
+// games, made on `day` (today: newer than the files PlayShelf ships, which
+// it takes in their place).
 void write_insights(const std::string& dir, const std::vector<Game>& table, const std::string& day)
 {
     mkdir(dir.c_str(), 0755);
@@ -257,6 +266,7 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
     std::string popular = head + "\"month\": \"" + day.substr(0, 7) + "\", \"views\": true, \"games\": {";
     std::string games = head + "\"games\": {";
     std::string similar = head + "\"games\": {";
+    std::string editions = head + "\"games\": {";
     std::vector<Traits> all;
     for (const Game& g : table) all.push_back(traits_of(g));
     const auto like = similar_of(all);
@@ -277,7 +287,11 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
             games += ", \"steam\": {\"app\": " + std::to_string(9000000 + i) + ", \"positive\": " + std::to_string(g.positive) +
                      ", \"negative\": " + std::to_string(g.negative) + ", \"owners\": " + std::to_string(g.positive * 20) +
                      ", \"ccu\": " + std::to_string(g.positive / 50) + "}";
+        if (g.igdb) games += ", \"igdb_rating\": [" + std::to_string(g.igdb) + ", " + std::to_string(g.igdb_count) + "]";
         games += "}";
+        for (size_t k = 0; k < table.size() && !g.edition_of.empty(); k++)
+            if (table[k].name == g.edition_of)
+                editions += std::string(editions.back() == '{' ? "" : ", ") + key + ": " + json_text(hex_id(id_of_game(k)));
         similar += sep + key + ": [";
         for (size_t k = 0; k < like[i].size(); k++)
             similar += std::string(k ? ", " : "") + "[" + json_text(hex_id(id_of_game(like[i][k].first))) + ", " + std::to_string(like[i][k].second) + "]";
@@ -286,6 +300,7 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
     write(dir + "/popular.json", popular + "}}\n");
     write(dir + "/games.json", games + "}}\n");
     write(dir + "/similar.json", similar + "}}\n");
+    write(dir + "/editions.json", editions + "}}\n");
 }
 }   // namespace
 
