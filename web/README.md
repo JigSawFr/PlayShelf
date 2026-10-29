@@ -26,21 +26,36 @@ plain TCP: every request is answered as a console without a connection
 (`source/sim/web_http.cpp`), but those to `https://demo.playshelf.example`,
 a server packaged with the page (`/app/samples/demo`):
 
-- **its catalogue**, a JSON index of twelve made-up games, some with updates
-  and add-ons, one as an NSZ, each with its icon;
+- **its catalogue**, a JSON index of 24 made-up games, some with updates
+  and add-ons, two as an NSZ, each with its icon: games like today's best
+  known ones (an open world, a kart race, monsters to collect, a village to
+  live in…), of made-up series and studios, none of a real game's names,
+  characters or pictures;
 - **its packages**, made by `tools/web_demo.cpp` with the install suites'
   builders (`tests/install/packages.hpp`): encrypted with the host tests'
   keys, which the simulated console takes (`source/sim/sim_install.cpp`).
   Small (what they install is a stand-in), served at `speed=` KB/s (96 by
   default, `PLAYSHELF_SIM_SPEED`; `0`: at once) so a download is seen going,
   byte ranges and resumes included: the downloads' queue, its split
-  connections and its fetching ahead work on them as on a real server.
+  connections and its fetching ahead work on them as on a real server;
+- **what PlayInsights says of them**, made up as well (`insights/`:
+  `popular.json`, `games.json` and `similar.json`, PlayInsights' schema 1,
+  made on the day of the build): the requests to PlayInsights
+  (`https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/`) are answered
+  with them, newer than the files PlayShelf ships, so Home ranks, recommends
+  and groups the demo's games by their series and studios, each
+  recommendation with its reason, and a game's page lists the ones like it.
 
 The page adds it to `servers.json` on a first start (`no_demo=1`: none, a
 console with no server yet), with sys-patch on the simulated SD card, as a
 console that installs games has, and `PLAYSHELF_SIM_SIGNED=1`: the demo's
 packages, signed with the test key, are taken as Nintendo's (`signed=0`:
-each install asks first, as an unsigned package does).
+each install asks first, as an unsigned package does). Six of its games are
+on the console from that first start, played (`source/sim/sim_play.cpp`), so
+Home has something to recommend from: the page asks for them
+(`sim_console/seed_demo` in the data folder) and PlayShelf puts their
+content meta records, names and icons (`console/` of the demo) on the
+simulated console as it starts (`source/sim/web_seed.cpp`).
 
 ## The page
 

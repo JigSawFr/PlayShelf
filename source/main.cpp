@@ -36,6 +36,9 @@
 #include "app.hpp"
 #include "core/platform.h"
 #include "core/sim_env.h"
+#ifdef __EMSCRIPTEN__
+#include "sim/web_demo.hpp"
+#endif
 #include "core/sysinfo.h"
 #include "tab/about_tab.hpp"
 #include "tab/catalogue_tab.hpp"
@@ -334,6 +337,9 @@ int main(int argc, char* argv[])
     migrations::set_latest(migrations::None);
     migrations::run(paths::migrations_file(), {}, app::version());
     startup_mark(StartupStep_Migrations);
+#ifdef __EMSCRIPTEN__
+    web_demo::seed_console();   // the web demo's first games, on a first start
+#endif
     start_session();
     startup_mark(StartupStep_Session);
     // A way out of main() that skips the end of this function.

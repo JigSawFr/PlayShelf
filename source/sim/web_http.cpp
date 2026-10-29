@@ -2,7 +2,8 @@
 // page cannot reach most servers without their CORS headers, so every
 // request is answered as a console without a connection, but those to the
 // demo library server (DEMO_ORIGIN): its catalogue, packages and icons,
-// packaged with the page at /app/samples/demo (tools/web_demo.cpp), served
+// packaged with the page at /app/samples/demo (tools/web_demo.cpp), and to
+// PlayInsights (INSIGHTS_BASE: the demo's own files, of its games), served
 // at PLAYSHELF_SIM_SPEED KB/s (96 unless set; 0: at once) so a download is
 // seen going. The PLAYSHELF_SIM_* folders the *_net.cpp files read still
 // answer first.
@@ -24,13 +25,15 @@ namespace
 {
 constexpr size_t SLICE = 32u << 10;   // read, paced and handed on at a time
 
-// The packaged file `url` names on the demo server; false for any other
-// address. "/" is its catalogue.
+// The packaged file `url` names on the demo server, or of PlayInsights' (its
+// made-up games'); false for any other address. "/" is its catalogue.
 bool demo_file(const std::string& url, std::string* path)
 {
-    const std::string origin = web_demo::DEMO_ORIGIN;
-    if (url.compare(0, origin.size(), origin) != 0) return false;
-    std::string rest = url.substr(origin.size());
+    const std::string origin = web_demo::DEMO_ORIGIN, insights = web_demo::INSIGHTS_BASE;
+    std::string       rest;
+    if (url.compare(0, insights.size(), insights) == 0) rest = "/insights/" + url.substr(insights.size());
+    else if (url.compare(0, origin.size(), origin) == 0) rest = url.substr(origin.size());
+    else return false;
     const size_t query = rest.find_first_of("?#");
     if (query != std::string::npos) rest.resize(query);
     if (rest.empty() || rest == "/") rest = "/index.json";

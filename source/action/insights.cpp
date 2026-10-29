@@ -440,7 +440,14 @@ std::string name_of(uint64_t id, const std::string& console)
     if (const auto t = titledb_flow::title(id))
         if (!t->name.empty()) return t->name;
     const std::string known = nlib_flow::facts(id).name;
-    return known.empty() ? fmt::format("{:016X}", id) : known;
+    if (!known.empty()) return known;
+    // Not told: the console's name of it, else a catalogue's.
+    if (const auto games = installed_flow::games())
+        for (const installed_flow::Game& g : *games)
+            if (g.game.id == id && !g.name.empty()) return g.name;
+    const Pick found = found_of(id);
+    if (found.data && !found.title().name.empty()) return found.title().name;
+    return fmt::format("{:016X}", id);
 }
 
 Pick found_of(uint64_t id)
