@@ -31,4 +31,4 @@ The rules `tools/check_sources.py` enforces:
 - `ui/`, `view/` and `util/` never include `activity/` or `tab/`; a flow includes only the screens it opens itself.
 - A C file of `source/kit/core/` that needs no console service is in the desktop build and in a host test.
 
-The Cadran look: a colour is always a palette key (`cadran::kit::color("cadran/teal")`, `@theme/cadran/...` in XML), never a literal; `tests/contrast` checks every ink on every surface in both themes.
+The Cadran look: a colour is always a palette key (`cadran::kit::color("cadran/teal")`, `@theme/cadran/...` in XML), never a literal; Aurore's tests check every ink on every surface in both themes.
