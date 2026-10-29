@@ -196,7 +196,8 @@ pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
   box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.8), 0 0 0 6px rgb(14 26 51 / 0.6), 0 0 90px -20px rgb(51 187 255 / 0.35);
 }
 
-.section { max-width: 1180px; margin: 0 auto; padding: clamp(48px, 7vw, 88px) var(--gutter-r) 0 var(--gutter-l); }
+/* 1180px of content between the gutters, the header's and the hero's edge. */
+.section { max-width: 1212px; margin: 0 auto; padding: clamp(48px, 7vw, 88px) var(--gutter-r) 0 var(--gutter-l); }
 .section > h2, .columns h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: -0.025em; margin: 0 0 28px; }
 .section.narrow { max-width: 720px; padding-bottom: 80px; }
 /* The page not found, under the sky. */
@@ -248,7 +249,7 @@ pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
 .faq details p { margin: 0 0 16px; color: var(--muted); }
 
 .band {
-  margin-top: clamp(48px, 7vw, 88px);
+  margin: clamp(48px, 7vw, 88px) var(--gutter-r) 0 var(--gutter-l);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -256,7 +257,7 @@ pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: clamp(22px, 4vw, 40px);
-  max-width: 1148px;
+  max-width: 1180px;
   background: radial-gradient(80% 140% at 0% 0%, rgb(0 255 204 / 0.14), transparent 60%),
               radial-gradient(70% 140% at 100% 100%, rgb(138 92 255 / 0.18), transparent 60%), var(--night);
 }
@@ -462,8 +463,8 @@ pre.has-copy { position: relative; padding-right: 76px; }
 .to-top::before { content: ""; position: absolute; left: 16px; top: 18px; width: 10px; height: 10px; border: solid var(--text); border-width: 2px 0 0 2px; transform: rotate(45deg); }
 
 /* Footer */
-.footer { margin-top: 88px; border-top: 1px solid var(--line); background: linear-gradient(180deg, rgb(14 26 51 / 0.5), transparent); }
-.footer-inner { max-width: 1180px; margin: 0 auto; padding: 40px var(--gutter-r) calc(32px + env(safe-area-inset-bottom)) var(--gutter-l); color: var(--dusk); font-size: 15px; }
+.footer { position: relative; margin-top: 88px; background: linear-gradient(180deg, rgb(14 26 51 / 0.5), transparent); }
+.footer-inner { max-width: 1212px; margin: 0 auto; padding: 40px var(--gutter-r) calc(32px + env(safe-area-inset-bottom)) var(--gutter-l); color: var(--dusk); font-size: 15px; }
 .footer a { color: var(--muted); }
 .footer strong { color: var(--text); font: 600 17px var(--display); }
 .footer img { vertical-align: -4px; }
@@ -537,7 +538,7 @@ pre.has-copy { position: relative; padding-right: 76px; }
      finger's width. */
   .hero { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding-top: 24px; padding-bottom: 40px; }
   .hero-text { display: contents; }
-  .hero-shot { order: 1; margin: 6px 0 22px; }
+  .device { order: 1; margin: 6px 0 26px; }
   .hero-text > p:not(.status, .eyebrow, .sub), .actions, .hero .source { order: 2; }
   .hero .sub { margin-bottom: 0; }
   .hero-text > p:not(.status, .eyebrow, .sub) { margin-top: 0; }
@@ -571,6 +572,7 @@ pre.has-copy { position: relative; padding-right: 76px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .device, .card, .card::before { transition: none; }
   .gallery img, .gallery-dots span, .faq summary::after, .release summary::after { transition: none; }
   .gallery a:hover img { transform: none; }
 }
@@ -579,11 +581,222 @@ pre.has-copy { position: relative; padding-right: 76px; }
   .pager { grid-template-columns: minmax(0, 1fr); }
   .pager .next { grid-column: 1; }
 }
+/* ---- The showcase: the same blocks on boreale.dev's, PlayGuard's,
+   PlayShelf's and Aurore's sites (PlayGuard's is the reference). */
+
+/* The console around the Catalogue: a handheld of our own in the night's
+   colours, its screen catching the aurora, a glow under it; leaning towards
+   the text on a wide screen, straightening under the pointer. */
+.device {
+  position: relative; isolation: isolate; padding: 3.4% 14.5%; border-radius: clamp(28px, 4.6vw, 60px);
+  background: linear-gradient(160deg, #1b2c52 0%, #0f1b35 50%, #0a1428 100%);
+  box-shadow: inset 0 1px 0 rgb(232 238 247 / 0.14), inset 0 -3px 0 rgb(0 0 0 / 0.45), 0 0 0 1px #22324f,
+              0 50px 90px -40px rgb(0 0 0 / 0.9), 0 0 140px -40px rgb(51 187 255 / 0.4);
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.device::after {
+  content: ""; position: absolute; z-index: -1; left: 10%; right: 10%; bottom: -14%; height: 32%;
+  background: radial-gradient(closest-side, rgb(51 187 255 / 0.38), rgb(138 92 255 / 0.16) 60%, transparent);
+  filter: blur(28px);
+}
+.grip { position: absolute; top: 0; height: 100%; width: 14.5%; fill: #0a1324; stroke: rgb(169 182 204 / 0.22); stroke-width: 2; }
+.grip path { stroke: rgb(169 182 204 / 0.45); stroke-width: 4; stroke-linecap: round; }
+.grip .stick { fill: #070e1b; }
+.grip .cap { fill: #132240; stroke: rgb(0 255 204 / 0.25); }
+.grip-l { left: 0; }
+.grip-r { right: 0; }
+.device .hero-shot a { display: block; position: relative; }
+.device .hero-shot img { border-radius: 10px; border: 1px solid #050a14; box-shadow: 0 0 0 4px #070d19; }
+/* The screen's glass: a sheen, and the aurora in its corner. */
+.device .hero-shot a::after {
+  content: ""; position: absolute; inset: 0; border-radius: 10px; pointer-events: none;
+  background: linear-gradient(118deg, rgb(255 255 255 / 0.09) 0%, rgb(255 255 255 / 0.02) 28%, transparent 42%, transparent 72%, rgb(0 255 204 / 0.07) 100%);
+}
+@media (min-width: 1000px) {
+  .device { transform: perspective(1800px) rotateY(-9deg) rotateX(3deg); }
+  .device:hover { transform: perspective(1800px) rotateY(-2deg) rotateX(1deg); }
+}
+
+/* Where PlayShelf stands, until its first release (build_site.py's
+   home_body()): not usable yet, said first; what works, what is under way
+   and what comes next; then, quieter, that it is for one's own content. */
+.project-status {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px clamp(28px, 5vw, 56px);
+  margin: 8px max(var(--gutter-r), calc((100% - 1180px) / 2)) 0 max(var(--gutter-l), calc((100% - 1180px) / 2));
+  padding: clamp(22px, 4vw, 36px); border: 1px solid rgb(255 184 107 / 0.3); border-radius: var(--radius);
+  background: radial-gradient(70% 120% at 0% 0%, rgb(255 184 107 / 0.1), transparent 60%),
+              radial-gradient(60% 120% at 100% 100%, rgb(138 92 255 / 0.1), transparent 60%), var(--night);
+}
+.project-status .eyebrow { color: var(--amber); }
+.project-status h2 { margin: 0 0 12px; font-size: clamp(1.5rem, 3.4vw, 2.1rem); letter-spacing: -0.025em; text-wrap: balance; }
+.project-status-head p:last-child { margin: 0; color: var(--muted); max-width: 60ch; }
+.project-status-road h3 { margin: 4px 0 16px; font: 400 13px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.roadmap { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.roadmap li { position: relative; padding-left: 34px; color: var(--muted); }
+.roadmap-state { display: block; margin-bottom: 2px; font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+/* Each step's mark: filled when done, a ring lit when under way, a faint
+   ring to come; joined by a line. */
+.roadmap li::before {
+  content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--night-line); background: var(--night);
+}
+.roadmap li:not(:last-child)::after {
+  content: ""; position: absolute; left: 10px; top: 23px; bottom: -15px; width: 2px; border-radius: 2px; background: var(--night-line);
+}
+.roadmap .roadmap-done .roadmap-state { color: var(--aurora); }
+.roadmap .roadmap-done::before { border-color: var(--aurora); background: var(--aurora); box-shadow: 0 0 14px -2px rgb(0 255 204 / 0.6); }
+.roadmap .roadmap-done:not(:last-child)::after { background: linear-gradient(to bottom, var(--aurora), var(--amber)); }
+.roadmap .roadmap-now .roadmap-state { color: var(--amber); }
+.roadmap .roadmap-now::before { border-color: var(--amber); box-shadow: 0 0 0 4px rgb(255 184 107 / 0.15); }
+.roadmap .roadmap-next .roadmap-state { color: var(--mist); }
+.roadmap .roadmap-next::before { border-style: dashed; border-color: var(--dusk); }
+.project-status-own { grid-column: 1 / -1; margin: 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--dusk); font-size: 15px; }
+.project-status-own strong { color: var(--muted); }
+
+/* The night goes on under the hero: veils of aurora down the page and
+   faint stars, then a horizon over the footer. */
+.home main { position: relative; isolation: isolate; }
+.home main::before, .home main::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.home main::before {
+  background:
+    radial-gradient(45% 22% at -5% 22%, rgb(0 255 204 / 0.07), transparent 70%),
+    radial-gradient(45% 22% at 105% 45%, rgb(138 92 255 / 0.09), transparent 70%),
+    radial-gradient(50% 20% at -5% 72%, rgb(51 187 255 / 0.07), transparent 70%),
+    radial-gradient(45% 18% at 105% 92%, rgb(0 255 204 / 0.06), transparent 70%);
+}
+.home main::after {
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 24px 36px, #e8eef7, transparent), radial-gradient(1px 1px at 132px 92px, #e8eef7, transparent),
+    radial-gradient(1.4px 1.4px at 210px 18px, #e8eef7, transparent), radial-gradient(1px 1px at 300px 160px, #e8eef7, transparent),
+    radial-gradient(1px 1px at 70px 210px, #a9b6cc, transparent), radial-gradient(1.2px 1.2px at 380px 260px, #a9b6cc, transparent);
+  background-size: 420px 300px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 75%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 75%, transparent);
+}
+.footer::before {
+  content: ""; position: absolute; left: 50%; top: 0; width: min(1180px, 100%); height: 140px; transform: translateX(-50%); pointer-events: none;
+  background: radial-gradient(50% 100% at 50% 0%, rgb(0 255 204 / 0.14), rgb(51 187 255 / 0.06) 45%, transparent 75%);
+}
+.footer::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--aurora-grad);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  opacity: 0.6;
+}
+
+/* The features: each icon on its own tile; under the pointer, the card's
+   edge lights up in the aurora where the pointer is (site.js). The three
+   first show the top of their screen where they have one, at the foot of
+   the card, at the same height in a row. */
+.card { position: relative; transition: transform 0.3s, border-color 0.3s; }
+.card .icon { box-sizing: border-box; width: 44px; height: 44px; padding: 10px; border-radius: 12px;
+              background: linear-gradient(135deg, rgb(0 255 204 / 0.16), rgb(138 92 255 / 0.14)); box-shadow: inset 0 0 0 1px rgb(0 255 204 / 0.22); }
+.cards-small .card .icon { width: 38px; height: 38px; padding: 8px; background: rgb(51 187 255 / 0.1); box-shadow: inset 0 0 0 1px rgb(51 187 255 / 0.22); }
+.card::before {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgb(0 255 204 / 0.85), rgb(138 92 255 / 0.4) 45%, transparent 75%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+@media (hover: hover) {
+  .card:hover { transform: translateY(-3px); }
+  .card:hover::before { opacity: 1; }
+}
+/* The screen at the card's foot, at the same height across a row: the
+   text's row takes what is left. */
+.card-featured { overflow: hidden; padding-bottom: 0; align-content: stretch; grid-template-rows: auto auto 1fr auto; }
+.card-featured p { margin-bottom: 4px; }
+.card-featured :is(.card-shot, .card-emblem) { align-self: end; }
+.card-shot {
+  display: block; flex: none; width: calc(100% + 44px); max-width: none; margin: 0 -22px; height: auto; aspect-ratio: 16 / 8;
+  object-fit: cover; object-position: 50% 0; border-top: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent); mask-image: linear-gradient(to bottom, #000 45%, transparent);
+}
+/* Without a screen of its own, its icon large, in the aurora's glow, in the
+   screen's place. */
+.card-emblem {
+  display: grid; place-items: center; width: calc(100% + 44px); margin: 0 -22px; aspect-ratio: 16 / 8; border-top: 1px solid var(--line);
+  background: radial-gradient(50% 70% at 50% 45%, rgb(0 255 204 / 0.12), rgb(138 92 255 / 0.06) 55%, transparent 80%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.card-emblem .emblem { width: 30%; height: auto; max-width: 96px; color: var(--aurora); opacity: 0.75; filter: drop-shadow(0 0 18px rgb(0 255 204 / 0.45)); }
+
+/* The sections rise into view once (site.js; not with less motion asked). */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal .card { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease calc(var(--i, 0) * 70ms), transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 70ms), border-color 0.3s; }
+  .reveal.in .card { opacity: 1; transform: none; }
+}
+
+/* The screens on a wide screen (site.js): the one chosen large, the others
+   in a strip under it; a click on the large one opens it full screen. */
+.gallery-stage { display: none; }
+@media (min-width: 861px) {
+  .gallery.staged { grid-template-columns: repeat(var(--count, 5), minmax(0, 1fr)); gap: 16px 12px; }
+  .gallery.staged .gallery-stage { display: block; grid-column: 1 / -1; margin-bottom: 10px; }
+  .gallery-stage img {
+    border-radius: 16px; cursor: zoom-in;
+    box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9), 0 0 0 6px rgb(14 26 51 / 0.6), 0 0 120px -40px rgb(51 187 255 / 0.35);
+  }
+  .gallery-stage figcaption { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-top: 16px; }
+  .gallery-stage figcaption strong { color: var(--text); font: 600 19px var(--display); letter-spacing: -0.01em; }
+  .gallery.staged > figure:not(.gallery-stage) img { opacity: 0.55; transition: opacity 0.2s, border-color 0.2s, box-shadow 0.2s; }
+  .gallery.staged > figure.on img { opacity: 1; border-color: var(--aurora); box-shadow: 0 0 0 1px var(--aurora), 0 0 26px -6px rgb(0 255 204 / 0.6); }
+  .gallery.staged > figure:not(.gallery-stage) figcaption { font-size: 14px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gallery.staged > figure.on figcaption { color: var(--text); }
+}
+@media (hover: hover) and (min-width: 861px) {
+  .gallery.staged > figure:not(.gallery-stage) a:hover img { opacity: 1; transform: none; }
+}
+
+/* The steps joined by a line of aurora, their numbers glowing. */
+.steps > li::before { box-shadow: 0 0 0 4px rgb(0 255 204 / 0.1), 0 0 20px -2px rgb(0 255 204 / 0.5); }
+.steps > li:not(:last-child)::after {
+  content: ""; position: absolute; left: 14px; top: 34px; bottom: -14px; width: 2px; border-radius: 2px;
+  background: linear-gradient(to bottom, rgb(0 255 204 / 0.5), rgb(138 92 255 / 0.25));
+}
+
+/* No card left alone on its row: the five small ones three then two where
+   five do not fit, the three featured ones two then one across. */
+@media (max-width: 1099px) and (min-width: 601px) {
+  .cards-small { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .cards-small > .card { grid-column: span 2; }
+  .cards-small > .card:nth-last-child(-n+2):nth-child(3n+1), .cards-small > .card:nth-last-child(-n+2):nth-child(3n+1) ~ .card { grid-column: span 3; }
+}
+@media (max-width: 860px) and (min-width: 601px) {
+  .cards:not(.cards-small) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cards:not(.cards-small) > .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .cards:not(.cards-small) > .card:last-child:nth-child(odd) .card-shot { aspect-ratio: 16 / 5; object-position: 50% 22%; }
+  .cards:not(.cards-small) > .card:last-child:nth-child(odd) .card-emblem { aspect-ratio: 16 / 3; }
+}
+@media (max-width: 600px) {
+  .cards, .cards-small { grid-template-columns: minmax(0, 1fr); }
+  .card-emblem { aspect-ratio: 16 / 5; }
+}
+
+/* From one page of the site to the next: a short cross-fade, the header
+   staying where it is (where the browser can; not with less motion asked). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .top { view-transition-name: top; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.25s; }
+}
+
+@media (max-width: 860px) {
+  .device { padding: 2.2%; border-radius: 22px; }
+  .grip { display: none; }
+  .card-featured { grid-template-rows: auto 1fr auto; }
+  .card-shot, .card-emblem { grid-column: 1 / -1; width: calc(100% + 32px); margin: 8px -16px 0; }
+  .project-status { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Printed (the troubleshooting's steps, a page to keep): the text alone,
    every folded part open, the links' addresses after them. */
 @media print {
   .top, .sky canvas, .footer, .doc-nav, .toc, .toc-mobile, .pager, .edit, .to-top, .lightbox, .copy, .anchor,
-  .gallery-dots, .doc-search, .skip { display: none !important; }
+  .gallery-dots, .doc-search, .skip, .grip, .gallery-stage { display: none !important; }
   :root { --bg: #fff; --surface: #fff; --text: #000; --muted: #333; --line: #ccc; color-scheme: light; }
   .prose a { color: #000; }
   pre { background: #fff; }
@@ -594,6 +807,7 @@ pre.has-copy { position: relative; padding-right: 76px; }
   .prose h2, .prose h3 { break-after: avoid; }
   .prose pre, .prose table, .shots figure, .callout { break-inside: avoid; }
   .card { box-shadow: none; }
+  .reveal, .reveal .card { opacity: 1 !important; transform: none !important; }
 }
 
 /* ---- Boréale's site switcher: the name, a button that opens the menu of
