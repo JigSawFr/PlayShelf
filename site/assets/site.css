@@ -66,6 +66,17 @@ code { overflow-wrap: break-word; font: 0.875em var(--mono); background: rgb(232
 pre { background: #081020; border: 1px solid var(--line); padding: 14px 16px; border-radius: 12px; overflow-x: auto; font-size: 0.875rem; }
 pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
 
+/* Line breaks as each script wants them: Japanese between phrases, never
+   inside a word (headings and short lines; the browsers without it break as
+   before), Korean between words as its spaces say, Chinese without a
+   punctuation mark opening a line. */
+:lang(ja) :is(h1, h2, h3, .eyebrow, .sub, .button, .status, .roadmap li, figcaption, summary, .lost p, .band p, .project-status-own strong) { word-break: auto-phrase; }
+:lang(ko) body { word-break: keep-all; }
+:lang(zh-Hans) body, :lang(zh-Hant) body { line-break: strict; }
+/* Chinese titles kept whole between their spaces and punctuation, broken
+   elsewhere only when a run is wider than its line. */
+:is(:lang(zh-Hans), :lang(zh-Hant)) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: anywhere; }
+
 /* For a screen reader only. */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
