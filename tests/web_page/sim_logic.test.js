@@ -14,6 +14,18 @@ const L = require('../../web/sim_logic.js');
 const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../../web/params.json'), 'utf8'));
 const known = new Map(manifest.params.map((p) => [p.name, p]));
 
+test('every language has its flag, as on the website', () => {
+  assert.deepEqual(Object.keys(L.FLAGS).sort(), L.LANGUAGES.map(([code]) => code).sort());
+  assert.equal(L.flag('fr'), '\u{1F1EB}\u{1F1F7}');
+  assert.equal(L.flag('es-419'), '\u{1F1F2}\u{1F1FD}');
+  assert.equal(L.flag('zh-Hant'), '\u{1F1F9}\u{1F1FC}');
+  assert.equal(L.flag('xx'), '');
+  // The website's (tools/build_site.py's FLAGS), the same.
+  const site = fs.readFileSync(path.join(__dirname, '../../tools/build_site.py'), 'utf8');
+  const pairs = /^FLAGS = \{([^}]*)\}/m.exec(site)[1].matchAll(/"([^"]+)": "([A-Z]{2})"/g);
+  assert.deepEqual(Object.fromEntries([...pairs].map(([, c, f]) => [c, f])), L.FLAGS);
+});
+
 test('a browser language to one of the console\'s', () => {
   assert.equal(L.consoleLanguage('fr-CA'), 'fr-CA');
   assert.equal(L.consoleLanguage('fr-BE'), 'fr');

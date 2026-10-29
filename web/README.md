@@ -5,10 +5,19 @@ The desktop simulator (`make desktop`, `source/sim/`), compiled with
 against a simulated console and a demo library server, to click through a
 change, try a state or show a screen without a build on the console.
 In the website's look: its colours, its header in Boréale's night whatever
-the theme (the name opening the menu of Boréale's sites, the language and
-theme menus, a short face of them on a phone) and Sora for the name
-(`site/assets/fonts/sora.woff2`, with `branding/mark.svg` and the sites' marks
-of `site/assets/marks/`, copied by CMake).
+the theme (the name opening the menu of Boréale's sites, the website's
+language menu, the theme's menu, a short face of them on a phone) and Sora
+for the name (`site/assets/fonts/sora.woff2`, with `branding/mark.svg` and the
+sites' marks of `site/assets/marks/`, copied by CMake). The language menu is
+the website's (`tools/build_site.py`, `site/assets/site.js`): a button with
+the page's flag and language (its flag and code on a phone, its flag alone
+under 380px), and under it the 15 languages in a popover, each with its
+flag, the page's marked (Esc or a click elsewhere closes it, the focus back
+on the button; ↓ on the button opens it at the language in use, the arrows,
+Home and End move through it). The flags are the website's
+`site/assets/fonts/twemoji-flags.woff2` (Twemoji's 15, CC-BY 4.0), copied by
+CMake next to the page with `LICENSE-twemoji-flags.txt`, so Windows shows
+them too.
 
 ## The demo library server
 
@@ -45,7 +54,9 @@ each install asks first, as an unsigned package does).
   reads) still reaches PlayShelf.
 - **The language** is the browser's, if the console has it (`fr-CA` for a
   Canadian browser, `es-419` for a Mexican one, `zh-Hant` for Taiwan…; else
-  English), unless the URL says `lang=` or the header's list picks another.
+  English), unless the URL says `lang=` or the header's language menu picks
+  another (each language a link to the page with the same settings in it,
+  which reloads it).
   The page is in the 15 languages of the console, and PlayShelf always
   starts in the page's.
 - **The theme** is *Dark* by default, as PlayShelf on a console. The header

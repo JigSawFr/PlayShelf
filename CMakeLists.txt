@@ -371,6 +371,8 @@ if (PLAYSHELF_WEB)
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/branding/mark.svg ${PLAYSHELF_SITE}/mark.svg
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/marks ${PLAYSHELF_SITE}/marks
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/sora.woff2 ${PLAYSHELF_SITE}/sora.woff2
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/twemoji-flags.woff2
+                ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/LICENSE-twemoji-flags.txt ${PLAYSHELF_SITE}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/web/i18n ${PLAYSHELF_SITE}/i18n
         ${PLAYSHELF_SITE_CJK}
         COMMENT "Assembling the web simulator's site in ${PLAYSHELF_SITE}")

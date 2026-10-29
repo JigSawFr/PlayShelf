@@ -897,15 +897,13 @@ function translatePage() {
 }
 
 // The website's pages in the page's language (tools/build_site.py's
-// folders): its home, and the header's links as on the website. The
-// language menu's face on a phone: the language's code.
+// folders): its home, and the header's links as on the website.
 function homeLink() {
   const home = `${SITE_UP}${language === 'en-US' ? '' : `${language.toLowerCase()}/`}`;
   $('home-link').href = home;
   $('nav-features').href = `${home}#features`;
   $('nav-install').href = `${home}#install`;
   $('nav-docs').href = `${home}docs/getting-started/`;
-  $('language-face').textContent = language.split('-')[0].toUpperCase();
   // Boréale's other sites, in French where the page is (the four have it).
   const french = language.startsWith('fr');
   for (const link of document.querySelectorAll('#sites [data-site]')) {
@@ -931,15 +929,73 @@ function setUpSites() {
   });
 }
 
-function setUpHeader() {
-  const lang = $('language-select');
-  for (const [code, name] of LANGUAGES) lang.append(el('option', { value: code, text: name, lang: code }));
-  lang.value = language;
-  lang.addEventListener('change', () => {
-    const values = new Map(current);
-    values.set('lang', lang.value);
-    apply(values);
+// The header's languages, as on the website (tools/build_site.py, site.js):
+// a button with the page's flag and name (its code on a phone), and under it
+// their menu (a popover: the browser closes it on Esc or a click elsewhere,
+// and gives the focus back to the button), each with its flag, the page's
+// marked. Each is a link to this page in it (the URL's settings kept), which
+// a click applies (PlayShelf starts again in it); the arrows move through
+// them. Without popovers (an old browser), the button does nothing.
+function setUpLanguages() {
+  const button = $('language-button');
+  const menu = $('languages');
+  const name = LANGUAGES.find(([code]) => code === language)?.[1] ?? language;
+  $('language-flag').textContent = SimLogic.flag(language);
+  $('language-name').textContent = name;
+  $('language-code').textContent = language.split('-')[0].toUpperCase();
+  button.setAttribute('aria-label', `${t('language')} · ${name}`);
+  const values = (code) => new Map(current).set('lang', code);
+  const links = LANGUAGES.map(([code, label]) => {
+    const link = el('a', { href: linkFor(values(code)), 'data-lang': code, lang: code, hreflang: code, 'aria-current': code === language ? 'true' : false },
+      el('span', { class: 'flag', 'aria-hidden': 'true', text: SimLogic.flag(code) }), label);
+    link.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      menu.hidePopover?.();
+      if (code !== language) apply(values(code));
+    });
+    return link;
   });
+  menu.replaceChildren(...links.map((link) => el('li', {}, link)));
+  if (!menu.showPopover) return;
+  const inUse = () => links.find((a) => a.dataset.lang === language) ?? links[0];
+  menu.addEventListener('beforetoggle', (event) => {
+    if (event.newState !== 'open') return;
+    // The settings as they are now (a live change, the theme): the links follow.
+    for (const link of links) link.href = linkFor(values(link.dataset.lang));
+    // Under the button, its right edge on the button's (site.js), within the
+    // screen (the settings' button is right of it).
+    const box = button.getBoundingClientRect();
+    const screen = document.documentElement.clientWidth;
+    const width = Math.min(460, screen - 24); // simulator.css' width
+    menu.style.top = `${box.bottom + window.scrollY + 6}px`;
+    menu.style.right = `${Math.max(12, Math.min(screen - box.right, screen - width - 12))}px`;
+    // The language in use in view, in a long list on a short screen.
+    requestAnimationFrame(() => inUse().scrollIntoView({ block: 'nearest' }));
+  });
+  // The arrows: down (or up) on the button opens the menu at the language in
+  // use; in the menu, through the two columns, Home and End to either end.
+  button.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    menu.showPopover();
+    inUse().focus();
+  });
+  menu.addEventListener('keydown', (e) => {
+    const i = links.indexOf(document.activeElement);
+    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 2, ArrowUp: -2 }[e.key];
+    let next = null;
+    if (step) next = links[i < 0 ? 0 : i + step] ?? null;
+    else if (e.key === 'Home') next = links[0];
+    else if (e.key === 'End') next = links[links.length - 1];
+    else return;
+    e.preventDefault();
+    next?.focus();
+  });
+}
+
+function setUpHeader() {
+  setUpLanguages();
   const theme = $('theme-select');
   for (const choice of THEMES) theme.append(el('option', { value: choice, text: t(`theme_${choice}`) }));
   theme.value = chosenTheme();
