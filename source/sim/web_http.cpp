@@ -2,10 +2,11 @@
 // page cannot reach most servers without their CORS headers, so every
 // request is answered as a console without a connection, but those to the
 // demo library server (DEMO_ORIGIN): its catalogue, packages and icons,
-// packaged with the page at /app/samples/demo (tools/web_demo.cpp), and to
-// PlayInsights (INSIGHTS_BASE: the demo's own files, of its games), served
+// packaged with the page at /app/samples/demo (tools/web_demo.cpp), served
 // at PLAYSHELF_SIM_SPEED KB/s (96 unless set; 0: at once) so a download is
-// seen going. The PLAYSHELF_SIM_* folders the *_net.cpp files read still
+// seen going; and those to the services that tell about games, answered at
+// once about the demo's (web_demo.hpp: PlayInsights, Nlib API, a title
+// database). The PLAYSHELF_SIM_* folders the *_net.cpp files read still
 // answer first.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/http.hpp"
@@ -25,15 +26,32 @@ namespace
 {
 constexpr size_t SLICE = 32u << 10;   // read, paced and handed on at a time
 
-// The packaged file `url` names on the demo server, or of PlayInsights' (its
-// made-up games'); false for any other address. "/" is its catalogue.
-bool demo_file(const std::string& url, std::string* path)
+// The packaged file `url` names: on the demo server ("/" is its
+// catalogue), or another service's answer about its games (web_demo.hpp);
+// false for any other address. *paced: the demo server's, served at the
+// simulated speed; the others' at once.
+bool demo_file(const std::string& url, std::string* path, bool* paced = nullptr)
 {
-    const std::string origin = web_demo::DEMO_ORIGIN, insights = web_demo::INSIGHTS_BASE;
+    const std::string origin = web_demo::DEMO_ORIGIN, insights = web_demo::INSIGHTS_BASE, nlib = web_demo::NLIB_BASE;
     std::string       rest;
+    if (paced) *paced = false;
     if (url.compare(0, insights.size(), insights) == 0) rest = "/insights/" + url.substr(insights.size());
-    else if (url.compare(0, origin.size(), origin) == 0) rest = url.substr(origin.size());
-    else return false;
+    else if (url == web_demo::TITLEDB_URL) rest = "/titledb/index.json";
+    else if (url.compare(0, nlib.size(), nlib) == 0 && url.size() >= nlib.size() + 16) {
+        // <id>?lang=<language>&fields=…, <id>/icon/<size>, <id>/banner/480p,
+        // <id>/screen/<n>: the demo's details in English or French, its
+        // pictures.
+        const std::string id = url.substr(nlib.size(), 16), what = url.substr(nlib.size() + 16);
+        if (what.rfind("?lang=", 0) == 0) rest = "/nlib/" + id + "/details." + (what.compare(6, 2, "fr") == 0 ? "fr" : "en") + ".json";
+        else if (what.rfind("/icon/", 0) == 0) rest = "/nlib/" + id + "/icon.jpg";
+        else if (what == "/banner/480p") rest = "/nlib/" + id + "/banner.jpg";
+        else if (what.rfind("/screen/", 0) == 0) rest = "/nlib/" + id + "/screen" + what.substr(8) + ".jpg";
+        else return false;
+    } else if (url.compare(0, origin.size(), origin) == 0) {
+        rest = url.substr(origin.size());
+        if (paced) *paced = true;
+    } else
+        return false;
     const size_t query = rest.find_first_of("?#");
     if (query != std::string::npos) rest.resize(query);
     if (rest.empty() || rest == "/") rest = "/index.json";
@@ -59,7 +77,8 @@ void pace(size_t n)
 
 // [offset, offset + length) of `path` to `sink`, paced; false when it stops.
 bool stream(const std::string& path, uint64_t offset, uint64_t length,
-            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const std::atomic<bool>* cancel)
+            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const std::atomic<bool>* cancel,
+            bool paced = true)
 {
     FILE* f = std::fopen(path.c_str(), "rb");
     if (!f || std::fseek(f, (long)offset, SEEK_SET) != 0) {
@@ -81,7 +100,7 @@ bool stream(const std::string& path, uint64_t offset, uint64_t length,
             ok = false;
             break;
         }
-        pace(n);
+        if (paced) pace(n);
         if (!sink(buf.data(), n)) {
             if (error) *error = "stopped";
             ok = false;
@@ -93,7 +112,7 @@ bool stream(const std::string& path, uint64_t offset, uint64_t length,
 }
 
 // The whole file, `max_bytes` at most; *status 200, or 404 for none.
-bool whole(const std::string& path, std::string* body, std::string* error, size_t max_bytes, long* status)
+bool whole(const std::string& path, std::string* body, std::string* error, size_t max_bytes, long* status, bool paced)
 {
     uint64_t size = 0;
     if (!size_of(path, &size)) {
@@ -107,7 +126,7 @@ bool whole(const std::string& path, std::string* body, std::string* error, size_
     }
     body->clear();
     if (!stream(path, 0, size, [body](const uint8_t* d, size_t n) { return body->append((const char*)d, n), true; }, error,
-                nullptr))
+                nullptr, paced))
         return false;
     if (status) *status = 200;
     return true;
@@ -117,8 +136,9 @@ bool whole(const std::string& path, std::string* body, std::string* error, size_
 bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long, const Headers&, long* status)
 {
     std::string path;
-    if (!demo_file(url, &path)) return sim_net::offline(error);
-    return whole(path, body, error, max_bytes, status);
+    bool        paced = true;
+    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
+    return whole(path, body, error, max_bytes, status, paced);
 }
 
 bool post(const std::string&, const std::string&, const char*, std::string*, std::string* error, long*, size_t, long,
@@ -130,7 +150,8 @@ bool post(const std::string&, const std::string&, const char*, std::string*, std
 bool redirect(const std::string& url, std::string*, std::string* error, const Headers&, long* status)
 {
     std::string path;
-    if (!demo_file(url, &path)) return sim_net::offline(error);
+    bool        paced = true;
+    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
     // The demo server answers itself: no redirect.
     if (status) *status = 200;
     return false;
@@ -140,8 +161,9 @@ bool download(const std::string& url, const std::string& path, std::string* erro
               std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel)
 {
     std::string from;
+    bool        paced = true;
     uint64_t    size = 0;
-    if (!demo_file(url, &from)) return sim_net::offline(error);
+    if (!demo_file(url, &from, &paced)) return sim_net::offline(error);
     if (!size_of(from, &size)) {
         if (error) *error = "HTTP 404";
         return false;
@@ -163,7 +185,7 @@ bool download(const std::string& url, const std::string& path, std::string* erro
                          if (progress) progress(done, size);
                          return true;
                      },
-                     error, cancel);
+                     error, cancel, paced);
     if (std::fclose(out) != 0 && ok) {
         if (error) *error = "cannot write the file";
         ok = false;
@@ -175,19 +197,21 @@ bool range(const std::string& url, uint64_t offset, uint64_t length, const std::
            std::string* error, const Headers&, const std::atomic<bool>* cancel, const std::string&)
 {
     std::string path;
+    bool        paced = true;
     uint64_t    size = 0;
-    if (!demo_file(url, &path)) return sim_net::offline(error);
+    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
     if (!size_of(path, &size) || offset + length > size) {
         if (error) *error = "HTTP 416";
         return false;
     }
-    return !length || stream(path, offset, length, sink, error, cancel);
+    return !length || stream(path, offset, length, sink, error, cancel, paced);
 }
 
 bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers&, const std::string&)
 {
     std::string path;
-    if (!demo_file(url, &path)) return sim_net::offline(error);
+    bool        paced = true;
+    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
     if (size_of(path, size)) return true;
     if (error) *error = "HTTP 404";
     return false;
@@ -197,15 +221,17 @@ bool request(const std::string& url, const Headers&, const std::string&, Respons
              long)
 {
     std::string path;
-    if (!demo_file(url, &path)) return sim_net::offline(error);
-    return whole(path, &response->body, error, max_bytes, &response->status);
+    bool        paced = true;
+    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
+    return whole(path, &response->body, error, max_bytes, &response->status, paced);
 }
 
 bool call(const std::string& url, const Call& c, const Headers&, const std::string&, Response* response,
           std::string* error, size_t max_bytes, long)
 {
     std::string path;
-    if (!demo_file(url, &path)) return sim_net::offline(error);
+    bool        paced = true;
+    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
     response->cookies.clear();
     response->location.clear();
     // The demo server's sign-in always lets in (a session for its other
@@ -217,7 +243,7 @@ bool call(const std::string& url, const Call& c, const Headers&, const std::stri
         return true;
     }
     if (!c.method.empty() && c.method != "GET" && c.method != "OPTIONS") return sim_net::offline(error);
-    if (c.to_path.empty()) return whole(path, &response->body, error, max_bytes, &response->status);
+    if (c.to_path.empty()) return whole(path, &response->body, error, max_bytes, &response->status, paced);
     const bool ok = download(url, c.to_path, error, max_bytes, 0, c.progress, 0, c.cancel);
     response->status = ok ? 200 : 404;
     return ok;
