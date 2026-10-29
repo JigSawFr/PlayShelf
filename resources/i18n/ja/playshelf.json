@@ -774,7 +774,11 @@
         "similar": "似ているゲーム",
         "series": "シリーズ",
         "steam": "Steam のレビュー",
-        "steam_value": "好評 {}% · {} 件"
+        "steam_value": "好評 {}% · {} 件",
+        "price": "eShop 価格",
+        "free": "無料",
+        "price_sale": "{0} → {1}（{2}%オフ）",
+        "price_sale_until": "{0} → {1}（{2}%オフ、{3}まで）"
     },
     "genres": {
         "action": "アクション",
@@ -897,7 +901,11 @@
         "because_like": "{} に似ています",
         "because_series": "シリーズ: {}",
         "because_developer": "{} 開発",
-        "because_popular": "人気"
+        "because_popular": "人気",
+        "because_played": "{1}時間：{0}",
+        "deals": "セール中",
+        "deals_line": "eShop でセール中",
+        "deal": "{0}%オフ · {1}"
     },
     "wishlist": {
         "add": "ほしいものリストに追加",
@@ -928,5 +936,27 @@
         "about": "ホームが提案するゲームで X を押すとここに入ります。もう提案されず、よく似たゲームも出にくくなります。",
         "clear": "すべて再び提案する",
         "none": "なし"
+    },
+    "prices": {
+        "row": "eShop の価格",
+        "auto": "言語に合わせる",
+        "auto_value": "{}（言語）",
+        "none": "表示しない",
+        "none_for_language": "この言語にはありません",
+        "countries": {
+            "US": "アメリカ",
+            "CA": "カナダ",
+            "MX": "メキシコ",
+            "BR": "ブラジル",
+            "GB": "イギリス",
+            "FR": "フランス",
+            "DE": "ドイツ",
+            "ES": "スペイン",
+            "IT": "イタリア",
+            "NL": "オランダ",
+            "PT": "ポルトガル",
+            "AU": "オーストラリア",
+            "JP": "日本"
+        }
     }
 }

@@ -43,6 +43,7 @@
             <aurore:DetailCell id="pf_title_sources" title="@i18n/playshelf/titledb/sources"/>
             <aurore:BooleanCell id="pf_nlib_api"/>
             <aurore:BooleanCell id="pf_popular_online"/>
+            <aurore:DetailCell id="pf_prices" title="@i18n/playshelf/prices/row"/>
             <aurore:DetailCell id="pf_not_interested" title="@i18n/playshelf/not_interested/row"/>
 
         </aurore:Box>

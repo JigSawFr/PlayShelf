@@ -191,6 +191,7 @@ library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/libr
 # What PlayInsights knows of each game beyond its popularity (games.json,
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
+library_prices_SRC := source/library/signals.cpp source/library/prices.cpp tests/library_prices/test.cpp
 library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \
                          source/library/recommend.cpp tests/library_recommend/test.cpp
 # The console's games by title (base game, update, add-ons) and what a

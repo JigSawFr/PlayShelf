@@ -774,7 +774,11 @@
         "similar": "Jogos parecidos",
         "series": "Série",
         "steam": "Avaliações Steam",
-        "steam_value": "{}% positivas · {} avaliações"
+        "steam_value": "{}% positivas · {} avaliações",
+        "price": "Preço na eShop",
+        "free": "Gratuito",
+        "price_sale": "{0} → {1} (-{2}%)",
+        "price_sale_until": "{0} → {1} (-{2}%) até {3}"
     },
     "genres": {
         "action": "Ação",
@@ -897,7 +901,11 @@
         "because_like": "Como {}",
         "because_series": "Série: {}",
         "because_developer": "De {}",
-        "because_popular": "Popular"
+        "because_popular": "Popular",
+        "because_played": "{1} h de {0}",
+        "deals": "Promoções",
+        "deals_line": "Em promoção na eShop",
+        "deal": "-{0}% · {1}"
     },
     "wishlist": {
         "add": "Adicionar à lista de desejos",
@@ -928,5 +936,27 @@
         "about": "X num jogo sugerido pelo Início guarda ele aqui: ele deixa de ser sugerido, e jogos muito parecidos aparecem menos.",
         "clear": "Sugerir todos de novo",
         "none": "Nenhum"
+    },
+    "prices": {
+        "row": "Preços da eShop de",
+        "auto": "Conforme o idioma",
+        "auto_value": "{} (idioma)",
+        "none": "Sem preços",
+        "none_for_language": "Nenhum para este idioma",
+        "countries": {
+            "US": "Estados Unidos",
+            "CA": "Canadá",
+            "MX": "México",
+            "BR": "Brasil",
+            "GB": "Reino Unido",
+            "FR": "França",
+            "DE": "Alemanha",
+            "ES": "Espanha",
+            "IT": "Itália",
+            "NL": "Holanda",
+            "PT": "Portugal",
+            "AU": "Austrália",
+            "JP": "Japão"
+        }
     }
 }

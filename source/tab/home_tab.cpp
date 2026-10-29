@@ -17,6 +17,7 @@
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/prices_flow.hpp"
 #include "action/not_interested.hpp"
 #include "action/wishlist.hpp"
 #include "activity/search_activity.hpp"
@@ -96,12 +97,18 @@ std::string genre_of(uint64_t id)
     return "";
 }
 
+constexpr uint32_t PLAYED_HOURS = 10;   // from which a suggestion says the hours played of the game it is like
+
 // Why a game is suggested, under its cover.
 std::pair<std::string, const char*> reason_text(const library::Reason& r)
 {
     using Kind = library::Reason::Kind;
     switch (r.kind) {
-        case Kind::Like: return { aurore::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
+        // Much played: its hours first, so a cut line keeps them.
+        case Kind::Like:
+            if (r.hours >= PLAYED_HOURS)
+                return { aurore::getStr("playshelf/home/because_played", insights::name_of(r.because), r.hours), "cadran/teal" };
+            return { aurore::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
         case Kind::Series: return { aurore::getStr("playshelf/home/because_series", r.label), "cadran/teal" };
         case Kind::Developer: return { aurore::getStr("playshelf/home/because_developer", r.label), "cadran/teal" };
         case Kind::Genre: return { nlib_flow::genre_name(r.label), "cadran/text3" };
@@ -120,8 +127,9 @@ std::string key_of(const insights::Snapshot& s)
         for (const insights::Pick& p : *list) key += fmt::format("{:x},", p.title().id);
         key += '|';
     }
-    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x},", l.pick.title().id, (int)l.reason.kind, l.reason.because);
+    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x}.{},", l.pick.title().id, (int)l.reason.kind, l.reason.because, l.reason.hours);
     for (const insights::InSeries& l : s.series) key += fmt::format("{:x},", l.pick.title().id);
+    for (const insights::Deal& d : s.deals) key += fmt::format("{:x}.{}.{},", d.pick.title().id, d.price.sale, d.price.until);
     for (const insights::Played& p : s.recent) key += fmt::format("{:x}.{},", p.game.game.id, p.game.last_played);
     for (const insights::Wished& w : s.wished) key += fmt::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
     for (const insights::Coming& c : s.coming) key += fmt::format("{:x},", c.id);
@@ -216,6 +224,20 @@ void HomeTab::build(bool force)
         this->add_covers("playshelf/home/series"_i18n, "playshelf/home/series_line"_i18n, in_series, [series_of](const Pick& p) {
             const auto it = series_of.find(p.title().id);
             return Detail{ it == series_of.end() ? "" : it->second, "cadran/teal" };
+        });
+        // On sale on the eShop: the discount and the price, as the country writes it.
+        std::vector<Pick>                     deals;
+        std::map<uint64_t, library::Price>    price_of;
+        for (const insights::Deal& d : s.deals) {
+            deals.push_back(d.pick);
+            price_of[d.pick.title().id] = d.price;
+        }
+        const std::string country = prices_flow::country();
+        this->add_covers("playshelf/home/deals"_i18n, "playshelf/home/deals_line"_i18n, deals, [price_of, country](const Pick& p) {
+            const auto it = price_of.find(p.title().id);
+            if (it == price_of.end()) return Detail{};
+            return Detail{ aurore::getStr("playshelf/home/deal", it->second.discount(), library::price_text(it->second.sale, country)),
+                           "cadran/pink" };
         });
     }
     this->add_wished(s.wished);

@@ -774,7 +774,11 @@
         "similar": "Similar games",
         "series": "Series",
         "steam": "Steam reviews",
-        "steam_value": "{} % positive · {} reviews"
+        "steam_value": "{} % positive · {} reviews",
+        "price": "eShop price",
+        "free": "Free",
+        "price_sale": "{0} → {1} (-{2}%)",
+        "price_sale_until": "{0} → {1} (-{2}%) until {3}"
     },
     "genres": {
         "action": "Action",
@@ -897,7 +901,11 @@
         "because_like": "Like {}",
         "because_series": "Series: {}",
         "because_developer": "By {}",
-        "because_popular": "Popular"
+        "because_popular": "Popular",
+        "because_played": "{1} h of {0}",
+        "deals": "Deals",
+        "deals_line": "On sale on the eShop",
+        "deal": "-{0}% · {1}"
     },
     "wishlist": {
         "add": "Add to wishlist",
@@ -928,5 +936,27 @@
         "about": "X on a game Home suggests puts it here: it is no longer suggested, and the games much like it less often.",
         "clear": "Suggest them all again",
         "none": "None"
+    },
+    "prices": {
+        "row": "eShop prices from",
+        "auto": "From the language",
+        "auto_value": "{} (language)",
+        "none": "No prices",
+        "none_for_language": "None for this language",
+        "countries": {
+            "US": "United States",
+            "CA": "Canada",
+            "MX": "Mexico",
+            "BR": "Brazil",
+            "GB": "United Kingdom",
+            "FR": "France",
+            "DE": "Germany",
+            "ES": "Spain",
+            "IT": "Italy",
+            "NL": "Netherlands",
+            "PT": "Portugal",
+            "AU": "Australia",
+            "JP": "Japan"
+        }
     }
 }
