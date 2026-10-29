@@ -29,6 +29,14 @@ if (PLAYSHELF_WEB)
     add_compile_options(-pthread -sUSE_SDL=2 -sUSE_ZLIB=1 -fexceptions)
 endif ()
 
+# The desktop build is the simulator, built in Release: Aurore's debugging
+# aids still read from the environment there (AURORE_INSPECTOR,
+# AURORE_HOT_RELOAD…; docs/environment.md in Aurore). -DAURORE_DEV_TOOLS=AUTO
+# leaves them out of a release build again.
+if (AURORE_PLATFORM STREQUAL "DESKTOP" AND NOT PLAYSHELF_WEB)
+    set(AURORE_DEV_TOOLS ON CACHE STRING "")
+endif ()
+
 # AURORE_PLATFORM / AURORE_GRAPHICS … options, and the PLATFORM_* and USE_*
 # variables they set.
 include(${AURORE_LIBRARY}/cmake/commonOption.cmake)
