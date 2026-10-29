@@ -15,7 +15,7 @@ namespace
 // '.' and '/' (prices/FR.json), upper case for a country; no "..".
 bool is_name(const std::string& name)
 {
-    if (name.empty() || name.size() > InsightsIndex::MAX_NAME || name.front() == '/' || name.find("..") != std::string::npos)
+    if (name.empty() || name.size() > InsightsIndex::MAX_NAME || name.front() == '/' || name.contains(".."))
         return false;
     for (const char c : name)
         if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.' || c == '/'))
