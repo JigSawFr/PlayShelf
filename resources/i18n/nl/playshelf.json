@@ -897,7 +897,8 @@
         "because_like": "Zoals {}",
         "because_series": "Serie: {}",
         "because_developer": "Door {}",
-        "because_popular": "Populair"
+        "because_popular": "Populair",
+        "because_played": "{1} uur {0}"
     },
     "wishlist": {
         "add": "Op verlanglijst",

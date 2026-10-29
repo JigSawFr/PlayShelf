@@ -897,7 +897,8 @@
         "because_like": "{}와(과) 비슷함",
         "because_series": "시리즈: {}",
         "because_developer": "{} 개발",
-        "because_popular": "인기"
+        "because_popular": "인기",
+        "because_played": "{1}시간: {0}"
     },
     "wishlist": {
         "add": "위시리스트에 추가",

@@ -897,7 +897,8 @@
         "because_like": "類似 {}",
         "because_series": "系列：{}",
         "because_developer": "{} 開發",
-        "because_popular": "熱門"
+        "because_popular": "熱門",
+        "because_played": "{1} 小時：{0}"
     },
     "wishlist": {
         "add": "加入願望清單",
