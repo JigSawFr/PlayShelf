@@ -1,4 +1,4 @@
-<!-- translated from docs/troubleshooting.md, sha256 16233cef051c -->
+<!-- translated from docs/troubleshooting.md, sha256 735248a3007a -->
 # Dépannage
 
 Que faire quand un catalogue ne peut pas être lu, qu'un serveur n'est pas trouvé, qu'un téléchargement échoue ou qu'un jeu installé ne démarre pas, et comment envoyer un rapport.
