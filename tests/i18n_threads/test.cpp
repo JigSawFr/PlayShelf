@@ -26,6 +26,9 @@ namespace aurore
 {
 std::string Application::getLocale() { return LOCALE_FR; }
 Point::Point() : x(0), y(0) {}
+// The safe area's default (Application's), from core/geometry.cpp.
+Size::Size() : width(0), height(0) {}
+Rect::Rect() {}
 } // namespace aurore
 // The theme colours the headers set up (never drawn here).
 NVGcolor nvgRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
