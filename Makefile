@@ -192,6 +192,8 @@ library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/libr
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
 library_prices_SRC := source/library/signals.cpp source/library/prices.cpp tests/library_prices/test.cpp
+# PlayInsights' index.json, and which of its files to download again.
+library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(K)/util/sha256.cpp tests/library_index/test.cpp
 library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \
                          source/library/recommend.cpp tests/library_recommend/test.cpp
 # The console's games by title (base game, update, add-ons) and what a
