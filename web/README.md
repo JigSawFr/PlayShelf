@@ -66,7 +66,10 @@ none of a real game's names, characters or pictures. 24 are on the server,
   made on the day of the build, newer than the files PlayShelf ships): Home
   ranks, recommends and groups the demo's games by their series and
   studios, each recommendation with its reason, and a game's page lists the
-  ones like it.
+  ones like it. With them, `insights/prices/<COUNTRY>.json` for each of
+  PlayInsights' 13 countries (`tools/web_demo_art.py`): made-up eShop
+  prices, about one game in four on sale until 12 days after the build, for
+  Home's **Deals** row and a game page's **eShop price**.
 
 The dates the table gives in `days` are counted from the day of the build:
 the month's releases and the coming ones stay so for the weeks after it.

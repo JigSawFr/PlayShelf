@@ -16,6 +16,7 @@
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/prices_flow.hpp"
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
@@ -612,6 +613,20 @@ void GameActivity::fill_details_tab()
         if (reviews)
             fact(card, "playshelf/game/steam"_i18n,
                  aurore::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews), reviews));
+    }
+    // Its eShop price in the player's country (action/prices_flow); on sale,
+    // the regular price, the sale's and its last day.
+    if (const library::Price* price = prices_flow::of(this->page.title_id)) {
+        const std::string country = prices_flow::country();
+        const std::string regular = library::price_text(price->regular, country);
+        if (!price->on_sale()) fact(card, "playshelf/game/price"_i18n, price->regular > 0 ? regular : "playshelf/game/free"_i18n);
+        else if (price->until)
+            fact(card, "playshelf/game/price"_i18n, aurore::getStr("playshelf/game/price_sale_until", regular,
+                                                                   library::price_text(price->sale, country), price->discount(),
+                                                                   date_text(price->until)));
+        else
+            fact(card, "playshelf/game/price"_i18n, aurore::getStr("playshelf/game/price_sale", regular,
+                                                                   library::price_text(price->sale, country), price->discount()));
     }
     // What critics gave it (PlayInsights, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)

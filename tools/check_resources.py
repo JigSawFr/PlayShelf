@@ -295,6 +295,7 @@ DYNAMIC_KEYS = {
     "genres/": array_of("source/action/nlib_flow.hpp", "GENRES"),
     "installed/order_values/": array_of("source/tab/library_tab.cpp", "ORDERS"),
     "languages/": array_of("source/titledb/nlib.hpp", "NLIB_LANGUAGES"),
+    "prices/countries/": array_of("source/library/prices.hpp", "PRICE_COUNTRIES"),
     "library/connection_values/": array_of("source/activity/server_activity.cpp", "CONNECTIONS"),
     "library/format_values/": array_of("source/activity/server_activity.cpp", "FORMATS"),
     # A failed download's cause: every cause's name but those the Downloads

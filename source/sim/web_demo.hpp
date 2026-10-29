@@ -4,7 +4,8 @@
 // at DEMO_DIR. The page adds it to servers.json on a first start
 // (web/simulator.js). With it, the other services' answers about its
 // made-up games, so the demo fetches nothing real: PlayInsights' files
-// (DEMO_DIR/insights/, at INSIGHTS_BASE, action/popular_flow's address),
+// (DEMO_DIR/insights/, at INSIGHTS_BASE, action/popular_flow's address, its
+// prices/ action/prices_flow's),
 // Nlib API's details and pictures (DEMO_DIR/nlib/, at NLIB_BASE,
 // titledb/nlib's) and a title database (DEMO_DIR/titledb/index.json, at
 // TITLEDB_URL, NXMeta's in util/config.hpp); and the console's first games
