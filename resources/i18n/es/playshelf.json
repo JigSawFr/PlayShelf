@@ -770,7 +770,11 @@
         "launches": "iniciado {} veces",
         "last_played": "Última partida",
         "critics": "Nota de la crítica",
-        "critics_score": "{}/100"
+        "critics_score": "{}/100",
+        "similar": "Juegos similares",
+        "series": "Saga",
+        "steam": "Reseñas de Steam",
+        "steam_value": "{} % positivas · {} reseñas"
     },
     "genres": {
         "action": "Acción",
@@ -848,7 +852,7 @@
         "stat_downloads": "Descargas",
         "newest": "Novedades en tus servidores",
         "for_you": "Para ti",
-        "for_you_line": "Según los géneros de tus juegos",
+        "for_you_line": "Según lo que juegas",
         "welcome_title": "Te damos la bienvenida a PlayShelf",
         "welcome_text": "Añade tu servidor de biblioteca para explorar e instalar tus juegos: sus novedades, lo que les falta a tus juegos y juegos parecidos aparecen aquí.",
         "recent": "Jugados hace poco",
@@ -887,7 +891,13 @@
         "wish_waiting": "No está en tus servidores",
         "wish_waiting_long": "Ninguno de tus servidores lo tiene aún: la campana te avisará cuando uno lo tenga.",
         "coming": "Próximamente",
-        "coming_line": "La campana avisa cuando sale uno deseado"
+        "coming_line": "La campana avisa cuando sale uno deseado",
+        "series": "En tus sagas",
+        "series_line": "Más de las sagas que tienes",
+        "because_like": "Como {}",
+        "because_series": "Saga: {}",
+        "because_developer": "De {}",
+        "because_popular": "Popular"
     },
     "wishlist": {
         "add": "Añadir a la lista de deseos",

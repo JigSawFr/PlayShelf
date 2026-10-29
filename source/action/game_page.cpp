@@ -4,7 +4,9 @@
 #include <algorithm>
 
 #include "action/library_icons.hpp"
+#include "action/insights.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/services_flow.hpp"
 #include "activity/game_activity.hpp"
 #include "library/servers.hpp"
@@ -46,6 +48,27 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
         return others([&](const library::Facts& f) {
             return std::find(f.categories.begin(), f.categories.end(), genre) != f.categories.end();
         });
+    };
+    // The games most like it (PlayInsights), on any server read, the most alike first.
+    page.similar = [id = t.id]() {
+        std::vector<GameActivity::Other> out;
+        const library::SimilarBook::Row* row = popular_flow::similar()->find(id);
+        if (!row) return out;
+        for (const auto& [other, score] : *row) {
+            const insights::Pick p = insights::found_of(other);
+            if (!p.data) continue;
+            const auto        found = p.data;
+            const size_t      i = p.index;
+            const std::string url = p.title().icon_url;
+            const std::string pass = library::password_of(found->server);
+            out.push_back({ p.title().name,
+                            [found, pass, url, other](library_icons::Done shown) {
+                                if (!url.empty()) library_icons::get(found, pass, url, std::move(shown), other);
+                                else library_icons::local(other, std::move(shown));
+                            },
+                            [found, i]() { open(found, i); } });
+        }
+        return out;
     };
     GameActivity::show(std::move(page));
 }

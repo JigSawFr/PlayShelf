@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <ctime>
+#include <map>
 
 #include <fmt/format.h>
 
@@ -94,6 +95,19 @@ std::string genre_of(uint64_t id)
     return "";
 }
 
+// Why a game is suggested, under its cover.
+std::pair<std::string, const char*> reason_text(const library::Reason& r)
+{
+    using Kind = library::Reason::Kind;
+    switch (r.kind) {
+        case Kind::Like: return { brls::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
+        case Kind::Series: return { brls::getStr("playshelf/home/because_series", r.label), "cadran/teal" };
+        case Kind::Developer: return { brls::getStr("playshelf/home/because_developer", r.label), "cadran/teal" };
+        case Kind::Genre: return { nlib_flow::genre_name(r.label), "cadran/text3" };
+        default: return { "playshelf/home/because_popular"_i18n, "cadran/text3" };
+    }
+}
+
 // What the rows show, to build them again only when it changed (the focus
 // may be on one of them).
 std::string key_of(const insights::Snapshot& s)
@@ -101,10 +115,12 @@ std::string key_of(const insights::Snapshot& s)
     std::string key = fmt::format("{} {} {} {} {} {} {} {} {} {}|", s.console_games, s.server_games, s.updates, s.dlcs,
                                   s.downloads, s.space.free / 100000000, s.loading, library::load_servers().size(),
                                   popular_flow::size(), config::get().nlib_api);
-    for (const auto* list : { &s.to_get, &s.added, &s.popular, &s.trending, &s.month, &s.newest, &s.like }) {
+    for (const auto* list : { &s.to_get, &s.added, &s.popular, &s.trending, &s.month, &s.newest }) {
         for (const insights::Pick& p : *list) key += fmt::format("{:x},", p.title().id);
         key += '|';
     }
+    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x},", l.pick.title().id, (int)l.reason.kind, l.reason.because);
+    for (const insights::InSeries& l : s.series) key += fmt::format("{:x},", l.pick.title().id);
     for (const insights::Played& p : s.recent) key += fmt::format("{:x}.{},", p.game.game.id, p.game.last_played);
     for (const insights::Wished& w : s.wished) key += fmt::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
     for (const insights::Coming& c : s.coming) key += fmt::format("{:x},", c.id);
@@ -159,6 +175,32 @@ void HomeTab::build(bool force)
     this->add_recent(s.recent);
     const bool online = config::get().nlib_api;
     if (online) this->add_banners("playshelf/installed/featured"_i18n, s.to_get, true);
+    // For the player, each with the reason that weighed most; then the
+    // games of their series.
+    {
+        std::vector<Pick>                  picks;
+        std::map<uint64_t, library::Reason> why;
+        for (const insights::Suggested& l : s.like) {
+            picks.push_back(l.pick);
+            why[l.pick.title().id] = l.reason;
+        }
+        this->add_covers("playshelf/home/for_you"_i18n, "playshelf/home/for_you_line"_i18n, picks, [why](const Pick& p) {
+            const auto it = why.find(p.title().id);
+            if (it == why.end()) return Detail{};
+            const auto [text, ink] = reason_text(it->second);
+            return Detail{ text, ink };
+        });
+        std::vector<Pick>                  in_series;
+        std::map<uint64_t, std::string>    series_of;
+        for (const insights::InSeries& l : s.series) {
+            in_series.push_back(l.pick);
+            series_of[l.pick.title().id] = l.series;
+        }
+        this->add_covers("playshelf/home/series"_i18n, "playshelf/home/series_line"_i18n, in_series, [series_of](const Pick& p) {
+            const auto it = series_of.find(p.title().id);
+            return Detail{ it == series_of.end() ? "" : it->second, "cadran/teal" };
+        });
+    }
     this->add_wished(s.wished);
     const uint32_t today = day();
     this->add_covers("playshelf/home/added"_i18n, "playshelf/home/added_line"_i18n, s.added, [today](const Pick& p) {
@@ -176,10 +218,6 @@ void HomeTab::build(bool force)
         if (s.month.size() >= 3) this->add_banners("playshelf/home/month"_i18n, s.month, false);
         else this->add_banners("playshelf/home/newest"_i18n, s.newest, false);
     }
-    this->add_covers("playshelf/home/for_you"_i18n, "playshelf/home/for_you_line"_i18n, s.like, [](const Pick& p) {
-        const std::string g = genre_of(p.title().id);
-        return Detail{ g.empty() ? library_flow::size_text(p.title().size) : g, "cadran/text3" };
-    });
     this->add_coming(s.coming);
     if (had_focus)
         if (brls::View* first = content->getDefaultFocus()) brls::Application::giveFocus(first);

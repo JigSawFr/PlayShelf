@@ -521,7 +521,9 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
     this->show_chips();
     this->fill_details_tab();
 
-    // More of its publisher and of its first genre, from the caller.
+    // The games most like it, then more of its publisher and of its first
+    // genre, from the caller.
+    if (this->page.similar) this->add_others("playshelf/game/similar"_i18n, this->page.similar());
     if (this->page.by_publisher && !d->publisher.empty())
         this->add_others(brls::getStr("playshelf/game/more_publisher", d->publisher), this->page.by_publisher(d->publisher));
     const auto genre = std::find_if(d->categories.begin(), d->categories.end(), [](const std::string& g) { return g != "Other"; });
@@ -600,6 +602,17 @@ void GameActivity::fill_details_tab()
     std::string rating;
     for (const std::string& r : f.rating) rating += (rating.empty() ? "" : ", ") + r;
     fact(card, "playshelf/game/rating"_i18n, rating);
+    // Its series and its Steam audience (PlayInsights, from Wikidata and SteamSpy).
+    if (const library::GameSignals* sig = popular_flow::signals()->find(this->page.title_id)) {
+        std::string series;
+        for (const library::Trait& t : sig->series)
+            if (!t.label.empty()) series += (series.empty() ? "" : ", ") + t.label;
+        fact(card, "playshelf/game/series"_i18n, series);
+        const uint64_t reviews = sig->steam.positive + sig->steam.negative;
+        if (reviews)
+            fact(card, "playshelf/game/steam"_i18n,
+                 brls::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews), reviews));
+    }
     // What critics gave it (PlayInsights, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)
         fact(card, "playshelf/game/critics"_i18n, brls::getStr("playshelf/game/critics_score", critics));

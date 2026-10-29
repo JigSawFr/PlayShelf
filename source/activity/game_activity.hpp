@@ -59,6 +59,8 @@ class GameActivity : public brls::Activity
         // the caller's, nullptr for none.
         std::function<std::vector<Other>(const std::string& publisher)> by_publisher;
         std::function<std::vector<Other>(const std::string& genre)>     by_genre;
+        // The games most like it the servers have (PlayInsights' similar.json).
+        std::function<std::vector<Other>()> similar;
     };
     static void show(Page page);
 

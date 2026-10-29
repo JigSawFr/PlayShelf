@@ -2,7 +2,6 @@
 #include "action/insights.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <ctime>
 #include <map>
 #include <set>
@@ -180,10 +179,12 @@ void make()
     // were played.
     std::vector<std::pair<uint64_t, Pick>> getting;
     std::map<std::string, double>          genres;
+    std::vector<library::Owned>            owned;
     const uint64_t                         now = (uint64_t)std::time(nullptr);
     if (games)
         for (const installed_flow::Game& g : *games) {
-            const double weight = 1.0 + std::log2(1.0 + (double)g.play_s / 3600.0);
+            const double weight = library::owned_weight(g.play_s, g.launches, g.last_played, now);
+            owned.push_back({ g.game.id, weight });
             for (const std::string& c : nlib_flow::facts(g.game.id).categories)
                 if (c != "Other") genres[c] += weight;
             if (!g.launches && !g.play_s) s.never_played++;
@@ -250,25 +251,53 @@ void make()
     for (auto* row : { &s.newest, &s.month, &s.added, &s.popular, &s.trending })
         if (row->size() > ROW) row->resize(ROW);
 
-    // Games like the console's: by the genres its games have, weighed;
-    // better known first among equals.
-    std::vector<std::pair<double, Pick>> scored;
-    double                               weight = 0;
-    for (const auto& g : genres) weight += g.second;
-    if (weight > 0)
+    // For the console's player, from every signal: games like the ones it
+    // plays, of their series and developers, of their genres, well known and
+    // liked, out lately (library/recommend), each with its reason.
+    const auto signals = popular_flow::signals();
+    const auto similar = popular_flow::similar();
+    {
+        std::vector<library::Candidate> candidates;
+        std::map<uint64_t, Pick>        by_id;
         for (const Pick& p : fresh) {
             const library::Title& t = p.title();
-            double                score = 0;
-            for (const std::string& c : nlib_flow::facts(t.id).categories) {
-                const auto it = genres.find(c);
-                if (it != genres.end()) score += it->second / weight;
-            }
-            if (score > 0) scored.emplace_back(score + popular_flow::of(t.id).score / 1e4 + date_of(t) / 1e12, p);
+            library::Candidate    c;
+            c.id = t.id;
+            c.release_date = date_of(t);
+            c.genres = nlib_flow::facts(t.id).categories;
+            c.renown = popular_flow::of(t.id);
+            candidates.push_back(std::move(c));
+            by_id[t.id] = p;
         }
-    std::stable_sort(scored.begin(), scored.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
-    for (const auto& sc : scored) {
-        if (s.like.size() >= ROW) break;
-        s.like.push_back(sc.second);
+        for (library::Suggestion& sug : library::recommend(owned, candidates, genres, *similar, *signals, to_day, ROW))
+            s.like.push_back({ by_id[sug.id], std::move(sug.reason) });
+    }
+
+    // In the series of the console's games: the most played game's series first.
+    {
+        std::map<std::string, std::pair<double, std::string>> mine;   // series id: weight, name
+        for (const library::Owned& o : owned)
+            if (const library::GameSignals* g = signals->find(o.id))
+                for (const library::Trait& t : g->series) {
+                    auto& m = mine[t.id];
+                    if (o.weight > m.first) m = { o.weight, t.label };
+                }
+        std::vector<std::pair<double, InSeries>> found;
+        for (const Pick& p : fresh) {
+            const library::GameSignals* g = signals->find(p.title().id);
+            if (!g) continue;
+            for (const library::Trait& t : g->series) {
+                const auto it = mine.find(t.id);
+                if (it == mine.end() || it->second.second.empty()) continue;
+                found.push_back({ it->second.first + popular_flow::of(p.title().id).score / 1e3, { p, it->second.second } });
+                break;
+            }
+        }
+        std::stable_sort(found.begin(), found.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+        for (auto& f : found) {
+            if (s.series.size() >= ROW) break;
+            s.series.push_back(std::move(f.second));
+        }
     }
 
     // Coming out in the next two months (the title databases), better known

@@ -770,7 +770,11 @@
         "launches": "started {} times",
         "last_played": "Last played",
         "critics": "Critics' score",
-        "critics_score": "{}/100"
+        "critics_score": "{}/100",
+        "similar": "Similar games",
+        "series": "Series",
+        "steam": "Steam reviews",
+        "steam_value": "{} % positive · {} reviews"
     },
     "genres": {
         "action": "Action",
@@ -848,7 +852,7 @@
         "stat_downloads": "Downloads",
         "newest": "New on your servers",
         "for_you": "For you",
-        "for_you_line": "From the genres of your games",
+        "for_you_line": "From what you play",
         "welcome_title": "Welcome to PlayShelf",
         "welcome_text": "Add your library server to browse and install your games: its newest games, what your games are missing and games like them show here.",
         "recent": "Played lately",
@@ -887,7 +891,13 @@
         "wish_waiting": "Not on your servers",
         "wish_waiting_long": "None of your servers has it yet: the bell will say when one does.",
         "coming": "Coming soon",
-        "coming_line": "The bell says when a wished one comes out"
+        "coming_line": "The bell says when a wished one comes out",
+        "series": "In your series",
+        "series_line": "More of the series you have",
+        "because_like": "Like {}",
+        "because_series": "Series: {}",
+        "because_developer": "By {}",
+        "because_popular": "Popular"
     },
     "wishlist": {
         "add": "Add to wishlist",

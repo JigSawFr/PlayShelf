@@ -175,6 +175,11 @@ save_archive_LIBS := -lz
 # AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
 library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(K)/util/paths.cpp \
                         tests/library_services/test.cpp
+# What PlayInsights knows of each game beyond its popularity (games.json,
+# similar.json), and the recommendations made from every signal.
+library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
+library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \
+                         source/library/recommend.cpp tests/library_recommend/test.cpp
 # The console's games by title (base game, update, add-ons) and what a
 # catalogue has beyond them.
 library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp

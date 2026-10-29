@@ -770,7 +770,11 @@
         "launches": "{} keer gestart",
         "last_played": "Laatst gespeeld",
         "critics": "Score van critici",
-        "critics_score": "{}/100"
+        "critics_score": "{}/100",
+        "similar": "Vergelijkbare games",
+        "series": "Serie",
+        "steam": "Steam-recensies",
+        "steam_value": "{}% positief · {} recensies"
     },
     "genres": {
         "action": "Actie",
@@ -848,7 +852,7 @@
         "stat_downloads": "Downloads",
         "newest": "Nieuw op je servers",
         "for_you": "Voor jou",
-        "for_you_line": "Op basis van de genres van je games",
+        "for_you_line": "Op basis van wat je speelt",
         "welcome_title": "Welkom bij PlayShelf",
         "welcome_text": "Voeg je bibliotheekserver toe om je games te bekijken en te installeren: nieuwe games, wat je games missen en vergelijkbare games verschijnen hier.",
         "recent": "Onlangs gespeeld",
@@ -887,7 +891,13 @@
         "wish_waiting": "Niet op je servers",
         "wish_waiting_long": "Nog geen van je servers heeft hem: de bel meldt het zodra er een is.",
         "coming": "Binnenkort",
-        "coming_line": "De bel meldt wanneer een gewenste uitkomt"
+        "coming_line": "De bel meldt wanneer een gewenste uitkomt",
+        "series": "In je series",
+        "series_line": "Meer uit je series",
+        "because_like": "Zoals {}",
+        "because_series": "Serie: {}",
+        "because_developer": "Door {}",
+        "because_popular": "Populair"
     },
     "wishlist": {
         "add": "Op verlanglijst",
