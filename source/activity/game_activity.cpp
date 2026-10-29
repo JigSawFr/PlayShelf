@@ -20,6 +20,7 @@
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
+#include "util/title_id.hpp"
 #include "view/cover_placeholder.hpp"
 #include "view/game_tile.hpp"
 
@@ -504,7 +505,7 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
     this->details = d;
     const uint64_t base = library::base_of(this->page.title_id);
     // Its name, for a game known only by its title id.
-    if (!d->name.empty() && this->page.name == fmt::format("{:016X}", this->page.title_id)) {
+    if (!d->name.empty() && this->page.name == title_id::text(this->page.title_id)) {
         this->title->setText(d->name);
         if (auto* applet = dynamic_cast<aurore::AppletFrame*>(this->getContentView())) applet->setTitle(d->name);
     }
@@ -588,7 +589,7 @@ void GameActivity::fill_details_tab()
     holder->setAlignItems(aurore::AlignItems::STRETCH);
     facts->addView(holder);
     aurore::Box* card = cadran::List::rows_in(holder);
-    if (this->page.title_id) fact(card, "playshelf/game/title_id"_i18n, fmt::format("{:016X}", this->page.title_id));
+    if (this->page.title_id) fact(card, "playshelf/game/title_id"_i18n, title_id::text(this->page.title_id));
     if (f.nsu_id) fact(card, "playshelf/game/eshop_id"_i18n, std::to_string(f.nsu_id));
     fact(card, "playshelf/game/publisher"_i18n, f.publisher);
     fact(card, "playshelf/game/developer"_i18n, f.developer);

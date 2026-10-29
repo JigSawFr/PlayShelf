@@ -1,9 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/facts.hpp"
+#include "util/title_id.hpp"
 
 #include <algorithm>
-#include <cinttypes>
-#include <cstdio>
 #include <set>
 
 #include <aurore/extern/nlohmann/json.hpp>
@@ -71,8 +70,7 @@ std::string FactsBook::to_json() const
 {
     nlohmann::json out = nlohmann::json::object();
     for (const auto& [id, f] : this->games) {
-        char key[17];
-        std::snprintf(key, sizeof key, "%016" PRIX64, id);
+        const std::string key = title_id::text(id);
         nlohmann::json j = nlohmann::json::object();
         if (!f.name.empty()) j["name"] = f.name;
         if (!f.publisher.empty()) j["publisher"] = f.publisher;

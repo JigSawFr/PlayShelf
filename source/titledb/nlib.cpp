@@ -2,13 +2,12 @@
 #include "titledb/nlib.hpp"
 
 #include <algorithm>
-#include <cinttypes>
-#include <cstdio>
 #include <string>
 
 #include <aurore/extern/nlohmann/json.hpp>
 
 #include "titledb/pack.hpp"
+#include "util/title_id.hpp"
 
 namespace titledb
 {
@@ -22,9 +21,7 @@ bool is_base(uint64_t id)
 
 std::string game_url(uint64_t base_id, const std::string& rest)
 {
-    char id[17];
-    std::snprintf(id, sizeof id, "%016" PRIX64, base_id);
-    return "https://api.nlib.cc/nx/" + std::string(id) + rest;
+    return "https://api.nlib.cc/nx/" + title_id::text(base_id) + rest;
 }
 
 std::string text_of(const nlohmann::json& j, const char* key, size_t max)
@@ -127,9 +124,7 @@ bool parse_nlib_details(const std::string& json, uint64_t base_id, Details* out)
     // Its id, the one asked (the API writes it in capitals).
     const auto id = j.find("id");
     if (id == j.end() || !id->is_string()) return false;
-    char want[17];
-    std::snprintf(want, sizeof want, "%016" PRIX64, base_id);
-    if (id->get_ref<const std::string&>() != want) return false;
+    if (id->get_ref<const std::string&>() != title_id::text(base_id)) return false;
 
     Details d;
     d.name = text_of(j, "name", 256);
