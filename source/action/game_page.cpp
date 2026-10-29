@@ -74,12 +74,15 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
             if (e != id) other_of(e, out);
         return out;
     };
-    // The games most like it (PlayInsights), on any server read, the most alike first.
+    // The games most like it (PlayInsights), on any server read, the most
+    // alike first; its own editions are in the row above.
     page.similar = [id = t.id, other_of]() {
         std::vector<GameActivity::Other> out;
         const library::SimilarBook::Row* row = popular_flow::similar()->find(id);
         if (!row) return out;
-        for (const auto& [other, score] : *row) other_of(other, out);
+        const auto editions = popular_flow::editions();
+        for (const auto& [other, score] : *row)
+            if (editions->game_of(other) != editions->game_of(id)) other_of(other, out);
         return out;
     };
     GameActivity::show(std::move(page));
