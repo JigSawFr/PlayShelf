@@ -129,6 +129,12 @@ pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
   color: var(--amber); font: 500 13px var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
 }
 .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px rgb(255 184 107 / 0.2); }
+/* In the hero, at the scale of the eyebrow under it (.hero p would make it
+   larger), on one line down to a 320px screen. */
+.hero .status { font-size: 13px; max-width: 100%; }
+.hero .status span span { white-space: nowrap; }
+.hero .status::before { flex: none; }
+@media (max-width: 400px) { .hero .status { font-size: 12px; letter-spacing: 0.02em; gap: 7px; padding: 4px 10px 4px 9px; } }
 .install-soon { margin: -14px 0 22px; color: var(--amber); }
 
 /* Eyebrows: a section's subject over its title, in the aurora's colour. */
@@ -184,7 +190,9 @@ pre code { background: none; border: 0; padding: 0; color: #d6deeb; }
 }
 .hero h1 { font-size: clamp(2.25rem, 5vw, 3.6rem); letter-spacing: -0.035em; line-height: 1.1; margin: 0 0 16px; }
 .hero h1 em { font-style: normal; background: var(--aurora-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.hero .sub { font: 500 14px/1.6 var(--mono); color: var(--text); margin: 0 0 14px; }
+.hero .sub { font: 500 14px/1.6 var(--mono); color: var(--text); margin: 0 0 14px; text-wrap: balance; }
+/* Its items each kept whole: a line breaks between them only. */
+.hero .sub span, .hero .eyebrow span { white-space: nowrap; }
 .hero p { color: var(--muted); font-size: clamp(1.0625rem, 1.6vw, 1.15rem); max-width: 56ch; }
 .hero .eyebrow { font-size: 13px; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
@@ -630,7 +638,8 @@ pre.has-copy { position: relative; padding-right: 76px; }
 .project-status .eyebrow { color: var(--amber); }
 .project-status h2 { margin: 0 0 12px; font-size: clamp(1.5rem, 3.4vw, 2.1rem); letter-spacing: -0.025em; text-wrap: balance; }
 .project-status-head p:last-child { margin: 0; color: var(--muted); max-width: 60ch; }
-.project-status-road h3 { margin: 4px 0 16px; font: 400 13px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.project-status .eyebrow, .project-status-road h3 { line-height: 1.6; }
+.project-status-road h3 { margin: 0 0 16px; font: 400 13px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .roadmap { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
 .roadmap li { position: relative; padding-left: 34px; color: var(--muted); }
 .roadmap-state { display: block; margin-bottom: 2px; font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
@@ -756,6 +765,25 @@ pre.has-copy { position: relative; padding-right: 76px; }
 .steps > li:not(:last-child)::after {
   content: ""; position: absolute; left: 14px; top: 34px; bottom: -14px; width: 2px; border-radius: 2px;
   background: linear-gradient(to bottom, rgb(0 255 204 / 0.5), rgb(138 92 255 / 0.25));
+}
+
+/* In a row of cards, the icons, titles and texts start at the same height
+   (one card's title over two lines moves its row's texts down together),
+   where the browser has subgrid; the featured ones' screens (or the
+   security's shield, in a screen's place) too. */
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 861px) {
+    .cards > .card { grid-row: span 3; grid-template-rows: subgrid; row-gap: 10px; }
+    .cards-small > .card { row-gap: 8px; }
+    .cards > .card-featured { grid-row: span 4; }
+    .cards { row-gap: 16px; }
+  }
+  /* Two or three in a row, the icon beside the title: the titles and the
+     texts aligned the same way. */
+  @media (min-width: 601px) and (max-width: 860px) {
+    .cards > .card { grid-row: span 2; grid-template-rows: subgrid; row-gap: 4px; }
+    .cards > .card-featured { grid-row: span 3; }
+  }
 }
 
 /* No card left alone on its row: the five small ones three then two where

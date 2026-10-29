@@ -702,6 +702,13 @@ def hero_title(t):
     return title
 
 
+def whole_items(text):
+    """A line of items ("a · b · c") whose items each stay whole, a line
+    breaking only after a separator (site.css: `span` in nowrap)."""
+    items = text.split(" · ")
+    return " ".join(f"<span>{item}{'&nbsp;·' if i < len(items) - 1 else ''}</span>" for i, item in enumerate(items))
+
+
 def home_body(t, lang, to_root):
     """The home page: its hero (under the header, on the sky), and the rest."""
     code = lang
@@ -738,7 +745,9 @@ def home_body(t, lang, to_root):
     # the title, a callout before the rest, the way to follow it rather than
     # to install it, and the install's steps marked as to come.
     wip = not releases
-    status = f'<p class="status">{t("status_wip")}</p>' if wip else ""
+    # Its items each kept whole, a line breaking between them only where
+    # the pill cannot hold them on one (a long translation on a small phone).
+    status = f'<p class="status"><span>{whole_items(t("status_wip"))}</span></p>' if wip else ""
     second = (f'<a class="button" href="{REPO_URL}">{t("follow_cta")}</a>' if wip
               else f'<a class="button" href="#install">{t("install_cta")}</a>')
     # Then one panel says where it stands: not usable yet, what works, what
@@ -768,9 +777,9 @@ def home_body(t, lang, to_root):
     return f"""    <section class="hero">
       <div class="hero-text">
         {status}
-        <p class="eyebrow">{t('hero_eyebrow')}</p>
+        <p class="eyebrow">{whole_items(t('hero_eyebrow'))}</p>
         <h1>{hero_title(t)}</h1>
-        <p class="sub">{t('hero_sub')}</p>
+        <p class="sub">{whole_items(t('hero_sub'))}</p>
         <p>{t('hero_text')}</p>
         <div class="actions">
           <a class="button primary" href="{to_root}simulator/?lang={code}">{t('try')}{size}</a>
