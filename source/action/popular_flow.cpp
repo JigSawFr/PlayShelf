@@ -19,7 +19,7 @@ namespace popular_flow
 
 namespace
 {
-constexpr const char* URL = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayShelf@main/resources/data/popular.json";
+constexpr const char* URL = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/popular.json";
 constexpr size_t      MAX_BYTES = 2 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;   // fetched again a day after
 

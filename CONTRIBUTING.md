@@ -23,7 +23,6 @@ Then a pull request with a conventional title and a scope (`fix(install): …`),
 | [The website](site/README.md) | `make site`: the home page and the documentation (`docs/`), on GitHub Pages with the simulator |
 | [Tests and CI](docs/contributing/tests.md) | The host tests, the fuzz targets, the smoke test, what CI runs |
 | [Code layout](docs/contributing/layout.md) | The kit shared with PlayGuard and its rules, the Cadran look |
-| [Popular games](docs/contributing/popular.md) | `resources/data/popular.json`, Home's popular and trending games, made by `tools/popular.py` |
 | [Pull requests and releases](docs/contributing/releases.md) | Conventional titles, squash merges, release-please, development builds, reproducible zips |
 | [Translating PlayShelf](docs/contributing/translating.md) | The 15 catalogs, how to add a language |
 

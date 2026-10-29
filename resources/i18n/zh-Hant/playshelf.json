@@ -768,7 +768,9 @@
         "play_time": "遊戲時間",
         "launches_one": "啟動 1 次",
         "launches": "啟動 {} 次",
-        "last_played": "上次遊玩"
+        "last_played": "上次遊玩",
+        "critics": "媒體評分",
+        "critics_score": "{}/100"
     },
     "genres": {
         "action": "動作",

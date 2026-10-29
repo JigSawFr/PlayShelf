@@ -768,7 +768,9 @@
         "play_time": "Speeltijd",
         "launches_one": "één keer gestart",
         "launches": "{} keer gestart",
-        "last_played": "Laatst gespeeld"
+        "last_played": "Laatst gespeeld",
+        "critics": "Score van critici",
+        "critics_score": "{}/100"
     },
     "genres": {
         "action": "Actie",

@@ -1,8 +1,8 @@
 // popular_flow — how well known each game is (library/popular), for Home:
 // popular.json as PlayShelf came with it, and once a day, when config
-// popular_online allows it, the newest one from the project's repository
-// (jsDelivr's copy of resources/data/popular.json on main, kept in
-// cache_dir()), whichever was made last. Read off the UI thread at start-up.
+// popular_online allows it, the newest one PlayInsights made (jsDelivr's copy
+// of its data branch, kept in cache_dir()), whichever was made last. Read off
+// the UI thread at start-up.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 

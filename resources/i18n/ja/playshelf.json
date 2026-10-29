@@ -768,7 +768,9 @@
         "play_time": "プレイ時間",
         "launches_one": "1 回起動",
         "launches": "{} 回起動",
-        "last_played": "最後に遊んだ日"
+        "last_played": "最後に遊んだ日",
+        "critics": "評論家の評価",
+        "critics_score": "{}/100"
     },
     "genres": {
         "action": "アクション",
