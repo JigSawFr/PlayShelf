@@ -41,11 +41,20 @@ none of a real game's names, characters or pictures. 24 are on the server,
   default, `PLAYSHELF_SIM_SPEED`; `0`: at once) so a download is seen going,
   byte ranges and resumes included: the downloads' queue, its split
   connections and its fetching ahead work on them as on a real server.
-- **The pictures**, drawn by `tools/web_demo_art.py` (Pillow) the same at
-  every build: each game's icon (256 × 256), banner (854 × 480) and
-  screenshots (1280 × 720), a scene of its kind in its colours (islands in
-  the sky, a kart track, a harbour village…), its name in Sora on the icon.
-  About 4 MB in all, JPEG.
+- **The pictures**, drawn the same at every build by `tools/web_demo_art.py`.
+  - What they show: each game's icon (256 × 256), banner (854 × 480) and
+    screenshots (1280 × 720). Each is a scene of its kind in its colours
+    (islands in the sky, a kart track, a harbour village…), drawn as key art
+    is: a sky, far shapes lost in the haze, a lit subject, light and grain
+    over it all.
+  - The icon is framed on its subject, with its name over it in Sora as a
+    game's logo would be; a series' name sits above in a badge.
+  - The screenshots carry a head-up display of their kind of game: hearts
+    and a map, a race's place and lap, a battle's cards, a farm's day…
+  - How: the scenes are SVG (`tools/web_demo_scenes.py`), rendered in
+    Chromium through Playwright, then saved as JPEG with Pillow.
+    `make web ART_PYTHON=…` picks the Python that has both;
+    `CHROMIUM=…` uses another Chromium than Playwright's.
 - **Nlib API's answers** (`https://api.nlib.cc/nx/…`, `nlib/`): each game's
   details in English and French (studio, release, genres, players,
   description), its icon, banner and screenshots, so a game's page is full.

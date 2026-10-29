@@ -74,7 +74,8 @@ jobs:
           "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
           "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
       # The demo server's packages are made on the host (libzstd, zlib), its
-      # games' pictures with Pillow (tools/web_demo_art.py);
+      # games' pictures in Chromium through Playwright, saved with Pillow
+      # (tools/web_demo_art.py: a venv that sees the system's Pillow);
       # Japanese, Korean and Chinese drawn with a CJK font cut out of Noto
       # Sans CJK with fontTools (tools/web_cjk_font.py); the website's
       # documentation is Markdown (tools/build_site.py).
@@ -82,6 +83,10 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools python3-markdown python3-pil ccache
+          python3 -m venv --system-site-packages "$RUNNER_TEMP/playwright"
+          "$RUNNER_TEMP/playwright/bin/pip" install -q "playwright==$PLAYWRIGHT_VERSION"
+          sudo "$RUNNER_TEMP/playwright/bin/python" -m playwright install-deps chromium
+          "$RUNNER_TEMP/playwright/bin/python" -m playwright install chromium
       - name: The simulator
         env:
           PLAYSHELF_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -91,7 +96,7 @@ jobs:
           # were built in emsdk's own folder and the cache above stayed empty.
           source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
           export EM_CACHE="$HOME/.emscripten_cache"
-          make web JOBS="$(nproc)" CMAKE_ARGS="-DPLAYSHELF_WERROR=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+          make web JOBS="$(nproc)" ART_PYTHON="$RUNNER_TEMP/playwright/bin/python" CMAKE_ARGS="-DPLAYSHELF_WERROR=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
           ccache --show-stats || true
           test -f build-web/simulator/cjk.otf || { echo "::error::no CJK font in the web build"; exit 1; }
           {
@@ -116,10 +121,6 @@ jobs:
       - name: The simulator in a browser
         timeout-minutes: 15
         run: |
-          python3 -m venv "$RUNNER_TEMP/playwright"
-          "$RUNNER_TEMP/playwright/bin/pip" install -q "playwright==$PLAYWRIGHT_VERSION"
-          sudo "$RUNNER_TEMP/playwright/bin/python" -m playwright install-deps chromium
-          "$RUNNER_TEMP/playwright/bin/python" -m playwright install chromium
           "$RUNNER_TEMP/playwright/bin/python" -u tools/web_smoke.py build-web/simulator build-web/shots
           if [ -f build-web/shots/timings.json ]; then
             { echo; echo "Starts (s): $(python3 -c 'import json; print(", ".join(f"{k} {v}" for k, v in json.load(open("build-web/shots/timings.json")).items()))')"; } >> "$GITHUB_STEP_SUMMARY"
