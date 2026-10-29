@@ -15,6 +15,16 @@
     ['pt', 'Português'], ['pt-BR', 'Português (Brasil)'], ['ru', 'Русский'], ['ja', '日本語'],
     ['ko', '한국어'], ['zh-Hans', '简体中文'], ['zh-Hant', '繁體中文'],
   ];
+  // Each language's flag in the header's menu, as on the website
+  // (tools/build_site.py's FLAGS; twemoji-flags.woff2 draws them the same
+  // everywhere, Windows included): the country of the console's language,
+  // Mexico for Latin America's Spanish, Taiwan for Traditional Chinese.
+  const FLAGS = {
+    'en-US': 'US', fr: 'FR', 'fr-CA': 'CA', de: 'DE', es: 'ES', 'es-419': 'MX', it: 'IT', nl: 'NL',
+    pt: 'PT', 'pt-BR': 'BR', ru: 'RU', ja: 'JP', ko: 'KR', 'zh-Hans': 'CN', 'zh-Hant': 'TW',
+  };
+  // A language's flag: its country's two regional indicator letters.
+  const flag = (code) => [...(FLAGS[code] || '')].map((c) => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join('');
   // A setting's name in the URL (lower case, digits, _).
   const NAME = /^[a-z0-9_]+$/;
   // A flag is off with these (core/sim_env.h's sim_env_flag() reads the same).
@@ -151,7 +161,7 @@
   }
 
   const SimLogic = {
-    LANGUAGES, FALSY, STEP_BUTTONS, isOn, consoleLanguage, firstConsoleLanguage, readQuery, toQuery, changedNames,
+    LANGUAGES, FLAGS, flag, FALSY, STEP_BUTTONS, isOn, consoleLanguage, firstConsoleLanguage, readQuery, toQuery, changedNames,
     envValue, envName, startEnvironment, parseSteps, stepValue, stepsText,
   };
   if (typeof module === 'object' && module.exports) module.exports = SimLogic;

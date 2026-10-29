@@ -63,10 +63,18 @@
     </nav>
     <div class="build" id="build"></div>
     <div class="header-settings">
-      <!-- On a phone a short face (the language's code, the theme's icon),
-           the select over it, unseen, opening the system's list. -->
-      <span class="picker picker-lang"><span class="picker-face" id="language-face" aria-hidden="true"></span>
-        <select id="language-select" data-i18n-label="language"></select></span>
+      <!-- The languages as on the website (tools/build_site.py): a button with
+           the language's flag and name (its code on a phone), and under it
+           their menu, a popover, each with its flag (simulator.js'
+           setUpLanguages()). -->
+      <button class="lang-button" id="language-button" type="button" popovertarget="languages">
+        <span class="flag" id="language-flag" aria-hidden="true"></span>
+        <span class="lang-name" id="language-name"></span><span class="lang-code" id="language-code"></span>
+        <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul id="languages" class="langs" popover data-i18n-label="language" aria-label="Language"></ul>
+      <!-- The theme: on a phone a short face (its icon), the select over it,
+           unseen, opening the system's list. -->
       <span class="picker picker-theme"><span class="picker-face" aria-hidden="true"></span>
         <select id="theme-select" data-i18n-label="theme"></select></span>
     </div>
