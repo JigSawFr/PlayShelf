@@ -1,4 +1,4 @@
-<!-- translated from docs/downloads.md, sha256 ebe4784f0349 -->
+<!-- translated from docs/downloads.md, sha256 7d7056579f59 -->
 # Téléchargements
 
 La fiche d'un jeu dans le *Catalogue* ajoute ses paquets aux **Téléchargements** : son jeu de base, ses mises à jour et ses contenus additionnels, chacun étant un paquet. Ils sont installés l'un après l'autre, directement du serveur vers la console : rien n'est d'abord enregistré en entier sur la carte SD.
