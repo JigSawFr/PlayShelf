@@ -178,7 +178,7 @@ std::vector<Part> gist_files(const std::vector<Part>& parts, size_t max_bytes, b
         if (text::starts_with(name, "logs/")) name.erase(0, 5);
         std::replace(name.begin(), name.end(), '/', '_');
         const std::string file =
-            std::to_string(i + 1) + "-" + (name.find('.') == std::string::npos ? std::string("report.txt") : name);
+            std::to_string(i + 1) + "-" + (!name.contains('.') ? std::string("report.txt") : name);
         const std::string content = parts[i].content.empty() ? std::string("(empty)\n") : parts[i].content;
         if (total + content.size() <= max_bytes) {
             out.push_back({ file, content });

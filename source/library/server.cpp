@@ -105,11 +105,11 @@ std::optional<Discovered> parse_discovery(const char* data, size_t size, const s
         if (!j["remote"].is_string()) return std::nullopt;
         std::string r = j["remote"].get<std::string>();
         // Ownfoil gives its host alone ("shop.example.org"): over https.
-        if (r.find("://") == std::string::npos && !r.empty() &&
+        if (!r.contains("://") && !r.empty() &&
             std::all_of(r.begin(), r.end(), [](unsigned char c) { return std::isalnum(c) || c == '.' || c == '-' || c == ':'; }))
             r = "https://" + r;
         // An address it may become: kept whole or not at all, and https only.
-        if (r.size() <= 512 && r.rfind("https://", 0) == 0) s.remote = r;
+        if (r.size() <= 512 && r.starts_with("https://")) s.remote = r;
     }
     s.address = source_ip;
     s.port = (uint16_t)port;

@@ -571,7 +571,7 @@ void GameActivity::show_chips()
     else if (f.players > 1)
         add(aurore::getStr("playshelf/game/players_many", f.players), "user", "cadran/text2", "cadran/surf2");
     const std::string own = titledb::nlib_language(live_prefs::locale());
-    if (std::find(f.languages.begin(), f.languages.end(), own) != f.languages.end())
+    if (std::ranges::contains(f.languages, own))
         add("playshelf/game/language_chip"_i18n, "language", "cadran/text2", "cadran/surf2");
     if (f.demo) add("playshelf/game/demo"_i18n, "flag", "cadran/amber", "cadran/amber_surf");
     kit::wrap(this->chips);

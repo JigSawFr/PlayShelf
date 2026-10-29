@@ -71,7 +71,7 @@ std::vector<std::string> list_of(const nlohmann::json& j, const char* key, size_
     for (const auto& v : *it) {
         if (out.size() >= max) break;
         const std::string s = v.is_string() ? safe_text(v.get<std::string>(), size) : "";
-        if (!s.empty() && std::find(out.begin(), out.end(), s) == out.end()) out.push_back(s);
+        if (!s.empty() && !std::ranges::contains(out, s)) out.push_back(s);
     }
     return out;
 }

@@ -180,7 +180,7 @@ void remove_cheat(uint64_t title_id, const std::string& build_id, const std::fun
 void build_sheet(const Loaded& l, uint64_t title_id, const std::vector<library::Cheat>& builds, const library::Cheat& c)
 {
     const auto have = library::installed_cheats(paths::sd_root(), title_id);
-    const bool installed = std::find(have.begin(), have.end(), c.build_id) != have.end();
+    const bool installed = std::ranges::contains(have, c.build_id);
     auto       again = [l, title_id, builds]() { cheat_sheet(l, title_id, builds); };
     std::vector<Choice> choices;
     choices.emplace_back(installed ? "playshelf/services/cheat_reinstall"_i18n : "playshelf/services/cheat_install"_i18n,
@@ -201,13 +201,13 @@ void cheat_sheet(const Loaded& l, uint64_t title_id, const std::vector<library::
     std::vector<Choice>  choices;
     std::vector<library::Cheat> missing;
     for (const library::Cheat& c : builds)
-        if (std::find(have.begin(), have.end(), c.build_id) == have.end()) missing.push_back(c);
+        if (!std::ranges::contains(have, c.build_id)) missing.push_back(c);
     if (missing.size() > 1)
         choices.emplace_back("playshelf/services/cheats_install_all"_i18n,
                              [l, missing, title_id, builds]() { install_cheats(l, missing, [l, title_id, builds]() { cheat_sheet(l, title_id, builds); }); },
                              "download", aurore::getStr("playshelf/services/cheats_count", missing.size()));
     for (const library::Cheat& c : builds) {
-        const bool on = std::find(have.begin(), have.end(), c.build_id) != have.end();
+        const bool on = std::ranges::contains(have, c.build_id);
         choices.emplace_back(aurore::getStr("playshelf/services/build", c.build_id),
                              [l, title_id, builds, c]() { build_sheet(l, title_id, builds, c); }, "code",
                              on ? "playshelf/services/cheat_on_console"_i18n : c.note,
@@ -389,7 +389,7 @@ void remove_backup(const Loaded& l, const CoreSaveUser& user, const library::Sav
 void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint64_t title_id)
 {
     std::vector<Choice> choices;
-    const bool          here = d->local.count(title_id) != 0;
+    const bool          here = d->local.contains(title_id);
     const CoreSaveUser  user = d->user;
     if (here) {
         choices.emplace_back("playshelf/services/save_send"_i18n, [l, user, title_id]() { back_up(l, user, title_id, ""); },
@@ -539,7 +539,7 @@ void search_and_ask(const Loaded& l)
                 }
                 ui::pick("playshelf/services/request_pick"_i18n, names, 0, [l, found, on_server](int i) {
                     const auto& [id, name] = found[(size_t)i];
-                    if (on_server.count(id)) {
+                    if (on_server.contains(id)) {
                         ui::info("playshelf/services/request_there_body"_i18n);
                         return;
                     }

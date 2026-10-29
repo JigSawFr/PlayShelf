@@ -229,7 +229,7 @@ void discover(const std::function<void(const std::string&)>& saved)
                 s.id = library::new_server_id();
                 s.name = d.name;
                 s.lan_url = d.url();
-                if (d.remote.compare(0, 8, "https://") == 0) s.wan_url = d.remote;
+                if (d.remote.starts_with("https://")) s.wan_url = d.remote;
                 open_editor(s, true, saved);
             }, false, details);
         });
@@ -307,8 +307,8 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
         j.name = library::clean_name(it.name);
         j.label = j.name;
         for (const library::Title& t : l.titles) {
-            const bool update = std::find(t.updates.begin(), t.updates.end(), i) != t.updates.end();
-            const bool dlc = std::find(t.dlcs.begin(), t.dlcs.end(), i) != t.dlcs.end();
+            const bool update = std::ranges::contains(t.updates, i);
+            const bool dlc = std::ranges::contains(t.dlcs, i);
             if (!update && !dlc && (long)i != t.base) continue;
             j.game = t.name;
             j.game_id = t.id;

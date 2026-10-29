@@ -46,7 +46,7 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
     };
     page.by_genre = [others](const std::string& genre) {
         return others([&](const library::Facts& f) {
-            return std::find(f.categories.begin(), f.categories.end(), genre) != f.categories.end();
+            return std::ranges::contains(f.categories, genre);
         });
     };
     // The games most like it (PlayInsights), on any server read, the most alike first.

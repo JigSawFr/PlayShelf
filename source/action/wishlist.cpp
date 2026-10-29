@@ -44,7 +44,7 @@ void start()
 bool has(uint64_t title_id)
 {
     const uint64_t base = library::base_of(title_id);
-    return std::find(s_games.begin(), s_games.end(), base) != s_games.end();
+    return std::ranges::contains(s_games, base);
 }
 
 void toggle(uint64_t title_id, const std::string& name)

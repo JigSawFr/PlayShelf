@@ -62,7 +62,7 @@ bool Store::set(const std::string& id, Level level, const std::string& title, co
     }
     // New words: told again, even when the old ones were put away.
     s->dismissed = level == Level::Info &&
-                   std::find(this->read.begin(), this->read.end(), read_key(id, title, detail)) != this->read.end();
+                   std::ranges::contains(this->read, read_key(id, title, detail));
     s->item.level = level;
     s->item.title = title;
     s->item.detail = detail;
@@ -75,7 +75,7 @@ bool Store::clear(const std::string& id)
         if (it->item.id != id) continue;
         const bool shown = !it->dismissed;
         const std::string key = read_key(id, it->item.title, it->item.detail);
-        this->read.erase(std::remove(this->read.begin(), this->read.end(), key), this->read.end());
+        std::erase(this->read, key);
         this->slots.erase(it);
         return shown;
     }
@@ -88,7 +88,7 @@ bool Store::dismiss(const std::string& id)
     if (!s || s->dismissed || s->item.level != Level::Info) return false;
     s->dismissed = true;
     const std::string key = read_key(id, s->item.title, s->item.detail);
-    if (std::find(this->read.begin(), this->read.end(), key) == this->read.end()) this->read.push_back(key);
+    if (!std::ranges::contains(this->read, key)) this->read.push_back(key);
     if (this->read.size() > MAX_READ) this->read.erase(this->read.begin());
     return true;
 }

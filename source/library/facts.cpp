@@ -64,7 +64,7 @@ bool FactsBook::put(uint64_t base_id, Facts facts)
 void FactsBook::add_missing(const FactsBook& older)
 {
     for (const auto& [id, f] : older.games)
-        if (!this->games.count(id) && this->games.size() < MAX_FACTS) this->games.emplace(id, f);
+        if (!this->games.contains(id) && this->games.size() < MAX_FACTS) this->games.emplace(id, f);
 }
 
 std::string FactsBook::to_json() const
@@ -143,7 +143,7 @@ size_t Filter::active() const
 bool matches(const Filter& filter, const Facts& facts)
 {
     auto has = [](const std::vector<std::string>& list, const std::string& v) {
-        return std::find(list.begin(), list.end(), v) != list.end();
+        return std::ranges::contains(list, v);
     };
     if (!filter.genre.empty() && !has(facts.categories, filter.genre)) return false;
     if (!filter.publisher.empty() && facts.publisher != filter.publisher) return false;

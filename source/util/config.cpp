@@ -115,8 +115,8 @@ void sanitize(Config& c)
     if (c.prefetch < 0 || c.prefetch > 2) c.prefetch = 0;
     std::vector<std::string> sources;
     for (const std::string& u : c.title_sources)
-        if (u.rfind("https://", 0) == 0 && u.size() <= 512 && sources.size() < MAX_TITLE_SOURCES &&
-            std::find(sources.begin(), sources.end(), u) == sources.end())
+        if (u.starts_with("https://") && u.size() <= 512 && sources.size() < MAX_TITLE_SOURCES &&
+            !std::ranges::contains(sources, u))
             sources.push_back(u);
     c.title_sources = std::move(sources);
     if (!is_date(c.update_checked)) c.update_checked.clear();

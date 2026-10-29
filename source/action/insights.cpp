@@ -128,7 +128,7 @@ void read_next()
 {
     if (library_flow::loading()) return;
     for (const library::Server& s : library::load_servers()) {
-        if (library_flow::loaded(s.id) || s_tried.count(s.id)) continue;
+        if (library_flow::loaded(s.id) || s_tried.contains(s.id)) continue;
         s_tried.insert(s.id);
         library_flow::load(s, [](const std::shared_ptr<const library_flow::Loaded>&, const std::string&) {
             soon();
@@ -329,7 +329,7 @@ void make()
     // Coming out in the next two months (the title databases), better known
     // first, the console's servers aside.
     for (uint64_t id : titledb_flow::released(today(1), today(62), 400)) {
-        if (where.count(id)) continue;
+        if (where.contains(id)) continue;
         const auto t = titledb_flow::title(id);
         if (!t || t->name.empty()) continue;
         s.coming.push_back({ id, t->name, t->publisher, t->release_date });

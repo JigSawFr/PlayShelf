@@ -105,7 +105,7 @@ Answer with_session(const Link& link, Transport& t, Session& session, const std:
         headers.push_back("Cookie: " + session.cookie);
         a = t.call(link.endpoint + path, c, headers, link.pin);
         const bool signed_out = a.status == 401 || ((a.status == 301 || a.status == 302 || a.status == 303) &&
-                                                    a.location.find("/login") != std::string::npos);
+                                                    a.location.contains("/login"));
         if (!signed_out) break;
         session.cookie.clear();
         if (attempt == 1) {
@@ -147,7 +147,7 @@ bool sign_in(const Link& link, Transport& t, Session* session, std::string* why)
     if (a.status == 0) return fail(why, a.error.empty() ? "the server does not answer" : a.error);
     // Signed in: a redirect away from the sign-in page, with its cookie.
     const bool moved = a.status == 301 || a.status == 302 || a.status == 303;
-    if (!moved || a.location.find("/login") != std::string::npos || a.cookies.empty())
+    if (!moved || a.location.contains("/login") || a.cookies.empty())
         return fail(why, a.status == 429 || a.status == 403
                              ? "the server refused the sign-in for now (HTTP " + std::to_string(a.status) + ")"
                              : moved || a.status == 200 ? "the server refused the username or password"

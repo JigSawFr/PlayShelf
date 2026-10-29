@@ -69,7 +69,7 @@ Plan logs(const std::string& data_dir, const std::string& session)
     Plan plan;
     const std::string current = session.empty() ? std::string() : "sessions/" + session;
     collect(data_dir + "/logs", plan, [&current](const std::string& rel) {
-        return rel.compare(0, 8, "uploads/") == 0 || (!current.empty() && rel == current);
+        return rel.starts_with("uploads/") || (!current.empty() && rel == current);
     });
     return sorted(plan);
 }
