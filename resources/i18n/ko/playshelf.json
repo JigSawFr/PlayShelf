@@ -774,7 +774,11 @@
         "similar": "비슷한 게임",
         "series": "시리즈",
         "steam": "Steam 평가",
-        "steam_value": "긍정 {}% · {}개"
+        "steam_value": "긍정 {}% · {}개",
+        "price": "eShop 가격",
+        "free": "무료",
+        "price_sale": "{0} → {1} ({2}% 할인)",
+        "price_sale_until": "{0} → {1} ({2}% 할인, {3}까지)"
     },
     "genres": {
         "action": "액션",
@@ -898,7 +902,10 @@
         "because_series": "시리즈: {}",
         "because_developer": "{} 개발",
         "because_popular": "인기",
-        "because_played": "{1}시간: {0}"
+        "because_played": "{1}시간: {0}",
+        "deals": "할인 중",
+        "deals_line": "eShop에서 할인 중",
+        "deal": "{0}% 할인 · {1}"
     },
     "wishlist": {
         "add": "위시리스트에 추가",
@@ -929,5 +936,27 @@
         "about": "홈에서 추천하는 게임에서 X를 누르면 여기에 보관됩니다. 더 이상 추천되지 않고, 매우 비슷한 게임도 덜 추천됩니다.",
         "clear": "모두 다시 추천",
         "none": "없음"
+    },
+    "prices": {
+        "row": "eShop 가격 기준",
+        "auto": "언어에 따라",
+        "auto_value": "{} (언어)",
+        "none": "표시 안 함",
+        "none_for_language": "이 언어에는 없음",
+        "countries": {
+            "US": "미국",
+            "CA": "캐나다",
+            "MX": "멕시코",
+            "BR": "브라질",
+            "GB": "영국",
+            "FR": "프랑스",
+            "DE": "독일",
+            "ES": "스페인",
+            "IT": "이탈리아",
+            "NL": "네덜란드",
+            "PT": "포르투갈",
+            "AU": "호주",
+            "JP": "일본"
+        }
     }
 }
