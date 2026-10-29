@@ -36,7 +36,7 @@ A game known only by its file name takes its name and icon from the title databa
 
 ## Sending a report
 
-*Preferences › Help & diagnostics*:
+*About › Help & diagnostics*:
 
 - **Export a diagnostic report** saves one to the SD card, to attach to a [bug report](https://github.com/JigSawFr/PlayShelf/issues/new). It never contains the console's serial number.
 - **Send a report…** puts it in a secret gist of your GitHub account and shows its link with a QR code.

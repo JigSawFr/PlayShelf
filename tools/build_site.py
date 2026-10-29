@@ -122,7 +122,8 @@ SCREENSHOTS = ["catalogue", "game_sheet", "downloads", "library", "preferences"]
 # The screenshots in each language: the gallery's, which the documentation shows too.
 LOCALIZED_SHOTS = SCREENSHOTS
 FAQ = ["what", "own", "servers", "https", "cfw", "switch2", "free"]
-FEATURES = ["catalogue", "downloads", "security", "lan", "titles", "library", "updates", "languages"]
+FEATURES = ["catalogue", "downloads", "security", "home", "lan", "services", "titles", "library", "updates", "themes",
+            "languages"]
 # The three the home page puts first, each with the screen it shows (the
 # security, which has no screen of its own, its shield large instead); the
 # others in a shorter list under them.
@@ -139,6 +140,12 @@ ICONS = {
     "library": '<path d="M4 20V5M9 20V5M14 20 17 5l3.5.7-3 15"/><path d="M3 20h18"/>',
     "updates": '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/>',
     "languages": '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/>',
+    "home": '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
+    "services": '<rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/>'
+                '<path d="M8 7.5h.01M8 16.5h.01"/>',
+    "themes": '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.3-.3-.3-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.8H17'
+              'a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/>'
+              '<circle cx="15" cy="7.5" r="1"/>',
 }
 
 

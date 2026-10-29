@@ -33,7 +33,7 @@ PlayShelf does not read encrypted Tinfoil indexes, and sends neither Tinfoil's a
 
 ## Adding a server
 
-*Library › Add a server*, or in the *Catalogue*, the **Server** row:
+**Add a server**, on *Home* and in the *Catalogue* while there is no server yet, then from the *Catalogue*'s **Server** pill:
 
 - **Name**: as the Catalogue shows it.
 - **On this network** and **Over the Internet**: the server's `https://` addresses, one of them at least. Only `https://`: the catalogue and the packages must come over a verified connection.
@@ -44,7 +44,7 @@ PlayShelf does not read encrypted Tinfoil indexes, and sends neither Tinfoil's a
 
 ## What else an AeroFoil server offers
 
-Once an AeroFoil server's catalogue is read, its **Server** row in the *Catalogue* has three more lines, and a game's sheet two (in the *Catalogue*, and in the *Library* for a game of that server):
+Once an AeroFoil server's catalogue is read, its **Server** pill in the *Catalogue* has three more lines, and a game's sheet two (in the *Catalogue*, and in the *Library* for a game of that server):
 
 - **Cheats**: the server's cheats, by game and build. **Install** writes a build's file where Atmosphère looks for it, `sd:/atmosphere/contents/<title id>/cheats/<build id>.txt`; **Install every build** writes them all, and Atmosphère loads the one that matches the game's version. A build's codes can be shown, and a file removed. The account needs AeroFoil's *Cheats* permission.
 - **Save backups**: a user's saves (chosen first when the console has several) and the server's copies of them. **Back up this save now** sends the game's save, with a note to tell it apart; **Put back on this console** replaces the save with a copy. The save it replaces is kept on the SD card first, in `sd:/config/playshelf/saves/<title id>/`, and put back if anything goes wrong. A game must have been played once on the console to have a save to put one in. The account needs AeroFoil's *Backup* permission.
