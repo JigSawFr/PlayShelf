@@ -13,6 +13,9 @@ folder:
 - insights/prices/<COUNTRY>.json: every game's eShop price in each country
   PlayInsights has prices for (PlayInsights' schema 1), a few on sale (the
   wishlist's among them), with the lowest each has had;
+- insights/index.json: each of the demo's PlayInsights files (tools/web_demo.cpp's
+  and the prices) with its day, size and short hash, as PlayInsights' index
+  (action/insights_index);
 - titledb/index.json: every game of the table, as NXMeta's Tinfoil index
   (titledb/list.cpp): names, studios, releases, the coming ones among them.
 
@@ -28,6 +31,7 @@ Usage: tools/web_demo_art.py <games.json> <demo-dir>
 """
 import base64
 import datetime
+import hashlib
 import io
 import json
 import os
@@ -249,12 +253,30 @@ def main():
     for country, payload in prices(games, today).items():
         with open(f"{out}/insights/prices/{country}.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False)
+    write_index(f"{out}/insights", today)
     os.makedirs(f"{out}/titledb", exist_ok=True)
     with open(f"{out}/titledb/index.json", "w", encoding="utf-8") as f:
         json.dump({"titledb": titledb}, f, ensure_ascii=False)
     size = sum(os.path.getsize(os.path.join(r, n)) for r, _, ns in os.walk(out) for n in ns
                if n.endswith((".jpg", ".json")) and "/files" not in r)
     print(f"web_demo_art: {len(games)} games, {size // 1024} KB of pictures and answers, in {out}")
+
+
+def write_index(folder, today):
+    """insights/index.json: every file beside it, as PlayInsights lists them."""
+    files = {}
+    for root, _, names in os.walk(folder):
+        for name in names:
+            path = os.path.join(root, name)
+            rel = os.path.relpath(path, folder).replace(os.sep, "/")
+            if rel == "index.json" or not rel.endswith(".json"):
+                continue
+            with open(path, "rb") as f:
+                data = f.read()
+            files[rel] = {"generated": today.isoformat(), "bytes": len(data),
+                          "sha256": hashlib.sha256(data).hexdigest()[:16]}
+    with open(f"{folder}/index.json", "w", encoding="utf-8") as f:
+        json.dump({"schema": 1, "files": dict(sorted(files.items()))}, f)
 
 
 if __name__ == "__main__":
