@@ -33,8 +33,14 @@ endif ()
 # aids still read from the environment there (AURORE_INSPECTOR,
 # AURORE_HOT_RELOAD…; docs/environment.md in Aurore). -DAURORE_DEV_TOOLS=AUTO
 # leaves them out of a release build again.
+# Its window stays GLFW's, as on the Switch: Aurore's default on the desktop
+# is SDL3 now (JigSawFr/Aurore#92), which needs more of the system's
+# packages. -DAURORE_WINDOW=SDL3 tries it.
 if (AURORE_PLATFORM STREQUAL "DESKTOP" AND NOT PLAYSHELF_WEB)
     set(AURORE_DEV_TOOLS ON CACHE STRING "")
+    if (NOT AURORE_WINDOW)
+        set(AURORE_WINDOW GLFW CACHE STRING "" FORCE)
+    endif ()
 endif ()
 
 # AURORE_PLATFORM / AURORE_GRAPHICS … options, and the PLATFORM_* and USE_*
