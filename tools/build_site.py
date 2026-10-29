@@ -88,6 +88,19 @@ LANGUAGES = [
     ("zh-Hans", "zh-hans", "简体中文", "zh-Hans"),
     ("zh-Hant", "zh-hant", "繁體中文", "zh-Hant"),
 ]
+# Each language's flag in the language menu (fonts/twemoji-flags.woff2 draws
+# them the same everywhere, Windows included): the country of the console's
+# language, Mexico for Latin America's Spanish, Taiwan for Traditional Chinese.
+FLAGS = {"en-US": "US", "fr": "FR", "fr-CA": "CA", "de": "DE", "es": "ES", "es-419": "MX", "it": "IT", "nl": "NL",
+         "pt": "PT", "pt-BR": "BR", "ru": "RU", "ja": "JP", "ko": "KR", "zh-Hans": "CN", "zh-Hant": "TW"}
+
+
+def flag(lang):
+    """`lang`'s flag, two regional indicator letters, for the eyes only."""
+    emoji = "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in FLAGS[lang])
+    return f'<span class="flag" aria-hidden="true">{emoji}</span>'
+
+
 # Open Graph's name of each language.
 OG_LOCALES = {"en-US": "en_US", "fr": "fr_FR", "fr-CA": "fr_CA", "de": "de_DE", "es": "es_ES", "es-419": "es_LA",
               "it": "it_IT", "nl": "nl_NL", "pt": "pt_PT", "pt-BR": "pt_BR", "ru": "ru_RU", "ja": "ja_JP",
@@ -567,10 +580,14 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         head.append(f'  <link rel="alternate" type="text/markdown" href="{markdown_url}">')
     if NOINDEX or not indexed:
         head.append('  <meta name="robots" content="noindex">')
+    # The languages, a menu under the header's button (a popover, as the
+    # menu of Boréale's sites): this page in each.
+    current = ' aria-current="true"'
     options = "\n".join(
-        f'        <option value="{to_root}{f"{d}/" if d else ""}{path}" data-lang="{c}" lang="{hl}"'
-        f'{" selected" if c == lang else ""}>{html.escape(n)}</option>'
+        f'        <li><a href="{to_root}{f"{d}/" if d else ""}{path}" data-lang="{c}" lang="{hl}" hreflang="{hl}"'
+        f'{current if c == lang else ""}>{flag(c)}{html.escape(n)}</a></li>'
         for c, d, n, hl in LANGUAGES)
+    language_name = next(n for c, _, n, _ in LANGUAGES if c == lang)
     home = f"{to_root}{lang_dir(lang)}"
     # A page of the documentation: once the header is scrolled away, a slim
     # bar at the top with the way home, the page's name, the search and the
@@ -636,10 +653,14 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
       <a href="{REPO_URL}" class="nav-gh">GitHub</a>
     </nav>
     <div class="settings">
-      <span class="picker picker-lang"><span class="picker-face" aria-hidden="true">{code.split("-")[0].upper()}</span>
-      <select id="site-language" aria-label="{t('language')}">
+      <button class="lang-button" type="button" popovertarget="languages" aria-label="{t('language')} · {html.escape(language_name)}">
+        {flag(lang)}
+        <span class="lang-name">{html.escape(language_name)}</span><span class="lang-code">{code.split("-")[0].upper()}</span>
+        <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul id="languages" class="langs" popover aria-label="{t('language')}">
 {options}
-      </select></span>
+      </ul>
     </div>
   </header>
 {hero}  </div>
