@@ -6,7 +6,8 @@
 // - in a series, or by a developer, of the console's games (games.json);
 // - in the genres the console's games have, weighed by their play time;
 // - well known, liked by critics and, for a game also on Steam, liked there;
-// - out lately.
+// - out lately;
+// - less like the games the player said they do not want (and never those).
 //
 // Plain C++ for the host tests (tests/library_recommend).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -61,9 +62,11 @@ double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, ui
 
 // The candidates worth suggesting, the best first, `max` at most. `genres`:
 // the console's games' genres (Nlib API's words), each by how much it weighs
-// (their weights summed); `today`: YYYYMMDD.
+// (their weights summed); `unwanted`: the games the player does not want
+// suggested (base title ids); `today`: YYYYMMDD.
 std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::vector<Candidate>& candidates,
                                   const std::map<std::string, double>& genres, const SimilarBook& similar,
-                                  const SignalBook& signals, uint32_t today, size_t max);
+                                  const SignalBook& signals, const std::vector<uint64_t>& unwanted, uint32_t today,
+                                  size_t max);
 
 }   // namespace library

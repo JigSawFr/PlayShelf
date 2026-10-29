@@ -17,6 +17,7 @@
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/not_interested.hpp"
 #include "action/wishlist.hpp"
 #include "activity/search_activity.hpp"
 #include "activity/storage_activity.hpp"
@@ -162,11 +163,19 @@ void HomeTab::build(bool force)
     if (!force && key == this->built_key) return;
     this->built_key = key;
 
-    const bool had_focus = inside(aurore::Application::getCurrentFocus(), content);
+    aurore::View* focus = aurore::Application::getCurrentFocus();
+    const bool    had_focus = inside(focus, content);
+    // The row and the place in it the focus is on, if one.
+    std::string at_row;
+    size_t      at = 0;
+    for (const auto& [title, row] : this->rows)
+        for (size_t i = 0; i < row->getChildren().size(); i++)
+            if (inside(focus, row->getChildren()[i])) at_row = title, at = i;
     if (had_focus) aurore::Application::giveFocus(this);
     content->clearViews(true);
     this->cards.clear();
     this->tiles.clear();
+    this->rows.clear();
     this->generation++;
 
     if (!s.console_games && library::load_servers().empty()) return this->add_welcome();
@@ -189,6 +198,14 @@ void HomeTab::build(bool force)
             if (it == why.end()) return Detail{};
             const auto [text, ink] = reason_text(it->second);
             return Detail{ text, ink };
+        }, [](GameTile* tile, const Pick& p) {
+            // X: not for me (no longer suggested, nor much like it).
+            const uint64_t    game_id = p.title().id;
+            const std::string name = p.title().name;
+            tile->registerAction("playshelf/not_interested/action"_i18n, aurore::BUTTON_X, [game_id, name](aurore::View*) {
+                not_interested::add(game_id, name);
+                return true;
+            });
         });
         std::vector<Pick>                  in_series;
         std::map<uint64_t, std::string>    series_of;
@@ -219,8 +236,17 @@ void HomeTab::build(bool force)
         else this->add_banners("playshelf/home/newest"_i18n, s.newest, false);
     }
     this->add_coming(s.coming);
-    if (had_focus)
-        if (aurore::View* first = content->getDefaultFocus()) aurore::Application::giveFocus(first);
+    if (!had_focus) return;
+    // Back where it was (a game put away: the next one), else the first.
+    for (const auto& [title, row] : this->rows)
+        if (title == at_row && !row->getChildren().empty()) {
+            aurore::View* item = row->getChildren()[std::min(at, row->getChildren().size() - 1)];
+            if (aurore::View* to = item->getDefaultFocus()) {
+                aurore::Application::giveFocus(to);
+                return;
+            }
+        }
+    if (aurore::View* first = content->getDefaultFocus()) aurore::Application::giveFocus(first);
 }
 
 void HomeTab::add_welcome()
@@ -363,6 +389,7 @@ aurore::Box* HomeTab::add_row(const std::string& title, const std::string& line,
     auto* row = new aurore::Box(aurore::Axis::ROW);
     frame->addView(row);
     content->addView(frame);
+    this->rows.push_back({ title, row });
     return row;
 }
 
@@ -426,7 +453,8 @@ void HomeTab::show_icon(const Pick& pick, uint64_t game_id)
 }
 
 void HomeTab::add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,
-                         const std::function<Detail(const Pick&)>& detail)
+                         const std::function<Detail(const Pick&)>& detail,
+                         const std::function<void(GameTile*, const Pick&)>& each)
 {
     if (picks.empty()) return;
     aurore::Box* row = this->add_row(title, line, GameTile::WIDTH + 64);
@@ -443,6 +471,7 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
             game_page::open(data, index);
             return true;
         });
+        if (each) each(tile, p);
         row->addView(tile);
         this->tiles.push_back(tile);
         this->show_icon(p, t.id);

@@ -919,5 +919,14 @@
         "days": "giocato {} giorni fa",
         "months": "giocato {} mesi fa",
         "open_page": "Apri la pagina"
+    },
+    "not_interested": {
+        "action": "Non mi interessa",
+        "added": "{} non ti verrà più suggerito",
+        "cleared": "Tutti i giochi possono essere di nuovo suggeriti",
+        "row": "Giochi da non suggerire",
+        "about": "X su un gioco suggerito dalla Home lo mette qui: non viene più suggerito, e i giochi molto simili lo sono meno.",
+        "clear": "Suggeriscili tutti di nuovo",
+        "none": "Nessuno"
     }
 }

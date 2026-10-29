@@ -919,5 +919,14 @@
         "days": "{} dagen geleden gespeeld",
         "months": "{} maanden geleden gespeeld",
         "open_page": "Pagina openen"
+    },
+    "not_interested": {
+        "action": "Niet geïnteresseerd",
+        "added": "{} wordt niet meer voorgesteld",
+        "cleared": "Alle games kunnen weer worden voorgesteld",
+        "row": "Games die niet voorgesteld worden",
+        "about": "X op een game die Start voorstelt zet hem hier: hij wordt niet meer voorgesteld, en sterk gelijkende games minder vaak.",
+        "clear": "Ze allemaal weer voorstellen",
+        "none": "Geen"
     }
 }

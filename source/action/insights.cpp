@@ -14,6 +14,7 @@
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
 #include "action/titledb_flow.hpp"
+#include "action/not_interested.hpp"
 #include "action/wishlist.hpp"
 #include "library/installed.hpp"
 #include "library/seen.hpp"
@@ -256,6 +257,10 @@ void make()
     // liked, out lately (library/recommend), each with its reason.
     const auto signals = popular_flow::signals();
     const auto similar = popular_flow::similar();
+    const std::vector<uint64_t> unwanted = not_interested::games();
+    auto wanted = [&unwanted](const Pick& p) {
+        return std::find(unwanted.begin(), unwanted.end(), library::base_of(p.title().id)) == unwanted.end();
+    };
     {
         std::vector<library::Candidate> candidates;
         std::map<uint64_t, Pick>        by_id;
@@ -269,7 +274,7 @@ void make()
             candidates.push_back(std::move(c));
             by_id[t.id] = p;
         }
-        for (library::Suggestion& sug : library::recommend(owned, candidates, genres, *similar, *signals, to_day, ROW))
+        for (library::Suggestion& sug : library::recommend(owned, candidates, genres, *similar, *signals, unwanted, to_day, ROW))
             s.like.push_back({ by_id[sug.id], std::move(sug.reason) });
     }
 
@@ -285,7 +290,7 @@ void make()
         std::vector<std::pair<double, InSeries>> found;
         for (const Pick& p : fresh) {
             const library::GameSignals* g = signals->find(p.title().id);
-            if (!g) continue;
+            if (!g || !wanted(p)) continue;
             for (const library::Trait& t : g->series) {
                 const auto it = mine.find(t.id);
                 if (it == mine.end() || it->second.second.empty()) continue;
@@ -352,6 +357,7 @@ void start()
     nlib_flow::listen(soon);
     popular_flow::listen(soon);
     wishlist::listen(soon);
+    not_interested::listen(soon);
     titledb_flow::listen(soon);
     download_flow::listen([]() {
         // A running download's speed, for its server's rank.

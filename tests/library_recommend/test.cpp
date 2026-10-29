@@ -29,7 +29,8 @@ void test_recommend()
     SimilarBook similar;
     CHECK(similar.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
         "0100000000010000":[["0100000000110000",90]],
-        "0100000000020000":[["0100000000160000",90]]}})"));
+        "0100000000020000":[["0100000000160000",90]],
+        "0100000000150000":[["0100000000140000",90]]}})"));
     SignalBook signals;
     CHECK(signals.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
         "0100000000010000":{"series":[["Q1","A saga"]]},
@@ -49,7 +50,7 @@ void test_recommend()
         candidate(SAME_GENRE, { "Platformer" }, 0, 0), candidate(SAME_SERIES, {}, 0, 0),
         candidate(LIKE_N, {}, 0, 0),            candidate(LIKE_P, {}, 0, 0),
     };
-    const auto got = recommend(owned, candidates, genres, similar, signals, 20261029, 10);
+    const auto got = recommend(owned, candidates, genres, similar, signals, {}, 20261029, 10);
     // Nothing for it: left out. Like the much played game first, then its series.
     CHECK(got.size() == 5);
     if (!CHECK(got.size() >= 2)) return;
@@ -63,10 +64,14 @@ void test_recommend()
         if (s.id == LIKE_N) CHECK(s.score < got[0].score / 2);
     }
     // Bounded.
-    CHECK(recommend(owned, candidates, genres, similar, signals, 20261029, 2).size() == 2);
+    CHECK(recommend(owned, candidates, genres, similar, signals, {}, 20261029, 2).size() == 2);
     // Nothing known of the console: only the well known.
-    const auto cold = recommend({}, candidates, {}, similar, signals, 20261029, 10);
+    const auto cold = recommend({}, candidates, {}, similar, signals, {}, 20261029, 10);
     CHECK(cold.size() == 1 && cold[0].id == FAMOUS);
+    // Not wanted: never, and the games much like it fall away.
+    const auto unwanted = recommend(owned, candidates, genres, similar, signals, { SAME_SERIES, NOTHING }, 20261029, 10);
+    CHECK(unwanted.size() == 3);
+    for (const Suggestion& s : unwanted) CHECK(s.id != SAME_SERIES && s.id != FAMOUS);
 }
 }   // namespace
 
