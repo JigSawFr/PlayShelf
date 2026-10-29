@@ -88,7 +88,7 @@ def take(browser, base, lang, theme, out):
         page.evaluate("(s) => runSteps(s)", "a")
         # Its packages are named in the page's language: their version alone is waited for.
         if not logged(page, "v65536 installed", 60):
-            print(f"site screenshots: {lang} {theme}: the demo game was not installed")
+            print(f"site screenshots: {lang} {theme}: the demo game was not installed", flush=True)
             return False
         # Its packages are named in the language: only its version is waited for.
         # Its toast gone (3 s), then the tabs from the Downloads up to the Library.
@@ -103,10 +103,10 @@ def take(browser, base, lang, theme, out):
         for name, data in shots.items():
             with open(os.path.join(out, lang, f"{name}{suffix}.webp"), "wb") as f:
                 f.write(data)
-        print(f"site screenshots: {lang} {theme}: {len(shots)} screens")
+        print(f"site screenshots: {lang} {theme}: {len(shots)} screens", flush=True)
         return True
     except Exception as e:   # a timeout, a browser gone
-        print(f"site screenshots: {lang} {theme}: {str(e).splitlines()[0]}")
+        print(f"site screenshots: {lang} {theme}: {str(e).splitlines()[0]}", flush=True)
         return False
     finally:
         context.close()
