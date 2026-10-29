@@ -343,6 +343,9 @@ if not logged("developer mode: on"):
 shot("08_dev_enabled")
 go_to("Help & diagnostics")
 key("Return")
+# The seven presses' toasts gone (each on its own timer: one still fading
+# out or not depended on a few milliseconds), the screen alone.
+pause(6)
 shot("09_help")
 go_to("Show the diagnostic report")
 key("Return")
