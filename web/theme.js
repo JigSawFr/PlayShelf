@@ -13,8 +13,8 @@
   document.documentElement.dataset.themeChoice = choice;
   if (choice === 'auto') choice = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   document.documentElement.dataset.theme = choice;
-  // The browser's bar in the same colour as the header (simulator.js'
-  // barColour()).
+  // The browser's bar in the header's night, whatever the theme
+  // (simulator.js' barColour()).
   var bar = document.querySelector('meta[name="theme-color"]');
-  if (bar) bar.setAttribute('content', choice === 'dark' ? '#111d31' : '#ffffff');
+  if (bar) bar.setAttribute('content', '#0e1a33');
 })();
