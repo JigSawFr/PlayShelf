@@ -27,7 +27,7 @@ PlayShelf is built on the technical base of [PlayGuard](https://github.com/JigSa
 
 The rules `tools/check_sources.py` enforces:
 
-- **The kit includes nothing of the app** but `app.hpp` and `util/config.hpp` (the app's identity and settings). It asks anything else of the app through Aurore's `ui::hooks` (`Aurore/cadran/ui/hooks.hpp`: the main screen, the tabs' positions and rail icons, PlayShelf's version, logo and read-only mode, saving the look's preferences) and the kit's own `ui::app_hooks` (`source/kit/ui/app_hooks.hpp`: the notifications, a check before PlayShelf replaces itself), which `source/activity/screen_hooks.cpp` fills in at start-up. The kit can then become a library shared with PlayGuard without untangling anything.
+- **The kit includes nothing of the app** but `app.hpp` and `util/config.hpp` (the app's identity and settings). It asks anything else of the app through Aurore's `ui::hooks` (`aurore/cadran/ui/hooks.hpp`: the main screen, the tabs' positions and rail icons, PlayShelf's version, logo and read-only mode, saving the look's preferences) and the kit's own `ui::app_hooks` (`source/kit/ui/app_hooks.hpp`: the notifications, a check before PlayShelf replaces itself), which `source/activity/screen_hooks.cpp` fills in at start-up. The kit can then become a library shared with PlayGuard without untangling anything.
 - `ui/`, `view/` and `util/` never include `activity/` or `tab/`; a flow includes only the screens it opens itself.
 - A C file of `source/kit/core/` that needs no console service is in the desktop build and in a host test.
 

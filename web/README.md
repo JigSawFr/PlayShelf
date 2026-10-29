@@ -89,8 +89,8 @@ and fetches the title database (`source/sim/web_seed.cpp`).
   in lower case without the prefix: `?applet=1&fw=20.5.0` is
   `PLAYSHELF_SIM_APPLET=1 PLAYSHELF_SIM_FW=20.5.0`
   ([docs/contributing/simulator.md](../docs/contributing/simulator.md) says what
-  each one simulates). `tab` is not a variable but the first tab (`catalogue`,
-  `preferences`, `about`), written into the simulated `config.json` before
+  each one simulates). `tab` is not a variable but the first tab (`library`,
+  `catalogue`, `preferences`, `about`; Home when unset), written into the simulated `config.json` before
   PlayShelf starts. A variable the panel does not know (one a newer build
   reads) still reaches PlayShelf.
 - **The language** is the browser's, if the console has it (`fr-CA` for a
