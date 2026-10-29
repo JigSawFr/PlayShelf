@@ -770,7 +770,11 @@
         "launches": "{} 回起動",
         "last_played": "最後に遊んだ日",
         "critics": "評論家の評価",
-        "critics_score": "{}/100"
+        "critics_score": "{}/100",
+        "similar": "似ているゲーム",
+        "series": "シリーズ",
+        "steam": "Steam のレビュー",
+        "steam_value": "好評 {}% · {} 件"
     },
     "genres": {
         "action": "アクション",
@@ -848,7 +852,7 @@
         "stat_downloads": "ダウンロード",
         "newest": "サーバーの新着",
         "for_you": "おすすめ",
-        "for_you_line": "あなたのゲームのジャンルから",
+        "for_you_line": "あなたが遊ぶゲームから",
         "welcome_title": "PlayShelf へようこそ",
         "welcome_text": "ライブラリサーバーを追加して、ゲームを閲覧・インストールしましょう。新着、足りないもの、似たゲームがここに表示されます。",
         "recent": "最近遊んだゲーム",
@@ -887,7 +891,13 @@
         "wish_waiting": "サーバーにありません",
         "wish_waiting_long": "まだどのサーバーにもありません。追加されたらベルでお知らせします。",
         "coming": "まもなく発売",
-        "coming_line": "ほしいゲームが出たらベルでお知らせ"
+        "coming_line": "ほしいゲームが出たらベルでお知らせ",
+        "series": "あなたのシリーズ",
+        "series_line": "持っているシリーズの別作品",
+        "because_like": "{} に似ています",
+        "because_series": "シリーズ: {}",
+        "because_developer": "{} 開発",
+        "because_popular": "人気"
     },
     "wishlist": {
         "add": "ほしいものリストに追加",

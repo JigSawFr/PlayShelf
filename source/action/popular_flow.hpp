@@ -1,15 +1,20 @@
-// popular_flow — how well known each game is (library/popular), for Home:
-// popular.json as PlayShelf came with it, and once a day, when config
-// popular_online allows it, the newest one PlayInsights made (jsDelivr's copy
-// of its data branch, kept in cache_dir()), whichever was made last. Read off
-// the UI thread at start-up.
+// popular_flow — what PlayInsights (https://github.com/JigSawFr/PlayInsights)
+// knows of the games, for Home and a game's page: how well known each is
+// (popular.json: library/popular), its traits and Steam audience
+// (games.json) and the games most like it (similar.json: library/signals).
+// Each as PlayShelf came with it and, once a day when config popular_online
+// allows it, the newest from PlayInsights' data branch through jsDelivr
+// (kept in cache_dir()), whichever was made last. Read off the UI thread at
+// start-up; the books are the UI thread's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 
 #include "library/popular.hpp"
+#include "library/signals.hpp"
 
 namespace popular_flow
 {
@@ -25,7 +30,11 @@ library::Renown of(uint64_t base_id);
 // The games known (0 before the file is read).
 size_t size();
 
-// Told when the book was read or replaced, on the UI thread.
+// games.json's and similar.json's, empty before they are read.
+std::shared_ptr<const library::SignalBook>  signals();
+std::shared_ptr<const library::SimilarBook> similar();
+
+// Told when a book was read or replaced, on the UI thread.
 int  listen(std::function<void()> changed);
 void unlisten(int id);
 

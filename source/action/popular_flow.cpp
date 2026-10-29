@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/popular_flow.hpp"
 
+#include <algorithm>
 #include <ctime>
 #include <map>
 #include <memory>
@@ -19,18 +20,31 @@ namespace popular_flow
 
 namespace
 {
-constexpr const char* URL = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/popular.json";
-constexpr size_t      MAX_BYTES = 2 * 1024 * 1024;
+constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/";
+constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;   // fetched again a day after
 
-std::shared_ptr<const library::PopularBook> s_book = std::make_shared<library::PopularBook>();
-std::map<int, std::function<void()>>        s_listeners;
-int                                         s_next = 1;
-bool                                        s_fetching = false;
-
-std::string cached_file()
+// One of PlayInsights' files: the book read from it, the newest kept.
+template <typename Book>
+struct File
 {
-    return paths::cache_dir() + "/popular.json";
+    const char*                 name;
+    std::shared_ptr<const Book> book = std::make_shared<Book>();
+
+    std::string cached() const { return paths::cache_dir() + "/" + name; }
+};
+
+File<library::PopularBook> s_popular{ "popular.json" };
+File<library::SignalBook>  s_signals{ "games.json" };
+File<library::SimilarBook> s_similar{ "similar.json" };
+std::map<int, std::function<void()>> s_listeners;
+int                                  s_next = 1;
+bool                                 s_fetching = false;
+
+void tell()
+{
+    const auto listeners = s_listeners;
+    for (const auto& l : listeners) l.second();
 }
 
 // The cached copy's age, in seconds; -1 when there is none.
@@ -41,45 +55,72 @@ long age_of(const std::string& file)
     return (long)(std::time(nullptr) - st.st_mtime);
 }
 
-// On the UI thread: `book` in place of the one known, when it is newer.
-void offer(std::shared_ptr<const library::PopularBook> book)
+template <typename Book>
+std::shared_ptr<Book> parse(const std::string& text)
 {
-    if (!book || !book->size() || book->generated() < s_book->generated()) return;
-    s_book = std::move(book);
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    auto book = std::make_shared<Book>();
+    return book->from_json(text) ? book : nullptr;
 }
 
-std::shared_ptr<library::PopularBook> read(const std::string& file)
+template <typename Book>
+std::shared_ptr<Book> read(const std::string& path)
 {
     std::string text;
-    auto        book = std::make_shared<library::PopularBook>();
-    if (!paths::read_file(file, text) || !book->from_json(text)) return nullptr;
-    return book;
+    return paths::read_file(path, text) ? parse<Book>(text) : nullptr;
 }
 
-// On a worker: the newest one, kept when it reads.
-void fetch()
+// On the UI thread: `book` in place of the one known, when it is newer.
+template <typename Book>
+bool offer(File<Book>& file, std::shared_ptr<const Book> book)
+{
+    if (!book || !book->size() || book->generated() < file.book->generated()) return false;
+    file.book = std::move(book);
+    return true;
+}
+
+// On a worker: the file shipped with PlayShelf and the cached one, offered.
+template <typename Book>
+void load(File<Book>& file)
+{
+    std::shared_ptr<const Book> shipped = read<Book>(std::string(BRLS_ASSET("data/")) + file.name);
+    std::shared_ptr<const Book> cached = read<Book>(file.cached());
+    brls::sync([&file, shipped, cached]() {
+        const bool a = offer(file, shipped);
+        const bool b = offer(file, cached);
+        if (a || b) tell();
+    });
+}
+
+// On a worker: the newest of a file, kept when it reads; false when it did not come.
+template <typename Book>
+bool fetch(File<Book>& file)
 {
     http::Response r;
     std::string    why;
-    if (!http::request(URL, {}, "", &r, &why, MAX_BYTES, 20) || r.status != 200) {
-        brls::Logger::debug("popular: not fetched ({} {})", r.status, why);
-        brls::sync([]() { s_fetching = false; });
-        return;
+    if (!http::request(std::string(BASE) + file.name, {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
+        brls::Logger::debug("insights data: {} not fetched ({} {})", file.name, r.status, why);
+        return false;
     }
-    auto book = std::make_shared<library::PopularBook>();
-    if (!book->from_json(r.body)) {
-        brls::Logger::warning("popular: the fetched file is not one");
-        brls::sync([]() { s_fetching = false; });
-        return;
+    std::shared_ptr<const Book> book = parse<Book>(r.body);
+    if (!book) {
+        brls::Logger::warning("insights data: the fetched {} is not one", file.name);
+        return false;
     }
-    if (paths::ensure_dir(paths::cache_dir())) paths::atomic_write(cached_file(), r.body);
-    brls::Logger::info("popular: {} games, made {}", book->size(), book->generated());
-    brls::sync([book]() {
-        s_fetching = false;
-        offer(book);
+    if (paths::ensure_dir(paths::cache_dir())) paths::atomic_write(file.cached(), r.body);
+    brls::Logger::info("insights data: {}, {} games, made {}", file.name, book->size(), book->generated());
+    brls::sync([&file, book]() {
+        if (offer(file, book)) tell();
     });
+    return true;
+}
+
+// Every file fetched again, one after the other, then the fetch over.
+void fetch_all()
+{
+    fetch(s_popular);
+    fetch(s_signals);
+    fetch(s_similar);
+    brls::sync([]() { s_fetching = false; });
 }
 }   // namespace
 
@@ -87,15 +128,17 @@ void start()
 {
     const bool online = config::get().popular_online;
     s_fetching = online;
-    ui::in_background("popular", [online]() {
-        auto shipped = read(BRLS_ASSET("data/popular.json"));
-        auto cached = read(cached_file());
-        brls::sync([shipped, cached]() {
-            offer(shipped);
-            offer(cached);
-        });
-        const long age = age_of(cached_file());
-        if (online && (age < 0 || age > KEEP)) fetch();
+    ui::in_background("insights data", [online]() {
+        load(s_popular);
+        load(s_signals);
+        load(s_similar);
+        long oldest = -1;
+        // The oldest cached file decides; a missing one is as old as can be.
+        for (const std::string& file : { s_popular.cached(), s_signals.cached(), s_similar.cached() }) {
+            const long age = age_of(file);
+            oldest = std::max(oldest, age < 0 ? KEEP + 1 : age);
+        }
+        if (online && oldest > KEEP) fetch_all();
         else brls::sync([]() { s_fetching = false; });
     });
 }
@@ -104,17 +147,27 @@ void refresh()
 {
     if (s_fetching || !config::get().popular_online) return;
     s_fetching = true;
-    ui::in_background("popular", []() { fetch(); });
+    ui::in_background("insights data", []() { fetch_all(); });
 }
 
 library::Renown of(uint64_t base_id)
 {
-    return s_book->of(base_id);
+    return s_popular.book->of(base_id);
 }
 
 size_t size()
 {
-    return s_book->size();
+    return s_popular.book->size();
+}
+
+std::shared_ptr<const library::SignalBook> signals()
+{
+    return s_signals.book;
+}
+
+std::shared_ptr<const library::SimilarBook> similar()
+{
+    return s_similar.book;
 }
 
 int listen(std::function<void()> changed)

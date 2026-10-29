@@ -770,7 +770,11 @@
         "launches": "{}회 실행",
         "last_played": "마지막 플레이",
         "critics": "평론가 점수",
-        "critics_score": "{}/100"
+        "critics_score": "{}/100",
+        "similar": "비슷한 게임",
+        "series": "시리즈",
+        "steam": "Steam 평가",
+        "steam_value": "긍정 {}% · {}개"
     },
     "genres": {
         "action": "액션",
@@ -848,7 +852,7 @@
         "stat_downloads": "다운로드",
         "newest": "서버의 새 게임",
         "for_you": "추천",
-        "for_you_line": "내 게임의 장르를 바탕으로",
+        "for_you_line": "플레이하는 게임 기반",
         "welcome_title": "PlayShelf에 오신 것을 환영합니다",
         "welcome_text": "라이브러리 서버를 추가해 게임을 둘러보고 설치하세요. 새 게임, 내 게임에 없는 것, 비슷한 게임이 여기에 표시됩니다.",
         "recent": "최근 플레이",
@@ -887,7 +891,13 @@
         "wish_waiting": "서버에 없음",
         "wish_waiting_long": "아직 어느 서버에도 없습니다. 생기면 종으로 알려 드립니다.",
         "coming": "출시 예정",
-        "coming_line": "원하는 게임이 나오면 종으로 알림"
+        "coming_line": "원하는 게임이 나오면 종으로 알림",
+        "series": "내 시리즈",
+        "series_line": "보유한 시리즈의 다른 게임",
+        "because_like": "{}와(과) 비슷함",
+        "because_series": "시리즈: {}",
+        "because_developer": "{} 개발",
+        "because_popular": "인기"
     },
     "wishlist": {
         "add": "위시리스트에 추가",

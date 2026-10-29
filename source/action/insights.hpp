@@ -20,6 +20,7 @@
 
 #include "action/installed_flow.hpp"
 #include "action/library_flow.hpp"
+#include "library/recommend.hpp"
 
 namespace insights
 {
@@ -68,6 +69,20 @@ struct Wished
     bool        installed = false;
 };
 
+// A game suggested, and why (library/recommend).
+struct Suggested
+{
+    Pick            pick;
+    library::Reason reason;
+};
+
+// A game of a series the console has games of.
+struct InSeries
+{
+    Pick        pick;
+    std::string series;
+};
+
 struct Snapshot
 {
     size_t console_games = 0, server_games = 0;
@@ -84,7 +99,8 @@ struct Snapshot
     std::vector<Pick>    month;      // released in the last month, the console has not
     std::vector<Pick>    popular;    // the servers' best known games the console has not
     std::vector<Pick>    trending;   // more read lately
-    std::vector<Pick>    like;       // like the console's games, weighed by play time
+    std::vector<Suggested> like;     // for the console's player, from every signal (library/recommend)
+    std::vector<InSeries>  series;   // in the series of the console's games, the most played's first
     std::vector<Coming>  coming;     // coming out soon (the title databases)
     std::vector<Missing> missing;    // updates no server has yet
     std::vector<Wished>  wished;     // the wishlist, those a server has first

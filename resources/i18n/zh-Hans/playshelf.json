@@ -770,7 +770,11 @@
         "launches": "启动 {} 次",
         "last_played": "上次游玩",
         "critics": "媒体评分",
-        "critics_score": "{}/100"
+        "critics_score": "{}/100",
+        "similar": "相似游戏",
+        "series": "系列",
+        "steam": "Steam 评测",
+        "steam_value": "{}% 好评 · {} 篇"
     },
     "genres": {
         "action": "动作",
@@ -848,7 +852,7 @@
         "stat_downloads": "下载",
         "newest": "服务器上的新游戏",
         "for_you": "为你推荐",
-        "for_you_line": "根据你的游戏类型",
+        "for_you_line": "根据你玩的游戏",
         "welcome_title": "欢迎使用 PlayShelf",
         "welcome_text": "添加你的库服务器以浏览和安装游戏：新游戏、你的游戏缺少的内容和类似的游戏会显示在这里。",
         "recent": "最近玩过",
@@ -887,7 +891,13 @@
         "wish_waiting": "服务器上没有",
         "wish_waiting_long": "你的服务器上都还没有：有了之后铃铛会提醒你。",
         "coming": "即将推出",
-        "coming_line": "想要的游戏推出时铃铛会提醒"
+        "coming_line": "想要的游戏推出时铃铛会提醒",
+        "series": "你的系列",
+        "series_line": "你已有系列的其他作品",
+        "because_like": "类似 {}",
+        "because_series": "系列：{}",
+        "because_developer": "{} 开发",
+        "because_popular": "热门"
     },
     "wishlist": {
         "add": "加入愿望单",

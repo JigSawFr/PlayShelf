@@ -7,10 +7,12 @@
 // Library with only those games), the downloads under way and the SD card's
 // room (activity/storage_activity); then rows: the console's games played
 // lately, the games with something to get (the most played first) as wide
-// banners, the wishlist, the games new on the servers, the servers' best
-// known and most read lately games (Wikipedia's: action/popular_flow), the
-// month's releases (else the newest), games like the console's (their
-// genres weighed by play time) and the games coming out soon. A on a game:
+// banners, games for the console's player (library/recommend: like the games
+// played most, in their series, by their studios, in their genres; each
+// with its reason) and the next ones in the console's series, the wishlist,
+// the games new on the servers, the servers' best known and most read lately
+// games (action/popular_flow), the month's releases (else the newest) and
+// the games coming out soon. A on a game:
 // its page (action/game_page). With no server and no game, a welcome to add
 // a server or find one.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
