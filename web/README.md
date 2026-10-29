@@ -24,23 +24,55 @@ them too.
 A browser cannot reach a library server without its CORS headers, nor speak
 plain TCP: every request is answered as a console without a connection
 (`source/sim/web_http.cpp`), but those to `https://demo.playshelf.example`,
-a server packaged with the page (`/app/samples/demo`):
+a server packaged with the page (`/app/samples/demo`), and those to the
+services that tell about games, answered about the demo's: nothing real is
+fetched. All of it is made from one table, `tools/web_demo_games.json`: 28
+made-up games like today's best known ones (an open world, a kart race,
+monsters to collect, a village to live in…), of made-up series and studios,
+none of a real game's names, characters or pictures. 24 are on the server,
+4 are only coming out.
 
-- **its catalogue**, a JSON index of twelve made-up games, some with updates
-  and add-ons, one as an NSZ, each with its icon;
-- **its packages**, made by `tools/web_demo.cpp` with the install suites'
+- **The catalogue**, a JSON index of the server's games, some with updates
+  and add-ons, two as an NSZ, each with its icon.
+- **The packages**, made by `tools/web_demo.cpp` with the install suites'
   builders (`tests/install/packages.hpp`): encrypted with the host tests'
   keys, which the simulated console takes (`source/sim/sim_install.cpp`).
   Small (what they install is a stand-in), served at `speed=` KB/s (96 by
   default, `PLAYSHELF_SIM_SPEED`; `0`: at once) so a download is seen going,
   byte ranges and resumes included: the downloads' queue, its split
   connections and its fetching ahead work on them as on a real server.
+- **The pictures**, drawn by `tools/web_demo_art.py` (Pillow) the same at
+  every build: each game's icon (256 × 256), banner (854 × 480) and
+  screenshots (1280 × 720), a scene of its kind in its colours (islands in
+  the sky, a kart track, a harbour village…), its name in Sora on the icon.
+  About 4 MB in all, JPEG.
+- **Nlib API's answers** (`https://api.nlib.cc/nx/…`, `nlib/`): each game's
+  details in English and French (studio, release, genres, players,
+  description), its icon, banner and screenshots, so a game's page is full.
+- **A title database** (NXMeta's index, `https://nx-meta.nlib.cc/index.json`,
+  `titledb/`): every game's name, studio and release, the coming ones among
+  them, fetched once at the first start, so Home has its games coming soon.
+- **PlayInsights' files** (`https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/`,
+  `insights/`: `popular.json`, `games.json` and `similar.json`, schema 1,
+  made on the day of the build, newer than the files PlayShelf ships): Home
+  ranks, recommends and groups the demo's games by their series and
+  studios, each recommendation with its reason, and a game's page lists the
+  ones like it.
 
-The page adds it to `servers.json` on a first start (`no_demo=1`: none, a
-console with no server yet), with sys-patch on the simulated SD card, as a
-console that installs games has, and `PLAYSHELF_SIM_SIGNED=1`: the demo's
-packages, signed with the test key, are taken as Nintendo's (`signed=0`:
-each install asks first, as an unsigned package does).
+The dates the table gives in `days` are counted from the day of the build:
+the month's releases and the coming ones stay so for the weeks after it.
+
+The page adds the server to `servers.json` on a first start (`no_demo=1`:
+none, a console with no server yet), with sys-patch on the simulated SD
+card, as a console that installs games has, and `PLAYSHELF_SIM_SIGNED=1`:
+the demo's packages, signed with the test key, are taken as Nintendo's
+(`signed=0`: each install asks first, as an unsigned package does). Six of
+its games are on the console from that first start, played
+(`source/sim/sim_play.cpp`), three on its wishlist, so Home has every row:
+the page asks for them (`sim_console/seed_demo` in the data folder) and
+PlayShelf puts their content meta records, names and icons and the
+wishlist (`console/` of the demo) on the simulated console as it starts,
+and fetches the title database (`source/sim/web_seed.cpp`).
 
 ## The page
 

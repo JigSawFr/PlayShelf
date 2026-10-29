@@ -26,7 +26,7 @@ namespace
 {
 std::set<std::string> s_wished;   // the wishlist's entries set, to clear those gone
 
-// "Zelda, Mario Kart, Splatoon…": the first names of a list.
+// "Ember Vale, Turbo Kart, Ink Squad…": the first names of a list.
 template <typename List, typename Name>
 std::string names(const List& list, Name name)
 {
