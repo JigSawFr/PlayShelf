@@ -1,13 +1,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/prices_flow.hpp"
 
-#include <ctime>
 #include <map>
-#include <sys/stat.h>
 
 #include <aurore.hpp>
 #include <aurore/cadran/ui/live_prefs.hpp>
 
+#include "action/insights_index.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
@@ -38,13 +37,6 @@ void tell()
 std::string cached(const std::string& country)
 {
     return paths::cache_dir() + "/prices_" + country + ".json";
-}
-
-long age_of(const std::string& file)
-{
-    struct stat st;
-    if (::stat(file.c_str(), &st) != 0) return -1;
-    return (long)(std::time(nullptr) - st.st_mtime);
 }
 
 std::shared_ptr<const library::PriceBook> parse(const std::string& text, const std::string& country)
@@ -83,13 +75,22 @@ void start()
     const bool        online = config::get().popular_online;
     ui::in_background("prices", [run, country, online]() {
         const std::string file = cached(country);
-        const long        age = age_of(file);
+        const long        age = insights_index::age(file);
         std::string       text;
-        if (age >= 0 && age < STALE && paths::read_file(file, text)) {
+        const bool        shown = age >= 0 && age < STALE && paths::read_file(file, text);
+        if (shown) {
             auto book = parse(text, country);
             aurore::sync([run, book]() { offer(run, book); });
         }
         if (!online || (age >= 0 && age < KEEP)) return;
+        // Unchanged since (the index says): kept, and shown when it was too old to be.
+        if (insights_index::unchanged("prices/" + country + ".json", file)) {
+            if (!shown && paths::read_file(file, text)) {
+                auto book = parse(text, country);
+                aurore::sync([run, book]() { offer(run, book); });
+            }
+            return;
+        }
         http::Response r;
         std::string    why;
         if (!http::request(std::string(BASE) + country + ".json", {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {

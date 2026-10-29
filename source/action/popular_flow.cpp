@@ -2,14 +2,13 @@
 #include "action/popular_flow.hpp"
 
 #include <algorithm>
-#include <ctime>
 #include <map>
 #include <memory>
 #include <string>
-#include <sys/stat.h>
 
 #include <aurore.hpp>
 
+#include "action/insights_index.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
@@ -46,14 +45,6 @@ void tell()
 {
     const auto listeners = s_listeners;
     for (const auto& l : listeners) l.second();
-}
-
-// The cached copy's age, in seconds; -1 when there is none.
-long age_of(const std::string& file)
-{
-    struct stat st;
-    if (::stat(file.c_str(), &st) != 0) return -1;
-    return (long)(std::time(nullptr) - st.st_mtime);
 }
 
 template <typename Book>
@@ -93,9 +84,11 @@ void load(File<Book>& file)
 }
 
 // On a worker: the newest of a file, kept when it reads; false when it did not come.
+// One the index says is unchanged is not downloaded again.
 template <typename Book>
 bool fetch(File<Book>& file)
 {
+    if (insights_index::unchanged(file.name, file.cached())) return true;
     http::Response r;
     std::string    why;
     if (!http::request(std::string(BASE) + file.name, {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
@@ -138,7 +131,7 @@ void start()
         long oldest = -1;
         // The oldest cached file decides; a missing one is as old as can be.
         for (const std::string& file : { s_popular.cached(), s_signals.cached(), s_similar.cached() }) {
-            const long age = age_of(file);
+            const long age = insights_index::age(file);
             oldest = std::max(oldest, age < 0 ? KEEP + 1 : age);
         }
         if (online && oldest > KEEP) fetch_all();
@@ -150,7 +143,10 @@ void refresh()
 {
     if (s_fetching || !config::get().popular_online) return;
     s_fetching = true;
-    ui::in_background("insights data", []() { fetch_all(); });
+    ui::in_background("insights data", []() {
+        insights_index::forget();
+        fetch_all();
+    });
 }
 
 library::Renown of(uint64_t base_id)
