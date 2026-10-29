@@ -417,17 +417,17 @@ def boreale_versions():
 
 def switcher(t, lang, to_root, home, here, name, versions):
     """The header's name (`name`), a button that opens the menu of Boréale's
-    sites, `here` marked and leading to `home`, each in French where the page
-    is (the four sites have it), with its latest release (`versions`). A
+    sites, `here` marked and leading to `home`, each in the page's language
+    (the four sites share the same 15 folders), with its latest release
+    (`versions`). A
     popover: the browser closes it on Esc or a click elsewhere; site.css's
     and site.js's "site switcher" blocks."""
     label = t("sites_label")
-    french = lang.lower().startswith("fr")
     groups = []
     for title, sites in SITES:
         items = []
         for key, site, url in sites:
-            href = home if key == here else url + ("fr/" if french else "")
+            href = home if key == here else url + lang_dir(lang)
             soon = f'<em class="soon">{t("sites_soon")}</em>' if key == "playshelf" else ""
             version = f' <span class="sites-version">{html.escape(versions[key])}</span>' if key in versions else ""
             current = ' aria-current="true"' if key == here else ""
@@ -673,7 +673,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         <div>
           <p><img src="{to_root}assets/mark.svg" alt="" width="20" height="20"> <strong>PlayShelf</strong></p>
           <p>{t('footer_license')}</p>
-          <p><a class="boreale" href="https://boreale.dev/">{t('footer_boreale')}</a></p>
+          <p><a class="boreale" href="https://boreale.dev/{lang_dir(code)}">{t('footer_boreale')}</a></p>
         </div>
         <div>
           <h2>{t('docs_title')}</h2>
@@ -687,10 +687,10 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         </div>
         <div>
           <h2>Boréale</h2>
-          <ul><li><a href="https://boreale.dev/{"fr/" if code.startswith("fr") else ""}">boreale.dev</a></li>
-            <li><a href="https://guard.boreale.dev/{"fr/" if code.startswith("fr") else ""}">PlayGuard</a></li>
-            <li><a href="https://aurore.boreale.dev/{"fr/" if code.startswith("fr") else ""}">Aurore</a></li>
-            <li><a href="https://boreale.dev/{"fr/" if code.startswith("fr") else ""}legal/">{t('sites_legal')}</a></li>
+          <ul><li><a href="https://boreale.dev/{lang_dir(code)}">boreale.dev</a></li>
+            <li><a href="https://guard.boreale.dev/{lang_dir(code)}">PlayGuard</a></li>
+            <li><a href="https://aurore.boreale.dev/{lang_dir(code)}">Aurore</a></li>
+            <li><a href="https://boreale.dev/{lang_dir(code)}legal/">{t('sites_legal')}</a></li>
             <li><a href="mailto:contact@boreale.dev">contact@boreale.dev</a></li></ul>
         </div>
         <div>
