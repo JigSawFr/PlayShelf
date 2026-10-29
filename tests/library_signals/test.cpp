@@ -1,5 +1,6 @@
-// library/signals: games.json's traits and Steam audience, similar.json's
-// rows, what does not hold together left out.
+// library/signals: games.json's traits, Steam audience and IGDB players'
+// rating, similar.json's rows, editions.json's games, what does not hold
+// together left out.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "library/signals.hpp"
@@ -34,6 +35,42 @@ void test_games()
     CHECK(!b.find(C) && !b.find(0x0100000000010800));
 }
 
+void test_igdb()
+{
+    SignalBook b;
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
+        "0100000000010000":{"igdb_rating":[81.6,1240]},
+        "0100000000020000":{"igdb_rating":[140,10]},
+        "0100000000030000":{"igdb_rating":["80",10]},
+        "0100000000040000":{"igdb_rating":[80]}}})"));
+    const GameSignals* a = b.find(A);
+    if (CHECK(a)) CHECK(a->igdb.rating == 82 && a->igdb.count == 1240);
+    // Out of range, not a number, no count: not known.
+    for (uint64_t id : { B, C, (uint64_t)0x0100000000040000 })
+        if (CHECK(b.find(id))) CHECK(b.find(id)->igdb.rating == 0 && b.find(id)->igdb.count == 0);
+}
+
+void test_editions()
+{
+    constexpr uint64_t DELUXE = 0x0100000000110000, GOTY = 0x0100000000120000, BUNDLE = 0x0100000000130000;
+    EditionBook e;
+    CHECK(!e.from_json(R"({"schema":2,"generated":"2026-10-29","games":{}})"));
+    CHECK(e.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
+        "0100000000110000":"0100000000010000",
+        "0100000000120000":"0100000000010000",
+        "0100000000130000":"0100000000110000",
+        "0100000000020000":"0100000000020000",
+        "0100000000030000":5,
+        "zz":"0100000000010000"}})"));
+    CHECK(e.size() == 3 && e.generated() == "2026-10-29");
+    CHECK(e.game_of(DELUXE) == A && e.game_of(GOTY) == A && e.game_of(A) == A && e.game_of(B) == B);
+    // An edition of an edition: of its game.
+    CHECK(e.game_of(BUNDLE) == A);
+    const std::vector<uint64_t> of_a = e.editions_of(A);
+    CHECK(of_a.size() == 3 && of_a[0] == DELUXE && of_a[1] == GOTY && of_a[2] == BUNDLE);
+    CHECK(e.editions_of(B).empty() && e.editions_of(DELUXE).empty());
+}
+
 void test_similar()
 {
     SimilarBook s;
@@ -57,6 +94,8 @@ int main()
 {
     test_games();
     test_similar();
+    test_igdb();
+    test_editions();
     CHECK(base_id_of("0100000000010000") == A && !base_id_of("0100000000010800") && !base_id_of("x"));
     CHECK_DONE("library_signals");
 }

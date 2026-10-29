@@ -126,6 +126,53 @@ void test_varied()
     for (size_t i = 0; i < 4; i++) saga_in_first_four += in_saga(row[i].id);
     CHECK(saga_in_first_four <= 2);
 }
+
+// A game and its editions are one: none when the console has one of them,
+// the game rather than its edition, one of them in a row; IGDB's players
+// count in the quality like Steam's, from 20 ratings.
+void test_editions()
+{
+    constexpr uint64_t GAME = 0x0100000000510000, DELUXE = 0x0100000000520000, OWNED_DELUXE = 0x0100000000530000,
+                       OWNED_GAME = 0x0100000000540000, LONE_DELUXE = 0x0100000000550000, LONE_GAME = 0x0100000000560000,
+                       RATED = 0x0100000000570000, FEW = 0x0100000000580000;
+    EditionBook editions;
+    CHECK(editions.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
+        "0100000000520000":"0100000000510000",
+        "0100000000530000":"0100000000540000",
+        "0100000000550000":"0100000000560000"}})"));
+    SignalBook signals;
+    CHECK(signals.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
+        "0100000000570000":{"igdb_rating":[95,500]},
+        "0100000000580000":{"igdb_rating":[95,5]}}})"));
+    SimilarBook similar;
+    CHECK(similar.from_json(R"({"schema":1,"generated":"2026-10-29","games":{}})"));
+    const std::vector<Owned> owned = { { OWNED_DELUXE, owned_weight(10 * 3600, 5, 0, 0), 10 } };
+    std::vector<Candidate> candidates;
+    for (uint64_t id : { GAME, DELUXE, OWNED_GAME, LONE_DELUXE, RATED, FEW }) {
+        Candidate c;
+        c.id = id;
+        c.renown.score = 70;
+        candidates.push_back(c);
+    }
+    const auto row = recommend(owned, candidates, {}, similar, signals, {}, 20261029, 10, editions);
+    auto has = [&row](uint64_t id) {
+        for (const Suggestion& s : row)
+            if (s.id == id) return true;
+        return false;
+    };
+    // The console has the Deluxe: not the game. The game and its Deluxe: the game.
+    CHECK(!has(OWNED_GAME) && has(GAME) && !has(DELUXE));
+    // An edition whose game is not on the servers: the edition.
+    CHECK(has(LONE_DELUXE) && !has(LONE_GAME));
+    // Rated by IGDB's players: higher; with too few ratings, as if not rated.
+    double rated = 0, few = 0, plain = 0;
+    for (const Suggestion& s : row) {
+        if (s.id == RATED) rated = s.score;
+        if (s.id == FEW) few = s.score;
+        if (s.id == GAME) plain = s.score;
+    }
+    CHECK(rated > plain && few == plain);
+}
 }   // namespace
 
 int main()
@@ -133,5 +180,6 @@ int main()
     test_weight();
     test_recommend();
     test_varied();
+    test_editions();
     CHECK_DONE("library_recommend");
 }

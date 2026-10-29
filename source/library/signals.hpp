@@ -1,9 +1,10 @@
 // signals — what PlayInsights (https://github.com/JigSawFr/PlayInsights)
 // knows of each game beyond its popularity, for the recommendations
 // (library/recommend) and a game's page: its traits from Wikidata (series,
-// developers, publishers, genres, modes, each an id and an English label)
-// and its Steam audience (games.json), and the games most like it
-// (similar.json).
+// developers, publishers, genres, modes, each an id and an English label),
+// its Steam audience and its players' rating on IGDB (games.json), the games
+// most like it (similar.json) and the game an edition is one of
+// (editions.json).
 //
 // Plain C++ for the host tests (tests/library_signals).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -33,10 +34,18 @@ struct SteamAudience
     uint32_t ccu = 0;      // players at once when last seen
 };
 
+// IGDB's players' rating: 0..100, and how many rated it (0: not known).
+struct PlayersRating
+{
+    uint32_t rating = 0;
+    uint64_t count = 0;
+};
+
 struct GameSignals
 {
     std::vector<Trait> series, developers, publishers, genres, modes;
     SteamAudience      steam;
+    PlayersRating      igdb;
 };
 
 class SignalBook
@@ -76,6 +85,28 @@ class SimilarBook
   private:
     std::unordered_map<uint64_t, Row> games;
     std::string                       day;
+};
+
+// A Deluxe, Complete or GOTY edition, or a "+ DLC" bundle, and the game it
+// is one of (editions.json): a game and its editions are one game to suggest.
+class EditionBook
+{
+  public:
+    static constexpr size_t MAX_GAMES = 20000;
+
+    // From editions.json; false when it is not one (the book is left empty).
+    bool from_json(const std::string& text);
+    // The game `id` is an edition of; `id` itself when it is none.
+    uint64_t game_of(uint64_t id) const;
+    // The editions known of `game`, by title id.
+    std::vector<uint64_t> editions_of(uint64_t game) const;
+    size_t size() const { return this->to_game.size(); }
+    const std::string& generated() const { return this->day; }
+
+  private:
+    std::unordered_map<uint64_t, uint64_t>              to_game;
+    std::unordered_map<uint64_t, std::vector<uint64_t>> of_game;
+    std::string                                         day;
 };
 
 // A base game's title id from 16 hex digits; 0 for anything else.

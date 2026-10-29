@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 
 #include "library/seen.hpp"
 
@@ -27,6 +28,7 @@ bool share(const std::vector<Trait>& a, const std::vector<Trait>& b)
     return false;
 }
 constexpr uint64_t STEAM_TRUSTED = 50;   // reviews below which Steam's say is left out
+constexpr uint64_t IGDB_TRUSTED = 20;    // ratings below which IGDB's players' say is left out
 
 // A trait of `kinds` shared with the console's games: the weightiest such
 // game's weight (relative), and the trait's label.
@@ -65,8 +67,14 @@ double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, ui
 std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::vector<Candidate>& candidates,
                                   const std::map<std::string, double>& genres, const SimilarBook& similar,
                                   const SignalBook& signals, const std::vector<uint64_t>& unwanted, uint32_t today,
-                                  size_t max)
+                                  size_t max, const EditionBook& editions)
 {
+    // A game and its editions are one: none suggested when the console has
+    // one of them, and among the candidates, the game rather than an edition.
+    std::set<uint64_t> owned_games, candidate_ids;
+    for (const Owned& o : owned) owned_games.insert(editions.game_of(o.id));
+    for (const Candidate& c : candidates) candidate_ids.insert(c.id);
+
     double top = 0;
     for (const Owned& o : owned) top = std::max(top, o.weight);
     double genre_top = 0;
@@ -76,6 +84,8 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
     for (const Candidate& c : candidates) {
         // One the player does not want: never; like one: less.
         if (std::ranges::contains(unwanted, c.id)) continue;
+        const uint64_t game = editions.game_of(c.id);
+        if (owned_games.contains(game) || (game != c.id && candidate_ids.contains(game))) continue;
         double unlike = 0;
         for (uint64_t u : unwanted) unlike = std::max(unlike, similar.between(u, c.id) / 100.0);
         // Like the console's games: each one's likeness, by its weight.
@@ -102,10 +112,15 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
                 const auto it = genres.find(g);
                 if (it != genres.end() && it->second / genre_top > genre) genre = it->second / genre_top, genre_label = g;
             }
-        // How good it is said to be: its renown, its critics, Steam's players.
+        // How good it is said to be: its renown, its critics, its players
+        // (Steam's and IGDB's, the two as one when both are known).
         double quality = 0.5 * c.renown.score / 100.0 + 0.3 * c.renown.critics / 100.0;
+        double players = 0;
+        int    says = 0;
         if (mine && mine->steam.positive + mine->steam.negative >= STEAM_TRUSTED)
-            quality += 0.2 * (double)mine->steam.positive / (double)(mine->steam.positive + mine->steam.negative);
+            players += (double)mine->steam.positive / (double)(mine->steam.positive + mine->steam.negative), says++;
+        if (mine && mine->igdb.count >= IGDB_TRUSTED) players += mine->igdb.rating / 100.0, says++;
+        if (says) quality += 0.2 * players / says;
         // Out in the last year: a little more.
         double fresh = 0;
         if (c.release_date && today) {
@@ -153,6 +168,10 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
         if (best == out.size()) break;
         taken[best] = true;
         row.push_back(out[best]);
+        // One cover a game: its other editions out.
+        const uint64_t game = editions.game_of(out[best].id);
+        for (size_t i = 0; i < out.size(); i++)
+            if (!taken[i] && editions.game_of(out[i].id) == game) taken[i] = true;
         const GameSignals* picked = signals.find(out[best].id);
         for (size_t i = 0; i < out.size(); i++) {
             if (taken[i]) continue;

@@ -2,6 +2,7 @@
 #include "library/signals.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 #include <aurore/extern/nlohmann/json.hpp>
 
@@ -87,6 +88,14 @@ bool SignalBook::from_json(const std::string& text)
             g.steam.ccu = number_at<uint32_t>(*steam, "ccu");
             if (!g.steam.app) g.steam = SteamAudience{};
         }
+        // [rating 0..100, count], once PlayInsights has IGDB's keys.
+        const auto igdb = value.find("igdb_rating");
+        if (igdb != value.end() && igdb->is_array() && igdb->size() >= 2 && (*igdb)[0].is_number() &&
+            (*igdb)[1].is_number_unsigned()) {
+            const double rating = (*igdb)[0].get<double>();
+            if (std::isfinite(rating) && rating > 0 && rating <= 100)
+                g.igdb = { (uint32_t)std::lround(rating), (*igdb)[1].get<uint64_t>() };
+        }
         this->games[id] = std::move(g);
     }
     this->day = generated->get<std::string>();
@@ -140,6 +149,47 @@ int SimilarBook::between(uint64_t a, uint64_t b) const
             for (const auto& [other, score] : *row)
                 if (other == to) best = std::max(best, score);
     return best;
+}
+
+bool EditionBook::from_json(const std::string& text)
+{
+    this->to_game.clear();
+    this->of_game.clear();
+    this->day.clear();
+    const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
+    if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("games") || !root["games"].is_object()) return false;
+    const auto generated = root.find("generated");
+    if (generated == root.end() || !generated->is_string() || !is_day(generated->get<std::string>())) return false;
+    for (const auto& [key, value] : root["games"].items()) {
+        if (this->to_game.size() >= MAX_GAMES) break;
+        const uint64_t edition = base_id_of(key);
+        const uint64_t game = value.is_string() ? base_id_of(value.get<std::string>()) : 0;
+        if (!edition || !game || edition == game) continue;
+        this->to_game[edition] = game;
+    }
+    // One step only: an edition said to be one of another edition is one
+    // of that edition's game.
+    for (auto& [edition, game] : this->to_game) {
+        const auto it = this->to_game.find(game);
+        if (it != this->to_game.end() && it->second != edition) game = it->second;
+    }
+    for (const auto& [edition, game] : this->to_game)
+        if (edition != game) this->of_game[game].push_back(edition);
+    for (auto& [game, editions] : this->of_game) std::sort(editions.begin(), editions.end());
+    this->day = generated->get<std::string>();
+    return true;
+}
+
+uint64_t EditionBook::game_of(uint64_t id) const
+{
+    const auto it = this->to_game.find(id);
+    return it == this->to_game.end() || it->second == id ? id : it->second;
+}
+
+std::vector<uint64_t> EditionBook::editions_of(uint64_t game) const
+{
+    const auto it = this->of_game.find(game);
+    return it == this->of_game.end() ? std::vector<uint64_t>{} : it->second;
 }
 
 }   // namespace library
