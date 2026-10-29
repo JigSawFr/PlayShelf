@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """The website's screenshots (site/README.md): the screens of its gallery
 and documentation, taken from the web simulator in headless Chromium in each
-language of the site and in both themes, as
-<out-dir>/<language>/<screen>.webp and <screen>-dark.webp (1280x720, the
-canvas). tools/build_site.py uses them when SITE_SCREENSHOTS names
-<out-dir>; without them, the site has the English ones of
-images/screenshots/, which this script also makes (--png: the English light
-ones as images/screenshots/<screen>.png).
+language of the site, in the dark theme the site shows, as
+<out-dir>/<language>/<screen>-dark.webp (1280x720, the canvas).
+tools/build_site.py uses them when SITE_SCREENSHOTS names <out-dir>; without
+them, the site has the English ones of images/screenshots/, which this
+script also makes (--png: the English screens in the light theme too, as
+<out-dir>/en-US/<screen>.webp and images/screenshots/<screen>.png).
 
 The console is the smoke test's (tools/web_smoke.py): the same moment, the
 focus still, the demo library server; a game of it installed on the way, so
@@ -121,7 +121,10 @@ def main():
     failed = 0
     with sync_playwright() as p:
         for lang in langs:
-            for theme in ("light", "dark"):
+            # The light theme only for the English PNGs: two runs for each of
+            # the fifteen languages outlast the CI step.
+            themes = ("dark", "light") if lang == "en-US" and "--png" in sys.argv else ("dark",)
+            for theme in themes:
                 # A browser for each run: SwiftShader's GPU process can stop
                 # answering after a few starts in one.
                 browser = p.chromium.launch(
@@ -131,7 +134,7 @@ def main():
                     failed += not take(browser, base, lang, theme, out)
                 finally:
                     browser.close()
-    if "--png" in sys.argv and os.path.isdir(os.path.join(out, "en-US")):
+    if "--png" in sys.argv and os.path.exists(os.path.join(out, "en-US", f"{SCREENS[0]}.webp")):
         from PIL import Image
         for name in SCREENS:
             Image.open(os.path.join(out, "en-US", f"{name}.webp")).save(
