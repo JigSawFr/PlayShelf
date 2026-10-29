@@ -1,4 +1,4 @@
-// Host tests for borealis' string tables (library/lib/core/i18n.cpp, with
+// Host tests for Aurore's string tables (library/lib/core/i18n.cpp, with
 // Aurore's patches 0001, 0012, 0018, 0019): a string looked up in the
 // current language, else in English, else its name; another language loaded
 // while the app runs; and strings read from other threads (the background
@@ -11,22 +11,22 @@
 #include <atomic>
 #include <filesystem>
 #include <fstream>
-#include <borealis/core/application.hpp>
-#include <borealis/core/i18n.hpp>
-#include <borealis/core/util.hpp>
+#include <aurore/core/application.hpp>
+#include <aurore/core/i18n.hpp>
+#include <aurore/core/util.hpp>
 #include <string>
 #include <thread>
 #include <vector>
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
-// What i18n.cpp needs of the rest of borealis (util.cpp, its string and
+// What i18n.cpp needs of the rest of Aurore (util.cpp, its string and
 // file helpers, is built with it).
-namespace brls
+namespace aurore
 {
 std::string Application::getLocale() { return LOCALE_FR; }
 Point::Point() : x(0), y(0) {}
-} // namespace brls
+} // namespace aurore
 // The theme colours the headers set up (never drawn here).
 NVGcolor nvgRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
@@ -50,20 +50,20 @@ void write_catalogs()
 
 void test_lookups()
 {
-    brls::loadTranslations();  // the platform's locale: French here
-    CHECK(brls::getStr("main/hello") == "Bonjour");
-    CHECK(brls::getStr("main/games", 3) == "3 jeux");
+    aurore::loadTranslations();  // the platform's locale: French here
+    CHECK(aurore::getStr("main/hello") == "Bonjour");
+    CHECK(aurore::getStr("main/games", 3) == "3 jeux");
     CHECK("main/only_en"_i18n == "English");
     CHECK("main/missing"_i18n == "main/missing");
 
-    brls::loadTranslations("de");
+    aurore::loadTranslations("de");
     CHECK("main/hello"_i18n == "Hallo");
-    CHECK(brls::getStr("main/games", 2) == "2 games");
+    CHECK(aurore::getStr("main/games", 2) == "2 games");
 
-    brls::loadTranslations(brls::LOCALE_DEFAULT);
+    aurore::loadTranslations(aurore::LOCALE_DEFAULT);
     CHECK("main/hello"_i18n == "Hello");
 
-    brls::loadTranslations("xx");  // no such folder: English
+    aurore::loadTranslations("xx");  // no such folder: English
     CHECK("main/hello"_i18n == "Hello");
 }
 
@@ -77,14 +77,14 @@ void test_reads_while_the_language_changes()
         readers.emplace_back([&] {
             while (!stop.load()) {
                 std::string s = "main/hello"_i18n;
-                std::string g = brls::getStr("main/games", 5);
+                std::string g = aurore::getStr("main/games", 5);
                 if (s != "Hello" && s != "Bonjour" && s != "Hallo") wrong++;
                 if (g != "5 games" && g != "5 jeux") wrong++;
                 reads++;
             }
         });
     const char* langs[] = {"fr", "de", "en-US"};
-    for (int i = 0; i < 300; i++) brls::loadTranslations(langs[i % 3]);
+    for (int i = 0; i < 300; i++) aurore::loadTranslations(langs[i % 3]);
     // Let the readers go on a while with the last table too.
     while (reads.load() < 1000) std::this_thread::yield();
     stop = true;

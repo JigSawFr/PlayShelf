@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/rollback_flow.hpp"
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <cstdio>
 
 #include "action/dev_build_flow.hpp"
@@ -15,7 +15,7 @@
 #include "util/paths.hpp"
 #include "util/rollback.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace rollback_flow
 {
@@ -32,9 +32,9 @@ std::string back_file() { return paths::data_dir() + "/went_back.json"; }
 void log_migration(bool warning, const std::string& line)
 {
     if (warning)
-        brls::Logger::warning("rollback: {}", line);
+        aurore::Logger::warning("rollback: {}", line);
     else
-        brls::Logger::info("rollback: {}", line);
+        aurore::Logger::info("rollback: {}", line);
 }
 
 // The swap, the running build's name kept for the one now previous. romfs:/
@@ -77,11 +77,11 @@ bool at_start()
 
     std::string previous;
     if (!rollback::read_label(label_file(), &previous)) previous = "the previous build";
-    // Plain ASCII, in English: borealis (and the translations) are not up yet.
+    // Plain ASCII, in English: Aurore (and the translations) are not up yet.
     const std::string text = "\n  PlayShelf " + running_label() +
                              "\n\n  Its last start did not finish (it may have crashed).\n\n  (A)  Go back to " +
                              previous + "\n  (B)  Start " + running_label() + "\n";
-    brls::Logger::info("rollback: offered (crashed)");
+    aurore::Logger::info("rollback: offered (crashed)");
     if (!platform_boot_choice(text.c_str())) return false;
 
     std::string err;
@@ -89,7 +89,7 @@ bool at_start()
         platform_boot_choice(("\n  Could not go back: " + err + "\n\n  (A) / (B)  Start PlayShelf\n").c_str());
         return false;
     }
-    brls::Logger::info("rollback: back to {}", previous);
+    aurore::Logger::info("rollback: back to {}", previous);
     if (launcher::can_launch() && launcher::launch_nro(dev_build_flow::nro_sd_path())) return true;
     platform_boot_choice(("\n  " + previous + " is back in place.\n  Close PlayShelf and start it again.\n\n  (A) / (B)  Close\n").c_str());
     return true;
@@ -102,8 +102,8 @@ void started()
         std::string previous;
         if (!rollback::read_label(label_file(), &previous)) previous = "?";
         if (ui::app_hooks::get().notice_set)
-            ui::app_hooks::get().notice_set("installed", brls::getStr("playshelf/notices/installed", check.label),
-                                        brls::getStr("playshelf/notices/installed_detail", previous), "", nullptr);
+            ui::app_hooks::get().notice_set("installed", aurore::getStr("playshelf/notices/installed", check.label),
+                                        aurore::getStr("playshelf/notices/installed_detail", previous), "", nullptr);
     }
     std::remove(check_file().c_str());
 }
@@ -117,7 +117,7 @@ void note_went_back()
     const auto& h = ui::app_hooks::get();
     if (!h.notice_set) return;
     h.notice_set("went_back", "playshelf/notices/went_back"_i18n,
-                 brls::getStr(back.starts ? "playshelf/notices/went_back_crash" : "playshelf/notices/went_back_detail",
+                 aurore::getStr(back.starts ? "playshelf/notices/went_back_crash" : "playshelf/notices/went_back_detail",
                               from, running_label()),
                  back.starts ? "playshelf/notices/send_report"_i18n : "", []() {
                      if (ui::app_hooks::get().notice_clear) ui::app_hooks::get().notice_clear("went_back");
@@ -155,14 +155,14 @@ void go_back_now()
     std::string label, err;
     if (!previous(&label)) return;
     if (!swap(dev_build_flow::nro_file(), &err, false)) {
-        ui::error(brls::getStr("playshelf/dev_build/back_failed", err));
+        ui::error(aurore::getStr("playshelf/dev_build/back_failed", err));
         return;
     }
     if (launcher::can_launch() && launcher::launch_nro(dev_build_flow::nro_sd_path())) {
-        brls::Application::quit();   // hbloader starts it as soon as this one exits
+        aurore::Application::quit();   // hbloader starts it as soon as this one exits
         return;
     }
-    ui::info(brls::getStr("playshelf/dev_build/done_manual", label));
+    ui::info(aurore::getStr("playshelf/dev_build/done_manual", label));
 }
 
 }   // namespace rollback_flow

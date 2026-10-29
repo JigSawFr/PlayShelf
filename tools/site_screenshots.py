@@ -45,8 +45,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 def settle(page, seconds=1.5):
-    """A moment for the screen to settle (borealis' animations, a toast), and
-    as long again as borealis still holds the input, up to 5 s."""
+    """A moment for the screen to settle (Aurore's animations, a toast), and
+    as long again as Aurore still holds the input, up to 5 s."""
     time.sleep(seconds)
     end = time.time() + 5
     while time.time() < end and page.evaluate("Module.ccall('playshelf_web_busy', 'number', [], [])"):

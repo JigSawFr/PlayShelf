@@ -7,11 +7,11 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <cstdint>
 #include <string>
 
-class BannerCard : public brls::Box
+class BannerCard : public aurore::Box
 {
   public:
     BannerCard(float width, float height);
@@ -25,23 +25,23 @@ class BannerCard : public brls::Box
     // a texture of its own, freed with it.
     void set_picture(const uint8_t* rgba, int w, int h);
 
-    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-              brls::FrameContext* ctx) override;
+    void draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+              aurore::FrameContext* ctx) override;
 
   private:
-    brls::Label* title = nullptr;
-    brls::Label* line = nullptr;
-    brls::Box*   kicker = nullptr;
-    brls::Label* kicker_text = nullptr;
+    aurore::Label* title = nullptr;
+    aurore::Label* line = nullptr;
+    aurore::Box*   kicker = nullptr;
+    aurore::Label* kicker_text = nullptr;
     int          texture = 0;
     int          picture_w = 0, picture_h = 0;
-    brls::Time   since = 0;   // the picture arrived then (µs): it fades in; 0 at rest
+    aurore::Time   since = 0;   // the picture arrived then (µs): it fades in; 0 at rest
 };
 
 // A game's banner behind a card's right part (a download's): cropped to
 // fill its bounds, fading in from the card's own surface on its left, dimmed
 // for the words in front of it. Placed absolutely, first in its card.
-class BannerBackdrop : public brls::View
+class BannerBackdrop : public aurore::View
 {
   public:
     BannerBackdrop();
@@ -49,11 +49,11 @@ class BannerBackdrop : public brls::View
     // As BannerCard's.
     void set_picture(const uint8_t* rgba, int w, int h);
 
-    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-              brls::FrameContext* ctx) override;
+    void draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+              aurore::FrameContext* ctx) override;
 
   private:
     int        texture = 0;
     int        picture_w = 0, picture_h = 0;
-    brls::Time since = 0;
+    aurore::Time since = 0;
 };

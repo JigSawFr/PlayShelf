@@ -1,7 +1,7 @@
 // patches — how this console patches signature checks for games: the
 // sys-patch system module (patches fs / ldr / es in memory at boot, then
 // exits) or sigpatch files loaded by Atmosphère / Hekate.
-// Plain C++ (no borealis), so the host tests can run it on a fake SD card.
+// Plain C++ (no Aurore), so the host tests can run it on a fake SD card.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 

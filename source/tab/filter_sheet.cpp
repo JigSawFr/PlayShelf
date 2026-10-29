@@ -5,14 +5,14 @@
 #include <memory>
 #include <set>
 
-#include <borealis/cadran/ui/live_prefs.hpp>
+#include <aurore/cadran/ui/live_prefs.hpp>
 
 #include "action/nlib_flow.hpp"
 #include "library/titles.hpp"
 #include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace filter_sheet
 {
@@ -136,11 +136,11 @@ void show(std::shared_ptr<Sheet> sheet)
     if (sheet->states == States::Library) states.push_back(State::NeverPlayed);
     lines.emplace_back("playshelf/filters/state"_i18n, [sheet, states]() {
         std::vector<std::string> labels;
-        for (State s : states) labels.push_back(brls::getStr(state_key(s)));
+        for (State s : states) labels.push_back(aurore::getStr(state_key(s)));
         const auto at = std::find(states.begin(), states.end(), sheet->filter->state);
         ui::pick("playshelf/filters/state"_i18n, labels, at == states.end() ? 0 : (int)(at - states.begin()),
                  [sheet, states](int i) { then(sheet, [&](library::Filter& x) { x.state = states[(size_t)i]; })(); });
-    }, "download", brls::getStr(state_key(f.state)));
+    }, "download", aurore::getStr(state_key(f.state)));
     lines.emplace_back("playshelf/filters/hide_demos"_i18n, then(sheet, [](library::Filter& x) {
         x.hide_demos = !x.hide_demos;
     }), "eye").switched(f.hide_demos);
@@ -164,7 +164,7 @@ std::string summary(const library::Filter& f)
     if (!f.publisher.empty()) parts.push_back(f.publisher);
     if (f.players) parts.push_back(players_text(f.players));
     if (!f.language.empty()) parts.push_back("playshelf/game/language_chip"_i18n);
-    if (f.state != State::Any) parts.push_back(brls::getStr(state_key(f.state)));
+    if (f.state != State::Any) parts.push_back(aurore::getStr(state_key(f.state)));
     if (f.hide_demos) parts.push_back("playshelf/filters/no_demos"_i18n);
     std::string out;
     for (size_t i = 0; i < parts.size() && i < 2; i++) out += (i ? " · " : "") + parts[i];

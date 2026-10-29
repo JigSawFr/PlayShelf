@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <borealis/cadran/ui/prefs.hpp>
+#include <aurore/cadran/ui/prefs.hpp>
 
 namespace config
 {

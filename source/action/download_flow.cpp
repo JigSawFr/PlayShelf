@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <atomic>
-#include <borealis.hpp>
-#include <borealis/cadran/ui/cadran_frame.hpp>
+#include <aurore.hpp>
+#include <aurore/cadran/ui/cadran_frame.hpp>
 #include <chrono>
 #include <dirent.h>
 #include <map>
@@ -27,7 +27,7 @@
 #include "util/paths.hpp"
 #include "util/patches.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace download_flow
 {
@@ -159,7 +159,7 @@ void save()
     const std::vector<download::Job> copy = s_jobs;
     ui::write_later("queue", [copy]() {
         std::string why;
-        if (!download::save_queue(copy, &why)) brls::Logger::warning("downloads: the queue could not be saved: {}", why);
+        if (!download::save_queue(copy, &why)) aurore::Logger::warning("downloads: the queue could not be saved: {}", why);
     }, download::queue_file());
 }
 
@@ -209,7 +209,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     }
     // What an install cut short and given up (or another installer) left.
     for (const ContentId& id : download::orphans(console.placeholders(), snapshot)) {
-        brls::Logger::info("downloads: an orphan placeholder deleted ({})", content_id_hex(id));
+        aurore::Logger::info("downloads: an orphan placeholder deleted ({})", content_id_hex(id));
         console.delete_placeholder(id);
     }
     const auto keys = core_keys(&o.why);
@@ -229,7 +229,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         const auto t = std::chrono::steady_clock::now();
         if (t - last < std::chrono::milliseconds(500) && done < total) return;
         last = t;
-        brls::sync([id, done, total]() {
+        aurore::sync([id, done, total]() {
             if (s_running != id) return;
             if (done > s_live.done) s_last_byte = now_seconds();
             s_live.done = done;
@@ -243,7 +243,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         });
     };
     cb.journal = [id](const Journal& jn) {
-        brls::sync([id, jn]() {
+        aurore::sync([id, jn]() {
             if (download::Job* j = find(id)) {
                 j->journal = jn;
                 save();
@@ -282,7 +282,7 @@ void retry_due()
     bool         any = false;
     for (download::Job& j : s_jobs)
         if (j.state == download::State::Failed && j.retry_at > 0 && j.retry_at <= now) {
-            brls::Logger::info("downloads: {} tried again ({} of {})", j.name, j.attempts, download::RETRIES);
+            aurore::Logger::info("downloads: {} tried again ({} of {})", j.name, j.attempts, download::RETRIES);
             j.retry_at = 0;
             j.state = download::State::Waiting;
             any = true;
@@ -306,7 +306,7 @@ void tick()
     retry_due();
     const bool quiet = !s_running.empty() && now_seconds() - s_last_byte >= download::QUIET_SHOWN;
     if (quiet || waiting_retry) changed();
-    brls::delay(1000, []() { tick(); });
+    aurore::delay(1000, []() { tick(); });
 }
 
 void start_ticking()
@@ -340,7 +340,7 @@ void ahead_ended(const std::string& id, uint64_t have, uint64_t total, const std
     if (a.drop || !find(id)) {
         drop_ahead(id);
     } else if (!why.empty() && why != "cancelled") {
-        brls::Logger::warning("downloads: fetching ahead of {} stopped: {}", find(id)->name, why);
+        aurore::Logger::warning("downloads: fetching ahead of {} stopped: {}", find(id)->name, why);
         a.failed = true;
     }
     changed();
@@ -371,13 +371,13 @@ void fetch_ahead()
         credentials_of(job, &headers, &pin);
         const std::string id = job.id, url = job.url, path = ahead_path(job.id);
         const auto        stop = a.stop;
-        brls::Logger::info("downloads: fetching {} ahead", job.name);
+        aurore::Logger::info("downloads: fetching {} ahead", job.name);
         ui::in_background("fetch ahead", [id, url, path, headers, pin, stop, reserve]() {
             std::string why;
             uint64_t    total = 0;
             uint64_t    have = file_size(path);
             if (!http::resource_size(url, &total, &why, headers, pin)) {
-                brls::sync([id, have, why]() { ahead_ended(id, have, 0, why); });
+                aurore::sync([id, have, why]() { ahead_ended(id, have, 0, why); });
                 return;
             }
             if (have > total) {   // another package's: started over
@@ -385,7 +385,7 @@ void fetch_ahead()
                 have = 0;
             }
             if (have < total && !download::room_ahead(sd_free(), total - have, total, reserve)) {
-                brls::sync([id, have, total]() { ahead_ended(id, have, total, "no room on the SD card"); });
+                aurore::sync([id, have, total]() { ahead_ended(id, have, total, "no room on the SD card"); });
                 return;
             }
             FILE* f = have < total ? std::fopen(path.c_str(), "ab") : nullptr;
@@ -403,7 +403,7 @@ void fetch_ahead()
                                 const auto t = std::chrono::steady_clock::now();
                                 if (t - last >= std::chrono::milliseconds(500)) {
                                     last = t;
-                                    brls::sync([id, have, total]() {
+                                    aurore::sync([id, have, total]() {
                                         Ahead& now = s_ahead[id];
                                         now.have = have;
                                         now.total = total;
@@ -418,7 +418,7 @@ void fetch_ahead()
             }
             have = file_size(path);
             if (have >= total) why.clear();
-            brls::sync([id, have, total, why]() { ahead_ended(id, have, total, why); });
+            aurore::sync([id, have, total, why]() { ahead_ended(id, have, total, why); });
         });
     }
 }
@@ -438,16 +438,16 @@ void finished(const std::string& id, const Outcome& o)
         s_jobs.erase(std::remove_if(s_jobs.begin(), s_jobs.end(), [&](const download::Job& x) { return x.id == id; }),
                      s_jobs.end());
     } else if (j && o.ok) {
-        brls::Logger::info("downloads: {} installed", j->name);
+        aurore::Logger::info("downloads: {} installed", j->name);
         j->state = download::State::Done;
         j->journal.reset();
         j->done = j->total;
         j->attempts = 0;
-        ui::notify(brls::getStr("playshelf/downloads/done_toast", j->name), ui::Toast::Done);
+        ui::notify(aurore::getStr("playshelf/downloads/done_toast", j->name), ui::Toast::Done);
     } else if (j && o.paused) {
         j->state = download::State::Paused;
     } else if (j) {
-        brls::Logger::warning("downloads: {} failed: {}", j->name, o.why);
+        aurore::Logger::warning("downloads: {} failed: {}", j->name, o.why);
         j->state = download::State::Failed;
         j->error = o.why;
         j->unsigned_content = o.unsigned_content;
@@ -457,9 +457,9 @@ void finished(const std::string& id, const Outcome& o)
         if (delay) {
             j->attempts++;
             j->retry_at = now_seconds() + *delay;
-            brls::Logger::info("downloads: {} tried again in {} s", j->name, *delay);
+            aurore::Logger::info("downloads: {} tried again in {} s", j->name, *delay);
         } else {
-            ui::notify(brls::getStr("playshelf/downloads/failed_toast", j->name), ui::Toast::Refused);
+            ui::notify(aurore::getStr("playshelf/downloads/failed_toast", j->name), ui::Toast::Refused);
         }
         start_ticking();
     }
@@ -495,10 +495,10 @@ void run(download::Job& job)
     const int                        connections = config::get().connections;
     const auto                       a = s_ahead.find(job.id);
     const uint64_t                   ahead = a != s_ahead.end() ? a->second.have : 0;
-    brls::Logger::info("downloads: {} started ({} connections, {} bytes fetched ahead)", job.name, connections, ahead);
+    aurore::Logger::info("downloads: {} started ({} connections, {} bytes fetched ahead)", job.name, connections, ahead);
     ui::in_background("download", [copy, headers, pin, connections, ahead, snapshot, ctl]() {
         const Outcome o = run_job(copy, headers, pin, connections, ahead, snapshot, ctl);
-        brls::sync([id = copy.id, o]() { finished(id, o); });
+        aurore::sync([id = copy.id, o]() { finished(id, o); });
     });
     save();
     changed();
@@ -537,7 +537,7 @@ void start_next()
     if (!job.server_id.empty()) {
         const std::vector<library::Server> servers = library::load_servers();
         if (!library::find_server(servers, job.server_id)) {
-            brls::Logger::warning("downloads: {}: its server is no longer there", job.name);
+            aurore::Logger::warning("downloads: {}: its server is no longer there", job.name);
             job.state = download::State::Failed;
             job.error = download::SERVER_GONE;
             save();
@@ -547,11 +547,11 @@ void start_next()
         }
     }
     if (download::installed_already(job, *library_flow::installed())) {
-        brls::Logger::info("downloads: {} is on the console already", job.name);
+        aurore::Logger::info("downloads: {} is on the console already", job.name);
         job.state = download::State::Done;
         job.journal.reset();
         job.done = job.total;
-        ui::notify(brls::getStr("playshelf/downloads/already_toast", job.name), ui::Toast::Done);
+        ui::notify(aurore::getStr("playshelf/downloads/already_toast", job.name), ui::Toast::Done);
         save();
         changed();
         start_next();
@@ -576,7 +576,7 @@ void undo_stopped(const download::Job& job)
         if (!console.ok()) return;
         for (const auto& id : jn.registered) console.delete_content(id);
         if (jn.writing) console.delete_placeholder(*jn.writing);
-        brls::sync([]() { library_flow::reread_installed([]() { changed(); }); });
+        aurore::sync([]() { library_flow::reread_installed([]() { changed(); }); });
     });
 }
 }   // namespace
@@ -598,7 +598,7 @@ void init()
         }
         ::closedir(d);
     }
-    if (!s_jobs.empty()) brls::Logger::info("downloads: {} in the queue, {} not finished", s_jobs.size(), download::pending(s_jobs));
+    if (!s_jobs.empty()) aurore::Logger::info("downloads: {} in the queue, {} not finished", s_jobs.size(), download::pending(s_jobs));
 }
 
 const std::vector<download::Job>& jobs()
@@ -757,7 +757,7 @@ void use_other_address(const std::string& id)
     const auto        s = server_of(*j);
     const std::string url = s ? other_url(*j, *s) : "";
     if (url.empty()) return;
-    brls::Logger::info("downloads: {} from the server's other address", j->name);
+    aurore::Logger::info("downloads: {} from the server's other address", j->name);
     j->url = url;
     resume(id);
 }
@@ -776,16 +776,16 @@ void find_again(const std::string& id)
         download::Job* job = find(id);
         if (!job) return;
         if (!l) {
-            if (!why.empty()) ui::notify(brls::getStr("playshelf/downloads/find_failed", why), ui::Toast::Refused);
+            if (!why.empty()) ui::notify(aurore::getStr("playshelf/downloads/find_failed", why), ui::Toast::Refused);
             return;
         }
         const long at = download::find_again(*job, l->fetch.catalog.items);
         if (at < 0) {
-            ui::notify(brls::getStr("playshelf/downloads/find_none", job->name), ui::Toast::Refused);
+            ui::notify(aurore::getStr("playshelf/downloads/find_none", job->name), ui::Toast::Refused);
             return;
         }
         const library::Item& it = l->fetch.catalog.items[(size_t)at];
-        brls::Logger::info("downloads: {} found again in the catalogue", job->name);
+        aurore::Logger::info("downloads: {} found again in the catalogue", job->name);
         const bool moved = it.url != job->url;
         // Another file, maybe: what an earlier run kept is of no use.
         if (moved) {
@@ -795,7 +795,7 @@ void find_again(const std::string& id)
         }
         job->url = it.url;
         if (it.size) job->size = it.size;
-        ui::notify(brls::getStr(moved ? "playshelf/downloads/found_toast" : "playshelf/downloads/found_same", job->name),
+        ui::notify(aurore::getStr(moved ? "playshelf/downloads/found_toast" : "playshelf/downloads/found_same", job->name),
                    moved ? ui::Toast::Done : ui::Toast::Info);
         resume(id);
     });
@@ -843,15 +843,15 @@ std::string summary()
     const size_t left = download::pending(s_jobs);
     if (!left) {
         const auto failed = std::count_if(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) { return j.state == download::State::Failed; });
-        return failed ? brls::getStr("playshelf/downloads/summary_failed", failed) : "";
+        return failed ? aurore::getStr("playshelf/downloads/summary_failed", failed) : "";
     }
     if (!s_running.empty()) {
         const Live l = live();
         const int  percent = l.total ? (int)std::min<uint64_t>(100, l.done * 100 / l.total) : 0;
-        return brls::getStr("playshelf/downloads/summary_running", left, percent);
+        return aurore::getStr("playshelf/downloads/summary_running", left, percent);
     }
     const bool waiting = std::any_of(s_jobs.begin(), s_jobs.end(), [](const download::Job& j) { return j.state == download::State::Waiting; });
-    return brls::getStr(waiting ? "playshelf/downloads/summary_waiting" : "playshelf/downloads/summary_paused", left);
+    return aurore::getStr(waiting ? "playshelf/downloads/summary_waiting" : "playshelf/downloads/summary_paused", left);
 }
 
 void show_pill()

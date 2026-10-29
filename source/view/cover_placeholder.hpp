@@ -7,9 +7,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class CoverPlaceholder : public brls::Box
+class CoverPlaceholder : public aurore::Box
 {
   public:
     // The image slot's key, and the largest side its pictures are made at.
@@ -23,8 +23,8 @@ class CoverPlaceholder : public brls::Box
     // `side` × `side`, a gamepad `glyph` units wide, the well's corner `radius`.
     CoverPlaceholder(float side, float glyph, float radius);
 
-    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-              brls::FrameContext* ctx) override;
+    void draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+              aurore::FrameContext* ctx) override;
 
   private:
     float corner;

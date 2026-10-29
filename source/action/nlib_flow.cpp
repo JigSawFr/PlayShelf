@@ -2,8 +2,8 @@
 #include "action/nlib_flow.hpp"
 
 #include <algorithm>
-#include <borealis.hpp>
-#include <borealis/cadran/ui/live_prefs.hpp>
+#include <aurore.hpp>
+#include <aurore/cadran/ui/live_prefs.hpp>
 #include <ctime>
 #include <deque>
 #include <map>
@@ -82,7 +82,7 @@ std::shared_ptr<const titledb::Details> fetch(uint64_t base, const std::string& 
     std::string    why;
     if (!http::request(titledb::nlib_details_url(base, language), {}, "", &r, &why, titledb::NLIB_MAX_DETAILS, 10) ||
         r.status != 200 || !titledb::parse_nlib_details(r.body, base, d.get())) {
-        brls::Logger::debug("nlib: no details for {:016X} ({} {})", base, r.status, why);
+        aurore::Logger::debug("nlib: no details for {:016X} ({} {})", base, r.status, why);
         // A game it does not know; a failure of the network is tried again.
         if (r.status == 404) {
             std::lock_guard<std::mutex> hold(s_lock);
@@ -153,14 +153,14 @@ void drain()
         }
         bool offline = false;
         auto d = fetch(base, language, &offline);
-        if (d) brls::sync([base, d]() { keep(base, *d); });
+        if (d) aurore::sync([base, d]() { keep(base, *d); });
         if (offline) {
             std::lock_guard<std::mutex> hold(s_lock);
             s_queue.clear();
         }
     }
     // Done: the listeners told of the rest, the facts written.
-    brls::sync([]() {
+    aurore::sync([]() {
         if (s_untold) tell();
         save();
     });
@@ -172,8 +172,8 @@ void start()
     ui::in_background("nlib facts", []() {
         auto        book = std::make_shared<library::FactsBook>();
         std::string text;
-        if (paths::read_file(book_file(), text) && !book->from_json(text)) brls::Logger::warning("nlib: {} not read", book_file());
-        brls::sync([book]() {
+        if (paths::read_file(book_file(), text) && !book->from_json(text)) aurore::Logger::warning("nlib: {} not read", book_file());
+        aurore::sync([book]() {
             // Facts that came meanwhile stay: they are newer.
             s_book.add_missing(*book);
             tell();
@@ -188,7 +188,7 @@ void details(uint64_t title_id, std::function<void(std::shared_ptr<const titledb
     const std::string language = titledb::nlib_language(live_prefs::locale());
     ui::in_background("nlib details", [base, language, done]() {
         auto d = fetch(base, language);
-        brls::sync([base, d, done]() {
+        aurore::sync([base, d, done]() {
             if (d) {
                 keep(base, *d);
                 if (s_untold) tell();
@@ -241,7 +241,7 @@ std::string genre_name(const std::string& genre)
     for (char c : genre)
         slug += (c >= 'A' && c <= 'Z') ? (char)(c - 'A' + 'a') : ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) ? c : '_';
     const std::string key = "playshelf/genres/" + slug;
-    const std::string s = brls::getStr(key);
+    const std::string s = aurore::getStr(key);
     return s.empty() || s == key ? genre : s;
 }
 

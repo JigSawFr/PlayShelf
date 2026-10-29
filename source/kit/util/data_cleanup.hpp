@@ -2,7 +2,7 @@
 // log files" remove from PlayShelf's data folder, and the removal itself.
 // Folders stay (the icon store keeps writing to its own while the app runs);
 // only files go. Never the settings, the change history, backups, profiles,
-// exports or the GitHub sign-in. No borealis: host-tested (tests/data_cleanup).
+// exports or the GitHub sign-in. No Aurore: host-tested (tests/data_cleanup).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 

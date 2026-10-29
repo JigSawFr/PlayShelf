@@ -1,7 +1,7 @@
 # The web simulator
 
 The desktop simulator (`make desktop`, `source/sim/`), compiled with
-[Emscripten](https://emscripten.org) for a browser: the real borealis UI
+[Emscripten](https://emscripten.org) for a browser: the real Aurore UI
 against a simulated console and a demo library server, to click through a
 change, try a state or show a screen without a build on the console.
 In the website's look: its colours, its header in Boréale's night whatever
@@ -115,7 +115,7 @@ builds `build-web/simulator/`; `make web-serve` serves it at
 - `tools/web_demo.cpp`, built and run on the host first: the demo server's
   files in `build-web/demo/`.
 - `CMakeLists.txt`, under `emcmake` (`PLAYSHELF_WEB`): the desktop build on
-  borealis' SDL2 platform with OpenGL ES 3, which Emscripten maps to WebGL 2;
+  Aurore's SDL2 platform with OpenGL ES 3, which Emscripten maps to WebGL 2;
   SDL2 and zlib from Emscripten's ports; zstd's decompressor from its
   release's sources (`FetchContent`, its hash pinned: Emscripten has no port
   of it); no libcurl (`source/sim/web_http.cpp` instead); the resources
@@ -128,10 +128,10 @@ builds `build-web/simulator/`; `make web-serve` serves it at
   page, so the main loop is `emscripten_set_main_loop`.
 - Aurore (`library/aurore`) runs in a browser: no SDL haptic, a window fixed
   at the console's 1280×720 (the page scales the canvas),
-  `brls_web_button()`, which the page calls to press a button, and the CJK
-  font below as borealis' fallback when it is there at start-up.
+  `aurore_web_button()`, which the page calls to press a button, and the CJK
+  font below as Aurore's fallback when it is there at start-up.
 - **Japanese, Korean and Chinese**: a browser has no system font for
-  borealis to fall back on. The web build cuts the characters those four
+  Aurore to fall back on. The web build cuts the characters those four
   languages' catalogs use (PlayShelf's and Aurore's, for the theme names) out
   of Noto Sans CJK (SIL Open Font License,
   `tools/web_cjk_font.py`, which needs fontTools) into `cjk.otf`, served next

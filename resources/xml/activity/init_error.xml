@@ -3,10 +3,10 @@
 <!-- Shown when what PlayShelf needs from the console cannot be opened
      (typically: no custom firmware). B exits. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
-    <brls:Box
+    <aurore:Box
         title="@i18n/playshelf/init_error/title"
         icon="@res/img/app_icon.jpg"
         width="auto"
@@ -18,13 +18,13 @@
         paddingLeft="60"
         paddingRight="60">
 
-        <brls:Label
+        <aurore:Label
             text="@i18n/playshelf/init_error/headline"
             fontSize="28"
             horizontalAlign="center"
             marginBottom="20"/>
 
-        <brls:Label
+        <aurore:Label
             id="error_code"
             text="—"
             fontSize="20"
@@ -32,7 +32,7 @@
             marginBottom="12"
             textColor="@theme/cadran/text3"/>
 
-        <brls:Label
+        <aurore:Label
             id="error_fw"
             text=""
             fontSize="20"
@@ -40,10 +40,10 @@
             marginBottom="32"
             textColor="@theme/cadran/text3"/>
 
-        <brls:Label
+        <aurore:Label
             text="@i18n/playshelf/init_error/body"
             horizontalAlign="center"/>
 
-    </brls:Box>
+    </aurore:Box>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

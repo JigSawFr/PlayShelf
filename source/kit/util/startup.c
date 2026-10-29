@@ -11,7 +11,7 @@
 #endif
 
 // Written and read on the main thread only (userAppInit, main and the
-// brls::sync tasks). Zero-initialised: valid before the C++ constructors.
+// aurore::sync tasks). Zero-initialised: valid before the C++ constructors.
 static uint64_t g_at[StartupStep_Count];
 static bool g_marked[StartupStep_Count];
 
@@ -57,7 +57,7 @@ static const char* const LABELS[StartupStep_Count] = {
     "previous build check",
     "system: sysMMC or emuMMC",
     "preferences (config.json)",
-    "borealis: platform, translations",
+    "Aurore: platform, translations",
     "window: graphics, sounds, fonts",
     "loading screen, first frame",
     "start-up probe",

@@ -5,15 +5,15 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <functional>
 #include <string>
 #include <vector>
 
-#include <borealis/cadran/ui/guarded.hpp>
+#include <aurore/cadran/ui/guarded.hpp>
 
 
-class TabBase : public brls::Box
+class TabBase : public aurore::Box
 {
   public:
     // `refreshes`: X reads the tab again. Off for a tab that shows only
@@ -34,20 +34,20 @@ class TabBase : public brls::Box
     // screen of its own (Help). A sub-screen's way back.
     static std::string main_screen();
 
-    void        onChildFocusGained(brls::View* directChild, brls::View* focusedView) override;
+    void        onChildFocusGained(aurore::View* directChild, aurore::View* focusedView) override;
 
   protected:
     virtual void refresh() = 0;
 
     // Goes with the tab: what finishes later (a flow's callback after the
-    // network or a dialog, a background task's brls::sync) checks it, by
+    // network or a dialog, a background task's aurore::sync) checks it, by
     // ui::guarded, as a tab replaced by another is freed meanwhile.
     ui::Alive alive = ui::make_alive();
     // refresh(), once a flow is over: nothing if the tab is gone by then.
     std::function<void()> refresher() { return ui::guarded(this->alive, [this]() { this->refresh(); }); }
 
     // This tab is the one on screen. A tab replaced by another is freed a
-    // little later (borealis' free queue): until then, its timer and its
+    // little later (Aurore's free queue): until then, its timer and its
     // listeners must not refresh it, or what it sets for the whole screen
     // (the header's pill) would cover the new tab's.
     bool shown() const;
@@ -59,7 +59,7 @@ class TabBase : public brls::Box
     void enable_auto_refresh(int period_ms);
 
   private:
-    brls::RepeatingTimer auto_timer;
+    aurore::RepeatingTimer auto_timer;
     std::string screen;   // "tab/overview": how the frame statistics name this tab
 
     bool              focused_once    = false;

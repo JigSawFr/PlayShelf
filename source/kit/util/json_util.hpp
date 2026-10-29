@@ -1,6 +1,6 @@
 // json_util — reading the JSON files and answers PlayShelf is given without
 // an exception: each field read as its type or not at all, a text that is no
-// JSON as a false. Header-only, plain C++ (nlohmann/json, from borealis).
+// JSON as a false. Header-only, plain C++ (nlohmann/json, from Aurore).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -8,7 +8,7 @@
 #include <exception>
 #include <string>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
 namespace json_util
 {

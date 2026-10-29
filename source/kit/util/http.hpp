@@ -20,7 +20,7 @@ using Headers = std::vector<std::string>;
 // Follows redirects. False (and *error set, in English) on a network error,
 // an HTTP status >= 400, a timeout or a body larger than `max_bytes`;
 // *status gets the HTTP status when the server answered (a 404 tells
-// "nothing there" from a network failure). Blocking: call it from brls::async.
+// "nothing there" from a network failure). Blocking: call it from aurore::async.
 // Requests on several threads run side by side.
 bool get(const std::string& url, std::string* body, std::string* error,
          size_t max_bytes = 64 * 1024, long timeout_s = 10, const Headers& headers = {}, long* status = nullptr);

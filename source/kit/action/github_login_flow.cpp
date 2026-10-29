@@ -2,18 +2,18 @@
 #include "action/github_login_flow.hpp"
 
 #include <atomic>
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <chrono>
 #include <memory>
 #include <thread>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 #include "ui/ui.hpp"
 #include "util/github_auth.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace github_login_flow
 {
@@ -30,19 +30,19 @@ void show_code(const github_auth::DeviceCode& code, std::function<void()> done)
 
     // The code to type in the display face, large, its address's QR code
     // beside it to open the page from a phone.
-    auto* row = new brls::Box(brls::Axis::ROW);
-    row->setAlignItems(brls::AlignItems::CENTER);
-    row->setJustifyContent(brls::JustifyContent::CENTER);
-    brls::Label* user_code = cadran::kit::display(code.user_code, 44);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
+    row->setAlignItems(aurore::AlignItems::CENTER);
+    row->setJustifyContent(aurore::JustifyContent::CENTER);
+    aurore::Label* user_code = cadran::kit::display(code.user_code, 44);
     user_code->setMarginRight(32);
     row->addView(user_code);
     row->addView(cadran::kit::qr(code.verification_uri, 200, "", "playshelf/github/code_note"_i18n, 260));
-    auto* dialog = ui::dialog(brls::getStr("playshelf/github/code_body", text::short_url(code.verification_uri)), row);
+    auto* dialog = ui::dialog(aurore::getStr("playshelf/github/code_body", text::short_url(code.verification_uri)), row);
     ui::add_cancel(dialog, [cancelled]() { *cancelled = true; });
     dialog->open();
 
     // Polls for up to 15 minutes: on its own thread, not holding up the play
-    // log, the game icons and the rest of brls::async's single queue.
+    // log, the game icons and the rest of aurore::async's single queue.
     ui::in_background("GitHub sign-in", [code, cancelled, dialog, done]() {
         int interval = code.interval;
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(code.expires_in);
@@ -56,7 +56,7 @@ void show_code(const github_auth::DeviceCode& code, std::function<void()> done)
             if (result == github_auth::Poll::SlowDown) interval += 5;
             else if (result != github_auth::Poll::Pending) break;
         }
-        brls::sync([result, token, error, cancelled, dialog, done]() {
+        aurore::sync([result, token, error, cancelled, dialog, done]() {
             s_busy = false;
             if (*cancelled) return;   // the dialog is already closed
             *cancelled = true;
@@ -68,14 +68,14 @@ void show_code(const github_auth::DeviceCode& code, std::function<void()> done)
                         ui::notify("playshelf/github/signed_in"_i18n);
                         if (done) done();
                     } else {
-                        ui::error(brls::getStr("playshelf/github/failed", err));
+                        ui::error(aurore::getStr("playshelf/github/failed", err));
                     }
                     break;
                 case github_auth::Poll::Denied:
                     ui::info("playshelf/github/denied"_i18n);
                     break;
                 case github_auth::Poll::Failed:
-                    ui::error(brls::getStr("playshelf/github/failed", err));
+                    ui::error(aurore::getStr("playshelf/github/failed", err));
                     break;
                 default:   // expired (or still pending at the deadline)
                     ui::error("playshelf/github/expired"_i18n);
@@ -95,10 +95,10 @@ void sign_in(std::function<void()> done)
         github_auth::DeviceCode code;
         std::string err;
         const bool ok = github_auth::start(&code, &err);
-        brls::sync([ok, code, err, done]() {
+        aurore::sync([ok, code, err, done]() {
             if (!ok) {
                 s_busy = false;
-                ui::error(brls::getStr("playshelf/github/failed", err));
+                ui::error(aurore::getStr("playshelf/github/failed", err));
                 return;
             }
             show_code(code, done);   // s_busy until it ends

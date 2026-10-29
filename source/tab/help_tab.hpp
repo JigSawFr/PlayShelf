@@ -18,31 +18,31 @@ class HelpTab : public TabBase
     void refresh() override;
 
   private:
-    brls::RepeatingTimer stats_timer;   // the frame statistics' last line, every second while they run
+    aurore::RepeatingTimer stats_timer;   // the frame statistics' last line, every second while they run
 
     void update_frame_stats();
 
-    BRLS_BIND(brls::DetailCell,  export_cell, "hp_export");
-    BRLS_BIND(brls::Label,       export_note, "hp_export_note");
-    BRLS_BIND(brls::DetailCell,  upload,      "hp_upload");
-    BRLS_BIND(brls::DetailCell,  github,      "hp_github");
-    BRLS_BIND(brls::DetailCell,  mode,        "hp_mode");
-    BRLS_BIND(brls::DetailCell,  data,        "hp_data");
-    BRLS_BIND(brls::Label,       upload_note, "hp_upload_note");
-    BRLS_BIND(brls::DetailCell,  logs_keep,   "hp_logs_keep");
-    BRLS_BIND(brls::DetailCell,  logs_keep_days, "hp_logs_keep_days");
-    BRLS_BIND(brls::DetailCell,  logs_keep_mb, "hp_logs_keep_mb");
-    BRLS_BIND(brls::Label,       logs_note,   "hp_logs_note");
-    BRLS_BIND(brls::Header,      dev_header,  "hp_dev_header");
-    BRLS_BIND(brls::BooleanCell, dev_mode,    "hp_dev_mode");
-    BRLS_BIND(brls::BooleanCell, dev_read_only, "hp_dev_read_only");
-    BRLS_BIND(brls::BooleanCell, dev_frame_stats, "hp_dev_frame_stats");
-    BRLS_BIND(brls::BooleanCell, dev_glow, "hp_dev_glow");
-    BRLS_BIND(brls::Label,       dev_frame_stats_note, "hp_dev_frame_stats_note");
-    BRLS_BIND(brls::Label,       dev_frame_stats_last, "hp_dev_frame_stats_last");
-    BRLS_BIND(brls::DetailCell,  dev_clear_cache, "hp_dev_clear_cache");
-    BRLS_BIND(brls::DetailCell,  dev_clear_logs, "hp_dev_clear_logs");
-    BRLS_BIND(brls::DetailCell,  dev_report,  "hp_dev_report");
-    BRLS_BIND(brls::DetailCell,  dev_install, "hp_dev_install");
-    BRLS_BIND(brls::DetailCell,  dev_build,   "hp_dev_build");
+    AURORE_BIND(aurore::DetailCell,  export_cell, "hp_export");
+    AURORE_BIND(aurore::Label,       export_note, "hp_export_note");
+    AURORE_BIND(aurore::DetailCell,  upload,      "hp_upload");
+    AURORE_BIND(aurore::DetailCell,  github,      "hp_github");
+    AURORE_BIND(aurore::DetailCell,  mode,        "hp_mode");
+    AURORE_BIND(aurore::DetailCell,  data,        "hp_data");
+    AURORE_BIND(aurore::Label,       upload_note, "hp_upload_note");
+    AURORE_BIND(aurore::DetailCell,  logs_keep,   "hp_logs_keep");
+    AURORE_BIND(aurore::DetailCell,  logs_keep_days, "hp_logs_keep_days");
+    AURORE_BIND(aurore::DetailCell,  logs_keep_mb, "hp_logs_keep_mb");
+    AURORE_BIND(aurore::Label,       logs_note,   "hp_logs_note");
+    AURORE_BIND(aurore::Header,      dev_header,  "hp_dev_header");
+    AURORE_BIND(aurore::BooleanCell, dev_mode,    "hp_dev_mode");
+    AURORE_BIND(aurore::BooleanCell, dev_read_only, "hp_dev_read_only");
+    AURORE_BIND(aurore::BooleanCell, dev_frame_stats, "hp_dev_frame_stats");
+    AURORE_BIND(aurore::BooleanCell, dev_glow, "hp_dev_glow");
+    AURORE_BIND(aurore::Label,       dev_frame_stats_note, "hp_dev_frame_stats_note");
+    AURORE_BIND(aurore::Label,       dev_frame_stats_last, "hp_dev_frame_stats_last");
+    AURORE_BIND(aurore::DetailCell,  dev_clear_cache, "hp_dev_clear_cache");
+    AURORE_BIND(aurore::DetailCell,  dev_clear_logs, "hp_dev_clear_logs");
+    AURORE_BIND(aurore::DetailCell,  dev_report,  "hp_dev_report");
+    AURORE_BIND(aurore::DetailCell,  dev_install, "hp_dev_install");
+    AURORE_BIND(aurore::DetailCell,  dev_build,   "hp_dev_build");
 };

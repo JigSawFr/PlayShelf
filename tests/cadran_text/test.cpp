@@ -1,20 +1,20 @@
 // Host tests for Aurore's Cadran cadran_text.cpp, translated by the real
 // catalogs (library/aurore/resources/i18n/<lang>/cadran.json, read from the
 // repository root `make test` runs in) through ui/tr.hpp's stand-in for
-// borealis: a dialog's table marked and read back, a week's identical lines as
+// Aurore: a dialog's table marked and read back, a week's identical lines as
 // one (and a short table left alone), and a failure's title, reason, code and
 // report, in English and French, with or without each part.
 #include "check.h"
 #include <fstream>
 #include <map>
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <borealis/cadran/ui/cadran_text.hpp>
-#include <borealis/cadran/ui/tr.hpp>
+#include <aurore/cadran/ui/cadran_text.hpp>
+#include <aurore/cadran/ui/tr.hpp>
 
 static std::map<std::string, std::string> s_catalog;
 static std::set<std::string>              s_missing;   // keys asked for that the catalog lacks
@@ -38,11 +38,11 @@ static bool load(const std::string& lang)
     return !s_catalog.empty();
 }
 
-namespace brls
+namespace aurore
 {
 namespace internal
 {
-// As borealis: a key the catalog lacks reads as itself.
+// As Aurore: a key the catalog lacks reads as itself.
 std::string getRawStr(std::string name)
 {
     const auto it = s_catalog.find(name);
@@ -59,7 +59,7 @@ std::string operator""_i18n(const char* str, size_t len)
     return internal::getRawStr(std::string(str, len));
 }
 }   // namespace literals
-}   // namespace brls
+}   // namespace aurore
 
 using Rows = std::vector<std::pair<std::string, std::string>>;
 
@@ -102,12 +102,12 @@ static void test_failure()
     cadran_text::Failure f = failure("Could not unlock parental controls", "refused by the service", 0xC88E, false);
     CHECK(f.title == "Could not unlock parental controls");
     CHECK(f.reason == "Refused by the service");
-    CHECK(f.code == brls::getStr("cadran/error/code", "0x0000C88E"));
+    CHECK(f.code == aurore::getStr("cadran/error/code", "0x0000C88E"));
     CHECK(f.report);
 
     // No hint known: the code alone.
     f = failure("Could not save", "", 0x1234, false);
-    CHECK(f.title == "Could not save" && f.reason.empty() && f.code == brls::getStr("cadran/error/code", "0x00001234"));
+    CHECK(f.title == "Could not save" && f.reason.empty() && f.code == aurore::getStr("cadran/error/code", "0x00001234"));
 
     // One of PlayShelf's own results: its words, no code nor report.
     f = failure("", "The SD card is full.", 0x5678, true);
@@ -123,7 +123,7 @@ static void test_french()
     REQUIRE(load("fr"));
     const cadran_text::Failure f = cadran_text::failure("Impossible de d\u00E9verrouiller", "refus\u00E9", 0xC88E, false);
     CHECK(f.title == "Impossible de d\u00E9verrouiller" && f.reason == "Refus\u00E9" && f.report);
-    CHECK(f.code == brls::getStr("cadran/error/code", "0x0000C88E"));
+    CHECK(f.code == aurore::getStr("cadran/error/code", "0x0000C88E"));
     CHECK(f.code.find("0x0000C88E") != std::string::npos);
 }
 

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
 namespace library
 {

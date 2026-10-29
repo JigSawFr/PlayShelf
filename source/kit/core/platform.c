@@ -74,7 +74,7 @@ bool platform_boot_choice(const char *text)
         if (down & HidNpadButton_B) break;
         consoleUpdate(NULL);
     }
-    // The screen goes back to borealis, which sets up its own.
+    // The screen goes back to Aurore, which sets up its own.
     consoleExit(NULL);
     return a;
 }

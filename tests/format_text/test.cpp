@@ -1,6 +1,6 @@
 // Host tests for Aurore's Cadran format_text.cpp, translated by the real
 // catalogs (library/aurore/resources/i18n/<lang>/cadran.json, read from the
-// repository root `make test` runs in) through ui/tr.hpp's stand-in for borealis:
+// repository root `make test` runs in) through ui/tr.hpp's stand-in for Aurore:
 // minutes ("45 min", "2 h", "2 h 05"), a duration in nanoseconds (rounded to
 // the minute) and in seconds over any length ("< 1 min", "52 h 30", "278 h"),
 // the day names (in a title and inside a sentence, French for the
@@ -10,12 +10,12 @@
 #include <cstdint>
 #include <fstream>
 #include <map>
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 #include <set>
 #include <string>
 
-#include <borealis/cadran/ui/format_text.hpp>
-#include <borealis/cadran/ui/tr.hpp>
+#include <aurore/cadran/ui/format_text.hpp>
+#include <aurore/cadran/ui/tr.hpp>
 
 static std::map<std::string, std::string> s_catalog;
 static std::set<std::string>              s_missing;   // keys asked for that the catalog lacks
@@ -39,11 +39,11 @@ static bool load(const std::string& lang)
     return !s_catalog.empty();
 }
 
-namespace brls
+namespace aurore
 {
 namespace internal
 {
-// As borealis: a key the catalog lacks reads as itself.
+// As Aurore: a key the catalog lacks reads as itself.
 std::string getRawStr(std::string name)
 {
     const auto it = s_catalog.find(name);
@@ -60,7 +60,7 @@ std::string operator""_i18n(const char* str, size_t len)
     return internal::getRawStr(std::string(str, len));
 }
 }   // namespace literals
-}   // namespace brls
+}   // namespace aurore
 
 static void test_minutes()
 {

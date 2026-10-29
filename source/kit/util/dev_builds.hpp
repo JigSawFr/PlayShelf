@@ -261,7 +261,7 @@ using Progress = std::function<void(float done, Step step)>;
 
 // The builds that can be installed: the last releases, then (with a token)
 // main and the pull requests, with how their runs ended. Blocking (network):
-// run it with brls::async; `progress` (when set) is called from that thread.
+// run it with aurore::async; `progress` (when set) is called from that thread.
 // *needs_login is set when there is no token, so only the releases are listed.
 // On the desktop build PLAYSHELF_SIM_DEV_BUILDS ("offline", or a folder
 // holding releases.json, artifacts.json and pulls.json; latest.json for

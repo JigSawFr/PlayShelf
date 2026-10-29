@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <fmt/format.h>
 
 #include "action/download_flow.hpp"
@@ -17,7 +17,7 @@
 #include "tab/library_tab.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace insight_notices
 {
@@ -42,7 +42,7 @@ std::string names(const List& list, Name name)
 // `one` for 1, else `many` with the count.
 std::string count_text(size_t n, const char* one, const char* many)
 {
-    return n == 1 ? brls::getStr(one) : brls::getStr(many, n);
+    return n == 1 ? aurore::getStr(one) : aurore::getStr(many, n);
 }
 
 void library_with(library::Filter::State state)
@@ -92,7 +92,7 @@ void publish(const insights::Snapshot& s)
         wished.insert(id);
         const auto   data = w.found.data;
         const size_t index = w.found.index;
-        notices::set(id, notices::Level::Action, brls::getStr("playshelf/notices/wished", w.name, data->server.name),
+        notices::set(id, notices::Level::Action, aurore::getStr("playshelf/notices/wished", w.name, data->server.name),
                      "playshelf/notices/wished_detail"_i18n, see, [data, index]() { game_page::open(data, index); });
     }
     for (const std::string& id : s_wished)
@@ -110,7 +110,7 @@ void publish(const insights::Snapshot& s)
     // The SD card nearly full.
     if (insights::nearly_full(s.space))
         notices::set("storage", notices::Level::Action, "playshelf/notices/storage"_i18n,
-                     brls::getStr("playshelf/storage/free_of", library_flow::size_text(s.space.free),
+                     aurore::getStr("playshelf/storage/free_of", library_flow::size_text(s.space.free),
                                   library_flow::size_text(s.space.total)),
                      "playshelf/notices/make_room"_i18n, []() { StorageActivity::open(); });
     else

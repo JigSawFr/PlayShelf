@@ -13,13 +13,13 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-#include <borealis/cadran/view/loading_bar.hpp>
+#include <aurore/cadran/view/loading_bar.hpp>
 
 #include "view/loading_dial.hpp"
 
-class LoadingActivity : public brls::Activity
+class LoadingActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/loading.xml");
@@ -41,7 +41,7 @@ class LoadingActivity : public brls::Activity
         Screen,     // building the first screen
     };
 
-    static constexpr brls::Time INTRO_US = 2000000;
+    static constexpr aurore::Time INTRO_US = 2000000;
 
     void onContentAvailable() override;
     // `step` is running: its text under the bar, and the bar at its share
@@ -53,13 +53,13 @@ class LoadingActivity : public brls::Activity
     bool inIntro() const;
 
   private:
-    BRLS_BIND(LoadingBar, bar, "loading_bar");
-    BRLS_BIND(LoadingDial, dial, "loading_dial");
-    BRLS_BIND(brls::Label, step_text, "loading_step");
-    BRLS_BIND(brls::Rectangle, anchor, "loading_anchor");
-    BRLS_BIND(brls::Box, root, "loading_root");
-    BRLS_BIND(brls::Image, wordmark, "loading_wordmark");
-    BRLS_BIND(brls::Label, tagline, "loading_tagline");
+    AURORE_BIND(LoadingBar, bar, "loading_bar");
+    AURORE_BIND(LoadingDial, dial, "loading_dial");
+    AURORE_BIND(aurore::Label, step_text, "loading_step");
+    AURORE_BIND(aurore::Rectangle, anchor, "loading_anchor");
+    AURORE_BIND(aurore::Box, root, "loading_root");
+    AURORE_BIND(aurore::Image, wordmark, "loading_wordmark");
+    AURORE_BIND(aurore::Label, tagline, "loading_tagline");
 
     // The wordmark and the bar for the theme's background, again when it
     // changes.
@@ -68,7 +68,7 @@ class LoadingActivity : public brls::Activity
     Mode       mode;
     bool       light_wordmark = false;   // the wordmark shown is the light one (the XML's: the dark one)
     bool       themed = false;     // theme_changed holds a subscription
-    brls::Event<brls::ThemeVariant>::Subscription theme_changed;
-    brls::Time introStart = 0;   // 0: no intro
+    aurore::Event<aurore::ThemeVariant>::Subscription theme_changed;
+    aurore::Time introStart = 0;   // 0: no intro
     bool       skipped    = false;
 };

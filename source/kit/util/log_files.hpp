@@ -13,7 +13,7 @@
 // its own.
 // The date in the name (local time, as the console shows it) is what counts,
 // not the file's date, which the SD card does not always keep.
-// Plain C++ (no borealis): host-tested (tests/log_files).
+// Plain C++ (no Aurore): host-tested (tests/log_files).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 

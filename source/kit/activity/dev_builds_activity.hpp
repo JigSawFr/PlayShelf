@@ -22,15 +22,15 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-#include <borealis/cadran/view/loading_bar.hpp>
+#include <aurore/cadran/view/loading_bar.hpp>
 
 #include "util/dev_builds.hpp"
 
 class BuildCell;
 
-class DevBuildsActivity : public brls::Activity
+class DevBuildsActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/dev_builds.xml");
@@ -65,27 +65,27 @@ class DevBuildsActivity : public brls::Activity
     void sort();
 
     // How often the list is fetched again while a build's checks run.
-    static constexpr brls::Time REFRESH_MS = 3 * 60 * 1000;
+    static constexpr aurore::Time REFRESH_MS = 3 * 60 * 1000;
 
     dev_builds::Cache    cache;
     dev_builds::Kind     tab = dev_builds::Kind::Release;
     // The cells of db_list, kept here: the list's children are not only them
     // (the screen rising into place puts a mover first among them, ui/motion.cpp).
     std::vector<BuildCell*> cells;
-    brls::RepeatingTimer refresh_timer;
+    aurore::RepeatingTimer refresh_timer;
 
-    BRLS_BIND(brls::Label,      note,           "db_note");
-    BRLS_BIND(brls::Box,        loading_box,    "db_loading");
-    BRLS_BIND(LoadingBar,       loading_bar,    "db_loading_bar");
-    BRLS_BIND(brls::Label,      loading_text,   "db_loading_text");
-    BRLS_BIND(brls::Box,        tabs,           "db_tabs");
-    BRLS_BIND(brls::Label,      tab_l,          "db_tab_l");
-    BRLS_BIND(brls::Label,      tab_r,          "db_tab_r");
-    BRLS_BIND(brls::Button,     tab_release,    "db_tab_release");
-    BRLS_BIND(brls::Button,     tab_main,       "db_tab_main");
-    BRLS_BIND(brls::Button,     tab_pulls,      "db_tab_pulls");
-    BRLS_BIND(brls::Box,        list,           "db_list");
-    BRLS_BIND(brls::DetailCell, sign_in,        "db_sign_in");
-    BRLS_BIND(brls::DetailCell, back,           "db_back");
-    BRLS_BIND(brls::Label,      checked,        "db_checked");
+    AURORE_BIND(aurore::Label,      note,           "db_note");
+    AURORE_BIND(aurore::Box,        loading_box,    "db_loading");
+    AURORE_BIND(LoadingBar,       loading_bar,    "db_loading_bar");
+    AURORE_BIND(aurore::Label,      loading_text,   "db_loading_text");
+    AURORE_BIND(aurore::Box,        tabs,           "db_tabs");
+    AURORE_BIND(aurore::Label,      tab_l,          "db_tab_l");
+    AURORE_BIND(aurore::Label,      tab_r,          "db_tab_r");
+    AURORE_BIND(aurore::Button,     tab_release,    "db_tab_release");
+    AURORE_BIND(aurore::Button,     tab_main,       "db_tab_main");
+    AURORE_BIND(aurore::Button,     tab_pulls,      "db_tab_pulls");
+    AURORE_BIND(aurore::Box,        list,           "db_list");
+    AURORE_BIND(aurore::DetailCell, sign_in,        "db_sign_in");
+    AURORE_BIND(aurore::DetailCell, back,           "db_back");
+    AURORE_BIND(aurore::Label,      checked,        "db_checked");
 };

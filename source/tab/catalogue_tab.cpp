@@ -6,9 +6,9 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_frame.hpp>
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <aurore/cadran/ui/cadran_frame.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_modal.hpp>
 
 #include "action/download_flow.hpp"
 #include "action/game_page.hpp"
@@ -21,7 +21,7 @@
 #include "view/game_tile.hpp"
 #include "view/tool_chip.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -61,7 +61,7 @@ bool needs_facts()
 
 std::string order_text(size_t order)
 {
-    return brls::getStr(std::string("playshelf/library/sort_values/") + ORDERS[order]);
+    return aurore::getStr(std::string("playshelf/library/sort_values/") + ORDERS[order]);
 }
 
 // What a cover says under the name: installed (an update to get, in
@@ -81,15 +81,15 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
     std::string text = library_flow::size_text(t.size);
     if (t.base < 0) text += " · " + "playshelf/library/no_base"_i18n;
     else if (t.dlcs.size() == 1) text += " · " + "playshelf/library/dlc_count_one"_i18n;
-    else if (!t.dlcs.empty()) text += " · " + brls::getStr("playshelf/library/dlc_count", t.dlcs.size());
+    else if (!t.dlcs.empty()) text += " · " + aurore::getStr("playshelf/library/dlc_count", t.dlcs.size());
     tile->set_detail(text);
 }
 
 // The tab's room: the screen less the rail and the column's sides.
 float room()
 {
-    return brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
-           2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
+    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
+           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
 }
 
 int columns()
@@ -97,9 +97,9 @@ int columns()
     return std::max(1, (int)(room() / GameTile::WIDTH));
 }
 
-bool inside(brls::View* view, brls::View* parent)
+bool inside(aurore::View* view, aurore::View* parent)
 {
-    for (brls::View* v = view; v; v = v->getParent())
+    for (aurore::View* v = view; v; v = v->getParent())
         if (v == parent) return true;
     return false;
 }
@@ -111,16 +111,16 @@ CatalogueTab::CatalogueTab()
     cadran::kit::Empty empty = cadran::kit::empty("shelf");
     empty.title->setText("playshelf/library/empty_title"_i18n);
     empty.text->setText("playshelf/library/empty_text"_i18n);
-    auto* row = new brls::Box(brls::Axis::ROW);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
     row->setMarginTop(20);
-    row->setJustifyContent(brls::JustifyContent::CENTER);
+    row->setJustifyContent(aurore::JustifyContent::CENTER);
     auto button = [row](const std::string& text, const std::function<void()>& run) {
-        auto* b = new brls::Button();
+        auto* b = new aurore::Button();
         b->setText(text);
         cadran::style_button(b);
         b->setMarginLeft(8);
         b->setMarginRight(8);
-        b->registerClickAction([run](brls::View*) {
+        b->registerClickAction([run](aurore::View*) {
             run();
             return true;
         });
@@ -148,43 +148,43 @@ CatalogueTab::CatalogueTab()
     section_cell = new ToolChip("folder", "playshelf/library/section"_i18n);
     for (ToolChip* c : { server_cell, search_cell, sort_cell, filter_cell, section_cell }) bar->addView(c);
     cadran::kit::wrap(bar);
-    server_cell->registerClickAction([this](brls::View*) {
+    server_cell->registerClickAction([this](aurore::View*) {
         this->server_sheet();
         return true;
     });
-    search_cell->registerClickAction([this](brls::View*) {
+    search_cell->registerClickAction([this](aurore::View*) {
         this->search();
         return true;
     });
-    sort_cell->registerClickAction([this](brls::View*) {
+    sort_cell->registerClickAction([this](aurore::View*) {
         this->pick_sort();
         return true;
     });
-    filter_cell->registerClickAction([this](brls::View*) {
+    filter_cell->registerClickAction([this](aurore::View*) {
         this->pick_filter();
         return true;
     });
     // Facts came while a filter or an order needs them: the games again.
     this->nlib_listener = nlib_flow::listen(ui::guarded(this->alive, [this]() { this->facts_came(); }));
-    section_cell->registerClickAction([this](brls::View*) {
+    section_cell->registerClickAction([this](aurore::View*) {
         this->pick_section();
         return true;
     });
-    more->registerClickAction([this](brls::View*) {
+    more->registerClickAction([this](aurore::View*) {
         // The focus stays on the button's place: the first new cover takes it.
         const size_t first = this->built;
         this->add_page();
         if (first < this->built && this->grid_row) {
-            brls::View* line = this->grid->getChildren()[first / (size_t)columns()];
-            brls::Application::giveFocus(dynamic_cast<brls::Box*>(line)->getChildren()[first % (size_t)columns()]);
+            aurore::View* line = this->grid->getChildren()[first / (size_t)columns()];
+            aurore::Application::giveFocus(dynamic_cast<aurore::Box*>(line)->getChildren()[first % (size_t)columns()]);
         }
         return true;
     });
-    this->registerAction("playshelf/library/search"_i18n, brls::BUTTON_Y, [this](brls::View*) {
+    this->registerAction("playshelf/library/search"_i18n, aurore::BUTTON_Y, [this](aurore::View*) {
         if (this->server()) this->search();
         return true;
     });
-    this->registerAction("playshelf/library/reload"_i18n, brls::BUTTON_X, [this](brls::View*) {
+    this->registerAction("playshelf/library/reload"_i18n, aurore::BUTTON_X, [this](aurore::View*) {
         if (this->server()) this->load(true);
         return true;
     });
@@ -261,18 +261,18 @@ void CatalogueTab::show_status()
     if (library_flow::loading()) {
         text = "playshelf/library/loading"_i18n;
     } else if (!this->why_failed.empty()) {
-        text = brls::getStr("playshelf/library/failed", this->why_failed);
+        text = aurore::getStr("playshelf/library/failed", this->why_failed);
         color = "cadran/coral";
     } else if (this->shown_data) {
         const library::Fetch& f = this->shown_data->fetch;
-        text = brls::getStr(f.on_lan ? "playshelf/library/count_lan" : "playshelf/library/count_wan",
+        text = aurore::getStr(f.on_lan ? "playshelf/library/count_lan" : "playshelf/library/count_wan",
                             this->selection.size(), this->shown_data->titles.size());
         if (f.catalog.truncated) text += "\n" + "playshelf/library/truncated"_i18n;
         if (needs_facts()) {
             size_t known = 0;
             for (const library::Title& t : this->shown_data->titles)
                 if (t.id && nlib_flow::book().find(t.id)) known++;
-            text += "\n" + brls::getStr("playshelf/filters/known", known, this->shown_data->titles.size());
+            text += "\n" + aurore::getStr("playshelf/filters/known", known, this->shown_data->titles.size());
         }
         if (!f.catalog.motd.empty()) text += "\n" + f.catalog.motd;
     }
@@ -311,7 +311,7 @@ void CatalogueTab::build_grid(bool force)
     this->built_key = key;
     this->built_installed = installed;
 
-    if (inside(brls::Application::getCurrentFocus(), grid)) brls::Application::giveFocus(search_cell);
+    if (inside(aurore::Application::getCurrentFocus(), grid)) aurore::Application::giveFocus(search_cell);
     grid->clearViews(true);
     this->tiles.clear();
     this->tile_titles.clear();
@@ -375,7 +375,7 @@ void CatalogueTab::add_page()
     std::vector<uint64_t> shown_ids;
     for (; this->built < end; this->built++) {
         if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
-            this->grid_row = new brls::Box(brls::Axis::ROW);
+            this->grid_row = new aurore::Box(aurore::Axis::ROW);
             grid->addView(this->grid_row);
         }
         const size_t index = this->selection[this->built];
@@ -395,7 +395,7 @@ GameTile* CatalogueTab::make_tile(size_t index)
     auto*                 tile = new GameTile();
     tile->set_name(t.name);
     show_detail(tile, t, data->fetch.catalog, *this->built_installed);
-    tile->registerClickAction([this, index](brls::View*) {
+    tile->registerClickAction([this, index](aurore::View*) {
         this->open_title(index);
         return true;
     });
@@ -437,17 +437,17 @@ void CatalogueTab::add_shelves()
     if (!unknown.empty()) shelves.emplace_back("", std::move(unknown));
     for (auto& [genre, games] : shelves) {
         // Its genre in the display face, how many games in a soft chip.
-        auto* header = new brls::Box(brls::Axis::ROW);
-        header->setAlignItems(brls::AlignItems::CENTER);
+        auto* header = new aurore::Box(aurore::Axis::ROW);
+        header->setAlignItems(aurore::AlignItems::CENTER);
         header->setMarginTop(this->tiles.empty() ? 12 : 28);
         header->setMarginBottom(4);
         header->setMarginLeft(8);
         header->addView(cadran::kit::display(
             genre.empty() ? "playshelf/library/shelf_unknown"_i18n : nlib_flow::genre_name(genre), 24,
             genre.empty() ? "cadran/text2" : "cadran/text"));
-        auto* count = new brls::Box(brls::Axis::ROW);
+        auto* count = new aurore::Box(aurore::Axis::ROW);
         count->setHeight(26);
-        count->setAlignItems(brls::AlignItems::CENTER);
+        count->setAlignItems(aurore::AlignItems::CENTER);
         count->setPaddingLeft(10);
         count->setPaddingRight(10);
         count->setCornerRadius(13);
@@ -456,10 +456,10 @@ void CatalogueTab::add_shelves()
         count->addView(cadran::kit::label(std::to_string(games.size()), 15, genre.empty() ? "cadran/text2" : "cadran/teal"));
         header->addView(count);
         grid->addView(header);
-        auto* frame = new brls::HScrollingFrame();
+        auto* frame = new aurore::HScrollingFrame();
         frame->setWidth(room());
         frame->setHeight(GameTile::WIDTH + 64);
-        auto* row = new brls::Box(brls::Axis::ROW);
+        auto* row = new aurore::Box(aurore::Axis::ROW);
         frame->addView(row);
         grid->addView(frame);
         for (size_t i = 0; i < games.size() && i < SHELF_MAX; i++) row->addView(this->make_tile(games[i]));
@@ -467,12 +467,12 @@ void CatalogueTab::add_shelves()
         if (games.size() > SHELF_MAX && !genre.empty()) {
             auto* all = new GameTile();
             all->set_name("playshelf/library/shelf_all"_i18n);
-            all->set_detail(brls::getStr("playshelf/library/shelf_games", games.size()));
+            all->set_detail(aurore::getStr("playshelf/library/shelf_games", games.size()));
             all->set_detail_color("cadran/teal");
             const std::string g = genre;
             // The grid built again once this click is over (it frees this cover).
-            all->registerClickAction([this, g](brls::View*) {
-                brls::sync(ui::guarded(this->alive, [this, g]() {
+            all->registerClickAction([this, g](aurore::View*) {
+                aurore::sync(ui::guarded(this->alive, [this, g]() {
                     s_filter.genre = g;
                     s_order = 0;
                     this->refresh();
@@ -588,7 +588,7 @@ void CatalogueTab::after_saved(const std::string& saved_id)
     this->refresh();
 }
 
-brls::View* CatalogueTab::create()
+aurore::View* CatalogueTab::create()
 {
     return new CatalogueTab();
 }

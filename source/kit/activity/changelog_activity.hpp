@@ -3,9 +3,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class ChangelogActivity : public brls::Activity
+class ChangelogActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/changelog.xml");
@@ -13,7 +13,7 @@ class ChangelogActivity : public brls::Activity
     void onContentAvailable() override;
 
   private:
-    BRLS_BIND(brls::Header, header, "cl_header");
-    BRLS_BIND(brls::Box,    notes,  "cl_notes");
-    BRLS_BIND(brls::Label,  note,   "cl_note");
+    AURORE_BIND(aurore::Header, header, "cl_header");
+    AURORE_BIND(aurore::Box,    notes,  "cl_notes");
+    AURORE_BIND(aurore::Label,  note,   "cl_note");
 };

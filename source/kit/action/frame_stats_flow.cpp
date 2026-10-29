@@ -2,7 +2,7 @@
 #include "action/frame_stats_flow.hpp"
 
 #include <atomic>
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <chrono>
 #include <cstdio>
 #include <fcntl.h>
@@ -15,8 +15,8 @@
 #include <ctime>
 #endif
 
-#include <borealis/cadran/ui/cadran_list.hpp>
-#include <borealis/cadran/ui/effects.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/effects.hpp>
 
 #include "app.hpp"
 #include "core/local_time.h"
@@ -114,7 +114,7 @@ void write(const std::string& text, bool fresh)
         FILE* f = fd < 0 ? nullptr : ::fdopen(fd, fresh ? "w" : "a");
         if (!f) {
             if (fd >= 0) ::close(fd);
-            if (!s_warned.exchange(true)) brls::Logger::warning("frame_stats: cannot write {}", frame_stats::path());
+            if (!s_warned.exchange(true)) aurore::Logger::warning("frame_stats: cannot write {}", frame_stats::path());
             return;
         }
         std::fputs(text.c_str(), f);
@@ -125,7 +125,7 @@ void write(const std::string& text, bool fresh)
 
 void flush()
 {
-    const std::string size = fmt::format("{}x{}", brls::Application::windowWidth, brls::Application::windowHeight);
+    const std::string size = fmt::format("{}x{}", aurore::Application::windowWidth, aurore::Application::windowHeight);
     const std::string l    = frame_stats::line(stamp(), mode(), size, s_screen, s_second);
     s_last = l.substr(0, l.size() - 1);
     write(l, false);
@@ -165,7 +165,7 @@ void sample()
     }
     // nanovg's own counters for the frame (Aurore's nvgDebugGetStats).
     int draws = 0, fill = 0, stroke = 0, text = 0;
-    nvgDebugGetStats(brls::Application::getNVGContext(), &draws, &fill, &stroke, &text);
+    nvgDebugGetStats(aurore::Application::getNVGContext(), &draws, &fill, &stroke, &text);
     s_second.add(now - s_last_wall_us, cpu - s_last_cpu_us, draws, fill + stroke + text);
     s_last_wall_us = now;
     s_last_cpu_us  = cpu;

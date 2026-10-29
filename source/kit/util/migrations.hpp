@@ -2,7 +2,7 @@
 // each instead of at every start: data_dir()/migrations.json keeps the last one done and the
 // build that last started, and a start runs only the steps above it, in
 // order. On the SD card each look for a file costs about a millisecond, and
-// the old names are missing at nearly every start. Plain C++ (no borealis):
+// the old names are missing at nearly every start. Plain C++ (no Aurore):
 // host-tested (tests/migrations).
 //
 //   {"schema": 1, "level": 3, "version": "1.2.0"}

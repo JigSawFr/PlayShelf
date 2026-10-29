@@ -6,7 +6,7 @@
      saying where the catalogue stands, then its games as a grid of covers
      (a page at a time, "Show more" after it). -->
 
-<brls:Box
+<aurore:Box
     width="auto"
     height="auto">
 
@@ -15,30 +15,30 @@
         height="auto"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="lb_content"
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingLeft="@style/brls/tab_frame/content_padding_sides"
-            paddingRight="@style/brls/tab_frame/content_padding_sides"
-            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+            paddingLeft="@style/aurore/tab_frame/content_padding_sides"
+            paddingRight="@style/aurore/tab_frame/content_padding_sides"
+            paddingTop="@style/aurore/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/aurore/tab_frame/content_padding_top_bottom">
 
-            <brls:Box id="lb_empty" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <aurore:Box id="lb_empty" width="auto" height="auto" axis="column" alignItems="stretch"/>
             <!-- The server, search, order, filters and section as pills
                  (view/tool_chip, made in code). -->
-            <brls:Box id="lb_bar" width="auto" height="auto" axis="row"/>
-            <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="4">
-                <brls:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
-            </brls:Box>
-            <brls:Box id="lb_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
-            <brls:Button id="lb_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
+            <aurore:Box id="lb_bar" width="auto" height="auto" axis="row"/>
+            <aurore:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="4">
+                <aurore:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
+            </aurore:Box>
+            <aurore:Box id="lb_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
+            <aurore:Button id="lb_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
                 width="320" alignSelf="center"/>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:Box>
+</aurore:Box>

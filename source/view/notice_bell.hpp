@@ -8,9 +8,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class NoticeBell : public brls::View
+class NoticeBell : public aurore::View
 {
   public:
     NoticeBell();
@@ -20,18 +20,18 @@ class NoticeBell : public brls::View
     // focus. Called once, at start-up.
     static void install();
 
-    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-              brls::FrameContext* ctx) override;
+    void draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+              aurore::FrameContext* ctx) override;
     // Touched although it is not focusable.
-    brls::View* hitTest(brls::Point point) override;
+    aurore::View* hitTest(aurore::Point point) override;
 
   private:
     int listener = 0;
     int actions  = 0;
     int infos    = 0;
     bool counted = false;        // update() ran once: a change after that moves
-    brls::Time swing_since = 0;  // a new entry to do: the bell swings (µs; 0 at rest)
-    brls::Time pop_since   = 0;  // the number changed: its disc pops
+    aurore::Time swing_since = 0;  // a new entry to do: the bell swings (µs; 0 at rest)
+    aurore::Time pop_since   = 0;  // the number changed: its disc pops
 
     void update();
 };

@@ -45,7 +45,7 @@ void platform_exit_to_home(void);
 void platform_romfs_release(void);
 void platform_romfs_mount(void);
 
-// A text screen before borealis starts (libnx's console), for the
+// A text screen before Aurore starts (libnx's console), for the
 // start-up's own question (action/rollback_flow): `text`, then waits for A
 // (true) or B (false; also when the HOME menu closes PlayShelf). Plain
 // ASCII: the console's font has nothing else.

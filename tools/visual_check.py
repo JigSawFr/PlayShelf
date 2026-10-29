@@ -5,7 +5,7 @@ Compares every reference image of <reference-dir> (tests/visual/<scenario>/
 NAME.png) with NAME.png in <shots-dir>, the output folder of
 tools/desktop_smoke.py, and fails when a screen changed. The smoke test fixes
 the console's time (PLAYSHELF_SIM_NOW, TZ), so only the footer clock follows
-the host (borealis reads it): it is redrawn at the console's time, 16:00,
+the host (Aurore reads it): it is redrawn at the console's time, 16:00,
 in the clock's own font, colours and place, in the references as in the
 screenshots compared with them. A pixel counts as changed when its colour moves by
 more than --fuzz (15 %: anti-aliasing noise stays below that; the smoke test draws
@@ -55,11 +55,11 @@ import tempfile
 
 # The footer clock (bottom left): the host's time, different in every run.
 # It is redrawn as the console's time in the smoke test (PLAYSHELF_SIM_NOW
-# 1791475200, TZ=UTC), in borealis' footer font, where the label is drawn.
+# 1791475200, TZ=UTC), in Aurore's footer font, where the label is drawn.
 CLOCK_AREA = (30, 655, 220, 50)         # x, y, width, height: the clock only (a dialog starts at x 280)
 CLOCK_TEXT = "16:00"
 CLOCK_ORIGIN = (55, 692)                # the label's text origin (baseline)
-CLOCK_SIZE = "21.5"                     # brls/hints/time fontSize
+CLOCK_SIZE = "21.5"                     # aurore/hints/time fontSize
 # With Preferences › Text size's larger text, the footer's clock is 1.15
 # times that (HINTS_SCALE, Aurore's cadran_frame.cpp), its baseline a pixel
 # lower: a clock at least this tall (its ink, in pixels; 17 to 19 at the

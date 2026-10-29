@@ -5,7 +5,7 @@
      have more of (A reads them again), then the games as a grid of covers
      (a page at a time, "Show more" after it). -->
 
-<brls:Box
+<aurore:Box
     width="auto"
     height="auto">
 
@@ -14,28 +14,28 @@
         height="auto"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="li_content"
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingLeft="@style/brls/tab_frame/content_padding_sides"
-            paddingRight="@style/brls/tab_frame/content_padding_sides"
-            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+            paddingLeft="@style/aurore/tab_frame/content_padding_sides"
+            paddingRight="@style/aurore/tab_frame/content_padding_sides"
+            paddingTop="@style/aurore/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/aurore/tab_frame/content_padding_top_bottom">
 
             <!-- How many games (A: read them again) and the order and filters,
                  as pills (view/tool_chip, made in code). -->
-            <brls:Box id="li_bar" width="auto" height="auto" axis="row"/>
-            <brls:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
-            <brls:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
-            <brls:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
-            <brls:Button id="li_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
+            <aurore:Box id="li_bar" width="auto" height="auto" axis="row"/>
+            <aurore:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
+            <aurore:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
+            <aurore:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
+            <aurore:Button id="li_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
                 width="320" alignSelf="center"/>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:Box>
+</aurore:Box>

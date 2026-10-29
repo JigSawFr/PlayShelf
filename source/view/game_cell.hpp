@@ -4,10 +4,10 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <cstdint>
 
-class GameCell : public brls::DetailCell
+class GameCell : public aurore::DetailCell
 {
   public:
     GameCell();
@@ -16,7 +16,7 @@ class GameCell : public brls::DetailCell
     void set_icon(const uint8_t* rgba, int width, int height);
 
   private:
-    brls::Box*   slot = nullptr;   // the well, the gamepad, the icon
-    brls::View*  placeholder = nullptr;
-    brls::Image* icon = nullptr;
+    aurore::Box*   slot = nullptr;   // the well, the gamepad, the icon
+    aurore::View*  placeholder = nullptr;
+    aurore::Image* icon = nullptr;
 };

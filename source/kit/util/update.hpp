@@ -66,7 +66,7 @@ bool offer_at_start(const std::string& latest, const std::string& running, const
                     const std::string& today);
 
 // Fetches compat.json of the latest release and decides. Blocking (network):
-// run it with brls::async. On the desktop build PLAYSHELF_SIM_LATEST
+// run it with aurore::async. On the desktop build PLAYSHELF_SIM_LATEST
 // ("1.1.0:24.0.0", "none" or "offline") replaces the network.
 Result      check(uint32_t console_fw);
 

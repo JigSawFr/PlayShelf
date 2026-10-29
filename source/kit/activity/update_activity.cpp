@@ -8,7 +8,7 @@
 #include "util/changelog.hpp"
 #include "view/release_notes.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -24,10 +24,10 @@ std::vector<changelog::Line> notes_of(const dev_builds::Build& b, std::string* d
 
 void UpdateActivity::show(const update_flow::Offer& offer)
 {
-    brls::Logger::info("update: offering {}", offer.result.latest.version);
+    aurore::Logger::info("update: offering {}", offer.result.latest.version);
     auto* activity = new UpdateActivity();
     activity->offer = offer;
-    brls::Application::pushActivity(activity);
+    aurore::Application::pushActivity(activity);
 }
 
 void UpdateActivity::onContentAvailable()
@@ -37,39 +37,39 @@ void UpdateActivity::onContentAvailable()
     notes_none->setSingleLine(false);
 
     const std::string& version = this->offer.result.latest.version;
-    headline->setText(brls::getStr("playshelf/update/headline", version));
+    headline->setText(aurore::getStr("playshelf/update/headline", version));
 
     std::string date;
     const auto lines = this->offer.has_release ? notes_of(this->offer.release, &date) : std::vector<changelog::Line>{};
     if (date.empty() && this->offer.has_release) date = dev_builds::short_date(this->offer.release.date).substr(0, 10);
-    std::string text = brls::getStr("playshelf/update/running", app::version());
-    if (!date.empty()) text = brls::getStr("playshelf/update/released", date) + "\n" + text;
+    std::string text = aurore::getStr("playshelf/update/running", app::version());
+    if (!date.empty()) text = aurore::getStr("playshelf/update/released", date) + "\n" + text;
     if (this->offer.result.verdict == update::Verdict::UpdateNoSupport) {
         const std::string fw = ui::hos_text(sysinfo_hos_version());
-        text += "\n" + brls::getStr("playshelf/update/available_no_fw", fw);
+        text += "\n" + aurore::getStr("playshelf/update/available_no_fw", fw);
     }
     body->setText(text);
 
-    notes_header->setTitle(brls::getStr("playshelf/about/section_changelog", version));
+    notes_header->setTitle(aurore::getStr("playshelf/about/section_changelog", version));
     release_notes::fill(notes, lines);
     const std::string releases = std::string(app::repo_url()) + "/releases";
-    notes_none->setText(brls::getStr(lines.empty() ? "playshelf/update/notes_none" : "playshelf/about/changelog_note",
+    notes_none->setText(aurore::getStr(lines.empty() ? "playshelf/update/notes_none" : "playshelf/about/changelog_note",
                                      releases));
 
-    update->registerClickAction([](brls::View*) {
+    update->registerClickAction([](aurore::View*) {
         update_flow::update_now();
         return true;
     });
-    method->registerClickAction([this](brls::View*) {
+    method->registerClickAction([this](aurore::View*) {
         update_flow::choose_method([this]() { this->refresh(); });
         return true;
     });
-    later->registerClickAction([version](brls::View*) {
-        update_flow::postpone(version, []() { brls::Application::popActivity(); });
+    later->registerClickAction([version](aurore::View*) {
+        update_flow::postpone(version, []() { aurore::Application::popActivity(); });
         return true;
     });
     this->refresh();
-    brls::Application::giveFocus(update.getView());
+    aurore::Application::giveFocus(update.getView());
 }
 
 void UpdateActivity::refresh()

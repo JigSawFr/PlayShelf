@@ -6,7 +6,7 @@
 // std::thread::detach() throws, and the std::thread it leaves joinable ends
 // the app with std::terminate as it goes out of scope, before any catch. So
 // no thread is detached here: each is kept until its task is over, then
-// joined by the next start() or by wait_all(). No borealis: host-tested
+// joined by the next start() or by wait_all(). No Aurore: host-tested
 // (tests/worker_threads).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once

@@ -4,7 +4,7 @@
 //
 // Each step is marked once, when it ends, on a monotonic clock (the system
 // tick on the Switch). The first mark is the first PlayShelf code that runs:
-// borealis' userAppInit, called by libnx before main (core/startup_hook.c;
+// Aurore's userAppInit, called by libnx before main (core/startup_hook.c;
 // not on desktop, which starts at main). The time hbloader takes to load the
 // .nro comes before any PlayShelf code and is not measured.
 // Plain C with no libnx (but the clock), so it can be marked before the C++
@@ -22,15 +22,15 @@ extern "C" {
 
 typedef enum {
     StartupStep_ServicesBegin,   // userAppInit called: libnx's own services are up
-    StartupStep_Services,        // it returned: sockets, romfs, settings, network (borealis' switch_wrapper.c)
+    StartupStep_Services,        // it returned: sockets, romfs, settings, network (Aurore's switch_wrapper.c)
     StartupStep_Main,            // main() entered: the C++ static constructors ran
     StartupStep_Migrations,      // the data folder of older versions' layouts moved, once (util/migrations.hpp)
     StartupStep_Session,         // this run's session file, the last run checked for a crash
     StartupStep_Rollback,        // rollback_flow::at_start: a build that never reached its first screen
     StartupStep_System,          // the system (sysMMC or emuMMC) and its folder
     StartupStep_Preferences,     // config.json read
-    StartupStep_Borealis,        // brls::Application::init: the platform, the translations
-    StartupStep_Window,          // brls::Application::createWindow: graphics (deko3d), sounds, fonts
+    StartupStep_Borealis,        // aurore::Application::init: the platform, the translations
+    StartupStep_Window,          // aurore::Application::createWindow: graphics (deko3d), sounds, fonts
     StartupStep_LoadingDrawn,    // the loading screen's first frame drawn
     StartupStep_Probed,          // app::init: what the app needs from the console probed
     StartupStep_Settings,        // the first screen chosen

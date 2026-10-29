@@ -1,5 +1,5 @@
 // rollback_flow — going back to the previous build (util/rollback.hpp).
-// At start-up, before borealis (so a build that crashes in its UI still
+// At start-up, before Aurore (so a build that crashes in its UI still
 // gets there): when the last start of a build just installed never reached
 // its first screen, a text screen offers the previous build; A asks for
 // the PIN (the system's screen, when one is set), swaps the two .nro files

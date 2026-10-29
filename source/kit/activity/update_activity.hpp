@@ -7,11 +7,11 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include "action/update_flow.hpp"
 
-class UpdateActivity : public brls::Activity
+class UpdateActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/update.xml");
@@ -25,12 +25,12 @@ class UpdateActivity : public brls::Activity
 
     void refresh();
 
-    BRLS_BIND(brls::Label,      headline,     "up_headline");
-    BRLS_BIND(brls::Label,      body,         "up_body");
-    BRLS_BIND(brls::DetailCell, update,       "up_update");
-    BRLS_BIND(brls::DetailCell, method,       "up_method");
-    BRLS_BIND(brls::DetailCell, later,        "up_later");
-    BRLS_BIND(brls::Header,     notes_header, "up_notes_header");
-    BRLS_BIND(brls::Box,        notes,        "up_notes");
-    BRLS_BIND(brls::Label,      notes_none,   "up_notes_none");
+    AURORE_BIND(aurore::Label,      headline,     "up_headline");
+    AURORE_BIND(aurore::Label,      body,         "up_body");
+    AURORE_BIND(aurore::DetailCell, update,       "up_update");
+    AURORE_BIND(aurore::DetailCell, method,       "up_method");
+    AURORE_BIND(aurore::DetailCell, later,        "up_later");
+    AURORE_BIND(aurore::Header,     notes_header, "up_notes_header");
+    AURORE_BIND(aurore::Box,        notes,        "up_notes");
+    AURORE_BIND(aurore::Label,      notes_none,   "up_notes_none");
 };

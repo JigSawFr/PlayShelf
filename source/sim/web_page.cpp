@@ -5,7 +5,7 @@
 
 #include <cstring>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include "core/sim_env.h"
 
@@ -22,20 +22,20 @@ extern "C" EMSCRIPTEN_KEEPALIVE int playshelf_web_setenv(const char* name, const
 
 // The CJK font, fetched by the page after PlayShelf started (it is only
 // waited for when the page is in Japanese, Korean or Chinese): added behind
-// the Latin one, as borealis does at start-up when it is there already.
+// the Latin one, as Aurore does at start-up when it is there already.
 extern "C" EMSCRIPTEN_KEEPALIVE int playshelf_web_cjk_font(const char* path)
 {
-    NVGcontext* vg = brls::Application::getNVGContext();
-    if (!vg || !path || brls::Application::getFont(brls::FONT_CHINESE_SIMPLIFIED) != brls::FONT_INVALID) return 0;
-    if (!brls::Application::loadFontFromFile(brls::FONT_CHINESE_SIMPLIFIED, path)) return 0;
-    nvgAddFallbackFontId(vg, brls::Application::getFont(brls::FONT_REGULAR), brls::Application::getFont(brls::FONT_CHINESE_SIMPLIFIED));
-    brls::Logger::info("Using {} font: {}", brls::FONT_CHINESE_SIMPLIFIED, path);
+    NVGcontext* vg = aurore::Application::getNVGContext();
+    if (!vg || !path || aurore::Application::getFont(aurore::FONT_CHINESE_SIMPLIFIED) != aurore::FONT_INVALID) return 0;
+    if (!aurore::Application::loadFontFromFile(aurore::FONT_CHINESE_SIMPLIFIED, path)) return 0;
+    nvgAddFallbackFontId(vg, aurore::Application::getFont(aurore::FONT_REGULAR), aurore::Application::getFont(aurore::FONT_CHINESE_SIMPLIFIED));
+    aurore::Logger::info("Using {} font: {}", aurore::FONT_CHINESE_SIMPLIFIED, path);
     return 1;
 }
 
-// The smoke test (tools/web_smoke.py) before a screenshot: 1 while borealis
+// The smoke test (tools/web_smoke.py) before a screenshot: 1 while Aurore
 // holds the input, a screen still opening or closing.
 extern "C" EMSCRIPTEN_KEEPALIVE int playshelf_web_busy()
 {
-    return brls::Application::isInputBlocks() ? 1 : 0;
+    return aurore::Application::isInputBlocks() ? 1 : 0;
 }

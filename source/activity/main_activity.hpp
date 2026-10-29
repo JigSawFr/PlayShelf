@@ -3,13 +3,13 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class MainActivity : public brls::Activity
+class MainActivity : public aurore::Activity
 {
   public:
     // activity/main.xml.
-    brls::View* createContentView() override;
+    aurore::View* createContentView() override;
 
     void onContentAvailable() override;
     void onResume() override;

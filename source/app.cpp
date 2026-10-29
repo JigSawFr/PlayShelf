@@ -3,8 +3,8 @@
 
 #include <cstdlib>
 
-#include <borealis/cadran/ui/live_prefs.hpp>
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/ui/live_prefs.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 #include "core/platform.h"
 #include "core/sim_env.h"
@@ -108,7 +108,7 @@ void set_dev_mode(bool on, bool persist, const std::string& saved_text, const st
     // Logged: a report's header gives the mode at the time it was made, and
     // the toasts before it may tell otherwise.
     if (on != dev_mode())
-        brls::Logger::info("developer mode: {}{}", on ? "on" : "off", persist || !on ? "" : " (this session)");
+        aurore::Logger::info("developer mode: {}{}", on ? "on" : "off", persist || !on ? "" : " (this session)");
     s_dev_session = on;
     if (persist || !on) {
         config::get().dev_mode = on;

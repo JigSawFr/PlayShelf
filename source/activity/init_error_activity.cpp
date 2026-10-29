@@ -6,7 +6,7 @@
 #include "app.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 void InitErrorActivity::onContentAvailable()
 {
@@ -18,10 +18,10 @@ void InitErrorActivity::onContentAvailable()
     const std::string fw = ui::hos_text(si.hos_version);
     std::string ams = si.ams_valid ? fmt::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro)
                                    : "playshelf/common/unavailable"_i18n;
-    this->error_fw->setText(brls::getStr("playshelf/init_error/firmware", fw, ams, ui::storage_short(si)));
+    this->error_fw->setText(aurore::getStr("playshelf/init_error/firmware", fw, ams, ui::storage_short(si)));
 
-    this->getContentView()->registerAction("hints/exit"_i18n, brls::BUTTON_B, [](brls::View*) {
-        brls::Application::quit();
+    this->getContentView()->registerAction("hints/exit"_i18n, aurore::BUTTON_B, [](aurore::View*) {
+        aurore::Application::quit();
         return true;
     });
 }

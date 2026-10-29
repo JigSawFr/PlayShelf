@@ -3,12 +3,12 @@
 
 #include <utility>
 
-#include <borealis/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -27,12 +27,12 @@ int connection_index(library::Connection c)
 
 std::string connection_text(library::Connection c)
 {
-    return brls::getStr(std::string("playshelf/library/connection_values/") + CONNECTIONS[connection_index(c)]);
+    return aurore::getStr(std::string("playshelf/library/connection_values/") + CONNECTIONS[connection_index(c)]);
 }
 
 std::string format_text(library::Format f)
 {
-    return brls::getStr(std::string("playshelf/library/format_values/") + FORMATS[(int)f]);
+    return aurore::getStr(std::string("playshelf/library/format_values/") + FORMATS[(int)f]);
 }
 
 std::string or_none(const std::string& text)
@@ -49,25 +49,25 @@ ServerActivity::ServerActivity(library::Server s, bool added, std::function<void
 
 void ServerActivity::onContentAvailable()
 {
-    if (auto* applet = dynamic_cast<brls::AppletFrame*>(this->getContentView()))
+    if (auto* applet = dynamic_cast<aurore::AppletFrame*>(this->getContentView()))
         applet->setTitle(this->is_new ? "playshelf/library/add_server"_i18n : "playshelf/library/edit_server"_i18n);
 
-    name->registerClickAction([this](brls::View*) {
+    name->registerClickAction([this](aurore::View*) {
         ui::prompt_text("playshelf/library/name"_i18n, this->server.name, 64, [this](const std::string& text) {
             this->server.name = text;
             this->show();
         });
         return true;
     });
-    lan->registerClickAction([this](brls::View*) {
+    lan->registerClickAction([this](aurore::View*) {
         this->ask_url(&this->server.lan_url);
         return true;
     });
-    wan->registerClickAction([this](brls::View*) {
+    wan->registerClickAction([this](aurore::View*) {
         this->ask_url(&this->server.wan_url);
         return true;
     });
-    connection->registerClickAction([this](brls::View*) {
+    connection->registerClickAction([this](aurore::View*) {
         std::vector<std::string> labels;
         labels.reserve(3);
         for (int i = 0; i < 3; i++) labels.push_back(connection_text(connection_at(i)));
@@ -77,7 +77,7 @@ void ServerActivity::onContentAvailable()
         });
         return true;
     });
-    format->registerClickAction([this](brls::View*) {
+    format->registerClickAction([this](aurore::View*) {
         std::vector<std::string> labels;
         labels.reserve(3);
         for (int i = 0; i < 3; i++) labels.push_back(format_text((library::Format)i));
@@ -87,14 +87,14 @@ void ServerActivity::onContentAvailable()
         });
         return true;
     });
-    user->registerClickAction([this](brls::View*) {
+    user->registerClickAction([this](aurore::View*) {
         ui::prompt_text("playshelf/library/username"_i18n, this->server.username, 128, [this](const std::string& text) {
             this->server.username = text;
             this->show();
         });
         return true;
     });
-    pass->registerClickAction([this](brls::View*) {
+    pass->registerClickAction([this](aurore::View*) {
         // Never shown again once typed: the keyboard opens empty.
         ui::prompt_text("playshelf/library/password"_i18n, "", 256, [this](const std::string& text) {
             this->password = text;
@@ -103,7 +103,7 @@ void ServerActivity::onContentAvailable()
         });
         return true;
     });
-    pin->registerClickAction([this](brls::View*) {
+    pin->registerClickAction([this](aurore::View*) {
         if (this->server.pin.empty()) return true;
         ui::confirm("playshelf/library/forget_pin_body"_i18n, "playshelf/library/forget_pin"_i18n, [this]() {
             this->server.pin.clear();
@@ -111,11 +111,11 @@ void ServerActivity::onContentAvailable()
         });
         return true;
     });
-    save_cell->registerClickAction([this](brls::View*) {
+    save_cell->registerClickAction([this](aurore::View*) {
         this->save();
         return true;
     });
-    delete_cell->registerClickAction([this](brls::View*) {
+    delete_cell->registerClickAction([this](aurore::View*) {
         this->remove();
         return true;
     });
@@ -190,7 +190,7 @@ void ServerActivity::save()
     }
     const std::string id = this->server.id;
     auto              done = this->saved;
-    brls::Application::popActivity(brls::TransitionAnimation::FADE, [done, id]() {
+    aurore::Application::popActivity(aurore::TransitionAnimation::FADE, [done, id]() {
         if (done) done(id);
     });
 }
@@ -198,7 +198,7 @@ void ServerActivity::save()
 void ServerActivity::remove()
 {
     if (ui::refuse_read_only()) return;
-    ui::confirm_danger(brls::getStr("playshelf/library/delete_body", this->server.name), "playshelf/library/delete"_i18n,
+    ui::confirm_danger(aurore::getStr("playshelf/library/delete_body", this->server.name), "playshelf/library/delete"_i18n,
                        [this]() {
                            std::vector<library::Server> all = library::load_servers();
                            std::vector<library::Server> kept;
@@ -210,7 +210,7 @@ void ServerActivity::remove()
                                return;
                            }
                            auto done = this->saved;
-                           brls::Application::popActivity(brls::TransitionAnimation::FADE, [done]() {
+                           aurore::Application::popActivity(aurore::TransitionAnimation::FADE, [done]() {
                                if (done) done("");
                            });
                        });

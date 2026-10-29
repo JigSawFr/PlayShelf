@@ -5,8 +5,8 @@
 #include <set>
 #include <vector>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "action/game_page.hpp"
 #include "action/insights.hpp"
@@ -16,7 +16,7 @@
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 namespace kit = cadran::kit;
 
 namespace
@@ -53,19 +53,19 @@ void SearchActivity::ask(const std::string& initial)
 {
     ui::prompt_text("playshelf/home/search_header"_i18n, initial, 64, [](std::string q) {
         if (words_of(q).empty()) return;
-        brls::Application::pushActivity(new SearchActivity(q));
+        aurore::Application::pushActivity(new SearchActivity(q));
     });
 }
 
 void SearchActivity::onContentAvailable()
 {
-    if (auto* frame = dynamic_cast<brls::AppletFrame*>(this->getContentView()))
-        frame->setTitle(brls::getStr("playshelf/home/search_title", this->query));
+    if (auto* frame = dynamic_cast<aurore::AppletFrame*>(this->getContentView()))
+        frame->setTitle(aurore::getStr("playshelf/home/search_title", this->query));
     root->setPadding(10, 72, 32, 72);
     // Y: other words, in place of these.
-    this->getContentView()->registerAction("playshelf/library/search"_i18n, brls::BUTTON_Y, [this](brls::View*) {
+    this->getContentView()->registerAction("playshelf/library/search"_i18n, aurore::BUTTON_Y, [this](aurore::View*) {
         const std::string was = this->query;
-        brls::Application::popActivity(brls::TransitionAnimation::NONE, [was]() { SearchActivity::ask(was); });
+        aurore::Application::popActivity(aurore::TransitionAnimation::NONE, [was]() { SearchActivity::ask(was); });
         return true;
     });
     this->rebuild();
@@ -108,12 +108,12 @@ void SearchActivity::rebuild()
             if (has_words(library::fold(name), words)) own.push_back({ g, name, {} });
         }
 
-    auto* box = new brls::Box(brls::Axis::COLUMN);
-    box->setAlignItems(brls::AlignItems::STRETCH);
-    brls::View*              first = nullptr;
+    auto* box = new aurore::Box(aurore::Axis::COLUMN);
+    box->setAlignItems(aurore::AlignItems::STRETCH);
+    aurore::View*              first = nullptr;
     std::vector<std::string> ids;
     auto header = [box](const std::string& title) {
-        auto* h = new brls::Header();
+        auto* h = new aurore::Header();
         h->setTitle(title);
         h->setMarginTop(box->getChildren().empty() ? 0 : 24);
         h->setMarginBottom(8);
@@ -121,19 +121,19 @@ void SearchActivity::rebuild()
     };
     if (hits.empty() && own.empty()) {
         kit::Empty empty = kit::empty("search");
-        empty.title->setText(brls::getStr("playshelf/home/search_none", this->query));
+        empty.title->setText(aurore::getStr("playshelf/home/search_none", this->query));
         empty.text->setText(library::load_servers().empty() ? "playshelf/home/search_no_server"_i18n
                                                             : "playshelf/home/search_none_text"_i18n);
         box->addView(empty.box);
     }
     if (!hits.empty()) {
-        header(hits.size() >= MAX_RESULTS ? brls::getStr("playshelf/home/search_many", MAX_RESULTS)
+        header(hits.size() >= MAX_RESULTS ? aurore::getStr("playshelf/home/search_many", MAX_RESULTS)
                           : hits.size() == 1    ? "playshelf/home/search_count_one"_i18n
-                                                : brls::getStr("playshelf/home/search_count", hits.size()));
+                                                : aurore::getStr("playshelf/home/search_count", hits.size()));
         for (const Hit& h : hits) {
             const library::Title&     t = h.pick.title();
             const library::TitleState st = library::state_of(t, h.pick.data->fetch.catalog, *installed);
-            auto*                     cell = new brls::DetailCell();
+            auto*                     cell = new aurore::DetailCell();
             cell->setText(t.name);
             std::string servers;
             for (const std::string& s : h.servers) servers += (servers.empty() ? "" : ", ") + s;
@@ -142,7 +142,7 @@ void SearchActivity::rebuild()
             cell->detail->setThemeColor("textColor", st.base ? "cadran/teal" : "cadran/text2");
             const auto   data = h.pick.data;
             const size_t index = h.pick.index;
-            cell->registerClickAction([data, index](brls::View*) {
+            cell->registerClickAction([data, index](aurore::View*) {
                 game_page::open(data, index);
                 return true;
             });
@@ -155,11 +155,11 @@ void SearchActivity::rebuild()
     if (!own.empty()) {
         header("playshelf/home/search_console"_i18n);
         for (const insights::Played& p : own) {
-            auto* cell = new brls::DetailCell();
+            auto* cell = new aurore::DetailCell();
             cell->setText(p.name);
             cell->setDetailText("playshelf/library/installed"_i18n);
             cell->detail->setThemeColor("textColor", "cadran/teal");
-            cell->registerClickAction([](brls::View*) { return true; });
+            cell->registerClickAction([](aurore::View*) { return true; });
             ids.push_back("se_own_" + std::to_string(ids.size()));
             cell->setId(ids.back());
             box->addView(cell);
@@ -170,7 +170,7 @@ void SearchActivity::rebuild()
     for (const std::string& id : ids) icons.push_back({ id.c_str(), "gamepad" });
     cadran::List(box, box).apply(icons);
     root->addView(box);
-    brls::Application::giveFocus(first ? first : (brls::View*)this->getContentView());
+    aurore::Application::giveFocus(first ? first : (aurore::View*)this->getContentView());
     if (this->content) root->removeView(this->content);
     this->content = box;
 }

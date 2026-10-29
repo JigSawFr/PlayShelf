@@ -8,7 +8,7 @@
      installing from here does and how old the list is (X fetches it again).
      The lists are built by source/activity/dev_builds_activity.cpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
     <ScrollView
@@ -20,48 +20,48 @@
         alignItems="stretch"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="db_root"
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingTop="@style/brls/sidebar/padding_top"
-            paddingRight="@style/brls/sidebar/padding_right"
-            paddingBottom="@style/brls/sidebar/padding_bottom"
-            paddingLeft="@style/brls/sidebar/padding_left">
+            paddingTop="@style/aurore/sidebar/padding_top"
+            paddingRight="@style/aurore/sidebar/padding_right"
+            paddingBottom="@style/aurore/sidebar/padding_bottom"
+            paddingLeft="@style/aurore/sidebar/padding_left">
 
             <!-- While the list is fetched (or a build looked for): a bar and the
                  step, moved by the code into the header, at its right. -->
-            <brls:Box id="db_loading" width="340" height="auto" axis="column" alignItems="flexEnd"
+            <aurore:Box id="db_loading" width="340" height="auto" axis="column" alignItems="flexEnd"
                 visibility="gone">
                 <LoadingBar id="db_loading_bar" width="300" height="8" marginBottom="8"/>
-                <brls:Label id="db_loading_text" text=" " fontSize="16" horizontalAlign="right"
+                <aurore:Label id="db_loading_text" text=" " fontSize="16" horizontalAlign="right"
                     textColor="@theme/cadran/text3"/>
-            </brls:Box>
+            </aurore:Box>
             <!-- Between the L and R icons (set in the code): the footer has no
                  room for their hint next to Y's, X's, B's and A's on the console. -->
-            <brls:Box id="db_tabs" width="auto" height="auto" axis="row" alignItems="center" marginBottom="16">
-                <brls:Label id="db_tab_l" text=" " fontSize="25.5" marginRight="12" textColor="@theme/cadran/text3"/>
-                <brls:Button id="db_tab_release" style="default" text=" " marginRight="12"/>
-                <brls:Button id="db_tab_main" style="default" text=" " marginRight="12"/>
-                <brls:Button id="db_tab_pulls" style="default" text=" " marginRight="12"/>
-                <brls:Label id="db_tab_r" text=" " fontSize="25.5" textColor="@theme/cadran/text3"/>
-            </brls:Box>
-            <brls:Box id="db_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            <brls:DetailCell id="db_sign_in" title="@i18n/playshelf/dev_build/sign_in" marginTop="24"/>
-            <brls:DetailCell id="db_back" title=" " marginTop="24"/>
+            <aurore:Box id="db_tabs" width="auto" height="auto" axis="row" alignItems="center" marginBottom="16">
+                <aurore:Label id="db_tab_l" text=" " fontSize="25.5" marginRight="12" textColor="@theme/cadran/text3"/>
+                <aurore:Button id="db_tab_release" style="default" text=" " marginRight="12"/>
+                <aurore:Button id="db_tab_main" style="default" text=" " marginRight="12"/>
+                <aurore:Button id="db_tab_pulls" style="default" text=" " marginRight="12"/>
+                <aurore:Label id="db_tab_r" text=" " fontSize="25.5" textColor="@theme/cadran/text3"/>
+            </aurore:Box>
+            <aurore:Box id="db_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <aurore:DetailCell id="db_sign_in" title="@i18n/playshelf/dev_build/sign_in" marginTop="24"/>
+            <aurore:DetailCell id="db_back" title=" " marginTop="24"/>
             <!-- In a box of its own: a label right under a card would become
                  that card's foot (cadran::List), and how old the list is says
                  nothing of Sign in or Go back. What installing from here does,
                  then how old the list is. -->
-            <brls:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="16">
-                <brls:Label id="db_note" text="" fontSize="18" marginBottom="6" textColor="@theme/cadran/text3"/>
-                <brls:Label id="db_checked" text=" " fontSize="18" textColor="@theme/cadran/text3"/>
-            </brls:Box>
+            <aurore:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="16">
+                <aurore:Label id="db_note" text="" fontSize="18" marginBottom="6" textColor="@theme/cadran/text3"/>
+                <aurore:Label id="db_checked" text=" " fontSize="18" textColor="@theme/cadran/text3"/>
+            </aurore:Box>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

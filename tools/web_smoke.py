@@ -181,8 +181,8 @@ def steps(page, text):
 
 
 def shot(page, name):
-    # A moment for the screen to settle (borealis' animations last 300 ms),
-    # and as long again as borealis still holds the input (a screen opening
+    # A moment for the screen to settle (Aurore's animations last 300 ms),
+    # and as long again as Aurore still holds the input (a screen opening
     # on a busy runner: the footer's hints greyed), up to 5 s; then, two
     # frames later, the canvas as PlayShelf drew it.
     time.sleep(1.5)

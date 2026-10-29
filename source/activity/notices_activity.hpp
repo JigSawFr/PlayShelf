@@ -7,12 +7,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <memory>
 
 #include "action/notices.hpp"
 
-class NoticesActivity : public brls::Activity
+class NoticesActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/notices.xml");
@@ -30,10 +30,10 @@ class NoticesActivity : public brls::Activity
     bool closing = false;
     bool stale = false;   // changed under a dialog: rebuilt once back on top
     std::shared_ptr<bool> alive = std::make_shared<bool>(true);
-    brls::Box* content = nullptr;
+    aurore::Box* content = nullptr;
 
     void rebuild();
-    brls::DetailCell* entry_cell(const notices::Entry& e, bool todo);
+    aurore::DetailCell* entry_cell(const notices::Entry& e, bool todo);
 
-    BRLS_BIND(brls::Box, root, "nt_root");
+    AURORE_BIND(aurore::Box, root, "nt_root");
 };

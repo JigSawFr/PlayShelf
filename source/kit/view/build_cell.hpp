@@ -9,7 +9,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <string>
 #include <vector>
 
@@ -27,17 +27,17 @@ std::vector<BuildTag> build_tags(const dev_builds::Build& b, bool newer);
 // Its title as the list shows it.
 std::string build_title(const dev_builds::Build& b);
 // A tag as a view: its icon and text in its colour, on a tint of it.
-brls::Box* tag_view(const BuildTag& tag, float font_size = 18);
+aurore::Box* tag_view(const BuildTag& tag, float font_size = 18);
 
-class BuildCell : public brls::RecyclerCell
+class BuildCell : public aurore::RecyclerCell
 {
   public:
     BuildCell();
     void set(const dev_builds::Build& b, bool newer);
 
   private:
-    brls::Label* title;
-    brls::Box*   tags;
-    brls::Label* age;
-    brls::Label* commit;
+    aurore::Label* title;
+    aurore::Box*   tags;
+    aurore::Label* age;
+    aurore::Label* commit;
 };

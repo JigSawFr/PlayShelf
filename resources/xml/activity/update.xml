@@ -4,7 +4,7 @@
      updates. Update, the way it is installed, Later, then the new version's
      notes. Filled by update_activity.cpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
     <ScrollView
@@ -16,27 +16,27 @@
         alignItems="stretch"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingTop="@style/brls/sidebar/padding_top"
-            paddingRight="@style/brls/sidebar/padding_right"
-            paddingBottom="@style/brls/sidebar/padding_bottom"
-            paddingLeft="@style/brls/sidebar/padding_left">
+            paddingTop="@style/aurore/sidebar/padding_top"
+            paddingRight="@style/aurore/sidebar/padding_right"
+            paddingBottom="@style/aurore/sidebar/padding_bottom"
+            paddingLeft="@style/aurore/sidebar/padding_left">
 
-            <brls:Label id="up_headline" text="" fontSize="26" marginBottom="12"/>
-            <brls:Label id="up_body" text="" fontSize="20" marginBottom="16" textColor="@theme/cadran/text3"/>
-            <brls:DetailCell id="up_update"/>
-            <brls:DetailCell id="up_method" title="@i18n/playshelf/tools/update_via"/>
-            <brls:DetailCell id="up_later" title="@i18n/playshelf/common/later"/>
-            <brls:Header id="up_notes_header" marginTop="32" marginBottom="8"/>
-            <brls:Box id="up_notes" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            <brls:Label id="up_notes_none" text="" fontSize="20" textColor="@theme/cadran/text3"/>
+            <aurore:Label id="up_headline" text="" fontSize="26" marginBottom="12"/>
+            <aurore:Label id="up_body" text="" fontSize="20" marginBottom="16" textColor="@theme/cadran/text3"/>
+            <aurore:DetailCell id="up_update"/>
+            <aurore:DetailCell id="up_method" title="@i18n/playshelf/tools/update_via"/>
+            <aurore:DetailCell id="up_later" title="@i18n/playshelf/common/later"/>
+            <aurore:Header id="up_notes_header" marginTop="32" marginBottom="8"/>
+            <aurore:Box id="up_notes" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <aurore:Label id="up_notes_none" text="" fontSize="20" textColor="@theme/cadran/text3"/>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

@@ -2,11 +2,11 @@
 #include "view/build_cell.hpp"
 
 #include "action/dev_build_flow.hpp"
-#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
 
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -26,7 +26,7 @@ BuildTag type_tag(const std::string& type)
     std::string text = type;
     for (const Known& k : KNOWN)
         if (type == k.type) {
-            text = brls::getStr(k.key);
+            text = aurore::getStr(k.key);
             color = k.color;
         }
     const char* const colors[] = { "cadran/teal", "cadran/amber", "cadran/blue", "cadran/violet",
@@ -62,7 +62,7 @@ std::vector<BuildTag> build_tags(const dev_builds::Build& b, bool newer)
 std::string build_title(const dev_builds::Build& b)
 {
     switch (b.kind) {
-        case dev_builds::Kind::Release: return brls::getStr("playshelf/dev_build/release", b.version);
+        case dev_builds::Kind::Release: return aurore::getStr("playshelf/dev_build/release", b.version);
         case dev_builds::Kind::PullRequest:
         case dev_builds::Kind::Main:
         case dev_builds::Kind::Commit: return dev_build_flow::subject(b);
@@ -74,11 +74,11 @@ namespace
 {
 // A pill tinted with its ink: its fill and border are the ink made faint,
 // taken again when the theme changes.
-class TagPill : public brls::Box
+class TagPill : public aurore::Box
 {
   public:
     explicit TagPill(const char* ink_key)
-        : brls::Box(brls::Axis::ROW), key(ink_key)
+        : aurore::Box(aurore::Axis::ROW), key(ink_key)
     {
         this->tint();
     }
@@ -86,13 +86,13 @@ class TagPill : public brls::Box
     void onThemeChanged() override
     {
         this->tint();
-        brls::Box::onThemeChanged();
+        aurore::Box::onThemeChanged();
     }
 
   private:
     void tint()
     {
-        const NVGcolor ink = brls::Application::getTheme()[this->key];
+        const NVGcolor ink = aurore::Application::getTheme()[this->key];
         this->setBackgroundColor(nvgTransRGBA(ink, 30));
         this->setBorderColor(nvgTransRGBA(ink, 90));
     }
@@ -101,12 +101,12 @@ class TagPill : public brls::Box
 };
 }   // namespace
 
-brls::Box* tag_view(const BuildTag& tag, float font_size)
+aurore::Box* tag_view(const BuildTag& tag, float font_size)
 {
     // A pill of the boards, tinted with its ink.
     const float height = font_size + 10;
     auto* box = new TagPill(tag.color);
-    box->setAlignItems(brls::AlignItems::CENTER);
+    box->setAlignItems(aurore::AlignItems::CENTER);
     box->setHeight(height);
     box->setBorderThickness(1);
     box->setCornerRadius(height / 2);
@@ -123,7 +123,7 @@ brls::Box* tag_view(const BuildTag& tag, float font_size)
         box->addView(glyph);
     }
     if (tag.text.empty()) return box;
-    auto* l = new brls::Label();
+    auto* l = new aurore::Label();
     l->setSingleLine(true);
     l->setFontSize(font_size);
     l->setThemeColor("textColor", tag.color);
@@ -135,40 +135,40 @@ brls::Box* tag_view(const BuildTag& tag, float font_size)
 BuildCell::BuildCell()
 {
     // A list cell's separator and focus (RecyclerCell, as DetailCell), two lines high.
-    this->setAxis(brls::Axis::ROW);
-    this->setHeight(brls::View::AUTO);
+    this->setAxis(aurore::Axis::ROW);
+    this->setHeight(aurore::View::AUTO);
     this->setFocusable(true);
-    this->setAlignItems(brls::AlignItems::CENTER);
-    const float indent = brls::getStyle()["brls/listitem/descriptionIndent"];
+    this->setAlignItems(aurore::AlignItems::CENTER);
+    const float indent = aurore::getStyle()["aurore/listitem/descriptionIndent"];
     this->setPadding(10, indent, 10, indent);
 
-    auto* left = new brls::Box(brls::Axis::COLUMN);
+    auto* left = new aurore::Box(aurore::Axis::COLUMN);
     left->setGrow(1.0f);
     left->setShrink(1.0f);
     left->setMarginRight(indent);
-    this->title = new brls::Label();
+    this->title = new aurore::Label();
     this->title->setSingleLine(true);
     this->title->setFontSize(21);
     left->addView(this->title);
-    this->tags = new brls::Box(brls::Axis::ROW);
+    this->tags = new aurore::Box(aurore::Axis::ROW);
     this->tags->setMarginTop(6);
     left->addView(this->tags);
     this->addView(left);
 
-    auto* right = new brls::Box(brls::Axis::COLUMN);
-    right->setAlignItems(brls::AlignItems::FLEX_END);
+    auto* right = new aurore::Box(aurore::Axis::COLUMN);
+    right->setAlignItems(aurore::AlignItems::FLEX_END);
     right->setShrink(0.0f);
-    this->age = new brls::Label();
+    this->age = new aurore::Label();
     this->age->setSingleLine(true);
     this->age->setFontSize(18);
     this->age->setThemeColor("textColor", "cadran/text2");
-    this->age->setHorizontalAlign(brls::HorizontalAlign::RIGHT);
+    this->age->setHorizontalAlign(aurore::HorizontalAlign::RIGHT);
     right->addView(this->age);
-    this->commit = new brls::Label();
+    this->commit = new aurore::Label();
     this->commit->setSingleLine(true);
     this->commit->setFontSize(18);
     this->commit->setThemeColor("textColor", "cadran/text3");
-    this->commit->setHorizontalAlign(brls::HorizontalAlign::RIGHT);
+    this->commit->setHorizontalAlign(aurore::HorizontalAlign::RIGHT);
     this->commit->setMarginTop(4);
     right->addView(this->commit);
     this->addView(right);

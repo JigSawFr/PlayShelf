@@ -34,7 +34,7 @@ class HomeTab : public TabBase
   public:
     HomeTab();
     ~HomeTab() override;
-    static brls::View* create();
+    static aurore::View* create();
 
   protected:
     void refresh() override;
@@ -59,7 +59,7 @@ class HomeTab : public TabBase
     void add_recent(const std::vector<insights::Played>& recent);
     void add_wished(const std::vector<insights::Wished>& wished);
     void add_coming(const std::vector<insights::Coming>& coming);
-    brls::Box* add_row(const std::string& title, const std::string& line, float height);
+    aurore::Box* add_row(const std::string& title, const std::string& line, float height);
     // A cover for a game known by its title id alone (no catalogue has it).
     GameTile* lone_tile(uint64_t id, const std::string& name, const Detail& detail);
     // A cover's icon: its catalogue's, else the title databases' or Nlib
@@ -72,5 +72,5 @@ class HomeTab : public TabBase
     int                      generation = 0;   // the rows' build: a picture for an older one is freed
     int                      insights_listener = 0;
 
-    BRLS_BIND(brls::Box, content, "ho_content");
+    AURORE_BIND(aurore::Box, content, "ho_content");
 };

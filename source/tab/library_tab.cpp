@@ -5,9 +5,9 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_list.hpp>
-#include <borealis/cadran/ui/guarded.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/guarded.hpp>
 
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
@@ -24,7 +24,7 @@
 #include "view/game_tile.hpp"
 #include "view/tool_chip.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -33,8 +33,8 @@ constexpr size_t PAGE = 40;   // covers built at a time
 // The tab's room: the screen less the rail and the column's sides.
 float room()
 {
-    return brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
-           2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
+    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
+           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
 }
 
 int columns()
@@ -60,8 +60,8 @@ std::vector<std::shared_ptr<const library_flow::Loaded>> catalogues()
 // The version a game shows: the console's words ("1.2.0"), else its number.
 std::string version_text(const installed_flow::Game& g)
 {
-    if (!g.version.empty()) return brls::getStr("playshelf/installed/version", g.version);
-    return brls::getStr("playshelf/installed/version", library::running_version(g.game));
+    if (!g.version.empty()) return aurore::getStr("playshelf/installed/version", g.version);
+    return aurore::getStr("playshelf/installed/version", library::running_version(g.game));
 }
 
 // What a catalogue has of the game that the console has not.
@@ -101,19 +101,19 @@ LibraryTab::LibraryTab()
     // The controls, a pill each.
     summary = new ToolChip("gamepad", "playshelf/installed/summary"_i18n);
     filter_cell = new ToolChip("tools", "playshelf/filters/row_sort"_i18n);
-    filter_cell->setVisibility(brls::Visibility::GONE);
+    filter_cell->setVisibility(aurore::Visibility::GONE);
     bar->addView(summary);
     bar->addView(filter_cell);
     cadran::kit::wrap(bar);
-    summary->registerClickAction([this](brls::View*) {
+    summary->registerClickAction([this](aurore::View*) {
         this->refresh();
         return true;
     });
-    filter_cell->registerClickAction([this](brls::View*) {
+    filter_cell->registerClickAction([this](aurore::View*) {
         this->pick_filter();
         return true;
     });
-    more->registerClickAction([this](brls::View*) {
+    more->registerClickAction([this](aurore::View*) {
         this->add_page();
         return true;
     });
@@ -162,7 +162,7 @@ void LibraryTab::preset(library::Filter::State state)
     s_filter.state = state;
 }
 
-brls::View* LibraryTab::create()
+aurore::View* LibraryTab::create()
 {
     return new LibraryTab();
 }
@@ -253,21 +253,21 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
         nlib_flow::enrich(waiting);
     }
     const std::string filtered = filter_sheet::summary(s_filter);
-    filter_cell->set_value(brls::getStr(std::string("playshelf/installed/order_values/") + ORDERS[(int)s_order]) +
+    filter_cell->set_value(aurore::getStr(std::string("playshelf/installed/order_values/") + ORDERS[(int)s_order]) +
                            (filtered.empty() ? "" : " · " + filtered));
     filter_cell->set_active(!filtered.empty());
     ui::set_visible(empty_box, count == 0);
     ui::set_visible(filter_cell, count > 0);
     // Kept even with no game: the focus has a place when the covers go.
-    std::string line = count == 1 ? "playshelf/installed/count_one"_i18n : brls::getStr("playshelf/installed/count", count);
-    if (to_get) line += " · " + brls::getStr("playshelf/installed/to_get", to_get);
-    if (this->entries.size() != count) line += " · " + brls::getStr("playshelf/filters/shown", this->entries.size());
+    std::string line = count == 1 ? "playshelf/installed/count_one"_i18n : aurore::getStr("playshelf/installed/count", count);
+    if (to_get) line += " · " + aurore::getStr("playshelf/installed/to_get", to_get);
+    if (this->entries.size() != count) line += " · " + aurore::getStr("playshelf/filters/shown", this->entries.size());
     summary->set_value(line);
 
     // The focus moves off the covers first: they are made again.
-    for (brls::View* v = brls::Application::getCurrentFocus(); v; v = v->getParent())
+    for (aurore::View* v = aurore::Application::getCurrentFocus(); v; v = v->getParent())
         if (v == grid || v == list_box || v == more) {
-            brls::Application::giveFocus(summary);
+            aurore::Application::giveFocus(summary);
             break;
         }
     library_icons::drop_pending();
@@ -302,9 +302,9 @@ void LibraryTab::add_page()
             detail = installed_flow::play_text(e.game->play_s);
         if (st.update_available) detail = "playshelf/library/update_available"_i18n;
         else if (st.dlcs_missing == 1) detail = "playshelf/installed/dlcs_missing_one"_i18n;
-        else if (st.dlcs_missing) detail = brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing);
+        else if (st.dlcs_missing) detail = aurore::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing);
         const char* color = something_to_get(st) ? "cadran/amber" : "cadran/text3";
-        brls::View*    view = nullptr;
+        aurore::View*    view = nullptr;
         if (list) {
             auto* cell = new GameCell();
             cell->setText(e.name);
@@ -318,7 +318,7 @@ void LibraryTab::add_page()
             view = cell;
         } else {
             if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
-                this->grid_row = new brls::Box(brls::Axis::ROW);
+                this->grid_row = new aurore::Box(aurore::Axis::ROW);
                 grid->addView(this->grid_row);
             }
             auto* tile = new GameTile();
@@ -333,7 +333,7 @@ void LibraryTab::add_page()
             });
             view = tile;
         }
-        view->registerClickAction([this, at](brls::View*) {
+        view->registerClickAction([this, at](aurore::View*) {
             this->open(at);
             return true;
         });
@@ -363,7 +363,7 @@ void LibraryTab::pick_filter()
     if (this->shown_games)
         for (const installed_flow::Game& g : *this->shown_games) games.push_back(g.game.id);
     filter_sheet::Order order;
-    for (const char* o : ORDERS) order.labels.push_back(brls::getStr(std::string("playshelf/installed/order_values/") + o));
+    for (const char* o : ORDERS) order.labels.push_back(aurore::getStr(std::string("playshelf/installed/order_values/") + o));
     order.chosen = (int)s_order;
     auto again = ui::guarded(this->alive, [this]() {
         if (this->shown_games) this->show_games(this->shown_games);
@@ -379,23 +379,23 @@ void LibraryTab::set_hints()
 {
 
     const bool list = config::get().library_view == "list";
-    auto       toggle = [this](brls::View*) {
+    auto       toggle = [this](aurore::View*) {
         config::get().library_view = config::get().library_view == "list" ? "grid" : "list";
         ui::save_config();
         // On the next frame: the actions being run are this view's own,
         // registered again by set_hints().
-        brls::sync(ui::guarded(this->alive, [this]() {
+        aurore::sync(ui::guarded(this->alive, [this]() {
             if (this->shown_games) this->show_games(this->shown_games);
             this->set_hints();
         }));
         return true;
     };
-    this->registerAction(list ? "playshelf/installed/as_grid"_i18n : "playshelf/installed/as_list"_i18n, brls::BUTTON_Y, toggle);
+    this->registerAction(list ? "playshelf/installed/as_grid"_i18n : "playshelf/installed/as_list"_i18n, aurore::BUTTON_Y, toggle);
 #if !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
     // The desktop build: the keyboard has no Ⓨ, so the Y key.
-    this->registerAction(brls::BrlsKeyCombination(brls::BRLS_KBD_KEY_Y), toggle);
+    this->registerAction(aurore::AuroreKeyCombination(aurore::AURORE_KBD_KEY_Y), toggle);
 #endif
-    brls::Application::getGlobalHintsUpdateEvent()->fire();
+    aurore::Application::getGlobalHintsUpdateEvent()->fire();
 }
 
 void LibraryTab::open(size_t i)
@@ -410,7 +410,7 @@ void LibraryTab::open(size_t i)
     lines.emplace_back("playshelf/installed/delete"_i18n,
                       ui::guarded(this->alive, [this, game_id, name]() {
                           if (ui::refuse_read_only()) return;
-                          ui::confirm_danger(brls::getStr("playshelf/installed/delete_body", name), "playshelf/installed/delete"_i18n,
+                          ui::confirm_danger(aurore::getStr("playshelf/installed/delete_body", name), "playshelf/installed/delete"_i18n,
                                              ui::guarded(this->alive, [this, game_id, name]() {
                                                  installed_flow::remove(game_id, name, ui::guarded(this->alive,
                                                      [this](const std::shared_ptr<const std::vector<installed_flow::Game>>& games) {
@@ -432,7 +432,7 @@ void LibraryTab::open(size_t i)
         const library::InstalledGame& g = e.game->game;
         page.lines.facts = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
         if (g.dlcs.size() == 1) page.lines.facts += " · " + "playshelf/library/dlc_count_one"_i18n;
-        else if (!g.dlcs.empty()) page.lines.facts += " · " + brls::getStr("playshelf/library/dlc_count", g.dlcs.size());
+        else if (!g.dlcs.empty()) page.lines.facts += " · " + aurore::getStr("playshelf/library/dlc_count", g.dlcs.size());
         page.lines.installed = true;
         page.lines.installed_version = std::max(e.game->game.version, e.game->game.update);
         page.note = "playshelf/installed/not_found"_i18n;

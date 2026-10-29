@@ -22,7 +22,7 @@
 #include <memory>
 #include <vector>
 
-#include <borealis/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "action/library_flow.hpp"
 #include "library/servers.hpp"
@@ -36,7 +36,7 @@ class CatalogueTab : public TabBase
   public:
     CatalogueTab();
     ~CatalogueTab() override;
-    static brls::View* create();
+    static aurore::View* create();
 
   protected:
     void refresh() override;
@@ -73,7 +73,7 @@ class CatalogueTab : public TabBase
     std::string why_failed;
     std::vector<size_t> selection;   // the games shown, as indexes in shown_data->titles
     size_t      built = 0;            // how many of them have a cover
-    brls::Box*  grid_row = nullptr;
+    aurore::Box*  grid_row = nullptr;
     std::vector<GameTile*> tiles;     // the covers built
     std::vector<size_t> tile_titles;  // theirs, as indexes in shown_data->titles
     int         generation = 0;       // the covers' build: an icon arriving for an older one is freed
@@ -83,16 +83,16 @@ class CatalogueTab : public TabBase
     std::string built_key;
     std::shared_ptr<const library_flow::Installed> built_installed = std::make_shared<library_flow::Installed>();
 
-    BRLS_BIND(brls::Box,        empty_box, "lb_empty");
+    AURORE_BIND(aurore::Box,        empty_box, "lb_empty");
     int downloads_listener = 0;
     int nlib_listener = 0;
-    BRLS_BIND(brls::Box,        bar,         "lb_bar");
+    AURORE_BIND(aurore::Box,        bar,         "lb_bar");
     ToolChip* server_cell = nullptr;
     ToolChip* search_cell = nullptr;
     ToolChip* sort_cell = nullptr;
     ToolChip* filter_cell = nullptr;
     ToolChip* section_cell = nullptr;
-    BRLS_BIND(brls::Label,      status,      "lb_status");
-    BRLS_BIND(brls::Box,        grid,        "lb_grid");
-    BRLS_BIND(brls::Button,     more,        "lb_more");
+    AURORE_BIND(aurore::Label,      status,      "lb_status");
+    AURORE_BIND(aurore::Box,        grid,        "lb_grid");
+    AURORE_BIND(aurore::Button,     more,        "lb_more");
 };

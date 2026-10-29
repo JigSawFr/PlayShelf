@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <random>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
 #include "util/paths.hpp"
 

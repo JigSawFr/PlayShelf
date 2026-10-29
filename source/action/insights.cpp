@@ -7,7 +7,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <fmt/format.h>
 
 #include "action/download_flow.hpp"
@@ -21,7 +21,7 @@
 #include "ui/ui.hpp"
 #include "util/paths.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace insights
 {
@@ -113,8 +113,8 @@ void soon()
 {
     if (s_pending) return;
     s_pending = true;
-    brls::delay(300, []() {
-        brls::sync([]() {
+    aurore::delay(300, []() {
+        aurore::sync([]() {
             s_pending = false;
             make();
         });
@@ -345,7 +345,7 @@ void start()
     {
         std::string text;
         if (paths::read_file(seen_file(), text) && !s_seen.from_json(text))
-            brls::Logger::warning("insights: {} not read", seen_file());
+            aurore::Logger::warning("insights: {} not read", seen_file());
         s_seen_read = true;
     }
     // What changes what is made.
@@ -411,13 +411,13 @@ void update_all()
         ui::notify("playshelf/home/no_updates"_i18n);
         return;
     }
-    const std::string body = updates.size() == 1 ? brls::getStr("playshelf/home/update_all_one", library_flow::size_text(bytes))
-                                                 : brls::getStr("playshelf/home/update_all_body", updates.size(),
+    const std::string body = updates.size() == 1 ? aurore::getStr("playshelf/home/update_all_one", library_flow::size_text(bytes))
+                                                 : aurore::getStr("playshelf/home/update_all_body", updates.size(),
                                                                 library_flow::size_text(bytes));
     ui::confirm(body, "playshelf/home/update_all"_i18n, [updates]() {
         size_t added = 0;
         for (const auto& [p, item] : updates) added += library_flow::install(*p.data, { item });
-        if (added) ui::notify(brls::getStr("playshelf/downloads/added", added), ui::Toast::Done);
+        if (added) ui::notify(aurore::getStr("playshelf/downloads/added", added), ui::Toast::Done);
         else ui::notify("playshelf/downloads/already"_i18n);
     });
 }

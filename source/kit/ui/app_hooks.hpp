@@ -5,7 +5,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <functional>
 #include <string>
 
@@ -14,7 +14,7 @@ namespace ui::app_hooks
 
 struct Hooks
 {
-    std::function<brls::View*()>      make_help_tab;          // Help & diagnostics, for a screen of its own
+    std::function<aurore::View*()>      make_help_tab;          // Help & diagnostics, for a screen of its own
     std::function<void(const char* what, bool ok)> note_write;   // a write that failed, for the app to say
     std::function<void()>             mode_changed;           // what runs only in developer mode
     std::function<void()>             open_notices;           // the notification bell's list

@@ -5,9 +5,9 @@
 #include <cctype>
 #include <cstdio>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 #include "util/json_util.hpp"
 #include "util/paths.hpp"

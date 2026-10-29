@@ -2,14 +2,14 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "ui/ui.hpp"
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
 
 #include "util/diagnostics.hpp"
 #include "util/paths.hpp"
 
 #include <fmt/format.h>
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace ui
 {

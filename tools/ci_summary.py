@@ -109,7 +109,7 @@ def cmd_tidy(a):
         path = m["file"]
         if path.startswith(root):
             path = path[len(root):]
-        if "extern/" in path or "library/" in path:   # borealis' own: the matcher leaves them out too
+        if "extern/" in path or "library/" in path:   # Aurore's own: the matcher leaves them out too
             continue
         checks = m["checks"] or ""
         key = (path, int(m["line"]), int(m["col"]), checks, m["text"])

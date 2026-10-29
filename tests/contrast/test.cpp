@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include <borealis/cadran/ui/cadran_palette.hpp>
+#include <aurore/cadran/ui/cadran_palette.hpp>
 
 using cadran::palette::Palette;
 using cadran::palette::Rgba;

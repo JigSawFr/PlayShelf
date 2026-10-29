@@ -5,10 +5,10 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <string>
 
-class SearchActivity : public brls::Activity
+class SearchActivity : public aurore::Activity
 {
   public:
     explicit SearchActivity(std::string query);
@@ -23,9 +23,9 @@ class SearchActivity : public brls::Activity
 
   private:
     std::string query;
-    brls::Box*  content = nullptr;
+    aurore::Box*  content = nullptr;
 
     void rebuild();
 
-    BRLS_BIND(brls::Box, root, "se_root");
+    AURORE_BIND(aurore::Box, root, "se_root");
 };

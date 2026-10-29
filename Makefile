@@ -44,14 +44,14 @@ SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
 # Run inside the tree, the zip file last.
 ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindepth 1 | LC_ALL=C sort | TZ=UTC zip -X -@
 CMAKE_ARGS ?=
-JSON_HPP := library/aurore/library/include/borealis/extern/nlohmann/json.hpp
+JSON_HPP := library/aurore/library/include/aurore/extern/nlohmann/json.hpp
 
 .PHONY: all clean dist nxlink desktop web web-serve site test fuzz check FORCE
 
-RENDERER := $(if $(GL),-DUSE_DEKO3D=OFF,-DUSE_DEKO3D=ON)
+RENDERER := $(if $(GL),-DAURORE_GRAPHICS=GL3,-DAURORE_GRAPHICS=DEKO3D)
 
 all:
-	@cmake -B $(BUILD) -S . -DPLATFORM_SWITCH=ON $(RENDERER) $(CMAKE_ARGS)
+	@cmake -B $(BUILD) -S . -DAURORE_PLATFORM=SWITCH $(RENDERER) $(CMAKE_ARGS)
 	@cmake --build $(BUILD) --target $(TARGET).nro -j $(JOBS)
 	@cp $(BUILD)/$(TARGET).nro  $(TARGET).nro
 	@cp $(BUILD)/$(TARGET).nacp $(TARGET).nacp
@@ -98,7 +98,7 @@ site:
 	@python3 web/serve.py build-site 8000
 
 desktop:
-	@cmake -B $(DESKTOP) -S . -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release $(CMAKE_ARGS)
+	@cmake -B $(DESKTOP) -S . -DAURORE_PLATFORM=DESKTOP -DCMAKE_BUILD_TYPE=Release $(CMAKE_ARGS)
 	@cmake --build $(DESKTOP) -j $(JOBS)
 
 # Host tests: one program per suite, built straight from its sources (no
@@ -124,7 +124,7 @@ write_guard_FLAGS := -std=gnu11 -Isource/kit/core
 
 # C++: the UI-free helpers and flow logic (source/kit/util, source/kit/action,
 # source/util), by default with TEST_CXXFLAGS (a <name>_FLAGS only where a
-# suite differs). borealis' headers (nlohmann/json) as system headers: their
+# suite differs). Aurore's headers (nlohmann/json) as system headers: their
 # warnings are not PlayShelf's (clang 22 deprecates json.hpp's literal
 # operators, under -Werror). util/date stands on core/calendar.c: a suite
 # that links it builds that C file too (its <name>_CSRC, without having to
@@ -239,37 +239,37 @@ perf_SRC   := $(K)/util/perf.cpp tests/perf/test.cpp
 diagnostics_logic_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp $(K)/util/diagnostics_logic.cpp tests/diagnostics_logic/test.cpp
 diagnostics_logic_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY
 # The text helpers that only translate, over Cadran's ui/tr.hpp stand-in for
-# borealis' getStr and fmt header-only (the catalogs read by the test).
+# Aurore's getStr and fmt header-only (the catalogs read by the test).
 format_text_SRC   := $(C)/ui/format_text.cpp tests/format_text/test.cpp
-format_text_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY -DBRLS_CADRAN_HOST_I18N
+format_text_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY -DAURORE_CADRAN_HOST_I18N
 cadran_text_SRC   := $(C)/ui/cadran_text.cpp tests/cadran_text/test.cpp
 contrast_SRC      := tests/contrast/test.cpp
 cadran_text_FLAGS := $(format_text_FLAGS)
-# borealis' own string tables (core/i18n.cpp), read from other threads while
+# Aurore's own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
-# it, rewritten only then). C++20, as borealis is built (its headers use
+# it, rewritten only then). C++20, as Aurore is built (its headers use
 # defaulted comparisons).
-I18N_COPY    := $(TESTOUT)/borealis_i18n
-I18N_STAMP   := $(TESTOUT)/borealis_i18n.commit
+I18N_COPY    := $(TESTOUT)/aurore_i18n
+I18N_STAMP   := $(TESTOUT)/aurore_i18n.commit
 I18N_COMMIT  := $(shell git -C library/aurore rev-parse HEAD 2>/dev/null)
 $(I18N_STAMP): FORCE | $(TESTOUT)
 	@echo '$(I18N_COMMIT)' | cmp -s - $@ || echo '$(I18N_COMMIT)' > $@
 $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
-	@rm -rf $(I18N_COPY) && mkdir -p $(I18N_COPY)/library/lib/core $(I18N_COPY)/library/include/borealis/core
+	@rm -rf $(I18N_COPY) && mkdir -p $(I18N_COPY)/library/lib/core $(I18N_COPY)/library/include/aurore/core
 	@git -C library/aurore show HEAD:library/lib/core/i18n.cpp > $(I18N_COPY)/library/lib/core/i18n.cpp
-	@git -C library/aurore show HEAD:library/include/borealis/core/i18n.hpp > $(I18N_COPY)/library/include/borealis/core/i18n.hpp
-	@git -C library/aurore show HEAD:library/include/borealis/core/platform.hpp > $(I18N_COPY)/library/include/borealis/core/platform.hpp
+	@git -C library/aurore show HEAD:library/include/aurore/core/i18n.hpp > $(I18N_COPY)/library/include/aurore/core/i18n.hpp
+	@git -C library/aurore show HEAD:library/include/aurore/core/platform.hpp > $(I18N_COPY)/library/include/aurore/core/platform.hpp
 	@# The suffix without a space, as newer clang wants it (-Wdeprecated-literal-operator),
-	@# in this copy only: borealis itself is built as it is.
+	@# in this copy only: Aurore itself is built as it is.
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
 # With its string and file helpers (core/util.cpp), as it is.
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp library/aurore/library/lib/core/util.cpp tests/i18n_threads/test.cpp
 i18n_threads_FLAGS := -std=c++20 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
-                      $(addprefix -isystem library/aurore/library/,include/borealis/extern include/borealis/extern/nanovg \
-                        include/borealis/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
-                      -DBRLS_RESOURCES='"./"'
+                      $(addprefix -isystem library/aurore/library/,include/aurore/extern include/aurore/extern/nanovg \
+                        include/aurore/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
+                      -DAURORE_RESOURCES='"./"'
 i18n_threads_LIBS  := -pthread
 session_log_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/session_log.cpp $(K)/util/crash_report.cpp tests/session_log/test.cpp
 # A C source a C++ suite links (clang++ refuses to build a .c as C++).
@@ -318,7 +318,7 @@ $(TEST_OKS): $(TESTOUT)/%.ok: $(TESTOUT)/%
 	@$< > $<.log 2>&1; r=$$?; cat $<.log; if [ $$r -eq 0 ]; then touch $@; else echo "$*: exit status $$r" >&2; exit $$r; fi
 
 test:
-	@test -f $(JSON_HPP) || { echo "borealis is missing (nlohmann/json for the tests): run git submodule update --init"; exit 1; }
+	@test -f $(JSON_HPP) || { echo "Aurore is missing (nlohmann/json for the tests): run git submodule update --init"; exit 1; }
 	@rm -f $(TEST_OKS)
 	@$(MAKE) --no-print-directory -k $(if $(findstring -j,$(MAKEFLAGS)),,-j$(JOBS)) -Otarget $(TEST_OKS)
 
@@ -385,7 +385,7 @@ $(FUZZ_RUNS): $(FUZZOUT)/%.run: $(FUZZOUT)/%
 		if [ $$r -ne 0 ]; then echo "$*: the fuzzer stopped with status $$r: $$(ls $<-* 2>/dev/null | head -n 1)" >&2; exit $$r; fi
 
 fuzz:
-	@test -f $(JSON_HPP) || { echo "borealis is missing (nlohmann/json for the config target): run git submodule update --init"; exit 1; }
+	@test -f $(JSON_HPP) || { echo "Aurore is missing (nlohmann/json for the config target): run git submodule update --init"; exit 1; }
 	@$(MAKE) --no-print-directory -k $(if $(findstring -j,$(MAKEFLAGS)),,-j$(JOBS)) -Otarget $(FUZZ_RUNS)
 
 check: test

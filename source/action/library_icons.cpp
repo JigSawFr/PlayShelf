@@ -1,13 +1,13 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/library_icons.hpp"
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <algorithm>
 #include <deque>
 #include <mutex>
 #include <set>
 
-#include <borealis/extern/nanovg/stb_image.h>
+#include <aurore/extern/nanovg/stb_image.h>
 #include <webp/decode.h>
 
 #include "action/titledb_flow.hpp"
@@ -123,7 +123,7 @@ std::string fetched(const std::string& url, const http::Headers& headers, const 
     http::Response r;
     std::string    why;
     if (!http::request(url, headers, pin, &r, &why, MAX_ICON, timeout) || r.status != 200 || r.body.empty()) {
-        brls::Logger::debug("library: no icon from {} ({} {})", url, r.status, why);
+        aurore::Logger::debug("library: no icon from {} ({} {})", url, r.status, why);
         return "";
     }
     if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(dir())) paths::atomic_write(file, r.body);
@@ -182,7 +182,7 @@ void drain()
             const std::string bytes = job.loaded ? bytes_of(job) : "";
             picture = bytes.empty() && job.title_id ? local_picture(job) : decoded(bytes);
         }
-        brls::sync([picture, done = std::move(job.done)]() { done(picture); });
+        aurore::sync([picture, done = std::move(job.done)]() { done(picture); });
     }
 }
 
@@ -198,7 +198,7 @@ void queue(Job job)
 }
 }   // namespace
 
-bool show(brls::Image* image, const Picture& picture)
+bool show(aurore::Image* image, const Picture& picture)
 {
     if (!image || !picture) return false;
     image->setImageFromRGBA(picture->rgba.data(), picture->width, picture->height);
@@ -250,7 +250,7 @@ void cached(const std::string& url, const Done& done)
     ui::in_background("cached icon", [file, done]() {
         std::string data;
         if (!paths::read_file(file, data)) data.clear();
-        brls::sync([picture = decoded(data), done]() { done(picture); });
+        aurore::sync([picture = decoded(data), done]() { done(picture); });
     });
 }
 
@@ -260,8 +260,8 @@ void decode(std::shared_ptr<const std::vector<uint8_t>> bytes, Done done)
         done(nullptr);
         return;
     }
-    brls::async([bytes = std::move(bytes), done = std::move(done)]() {
-        brls::sync([picture = decoded(bytes->data(), bytes->size()), done]() { done(picture); });
+    aurore::async([bytes = std::move(bytes), done = std::move(done)]() {
+        aurore::sync([picture = decoded(bytes->data(), bytes->size()), done]() { done(picture); });
     });
 }
 

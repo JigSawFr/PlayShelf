@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -13,9 +13,9 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_modal.hpp>
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_modal.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 #include "action/github_login_flow.hpp"
 #include "action/rollback_flow.hpp"
@@ -33,7 +33,7 @@
 #include "util/paths.hpp"
 #include "util/rollback.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace dev_build_flow
 {
@@ -64,7 +64,7 @@ void keep(const dev_builds::Cache& cache)
     // Only saves time on the next start: a write that fails is just logged.
     if (!paths::ensure_dir(paths::cache_dir()) ||
         !paths::atomic_write(cache_file(), dev_builds::encode_cache(cache), &err))
-        brls::Logger::warning("dev builds: cannot keep the list ({})", err);
+        aurore::Logger::warning("dev builds: cannot keep the list ({})", err);
 }
 
 // The .nro to replace, from the SD card root: the running one. On desktop,
@@ -99,7 +99,7 @@ std::string mb_text(uint64_t bytes)
 // download, then the checks, then the install), the build, a bar, the share
 // and "3,2 of 4,7 MB · 1,1 MB/s", what it replaces, and Cancel (B too),
 // updated from the download thread (at most once per percent, through
-// brls::sync). Cancel sets the flag the download checks (it stops within a
+// aurore::sync). Cancel sets the flag the download checks (it stops within a
 // second) and closes the dialog at once; nothing touches the dialog after it
 // closed, whichever way (Cancel, B, the download's end) it did. Once the
 // build is being put in place (installing()), Cancel goes: nothing can stop
@@ -112,25 +112,25 @@ class DownloadProgress
         this->body = cadran::progress_body("playshelf/dev_build/downloading"_i18n, name, replaces);
         // Its own button, not the dialog's: a dialog's button acts once the
         // dialog is gone, and the download must stop updating it before.
-        this->button = new brls::Button();
+        this->button = new aurore::Button();
         this->button->setText("hints/cancel"_i18n);
         cadran::style_button(this->button);
         this->button->setWidth(260);
         this->button->setMarginTop(28);
-        this->button->setAlignSelf(brls::AlignSelf::CENTER);
-        this->button->registerClickAction([this](brls::View*) {
+        this->button->setAlignSelf(aurore::AlignSelf::CENTER);
+        this->button->registerClickAction([this](aurore::View*) {
             this->cancel();
             return true;
         });
         this->body.box->addView(this->button);
-        this->dialog = new brls::Dialog(this->body.box);
+        this->dialog = new aurore::Dialog(this->body.box);
         this->dialog->setCancelable(false);   // B: below, through cancel()
         this->dialog->getAppletFrame()->registerAction(
-            "hints/cancel"_i18n, brls::BUTTON_B, [this](brls::View*) {
+            "hints/cancel"_i18n, aurore::BUTTON_B, [this](aurore::View*) {
                 this->cancel();
                 return true;
             },
-            false, false, brls::SOUND_BACK);
+            false, false, aurore::SOUND_BACK);
         this->show(0, bytes);
         this->dialog->open();
     }
@@ -143,7 +143,7 @@ class DownloadProgress
         if (now == this->percent.exchange(now)) return;
         // `this` outlives every update: the shared_ptr is held by the
         // close() task, queued after them.
-        brls::sync([this, done, total]() { this->show(done, total); });
+        aurore::sync([this, done, total]() { this->show(done, total); });
     }
 
     // What the download checks.
@@ -175,8 +175,8 @@ class DownloadProgress
     uint64_t first_done = 0;
     std::chrono::steady_clock::time_point first_at;
     bool first_seen = false;
-    brls::Dialog* dialog = nullptr;   // null once it is closing: never touched again
-    brls::Button* button = nullptr;
+    aurore::Dialog* dialog = nullptr;   // null once it is closing: never touched again
+    aurore::Button* button = nullptr;
     bool placing = false;   // installing(): nothing to cancel any more
     cadran::Progress body;
 
@@ -193,7 +193,7 @@ class DownloadProgress
         const float part = total ? std::min(1.0f, (float)done / (float)total) : 0.0f;
         // Everything in: what follows is the checks (the digest, the zip, the NRO header).
         if (total && done >= total) this->body.heading->setText("playshelf/dev_build/verifying"_i18n);
-        std::string detail = brls::getStr("playshelf/dev_build/downloaded_mb", mb_text(std::min(done, total)), mb_text(total));
+        std::string detail = aurore::getStr("playshelf/dev_build/downloaded_mb", mb_text(std::min(done, total)), mb_text(total));
         // The speed, once a second has gone by and while it is coming in.
         const auto now = std::chrono::steady_clock::now();
         if (!this->first_seen && done > 0) {
@@ -203,7 +203,7 @@ class DownloadProgress
         }
         const double elapsed = this->first_seen ? std::chrono::duration<double>(now - this->first_at).count() : 0;
         if (elapsed >= 1 && done > this->first_done && done < total)
-            detail += " · " + brls::getStr("playshelf/dev_build/speed",
+            detail += " · " + aurore::getStr("playshelf/dev_build/speed",
                                           mb_text((uint64_t)((double)(done - this->first_done) / elapsed)));
         this->body.show(part, detail);
     }
@@ -217,24 +217,24 @@ void installed_now(const dev_builds::Build& b)
     // run again when a later build is back (util/migrations.hpp).
     const std::string version = b.kind == dev_builds::Kind::Release ? b.version : "";
     if (migrations::is_earlier(version, app::version())) {
-        brls::Logger::info("dev builds: {} is not a newer release than {}: the migrations run again after it",
+        aurore::Logger::info("dev builds: {} is not a newer release than {}: the migrations run again after it",
                            version.empty() ? "a build of a branch, a pull request or a commit" : version, app::version());
         migrations::earlier_build_next(paths::migrations_file(), [](bool warning, const std::string& line) {
             if (warning)
-                brls::Logger::warning("dev builds: {}", line);
+                aurore::Logger::warning("dev builds: {}", line);
             else
-                brls::Logger::info("dev builds: {}", line);
+                aurore::Logger::info("dev builds: {}", line);
         });
     } else {
-        brls::Logger::info("dev builds: {} is a newer release than {}: the migrations recorded are kept", version,
+        aurore::Logger::info("dev builds: {} is a newer release than {}: the migrations recorded are kept", version,
                            app::version());
     }
     if (launcher::can_launch() && launcher::launch_nro(sd_path())) {
         // hbloader starts the new .nro as soon as this one exits.
-        brls::Application::quit();
+        aurore::Application::quit();
         return;
     }
-    ui::info(brls::getStr("playshelf/dev_build/done_manual", label(b)));
+    ui::info(aurore::getStr("playshelf/dev_build/done_manual", label(b)));
 }
 
 void install(const dev_builds::Build& b)
@@ -249,7 +249,7 @@ void install(const dev_builds::Build& b)
     // What it replaces: the running build's name, as Go back to the previous
     // build will give it (rollback_flow).
     auto progress = std::make_shared<DownloadProgress>(label(b), b.size,
-                                                       brls::getStr("playshelf/dev_build/replacing", rollback_flow::running_label()));
+                                                       aurore::getStr("playshelf/dev_build/replacing", rollback_flow::running_label()));
     // Not behind the play log or the game icons (ui::in_background).
     ui::in_background("dev build download", [b, target, progress]() {
         std::string err;
@@ -257,7 +257,7 @@ void install(const dev_builds::Build& b)
         bool ok = dev_builds::download(b, fresh, &err, [progress](uint64_t done, uint64_t total) {
             progress->received(done, total);
         }, progress->cancel_flag());
-        brls::sync([b, ok, err, target, fresh, progress]() mutable {
+        aurore::sync([b, ok, err, target, fresh, progress]() mutable {
             // Cancelled: nothing replaced, even when the download had just
             // ended; said with a toast (the dialog is already gone).
             if (progress->was_cancelled()) {
@@ -271,7 +271,7 @@ void install(const dev_builds::Build& b)
                 progress->close();
                 // The one reason a user can act on, said in their language.
                 if (why == dev_builds::NO_DIGEST) why = "playshelf/dev_build/no_digest"_i18n;
-                if (!done) ui::error(brls::getStr("playshelf/dev_build/failed", why));
+                if (!done) ui::error(aurore::getStr("playshelf/dev_build/failed", why));
                 else installed_now(b);
             };
             if (!ok) {
@@ -280,7 +280,7 @@ void install(const dev_builds::Build& b)
             }
             // Said first, drawn once, then done: the swap holds the UI thread.
             progress->installing();
-            brls::delay(100, [target, fresh, end]() {
+            aurore::delay(100, [target, fresh, end]() {
                 // The running .nro is held open by romfs:/ (the app's
                 // resources), and the SD card will not rename an open file:
                 // released for the two renames, here on the UI thread so that
@@ -324,9 +324,9 @@ std::string age_text(const std::string& iso)
     switch (age.unit) {
         case dev_builds::Age::None: break;
         case dev_builds::Age::Now: return "playshelf/dev_build/age_now"_i18n;
-        case dev_builds::Age::Minutes: return brls::getStr("playshelf/dev_build/age_minutes", age.count);
-        case dev_builds::Age::Hours: return brls::getStr("playshelf/dev_build/age_hours", age.count);
-        case dev_builds::Age::Days: return brls::getStr("playshelf/dev_build/age_days", age.count);
+        case dev_builds::Age::Minutes: return aurore::getStr("playshelf/dev_build/age_minutes", age.count);
+        case dev_builds::Age::Hours: return aurore::getStr("playshelf/dev_build/age_hours", age.count);
+        case dev_builds::Age::Days: return aurore::getStr("playshelf/dev_build/age_days", age.count);
     }
     return "";
 }
@@ -339,13 +339,13 @@ std::string label(const dev_builds::Build& b)
             text = release_text(b);
             break;
         case dev_builds::Kind::Main:
-            text = brls::getStr("playshelf/dev_build/main", b.commit, dev_builds::short_date(b.date));
+            text = aurore::getStr("playshelf/dev_build/main", b.commit, dev_builds::short_date(b.date));
             break;
         case dev_builds::Kind::PullRequest:
-            text = brls::getStr("playshelf/dev_build/pr", b.pr, subject(b), b.commit);
+            text = aurore::getStr("playshelf/dev_build/pr", b.pr, subject(b), b.commit);
             break;
         case dev_builds::Kind::Commit:
-            text = brls::getStr("playshelf/dev_build/commit", b.commit, b.branch, dev_builds::short_date(b.date));
+            text = aurore::getStr("playshelf/dev_build/commit", b.commit, b.branch, dev_builds::short_date(b.date));
             break;
     }
     if (installed(b)) text += " · " + "playshelf/dev_build/installed"_i18n;
@@ -368,7 +368,7 @@ bool installed(const dev_builds::Build& b)
 
 std::string release_text(const dev_builds::Build& b)
 {
-    std::string text = brls::getStr("playshelf/dev_build/release", b.version);
+    std::string text = aurore::getStr("playshelf/dev_build/release", b.version);
     if (b.prerelease) text += " · " + "playshelf/dev_build/prerelease"_i18n;
     return text;
 }
@@ -377,7 +377,7 @@ std::string checked_text(const dev_builds::Cache& cache)
 {
     const int64_t age = now() - cache.fetched_at;
     if (age < 60) return "playshelf/dev_build/checked_now"_i18n;
-    return brls::getStr("playshelf/dev_build/checked", (int)(age / 60));
+    return aurore::getStr("playshelf/dev_build/checked", (int)(age / 60));
 }
 
 std::string subject(const dev_builds::Build& b)
@@ -417,7 +417,7 @@ void go_back()
     std::string previous;
     if (s_busy || !rollback_flow::previous(&previous)) return;
     const std::string running = rollback_flow::running_label();
-    ui::confirm(brls::getStr("playshelf/dev_build/back_body", running, previous), "playshelf/dev_build/back_confirm"_i18n,
+    ui::confirm(aurore::getStr("playshelf/dev_build/back_body", running, previous), "playshelf/dev_build/back_confirm"_i18n,
                 []() {
                     const auto& may = ui::app_hooks::get().may_replace_self;
                     if (may && !may()) return;
@@ -434,23 +434,23 @@ void find()
     ui::prompt_text("playshelf/dev_build/find_header"_i18n, "", 40, [](std::string text) {
         dev_builds::Query q;
         if (!dev_builds::parse_query(text, &q)) {
-            ui::info(brls::getStr("playshelf/dev_build/find_invalid", text));
+            ui::info(aurore::getStr("playshelf/dev_build/find_invalid", text));
             return;
         }
         if (s_busy) return;
         s_busy = true;
         const std::string what = q.pr ? "#" + std::to_string(q.pr) : q.commit.substr(0, 7);
         // A few requests, a few seconds: the bar fills at a steady pace meanwhile.
-        DevBuildsActivity::loading(brls::getStr("playshelf/dev_build/finding", what), 0.0f, true);
+        DevBuildsActivity::loading(aurore::getStr("playshelf/dev_build/finding", what), 0.0f, true);
         ui::in_background("dev build find", [q]() {
             dev_builds::Build b;
             std::string err;
             const bool ok = dev_builds::find(q, &b, &err);
-            brls::sync([ok, b, err]() {
+            aurore::sync([ok, b, err]() {
                 s_busy = false;
                 DevBuildsActivity::loaded();
                 if (ok) choose(b);
-                else ui::error(brls::getStr("playshelf/dev_build/find_failed", err));
+                else ui::error(aurore::getStr("playshelf/dev_build/find_failed", err));
             });
         });
     });
@@ -477,7 +477,7 @@ void open(bool force)
         return;
     }
     s_busy = true;
-    brls::Logger::info("dev builds: fetching the list");
+    aurore::Logger::info("dev builds: fetching the list");
     // The screen opens at once, the list kept (if any) under a bar that shows
     // how far the fetch is: a toast alone looked like nothing was happening.
     // Nothing kept yet: an empty list, Sign in already there when signed out.
@@ -490,28 +490,28 @@ void open(bool force)
         dev_builds::Cache fresh;
         std::string err;
         const bool ok = dev_builds::fetch(&fresh.builds, &fresh.needs_login, &err, [](float done, dev_builds::Step step) {
-            brls::sync([done, step]() {
+            aurore::sync([done, step]() {
                 const char* key = step == dev_builds::Step::Releases    ? "playshelf/dev_build/step_releases"
                                   : step == dev_builds::Step::Artifacts ? "playshelf/dev_build/step_artifacts"
                                   : step == dev_builds::Step::Pulls     ? "playshelf/dev_build/step_pulls"
                                                                         : "playshelf/dev_build/step_runs";
-                DevBuildsActivity::loading(brls::getStr(key), done);
+                DevBuildsActivity::loading(aurore::getStr(key), done);
             });
         });
         fresh.fetched_at = now();
-        brls::sync([ok, fresh, err]() {
+        aurore::sync([ok, fresh, err]() {
             s_busy = false;
             DevBuildsActivity::loaded();
             if (ok) {
                 keep(fresh);
                 DevBuildsActivity::show(fresh);
             } else if (!s_cache.builds.empty()) {
-                ui::notify(brls::getStr("playshelf/dev_build/list_stale", err));
+                ui::notify(aurore::getStr("playshelf/dev_build/list_stale", err));
                 DevBuildsActivity::show(s_cache);
             } else if (fresh.needs_login) {
                 DevBuildsActivity::show(fresh);   // signing in may still list them
             } else {
-                DevBuildsActivity::failed(brls::getStr("playshelf/dev_build/list_failed", err));
+                DevBuildsActivity::failed(aurore::getStr("playshelf/dev_build/list_failed", err));
             }
         });
     });

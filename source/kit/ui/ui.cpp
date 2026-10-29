@@ -3,10 +3,10 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "ui/ui.hpp"
 
-#include <borealis/cadran/ui/cadran_modal.hpp>
-#include <borealis/cadran/ui/cadran_text.hpp>
-#include <borealis/cadran/ui/effects.hpp>
-#include <borealis/cadran/ui/hooks.hpp>
+#include <aurore/cadran/ui/cadran_modal.hpp>
+#include <aurore/cadran/ui/cadran_text.hpp>
+#include <aurore/cadran/ui/effects.hpp>
+#include <aurore/cadran/ui/hooks.hpp>
 
 #include "action/error_hint_logic.hpp"
 #include "action/write_queue_logic.hpp"
@@ -18,7 +18,7 @@
 #include <chrono>
 #include <fmt/format.h>
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace ui
 {
@@ -26,7 +26,7 @@ namespace ui
 static std::string hint_for(Result rc)
 {
     const std::string key = error_hint_logic::hint_key(rc);
-    return key.empty() ? std::string() : brls::getStr("playshelf/error/" + key);
+    return key.empty() ? std::string() : aurore::getStr("playshelf/error/" + key);
 }
 
 std::string rc_text(Result rc, bool next_step)
@@ -37,8 +37,8 @@ std::string rc_text(Result rc, bool next_step)
         return hint;
     }
     std::string code = fmt::format("0x{:08X}", (unsigned)rc);
-    std::string text = hint.empty() ? brls::getStr("playshelf/error/code", code)
-                                    : brls::getStr("playshelf/error/code_hint", code, hint);
+    std::string text = hint.empty() ? aurore::getStr("playshelf/error/code", code)
+                                    : aurore::getStr("playshelf/error/code_hint", code, hint);
     // A system code alone leaves the parent stuck: say what to do next. App
     // results already explain themselves.
     if (next_step && !NXM_IS_APP_RESULT(rc)) text += "\n\n" + "playshelf/error/next_step"_i18n;
@@ -59,7 +59,7 @@ std::atomic<bool> s_config_saved{ true };   // the last config.json write went t
 WorkerThreads& workers()
 {
     static WorkerThreads* const instance = new WorkerThreads(
-        [](const std::string& what) { brls::Logger::error("background task threw: {}", what); });
+        [](const std::string& what) { aurore::Logger::error("background task threw: {}", what); });
     return *instance;
 }
 }   // namespace
@@ -68,8 +68,8 @@ void in_background(const char* what, std::function<void()> task)
 {
     std::string why;
     if (workers().start(task, &why)) return;
-    brls::Logger::warning("{}: no thread ({}), queued instead", what, why);
-    brls::async(task);
+    aurore::Logger::warning("{}: no thread ({}), queued instead", what, why);
+    aurore::async(task);
 }
 
 bool quitting()
@@ -81,7 +81,7 @@ bool claim_start_screen(const char* what)
 {
     static const char* s_claimed = nullptr;
     if (s_claimed) {
-        brls::Logger::info("start-up: {} waits for the next start ({} was shown)", what, s_claimed);
+        aurore::Logger::info("start-up: {} waits for the next start ({} was shown)", what, s_claimed);
         return false;
     }
     s_claimed = what;
@@ -93,11 +93,11 @@ bool finish_background(std::chrono::milliseconds max)
     s_quitting = true;
     const auto until = std::chrono::steady_clock::now() + max;
     // The SD-card writes first: what the parent changed last is not lost.
-    if (!s_writes.flush(max)) brls::Logger::warning("quitting with SD-card writes still running");
+    if (!s_writes.flush(max)) aurore::Logger::warning("quitting with SD-card writes still running");
     // The rest of `max`, the writes' share taken off.
     const auto left = std::chrono::duration_cast<std::chrono::milliseconds>(until - std::chrono::steady_clock::now());
     const bool done = workers().wait_all(left > std::chrono::milliseconds(0) ? left : std::chrono::milliseconds(0));
-    if (!done) brls::Logger::warning("quitting with {} background task(s) still running", workers().running());
+    if (!done) aurore::Logger::warning("quitting with {} background task(s) still running", workers().running());
     return done;
 }
 
@@ -137,7 +137,7 @@ void settle_writes(const std::string& key)
 static void shake_focus()
 {
     if (!effects::motion()) return;
-    if (brls::View* focus = brls::Application::getCurrentFocus()) focus->shakeHighlight(brls::FocusDirection::LEFT);
+    if (aurore::View* focus = aurore::Application::getCurrentFocus()) focus->shakeHighlight(aurore::FocusDirection::LEFT);
 }
 
 // The texts of a result are read on the UI thread, in the sync: a language
@@ -146,17 +146,17 @@ static void shake_focus()
 
 void refuse(Result rc)
 {
-    brls::sync([rc]() {
+    aurore::sync([rc]() {
         const std::string text = rc_text(rc);
-        brls::Logger::info("toast: {}", text);
+        aurore::Logger::info("toast: {}", text);
         shake_focus();
-        brls::Application::notify(text, cadran::toast_icon(false));
+        aurore::Application::notify(text, cadran::toast_icon(false));
     });
 }
 
 static void show_error(const std::string& text)
 {
-    brls::Logger::info("error: {}", text);
+    aurore::Logger::info("error: {}", text);
     cadran_text::Failure f;
     f.reason = text;
     show_failure(f);
@@ -164,9 +164,9 @@ static void show_error(const std::string& text)
 
 void error(const std::string& what, Result rc, const std::string& before)
 {
-    brls::sync([what, rc, before]() {
+    aurore::sync([what, rc, before]() {
         // Logged as the text the dialog says, for the smoke test.
-        brls::Logger::info("error: {}{}", before.empty() ? "" : before + " / ",
+        aurore::Logger::info("error: {}{}", before.empty() ? "" : before + " / ",
                            what.empty() ? rc_text(rc) : what + " \u2014 " + rc_text(rc));
         cadran_text::Failure f = cadran_text::failure(what, hint_for(rc), (uint32_t)rc, NXM_IS_APP_RESULT(rc));
         if (!before.empty()) f.reason = f.reason.empty() ? before : before + "\n\n" + f.reason;
@@ -190,7 +190,7 @@ static bool queue_config(const std::string& saved_text, const std::string& faile
     *ticket = push_write("config", [text, saved_text, failed]() {
         const bool saved = config::write(text);
         s_config_saved = saved;
-        brls::sync([saved]() {
+        aurore::sync([saved]() {
             if (app_hooks::get().note_write) app_hooks::get().note_write("config", saved);
         });
         if (!saved) notify(failed, Toast::Refused);
@@ -216,13 +216,13 @@ bool save_config_now()
 void notify_result(Result rc, const std::string& ok_text, const std::string& error_prefix)
 {
     if (R_SUCCEEDED(rc)) notify(ok_text, Toast::Done);
-    else brls::sync([rc, error_prefix]() { show_error(error_prefix + " — " + rc_text(rc)); });
+    else aurore::sync([rc, error_prefix]() { show_error(error_prefix + " — " + rc_text(rc)); });
 }
 
 // "PlayShelf" and its icons, on the main screen.
 static void update_title()
 {
-    brls::Activity* main = main_screen();
+    aurore::Activity* main = main_screen();
     if (main && hooks::get().update_title) hooks::get().update_title(main);
 }
 

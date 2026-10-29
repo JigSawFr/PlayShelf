@@ -4,7 +4,7 @@
      information. A on an entry runs its action (or puts the information
      away). The entries are built by source/activity/notices_activity.cpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
     <ScrollView
@@ -16,7 +16,7 @@
         alignItems="stretch"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="nt_root"
             width="auto"
             height="auto"
@@ -25,4 +25,4 @@
 
     </ScrollView>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

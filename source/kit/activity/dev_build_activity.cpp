@@ -3,10 +3,10 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_modal.hpp>
-#include <borealis/cadran/util/markdown.hpp>
-#include <borealis/cadran/view/markdown_view.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_modal.hpp>
+#include <aurore/cadran/util/markdown.hpp>
+#include <aurore/cadran/view/markdown_view.hpp>
 
 #include "action/dev_build_flow.hpp"
 #include "action/rollback_flow.hpp"
@@ -16,27 +16,27 @@
 #include "view/build_cell.hpp"
 #include "view/release_notes.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 void DevBuildActivity::show(const dev_builds::Build& build, bool newer)
 {
-    brls::Application::pushActivity(new DevBuildActivity(build, newer));
+    aurore::Application::pushActivity(new DevBuildActivity(build, newer));
 }
 
 void DevBuildActivity::add_fact(const std::string& name, const std::string& value, const char* color)
 {
-    auto* row = new brls::Box(brls::Axis::ROW);
-    row->setAlignItems(brls::AlignItems::FLEX_START);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
+    row->setAlignItems(aurore::AlignItems::FLEX_START);
     row->setPadding(10, 0, 10, 0);
     if (!facts->getChildren().empty()) {
         row->setLineTop(1);
         row->setThemeColor("lineColor", "cadran/line");
     }
-    brls::Label* n = cadran::kit::label(name, cadran::kit::TEXT_BODY, "cadran/text2");
+    aurore::Label* n = cadran::kit::label(name, cadran::kit::TEXT_BODY, "cadran/text2");
     n->setWidth(230);
     n->setShrink(0.0f);
     row->addView(n);
-    brls::Label* v = cadran::kit::label(value, cadran::kit::TEXT_BODY, color);
+    aurore::Label* v = cadran::kit::label(value, cadran::kit::TEXT_BODY, color);
     v->setGrow(1.0f);
     v->setShrink(1.0f);
     row->addView(v);
@@ -94,7 +94,7 @@ void DevBuildActivity::onContentAvailable()
     if (!age.empty()) built += " · " + age;
     add_fact("playshelf/dev_build/fact_built"_i18n, built, "cadran/text");
     add_fact("playshelf/dev_build/fact_size"_i18n,
-             brls::getStr("playshelf/dev_build/size_mb", fmt::format("{:.1f}", (double)b.size / (1024.0 * 1024.0))),
+             aurore::getStr("playshelf/dev_build/size_mb", fmt::format("{:.1f}", (double)b.size / (1024.0 * 1024.0))),
              "cadran/text");
     if (!b.commit.empty()) add_fact("playshelf/dev_build/fact_commit"_i18n, b.commit, "cadran/text");
     if (b.kind == dev_builds::Kind::Commit && !b.branch.empty())
@@ -103,22 +103,22 @@ void DevBuildActivity::onContentAvailable()
     else add_fact("playshelf/dev_build/fact_checksum"_i18n, b.sha256.substr(0, 16) + "…", "cadran/text");
     if (!b.expires.empty()) {
         const int days = std::max(0, dev_builds::days_left(b.expires, dev_build_flow::now()));
-        add_fact("playshelf/dev_build/fact_expires"_i18n, brls::getStr("playshelf/dev_build/expires_in", days),
+        add_fact("playshelf/dev_build/fact_expires"_i18n, aurore::getStr("playshelf/dev_build/expires_in", days),
                  days < 7 ? "cadran/amber" : "cadran/text");
     }
 
     const std::string running = rollback_flow::running_label();
-    std::string note = brls::getStr("playshelf/dev_build/replaces", running);
+    std::string note = aurore::getStr("playshelf/dev_build/replaces", running);
     if (b.kind != dev_builds::Kind::Release) note += " " + "playshelf/dev_build/untested"_i18n;
     // Built, but its tests and checks have not finished: they may still fail.
     if (b.ci == dev_builds::Ci::Running) note += "\n\n" + "playshelf/dev_build/ci_running_note"_i18n;
     warning->setText(note);
 
-    install->registerClickAction([b](brls::View*) {
+    install->registerClickAction([b](aurore::View*) {
         dev_build_flow::install_now(b);
         return true;
     });
-    github->registerClickAction([this](brls::View*) {
+    github->registerClickAction([this](aurore::View*) {
         this->show_page();
         return true;
     });
@@ -135,10 +135,10 @@ void DevBuildActivity::onContentAvailable()
     std::vector<changelog::Line> lines;
     if (b.kind == dev_builds::Kind::Release) lines = changelog::release_notes(b.notes, b.version);
     const std::vector<markdown::Block> blocks = lines.empty() ? markdown::parse(b.notes) : std::vector<markdown::Block>{};
-    notes_header->setTitle(b.kind == dev_builds::Kind::Release ? brls::getStr("playshelf/dev_build/notes_release", b.version)
+    notes_header->setTitle(b.kind == dev_builds::Kind::Release ? aurore::getStr("playshelf/dev_build/notes_release", b.version)
                                                                 : "playshelf/dev_build/notes_pr"_i18n);
     ui::set_visible(notes_header.getView(), !lines.empty() || !blocks.empty());
     if (!lines.empty()) release_notes::fill(notes, lines);
     else markdown_view::fill(notes, blocks);
-    brls::Application::giveFocus(offered ? install.getView() : github.getView());
+    aurore::Application::giveFocus(offered ? install.getView() : github.getView());
 }

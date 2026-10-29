@@ -3,9 +3,9 @@
 
 #include <algorithm>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/effects.hpp>
-#include <borealis/cadran/ui/motion.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/effects.hpp>
+#include <aurore/cadran/ui/motion.hpp>
 
 namespace
 {
@@ -16,7 +16,7 @@ constexpr float FADE_US = 240000.0f;   // a picture's arrival
 // it could not be made.
 int replace_texture(int texture, const uint8_t* rgba, int w, int h)
 {
-    NVGcontext* vg = brls::Application::getNVGContext();
+    NVGcontext* vg = aurore::Application::getNVGContext();
     if (texture) nvgDeleteImage(vg, texture);
     return rgba && w > 0 && h > 0 ? nvgCreateImageRGBA(vg, w, h, 0, rgba) : 0;
 }
@@ -24,9 +24,9 @@ int replace_texture(int texture, const uint8_t* rgba, int w, int h)
 
 BannerCard::BannerCard(float width, float height)
 {
-    this->setAxis(brls::Axis::COLUMN);
-    this->setJustifyContent(brls::JustifyContent::FLEX_END);
-    this->setAlignItems(brls::AlignItems::FLEX_START);
+    this->setAxis(aurore::Axis::COLUMN);
+    this->setJustifyContent(aurore::JustifyContent::FLEX_END);
+    this->setAlignItems(aurore::AlignItems::FLEX_START);
     this->setWidth(width);
     this->setHeight(height);
     this->setShrink(0);
@@ -36,15 +36,15 @@ BannerCard::BannerCard(float width, float height)
     this->setHighlightCornerRadius(RADIUS + 2);
     this->setFocusable(true);
 
-    this->kicker = new brls::Box(brls::Axis::ROW);
+    this->kicker = new aurore::Box(aurore::Axis::ROW);
     this->kicker->setHeight(26);
-    this->kicker->setAlignItems(brls::AlignItems::CENTER);
+    this->kicker->setAlignItems(aurore::AlignItems::CENTER);
     this->kicker->setPaddingLeft(10);
     this->kicker->setPaddingRight(10);
     this->kicker->setCornerRadius(13);
     this->kicker->setMarginBottom(8);
-    this->kicker->setVisibility(brls::Visibility::GONE);
-    this->kicker_text = cadran::kit::label("", 14, "brls/background");
+    this->kicker->setVisibility(aurore::Visibility::GONE);
+    this->kicker_text = cadran::kit::label("", 14, "aurore/background");
     this->kicker_text->setSingleLine(true);
     this->kicker->addView(this->kicker_text);
     this->addView(this->kicker);
@@ -60,7 +60,7 @@ BannerCard::BannerCard(float width, float height)
 
 BannerCard::~BannerCard()
 {
-    if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
+    if (this->texture) nvgDeleteImage(aurore::Application::getNVGContext(), this->texture);
 }
 
 void BannerCard::set_title(const std::string& text)
@@ -71,12 +71,12 @@ void BannerCard::set_title(const std::string& text)
 void BannerCard::set_line(const std::string& text)
 {
     this->line->setText(text);
-    this->line->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+    this->line->setVisibility(text.empty() ? aurore::Visibility::GONE : aurore::Visibility::VISIBLE);
 }
 
 void BannerCard::set_kicker(const std::string& text, const char* ink)
 {
-    this->kicker->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+    this->kicker->setVisibility(text.empty() ? aurore::Visibility::GONE : aurore::Visibility::VISIBLE);
     if (text.empty()) return;
     this->kicker_text->setText(text);
     this->kicker->setThemeColor("backgroundColor", ink);
@@ -92,10 +92,10 @@ void BannerCard::set_picture(const uint8_t* rgba, int w, int h)
     this->since = effects::motion() ? motion::now() : 0;
 }
 
-void BannerCard::draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-                      brls::FrameContext* ctx)
+void BannerCard::draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+                      aurore::FrameContext* ctx)
 {
-    brls::Theme theme = brls::Application::getTheme();
+    aurore::Theme theme = aurore::Application::getTheme();
     const float shown = this->getAlpha();
     // The well: the page's two surfaces, until the picture comes.
     NVGcolor top = theme["cadran/surf2"], bottom = theme["cadran/surf"];
@@ -124,7 +124,7 @@ void BannerCard::draw(NVGcontext* vg, float x, float y, float width, float heigh
     }
 
     // Its lower part fading into the page, for the words over it.
-    NVGcolor solid = theme["brls/background"];
+    NVGcolor solid = theme["aurore/background"];
     solid.a = 0.94f * shown;
     NVGcolor clear = solid;
     clear.a = 0.0f;
@@ -133,18 +133,18 @@ void BannerCard::draw(NVGcontext* vg, float x, float y, float width, float heigh
     nvgFillPaint(vg, nvgLinearGradient(vg, x, y + height * 0.3f, x, y + height, clear, solid));
     nvgFill(vg);
 
-    brls::Box::draw(vg, x, y, width, height, style, ctx);
+    aurore::Box::draw(vg, x, y, width, height, style, ctx);
 }
 
 BannerBackdrop::BannerBackdrop()
 {
-    this->setPositionType(brls::PositionType::ABSOLUTE);
+    this->setPositionType(aurore::PositionType::ABSOLUTE);
     this->setFocusable(false);
 }
 
 BannerBackdrop::~BannerBackdrop()
 {
-    if (this->texture) nvgDeleteImage(brls::Application::getNVGContext(), this->texture);
+    if (this->texture) nvgDeleteImage(aurore::Application::getNVGContext(), this->texture);
 }
 
 void BannerBackdrop::set_picture(const uint8_t* rgba, int w, int h)
@@ -157,7 +157,7 @@ void BannerBackdrop::set_picture(const uint8_t* rgba, int w, int h)
     this->since = effects::motion() ? motion::now() : 0;
 }
 
-void BannerBackdrop::draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style, brls::FrameContext*)
+void BannerBackdrop::draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style, aurore::FrameContext*)
 {
     if (!this->texture || this->picture_w <= 0 || this->picture_h <= 0) return;
     float fade = 1.0f;
@@ -173,7 +173,7 @@ void BannerBackdrop::draw(NVGcontext* vg, float x, float y, float width, float h
     nvgFillPaint(vg, nvgImagePattern(vg, x + (width - w) / 2, y + (height - h) / 2, w, h, 0, this->texture, shown * 0.55f));
     nvgFill(vg);
     // From the card's surface on the left to the picture on the right.
-    NVGcolor solid = brls::Application::getTheme()["cadran/surf"];
+    NVGcolor solid = aurore::Application::getTheme()["cadran/surf"];
     solid.a = this->getAlpha();
     NVGcolor clear = solid;
     clear.a = 0.0f;

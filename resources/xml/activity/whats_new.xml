@@ -4,7 +4,7 @@
      the running version's highlights and a cell to the full list (or the
      full list when it has none), then how to support PlayShelf. Filled by whats_new_activity.cpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
     <ScrollView
@@ -15,27 +15,27 @@
         alignItems="stretch"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingTop="@style/brls/sidebar/padding_top"
-            paddingRight="@style/brls/sidebar/padding_right"
-            paddingBottom="@style/brls/sidebar/padding_bottom"
-            paddingLeft="@style/brls/sidebar/padding_left">
+            paddingTop="@style/aurore/sidebar/padding_top"
+            paddingRight="@style/aurore/sidebar/padding_right"
+            paddingBottom="@style/aurore/sidebar/padding_bottom"
+            paddingLeft="@style/aurore/sidebar/padding_left">
 
-            <brls:Header id="wn_header" marginBottom="8"/>
-            <brls:Box id="wn_notes" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            <brls:DetailCell id="wn_full" title="@i18n/playshelf/about/changelog_full" marginTop="12"/>
-            <brls:DetailCell id="wn_close" title="@i18n/playshelf/about/whats_new_close" marginTop="24"/>
-            <brls:Header title="@i18n/playshelf/about/section_support" marginTop="32" marginBottom="8"/>
-            <brls:Label text="@i18n/playshelf/about/support_note" id="wn_support_note" fontSize="20" marginBottom="6" textColor="@theme/cadran/text3"/>
-            <brls:Box id="wn_funding" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <aurore:Header id="wn_header" marginBottom="8"/>
+            <aurore:Box id="wn_notes" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            <aurore:DetailCell id="wn_full" title="@i18n/playshelf/about/changelog_full" marginTop="12"/>
+            <aurore:DetailCell id="wn_close" title="@i18n/playshelf/about/whats_new_close" marginTop="24"/>
+            <aurore:Header title="@i18n/playshelf/about/section_support" marginTop="32" marginBottom="8"/>
+            <aurore:Label text="@i18n/playshelf/about/support_note" id="wn_support_note" fontSize="20" marginBottom="6" textColor="@theme/cadran/text3"/>
+            <aurore:Box id="wn_funding" width="auto" height="auto" axis="column" alignItems="stretch"/>
             <MadeInFrance marginTop="24"/>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

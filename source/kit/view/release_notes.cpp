@@ -2,9 +2,9 @@
 #include "view/release_notes.hpp"
 
 #include "app.hpp"
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_list.hpp>
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 #include "ui/ui.hpp"
 #include "util/paths.hpp"
@@ -15,11 +15,11 @@ namespace
 {
 // The emoji `hex` ("1f680") as an image `size` pixels wide, from the Twemoji
 // set in img/emoji/; nullptr when it is not one of them.
-brls::Image* icon(const std::string& hex, float size)
+aurore::Image* icon(const std::string& hex, float size)
 {
-    if (hex.empty() || !paths::file_exists(std::string(BRLS_ASSET("img/emoji/")) + hex + ".png")) return nullptr;
-    auto* image = new brls::Image();
-    image->setScalingType(brls::ImageScalingType::FIT);
+    if (hex.empty() || !paths::file_exists(std::string(AURORE_ASSET("img/emoji/")) + hex + ".png")) return nullptr;
+    auto* image = new aurore::Image();
+    image->setScalingType(aurore::ImageScalingType::FIT);
     image->setImageFromRes("img/emoji/" + hex + ".png");
     image->setWidth(size);
     image->setHeight(size);
@@ -30,13 +30,13 @@ namespace kit = cadran::kit;
 
 // "🚀 Features": its icon and its title in the display face, a card of its
 // items to follow.
-brls::View* section(const changelog::Line& l, bool first)
+aurore::View* section(const changelog::Line& l, bool first)
 {
-    auto* row = new brls::Box(brls::Axis::ROW);
-    row->setAlignItems(brls::AlignItems::CENTER);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
+    row->setAlignItems(aurore::AlignItems::CENTER);
     row->setMarginTop(first ? 0 : 26);
     row->setMarginBottom(10);
-    if (brls::Image* image = icon(l.icon, 24)) {
+    if (aurore::Image* image = icon(l.icon, 24)) {
         image->setMarginRight(10);
         row->addView(image);
     }
@@ -45,10 +45,10 @@ brls::View* section(const changelog::Line& l, bool first)
 }
 
 // "activity" before an item of the full list: a small pill, as the boards'.
-brls::View* tag(const std::string& text)
+aurore::View* tag(const std::string& text)
 {
-    auto* box = new brls::Box(brls::Axis::ROW);
-    box->setAlignItems(brls::AlignItems::CENTER);
+    auto* box = new aurore::Box(aurore::Axis::ROW);
+    box->setAlignItems(aurore::AlignItems::CENTER);
     box->setThemeColor("backgroundColor", "cadran/surf2");
     box->setThemeColor("borderColor", "cadran/line");
     box->setBorderThickness(1);
@@ -57,7 +57,7 @@ brls::View* tag(const std::string& text)
     box->setPadding(0, 10, 0, 10);
     box->setMarginRight(10);
     box->setShrink(0.0f);
-    brls::Label* label = kit::label(text, kit::TEXT_META, "cadran/text2");
+    aurore::Label* label = kit::label(text, kit::TEXT_META, "cadran/text2");
     label->setSingleLine(true);
     box->addView(label);
     return box;
@@ -66,36 +66,36 @@ brls::View* tag(const std::string& text)
 // One highlight: a card of the boards, its icon on the left (a teal bar
 // when it has none), its title over its text; in half the row (`left`: the
 // first half), the gap between the two split over both.
-brls::Box* card(const changelog::Line& l, bool left)
+aurore::Box* card(const changelog::Line& l, bool left)
 {
-    auto* half = new brls::Box(brls::Axis::ROW);
+    auto* half = new aurore::Box(aurore::Axis::ROW);
     half->setWidthPercentage(50);
-    half->setAlignItems(brls::AlignItems::STRETCH);
+    half->setAlignItems(aurore::AlignItems::STRETCH);
     if (left) half->setPaddingRight(6);
     else half->setPaddingLeft(6);
-    brls::Box* box = kit::card(false, true);
-    box->setAxis(brls::Axis::ROW);
-    box->setAlignItems(brls::AlignItems::FLEX_START);
+    aurore::Box* box = kit::card(false, true);
+    box->setAxis(aurore::Axis::ROW);
+    box->setAlignItems(aurore::AlignItems::FLEX_START);
     box->setPadding(16, 20, 16, 18);
-    if (brls::Image* image = icon(l.icon, 36)) {
+    if (aurore::Image* image = icon(l.icon, 36)) {
         image->setMarginRight(14);
         box->addView(image);
     } else {
-        box->setAlignItems(brls::AlignItems::STRETCH);
-        auto* bar = new brls::Rectangle();
+        box->setAlignItems(aurore::AlignItems::STRETCH);
+        auto* bar = new aurore::Rectangle();
         bar->setThemeColor("color", "cadran/teal");
         bar->setWidth(4);
         bar->setCornerRadius(2);
         bar->setMarginRight(14);
         box->addView(bar);
     }
-    auto* body = new brls::Box(brls::Axis::COLUMN);
+    auto* body = new aurore::Box(aurore::Axis::COLUMN);
     body->setGrow(1.0f);
     body->setShrink(1.0f);
     if (l.title.empty()) {
         body->addView(kit::label(l.text, kit::TEXT_LEAD, "cadran/text"));   // no lead-in: the line is the title
     } else {
-        brls::Label* title = kit::display(l.title, kit::TEXT_LEAD);
+        aurore::Label* title = kit::display(l.title, kit::TEXT_LEAD);
         title->setMarginBottom(4);
         body->addView(title);
         body->addView(kit::label(text::capitalise_ascii(l.text), kit::TEXT_BODY, "cadran/text2"));
@@ -109,14 +109,14 @@ brls::Box* card(const changelog::Line& l, bool left)
 std::vector<changelog::Line> current(std::string* date)
 {
     std::string md;
-    paths::read_file(BRLS_ASSET("CHANGELOG.md"), md);
+    paths::read_file(AURORE_ASSET("CHANGELOG.md"), md);
     return changelog::release_notes(md, app::version(), date);
 }
 
 std::vector<changelog::Line> highlights()
 {
     std::string md;
-    if (!paths::read_file(std::string(BRLS_ASSET("release-notes/")) + app::version() + ".md", md)) return {};
+    if (!paths::read_file(std::string(AURORE_ASSET("release-notes/")) + app::version() + ".md", md)) return {};
     return changelog::parse(md, 0);
 }
 
@@ -127,12 +127,12 @@ std::vector<changelog::Line> bundled()
     return lines;
 }
 
-void fill(brls::Box* box, const std::vector<changelog::Line>& lines)
+void fill(aurore::Box* box, const std::vector<changelog::Line>& lines)
 {
     bool first = true;
-    brls::Box* items = nullptr;   // the card the next items join, as a list's rows
+    aurore::Box* items = nullptr;   // the card the next items join, as a list's rows
     for (const changelog::Line& l : lines) {
-        brls::View* view = nullptr;
+        aurore::View* view = nullptr;
         switch (l.kind) {
             case changelog::Line::Release:   // not under one version's heading
             case changelog::Line::Section:
@@ -140,10 +140,10 @@ void fill(brls::Box* box, const std::vector<changelog::Line>& lines)
                 items = nullptr;
                 break;
             case changelog::Line::Item: {
-                auto* row = new brls::Box(brls::Axis::ROW);
-                row->setAlignItems(brls::AlignItems::FLEX_START);   // bullet and tag on the first line
+                auto* row = new aurore::Box(aurore::Axis::ROW);
+                row->setAlignItems(aurore::AlignItems::FLEX_START);   // bullet and tag on the first line
                 row->setPadding(12, 22, 12, 20 + 24 * l.depth);
-                brls::View* bullet = icon(l.icon, 20);
+                aurore::View* bullet = icon(l.icon, 20);
                 if (!bullet) {
                     bullet = kit::label(l.depth ? "–" : "•", 19, "cadran/teal");
                     bullet->setWidth(20);
@@ -152,7 +152,7 @@ void fill(brls::Box* box, const std::vector<changelog::Line>& lines)
                 bullet->setShrink(0.0f);
                 row->addView(bullet);
                 if (!l.title.empty()) row->addView(tag(l.title));
-                brls::Label* text = kit::label(text::capitalise_ascii(l.text), 18, "cadran/text");
+                aurore::Label* text = kit::label(text::capitalise_ascii(l.text), 18, "cadran/text");
                 text->setGrow(1.0f);
                 text->setShrink(1.0f);
                 row->addView(text);
@@ -175,15 +175,15 @@ void fill(brls::Box* box, const std::vector<changelog::Line>& lines)
     }
 }
 
-void fill_highlights(brls::Box* box, const std::vector<changelog::Line>& lines)
+void fill_highlights(aurore::Box* box, const std::vector<changelog::Line>& lines)
 {
     bool       after_items = false;
-    brls::Box* row         = nullptr;   // the row with room for one more card
+    aurore::Box* row         = nullptr;   // the row with room for one more card
     for (const changelog::Line& l : lines) {
         if (l.kind == changelog::Line::Item && l.depth == 0) {
             if (!row) {
-                row = new brls::Box(brls::Axis::ROW);
-                row->setAlignItems(brls::AlignItems::STRETCH);
+                row = new aurore::Box(aurore::Axis::ROW);
+                row->setAlignItems(aurore::AlignItems::STRETCH);
                 row->setMarginTop(12);
                 box->addView(row);
                 row->addView(card(l, true));
@@ -195,7 +195,7 @@ void fill_highlights(brls::Box* box, const std::vector<changelog::Line>& lines)
             continue;
         }
         if (l.kind == changelog::Line::Item) continue;   // a nested item: not on a card
-        brls::View* view = nullptr;
+        aurore::View* view = nullptr;
         if (l.kind == changelog::Line::Text) {
             view = after_items ? kit::label(l.text, kit::TEXT_NOTE, "cadran/text3") : kit::label(l.text, kit::TEXT_LEAD, "cadran/text2");
             view->setMarginTop(after_items ? 16 : 2);
@@ -207,7 +207,7 @@ void fill_highlights(brls::Box* box, const std::vector<changelog::Line>& lines)
     }
 }
 
-void fill_release(brls::Box* box, const std::vector<changelog::Line>& lines)
+void fill_release(aurore::Box* box, const std::vector<changelog::Line>& lines)
 {
     const size_t end = changelog::summary_end(lines);
     if (end == 0) {
@@ -216,8 +216,8 @@ void fill_release(brls::Box* box, const std::vector<changelog::Line>& lines)
     }
     fill_highlights(box, { lines.begin(), lines.begin() + (long)end });
     if (end == lines.size()) return;
-    auto* lists = new brls::Box(brls::Axis::COLUMN);
-    lists->setAlignItems(brls::AlignItems::STRETCH);
+    auto* lists = new aurore::Box(aurore::Axis::COLUMN);
+    lists->setAlignItems(aurore::AlignItems::STRETCH);
     lists->setMarginTop(28);
     fill(lists, { lines.begin() + (long)end, lines.end() });
     box->addView(lists);

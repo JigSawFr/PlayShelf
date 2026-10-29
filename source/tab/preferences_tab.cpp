@@ -6,7 +6,7 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_frame.hpp>
+#include <aurore/cadran/ui/cadran_frame.hpp>
 
 #include "action/download_flow.hpp"
 #include "action/titledb_flow.hpp"
@@ -15,7 +15,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -29,7 +29,7 @@ int index_of(const char* const (&list)[N], const std::string& value)
 
 std::string tab_name(const std::string& tab)
 {
-    return brls::getStr("playshelf/tabs/" + tab);
+    return aurore::getStr("playshelf/tabs/" + tab);
 }
 
 // A source as the list names it: CyberFoil-DB, else its host and path.
@@ -48,8 +48,8 @@ std::string source_name(const std::string& url)
 std::string state_line(const titledb::State& st)
 {
     // A title list has no version of its own, and no SHA-256 to check.
-    if (st.list) return brls::getStr("playshelf/titledb/source_line_list", source_name(st.url), st.count);
-    return brls::getStr("playshelf/titledb/source_line", source_name(st.url), st.version, st.count);
+    if (st.list) return aurore::getStr("playshelf/titledb/source_line_list", source_name(st.url), st.count);
+    return aurore::getStr("playshelf/titledb/source_line", source_name(st.url), st.version, st.count);
 }
 
 size_t titles_known()
@@ -69,28 +69,28 @@ void save_sources()
 PreferencesTab::PreferencesTab()
     : TabBase("xml/tab/preferences.xml", false), list(this)
 {
-    language->registerClickAction([this](brls::View*) {
+    language->registerClickAction([this](aurore::View*) {
         ui::pick_language(this->refresher());
         return true;
     });
 
-    theme->registerClickAction([this](brls::View*) {
+    theme->registerClickAction([this](aurore::View*) {
         ui::pick_theme(this->refresher());
         return true;
     });
     // The theme's colours: PlayShelf's own, Aurore's presets or the user's
     // files (sd:/config/playshelf/themes, docs/themes.md), switched at once.
-    palette->registerClickAction([this](brls::View*) {
+    palette->registerClickAction([this](aurore::View*) {
         ui::pick_palette(this->refresher());
         return true;
     });
-    text_size->registerClickAction([this](brls::View*) {
+    text_size->registerClickAction([this](aurore::View*) {
         ui::pick_text_size(this->refresher());
         return true;
     });
-    effects->registerClickAction([this](brls::View*) {
+    effects->registerClickAction([this](aurore::View*) {
         std::vector<std::string> labels;
-        for (const char* e : config::EFFECTS) labels.push_back(brls::getStr(std::string("playshelf/prefs/effects_values/") + e));
+        for (const char* e : config::EFFECTS) labels.push_back(aurore::getStr(std::string("playshelf/prefs/effects_values/") + e));
         ui::pick("playshelf/prefs/effects"_i18n, labels, index_of(config::EFFECTS, config::get().look.effects), [this](int i) {
             config::get().look.effects = config::EFFECTS[i];   // the next frame draws by it
             ui::save_config();
@@ -99,7 +99,7 @@ PreferencesTab::PreferencesTab()
         return true;
     });
 
-    start_tab->registerClickAction([this](brls::View*) {
+    start_tab->registerClickAction([this](aurore::View*) {
         std::vector<std::string> labels;
         for (const char* t : config::START_TABS) labels.push_back(tab_name(t));
         // Each tab's icon, as the sidebar draws it (ui/cadran_frame.cpp).
@@ -128,17 +128,17 @@ PreferencesTab::PreferencesTab()
         config::get().update_daily = on;
         ui::save_config();
     });
-    update_via->registerClickAction([this](brls::View*) {
+    update_via->registerClickAction([this](aurore::View*) {
         update_flow::choose_method(this->refresher());
         return true;
     });
 
     // The title database: fetched, its sources.
-    titledb->registerClickAction([this](brls::View*) {
+    titledb->registerClickAction([this](aurore::View*) {
         this->titledb_sheet();
         return true;
     });
-    title_sources->registerClickAction([this](brls::View*) {
+    title_sources->registerClickAction([this](aurore::View*) {
         this->sources_sheet();
         return true;
     });
@@ -174,15 +174,15 @@ void PreferencesTab::show_titledb()
     const titledb_flow::Status& st = titledb_flow::status();
     std::string                 line;
     if (st.running)
-        line = st.total ? brls::getStr("playshelf/titledb/fetching", (int)(100 * st.done / st.total)) : "playshelf/titledb/checking"_i18n;
+        line = st.total ? aurore::getStr("playshelf/titledb/fetching", (int)(100 * st.done / st.total)) : "playshelf/titledb/checking"_i18n;
     else if (!st.open) line = "playshelf/titledb/reading"_i18n;
     else if (st.sources.empty()) line = "playshelf/titledb/none"_i18n;
-    else line = brls::getStr("playshelf/titledb/count", titles_known());
+    else line = aurore::getStr("playshelf/titledb/count", titles_known());
     titledb->setDetailText(line);
     const auto& sources = config::get().title_sources;
     title_sources->setDetailText(sources.empty()       ? "playshelf/titledb/no_sources"_i18n
                                  : sources.size() == 1 ? source_name(sources.front())
-                                                       : brls::getStr("playshelf/titledb/sources_count", sources.size()));
+                                                       : aurore::getStr("playshelf/titledb/sources_count", sources.size()));
 }
 
 void PreferencesTab::titledb_sheet()
@@ -200,7 +200,7 @@ void PreferencesTab::titledb_sheet()
     lines.emplace_back("playshelf/titledb/sources"_i18n, ui::guarded(this->alive, [this]() { this->sources_sheet(); }), "list");
     std::string text = "playshelf/titledb/info"_i18n;
     for (const titledb::State& s : st.sources) text += "\n" + state_line(s);
-    if (!st.error.empty()) text += "\n" + brls::getStr("playshelf/titledb/failed", st.error);
+    if (!st.error.empty()) text += "\n" + aurore::getStr("playshelf/titledb/failed", st.error);
     ui::pick_actions("playshelf/titledb/row"_i18n, lines, text);
 }
 
@@ -229,7 +229,7 @@ void PreferencesTab::sources_sheet()
     // A default source removed: offered back.
     for (const char* d : config::DEFAULT_TITLE_SOURCES)
         if (std::find(sources.begin(), sources.end(), d) == sources.end() && sources.size() < config::MAX_TITLE_SOURCES)
-            lines.emplace_back(brls::getStr("playshelf/titledb/restore", source_name(d)), ui::guarded(this->alive, [this, d]() {
+            lines.emplace_back(aurore::getStr("playshelf/titledb/restore", source_name(d)), ui::guarded(this->alive, [this, d]() {
                 if (ui::refuse_read_only()) return;
                 auto& urls = config::get().title_sources;
                 if (std::find(urls.begin(), urls.end(), d) != urls.end() || urls.size() >= config::MAX_TITLE_SOURCES) return;
@@ -274,7 +274,7 @@ void PreferencesTab::source_sheet(size_t index)
     // Asked first: its packs go from the SD card.
     lines.emplace_back("playshelf/titledb/remove"_i18n, ui::guarded(this->alive, [this, url, moved]() {
         if (ui::refuse_read_only()) return;
-        ui::confirm_danger(brls::getStr("playshelf/titledb/remove_body", source_name(url)), "playshelf/titledb/remove"_i18n,
+        ui::confirm_danger(aurore::getStr("playshelf/titledb/remove_body", source_name(url)), "playshelf/titledb/remove"_i18n,
                            ui::guarded(this->alive, [url, moved]() {
                                auto urls = config::get().title_sources;
                                urls.erase(std::remove(urls.begin(), urls.end(), url), urls.end());
@@ -294,7 +294,7 @@ void PreferencesTab::refresh()
     theme->setDetailText(ui::theme_name(true));
     palette->setDetailText(ui::palette_name());
     text_size->setDetailText(ui::text_size_name(true));
-    effects->setDetailText(brls::getStr("playshelf/prefs/effects_values/" + std::string(config::EFFECTS[index_of(config::EFFECTS, cfg.look.effects)])));
+    effects->setDetailText(aurore::getStr("playshelf/prefs/effects_values/" + std::string(config::EFFECTS[index_of(config::EFFECTS, cfg.look.effects)])));
     start_tab->setDetailText(tab_name(config::START_TABS[index_of(config::START_TABS, cfg.start_tab)]));
     intro->setOn(cfg.intro, false);
     support_reminder->setOn(cfg.support_reminder, false);
@@ -307,7 +307,7 @@ void PreferencesTab::refresh()
     download_flow::show_pill();
 }
 
-brls::View* PreferencesTab::create()
+aurore::View* PreferencesTab::create()
 {
     return new PreferencesTab();
 }

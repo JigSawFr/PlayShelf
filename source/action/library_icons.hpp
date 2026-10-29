@@ -3,7 +3,7 @@
 // else fetched from the server (the credentials and the pin only for the
 // server's own address; 1 MB at most) and kept there, then decoded, all off
 // the UI thread: the UI thread only makes the pixels a texture of the view
-// that shows them (brls::Image::setImageFromRGBA), freed with it. One
+// that shows them (aurore::Image::setImageFromRGBA), freed with it. One
 // worker fetches them one after the other, in the order asked. An icon
 // neither the server nor the title database has is asked of Nlib API
 // (titledb/nlib) when config nlib_api allows it, kept in the same cache; a
@@ -19,7 +19,7 @@
 
 #include "action/library_flow.hpp"
 
-namespace brls
+namespace aurore
 {
 class Image;
 }
@@ -38,7 +38,7 @@ using Done = std::function<void(Picture)>;
 
 // `picture` shown by `image`, a texture of its own (freed with it); false,
 // and the image left as it was, when there is none.
-bool show(brls::Image* image, const Picture& picture);
+bool show(aurore::Image* image, const Picture& picture);
 
 // `done(picture)` on the UI thread: nullptr when there is none (no icon,
 // not an image, the server refused it). Not called for an icon dropped
@@ -62,7 +62,7 @@ void picture(const std::string& url, int max_w, int max_h, Done done);
 void cached(const std::string& url, const Done& done);
 
 // A JPEG or PNG already at hand (a game's icon from the console) decoded on
-// brls::async's queue, `done` on the UI thread (nullptr: not an image).
+// aurore::async's queue, `done` on the UI thread (nullptr: not an image).
 void decode(std::shared_ptr<const std::vector<uint8_t>> bytes, Done done);
 
 // The icons asked and not fetched yet are not wanted any more (the covers

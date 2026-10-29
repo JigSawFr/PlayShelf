@@ -3,7 +3,7 @@
 Korean and Chinese catalogs use (PlayShelf's and Aurore's, whose theme and
 Cadran names PlayShelf shows), cut out of Noto Sans CJK (SIL Open
 Font License 1.1), so the browser draws those languages as the console does
-with its system fonts. The desktop build has none on Linux (borealis looks for
+with its system fonts. The desktop build has none on Linux (Aurore looks for
 a system font only on Windows, macOS and Android).
 
 Noto Sans CJK draws its han for one locale at a time: the Simplified Chinese

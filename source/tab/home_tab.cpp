@@ -7,10 +7,10 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_frame.hpp>
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_list.hpp>
-#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <aurore/cadran/ui/cadran_frame.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_modal.hpp>
 
 #include "action/download_flow.hpp"
 #include "action/game_page.hpp"
@@ -31,7 +31,7 @@
 #include "view/game_tile.hpp"
 #include "view/tool_chip.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 namespace kit = cadran::kit;
 
 namespace
@@ -42,13 +42,13 @@ constexpr float  CARD_W = 440, CARD_H = 220;
 // The tab's room: the screen less the rail and the column's sides.
 float room()
 {
-    return brls::Application::contentWidth - brls::Application::getStyle()["brls/tab_frame/sidebar_width"] -
-           2 * brls::Application::getStyle()["brls/tab_frame/content_padding_sides"];
+    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
+           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
 }
 
-bool inside(brls::View* view, brls::View* parent)
+bool inside(aurore::View* view, aurore::View* parent)
 {
-    for (brls::View* v = view; v; v = v->getParent())
+    for (aurore::View* v = view; v; v = v->getParent())
         if (v == parent) return true;
     return false;
 }
@@ -84,7 +84,7 @@ std::string day_text(uint32_t date)
 {
     const unsigned d = date % 100, m = date / 100 % 100, y = date / 10000;
     if (m < 1 || m > 12) return std::to_string(y);
-    return brls::getStr("playshelf/game/date", d, brls::getStr(fmt::format("cadran/months/{}", m)), y, m);
+    return aurore::getStr("playshelf/game/date", d, aurore::getStr(fmt::format("cadran/months/{}", m)), y, m);
 }
 
 // A game's first genre, in the language's words ("" when none known).
@@ -100,9 +100,9 @@ std::pair<std::string, const char*> reason_text(const library::Reason& r)
 {
     using Kind = library::Reason::Kind;
     switch (r.kind) {
-        case Kind::Like: return { brls::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
-        case Kind::Series: return { brls::getStr("playshelf/home/because_series", r.label), "cadran/teal" };
-        case Kind::Developer: return { brls::getStr("playshelf/home/because_developer", r.label), "cadran/teal" };
+        case Kind::Like: return { aurore::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
+        case Kind::Series: return { aurore::getStr("playshelf/home/because_series", r.label), "cadran/teal" };
+        case Kind::Developer: return { aurore::getStr("playshelf/home/because_developer", r.label), "cadran/teal" };
         case Kind::Genre: return { nlib_flow::genre_name(r.label), "cadran/text3" };
         default: return { "playshelf/home/because_popular"_i18n, "cadran/text3" };
     }
@@ -162,8 +162,8 @@ void HomeTab::build(bool force)
     if (!force && key == this->built_key) return;
     this->built_key = key;
 
-    const bool had_focus = inside(brls::Application::getCurrentFocus(), content);
-    if (had_focus) brls::Application::giveFocus(this);
+    const bool had_focus = inside(aurore::Application::getCurrentFocus(), content);
+    if (had_focus) aurore::Application::giveFocus(this);
     content->clearViews(true);
     this->cards.clear();
     this->tiles.clear();
@@ -207,12 +207,12 @@ void HomeTab::build(bool force)
         const long days = std::max(0L, library::days_between(insights::first_seen(p), today));
         return Detail{ days == 0 ? "playshelf/home/added_today"_i18n
                        : days == 1 ? "playshelf/home/added_yesterday"_i18n
-                                   : brls::getStr("playshelf/home/added_days", days),
+                                   : aurore::getStr("playshelf/home/added_days", days),
                        "cadran/teal" };
     });
     if (online) this->add_banners("playshelf/home/popular"_i18n, s.popular, false);
     this->add_covers("playshelf/home/trending"_i18n, "playshelf/home/trending_line"_i18n, s.trending, [](const Pick& p) {
-        return Detail{ brls::getStr("playshelf/home/trend", popular_flow::of(p.title().id).trend), "cadran/teal" };
+        return Detail{ aurore::getStr("playshelf/home/trend", popular_flow::of(p.title().id).trend), "cadran/teal" };
     });
     if (online) {
         if (s.month.size() >= 3) this->add_banners("playshelf/home/month"_i18n, s.month, false);
@@ -220,7 +220,7 @@ void HomeTab::build(bool force)
     }
     this->add_coming(s.coming);
     if (had_focus)
-        if (brls::View* first = content->getDefaultFocus()) brls::Application::giveFocus(first);
+        if (aurore::View* first = content->getDefaultFocus()) aurore::Application::giveFocus(first);
 }
 
 void HomeTab::add_welcome()
@@ -228,16 +228,16 @@ void HomeTab::add_welcome()
     kit::Empty empty = kit::empty("home");
     empty.title->setText("playshelf/home/welcome_title"_i18n);
     empty.text->setText("playshelf/home/welcome_text"_i18n);
-    auto* row = new brls::Box(brls::Axis::ROW);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
     row->setMarginTop(20);
-    row->setJustifyContent(brls::JustifyContent::CENTER);
+    row->setJustifyContent(aurore::JustifyContent::CENTER);
     auto button = [row](const std::string& text, const std::function<void()>& run) {
-        auto* b = new brls::Button();
+        auto* b = new aurore::Button();
         b->setText(text);
         cadran::style_button(b);
         b->setMarginLeft(8);
         b->setMarginRight(8);
-        b->registerClickAction([run](brls::View*) {
+        b->registerClickAction([run](aurore::View*) {
             run();
             return true;
         });
@@ -257,23 +257,23 @@ void HomeTab::add_welcome()
 void HomeTab::add_hero(const insights::Snapshot& s)
 {
     // The greeting and its line at the left, the search at the right.
-    auto* hero = new brls::Box(brls::Axis::ROW);
-    hero->setAlignItems(brls::AlignItems::CENTER);
-    auto* words = new brls::Box(brls::Axis::COLUMN);
+    auto* hero = new aurore::Box(aurore::Axis::ROW);
+    hero->setAlignItems(aurore::AlignItems::CENTER);
+    auto* words = new aurore::Box(aurore::Axis::COLUMN);
     words->setGrow(1);
     words->addView(kit::display(greeting(), 34));
     std::string line = s.console_games == 1 ? "playshelf/installed/count_one"_i18n
-                                            : brls::getStr("playshelf/installed/count", s.console_games);
-    if (s.server_games) line += " · " + brls::getStr("playshelf/home/server_games", s.server_games);
+                                            : aurore::getStr("playshelf/installed/count", s.console_games);
+    if (s.server_games) line += " · " + aurore::getStr("playshelf/home/server_games", s.server_games);
     if (s.loading) line += " · " + "playshelf/library/loading"_i18n;
-    brls::Label* under = kit::label(line, 18, "cadran/text2");
+    aurore::Label* under = kit::label(line, 18, "cadran/text2");
     under->setMarginTop(4);
     words->addView(under);
     hero->addView(words);
     auto* search = new ToolChip("eye", "playshelf/home/search"_i18n);
     search->set_value("playshelf/home/search_where"_i18n);
-    search->registerClickAction([](brls::View*) {
-        brls::sync([]() { SearchActivity::ask(); });
+    search->registerClickAction([](aurore::View*) {
+        aurore::sync([]() { SearchActivity::ask(); });
         return true;
     });
     hero->addView(search);
@@ -282,13 +282,13 @@ void HomeTab::add_hero(const insights::Snapshot& s)
 
 void HomeTab::add_tiles(const insights::Snapshot& s)
 {
-    auto* row = new brls::Box(brls::Axis::ROW);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
     row->setMargins(20, -6, 4, -6);
     // A number in the display face, its words under it; A runs `run` once
     // the click is over.
     auto tile = [row](const std::string& n, const std::string& tile_words, const char* icon_name, const char* ink,
                       std::function<void()> run) {
-        auto* box = new brls::Box(brls::Axis::COLUMN);
+        auto* box = new aurore::Box(aurore::Axis::COLUMN);
         box->setGrow(1);
         box->setWidth(0);
         box->setPadding(16, 18, 16, 18);
@@ -299,19 +299,19 @@ void HomeTab::add_tiles(const insights::Snapshot& s)
         box->setThemeColor("borderColor", "cadran/line");
         box->setBorderThickness(1);
         box->setFocusable(true);
-        auto* top = new brls::Box(brls::Axis::ROW);
-        top->setAlignItems(brls::AlignItems::CENTER);
+        auto* top = new aurore::Box(aurore::Axis::ROW);
+        top->setAlignItems(aurore::AlignItems::CENTER);
         top->addView(kit::display(n, 34, ink));
         auto* mark = kit::icon(icon_name, 20, ink);
         mark->setMarginLeft(10);
         top->addView(mark);
         box->addView(top);
-        brls::Label* l = kit::label(tile_words, 15, "cadran/text3");
+        aurore::Label* l = kit::label(tile_words, 15, "cadran/text3");
         l->setSingleLine(true);
         l->setMarginTop(2);
         box->addView(l);
-        box->registerClickAction([run](brls::View*) {
-            brls::sync(run);
+        box->registerClickAction([run](aurore::View*) {
+            aurore::sync(run);
             return true;
         });
         row->addView(box);
@@ -343,24 +343,24 @@ void HomeTab::add_tiles(const insights::Snapshot& s)
     content->addView(row);
 }
 
-brls::Box* HomeTab::add_row(const std::string& title, const std::string& line, float height)
+aurore::Box* HomeTab::add_row(const std::string& title, const std::string& line, float height)
 {
-    auto* head = new brls::Box(brls::Axis::ROW);
-    head->setAlignItems(brls::AlignItems::FLEX_END);
+    auto* head = new aurore::Box(aurore::Axis::ROW);
+    head->setAlignItems(aurore::AlignItems::FLEX_END);
     head->setMarginTop(26);
     head->setMarginLeft(8);
     head->addView(kit::display(title, 24));
     if (!line.empty()) {
-        brls::Label* under = kit::label(line, 15, "cadran/text3");
+        aurore::Label* under = kit::label(line, 15, "cadran/text3");
         under->setMarginLeft(14);
         under->setMarginBottom(3);
         head->addView(under);
     }
     content->addView(head);
-    auto* frame = new brls::HScrollingFrame();
+    auto* frame = new aurore::HScrollingFrame();
     frame->setWidth(room());
     frame->setHeight(height);
-    auto* row = new brls::Box(brls::Axis::ROW);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
     frame->addView(row);
     content->addView(frame);
     return row;
@@ -369,7 +369,7 @@ brls::Box* HomeTab::add_row(const std::string& title, const std::string& line, f
 void HomeTab::add_banners(const std::string& title, const std::vector<Pick>& picks, bool to_get)
 {
     if (picks.empty()) return;
-    brls::Box*     row = this->add_row(title, "", CARD_H + 16);
+    aurore::Box*     row = this->add_row(title, "", CARD_H + 16);
     const auto     installed = library_flow::installed();
     const uint32_t recent = day(-365);
     const int      gen = this->generation;
@@ -389,12 +389,12 @@ void HomeTab::add_banners(const std::string& title, const std::vector<Pick>& pic
         if (to_get)
             card->set_kicker(st.update_available ? "playshelf/library/update_available"_i18n
                              : st.dlcs_missing == 1 ? "playshelf/installed/dlcs_missing_one"_i18n
-                                                    : brls::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing),
+                                                    : aurore::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing),
                              "cadran/amber");
         else if (date_of(t) >= recent) card->set_kicker("playshelf/library/new"_i18n, "cadran/teal");
         const auto   data = p.data;
         const size_t index = p.index;
-        card->registerClickAction([data, index](brls::View*) {
+        card->registerClickAction([data, index](aurore::View*) {
             game_page::open(data, index);
             return true;
         });
@@ -429,7 +429,7 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
                          const std::function<Detail(const Pick&)>& detail)
 {
     if (picks.empty()) return;
-    brls::Box* row = this->add_row(title, line, GameTile::WIDTH + 64);
+    aurore::Box* row = this->add_row(title, line, GameTile::WIDTH + 64);
     for (const Pick& p : picks) {
         const library::Title& t = p.title();
         auto*                 tile = new GameTile();
@@ -439,7 +439,7 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
         tile->set_detail_color(d.ink);
         const auto   data = p.data;
         const size_t index = p.index;
-        tile->registerClickAction([data, index](brls::View*) {
+        tile->registerClickAction([data, index](aurore::View*) {
             game_page::open(data, index);
             return true;
         });
@@ -463,7 +463,7 @@ GameTile* HomeTab::lone_tile(uint64_t game_id, const std::string& name, const De
 void HomeTab::add_recent(const std::vector<insights::Played>& recent)
 {
     if (recent.empty()) return;
-    brls::Box* row = this->add_row("playshelf/home/recent"_i18n, "playshelf/home/recent_line"_i18n, GameTile::WIDTH + 64);
+    aurore::Box* row = this->add_row("playshelf/home/recent"_i18n, "playshelf/home/recent_line"_i18n, GameTile::WIDTH + 64);
     const int  gen = this->generation;
     for (const insights::Played& p : recent) {
         auto* tile = new GameTile();
@@ -472,7 +472,7 @@ void HomeTab::add_recent(const std::vector<insights::Played>& recent)
         tile->set_detail_color("cadran/teal");
         // Its page from a catalogue that has it, else the Library.
         const Pick found = p.found;
-        tile->registerClickAction([found](brls::View*) {
+        tile->registerClickAction([found](aurore::View*) {
             if (found.data) game_page::open(found.data, found.index);
             else ui::open_tab(tabs::library);
             return true;
@@ -499,7 +499,7 @@ void HomeTab::add_recent(const std::vector<insights::Played>& recent)
 void HomeTab::add_wished(const std::vector<insights::Wished>& wished)
 {
     if (wished.empty()) return;
-    brls::Box* row = this->add_row("playshelf/home/wishlist"_i18n, "playshelf/home/wishlist_line"_i18n, GameTile::WIDTH + 64);
+    aurore::Box* row = this->add_row("playshelf/home/wishlist"_i18n, "playshelf/home/wishlist_line"_i18n, GameTile::WIDTH + 64);
     for (const insights::Wished& w : wished) {
         GameTile* tile = nullptr;
         if (w.found.data) {
@@ -509,7 +509,7 @@ void HomeTab::add_wished(const std::vector<insights::Wished>& wished)
             tile->set_detail_color(w.installed ? "cadran/text3" : "cadran/teal");
             const auto   data = w.found.data;
             const size_t index = w.found.index;
-            tile->registerClickAction([data, index](brls::View*) {
+            tile->registerClickAction([data, index](aurore::View*) {
                 game_page::open(data, index);
                 return true;
             });
@@ -520,7 +520,7 @@ void HomeTab::add_wished(const std::vector<insights::Wished>& wished)
             tile = this->lone_tile(w.id, w.name, { "playshelf/home/wish_waiting"_i18n, "cadran/text3" });
             const uint64_t    game_id = w.id;
             const std::string name = w.name;
-            tile->registerClickAction([game_id, name](brls::View*) {
+            tile->registerClickAction([game_id, name](aurore::View*) {
                 ui::pick_actions(name, { ui::Choice("playshelf/wishlist/remove"_i18n, [game_id, name]() { wishlist::toggle(game_id, name); },
                                                     "trash") },
                                  "playshelf/home/wish_waiting_long"_i18n);
@@ -534,7 +534,7 @@ void HomeTab::add_wished(const std::vector<insights::Wished>& wished)
 void HomeTab::add_coming(const std::vector<insights::Coming>& coming)
 {
     if (coming.empty()) return;
-    brls::Box* row = this->add_row("playshelf/home/coming"_i18n, "playshelf/home/coming_line"_i18n, GameTile::WIDTH + 64);
+    aurore::Box* row = this->add_row("playshelf/home/coming"_i18n, "playshelf/home/coming_line"_i18n, GameTile::WIDTH + 64);
     for (const insights::Coming& c : coming) {
         GameTile* tile = this->lone_tile(c.id, c.name, { day_text(c.date), "cadran/teal" });
         if (wishlist::has(c.id)) tile->set_badge("heart", "cadran/pink");
@@ -542,7 +542,7 @@ void HomeTab::add_coming(const std::vector<insights::Coming>& coming)
         const uint64_t    game_id = c.id;
         const std::string name = c.name;
         const std::string about = c.publisher.empty() ? day_text(c.date) : c.publisher + " · " + day_text(c.date);
-        tile->registerClickAction([game_id, name, about](brls::View*) {
+        tile->registerClickAction([game_id, name, about](aurore::View*) {
             const bool on = wishlist::has(game_id);
             ui::pick_actions(name,
                              { ui::Choice(on ? "playshelf/wishlist/remove"_i18n : "playshelf/wishlist/add"_i18n,
@@ -554,7 +554,7 @@ void HomeTab::add_coming(const std::vector<insights::Coming>& coming)
     }
 }
 
-brls::View* HomeTab::create()
+aurore::View* HomeTab::create()
 {
     return new HomeTab();
 }

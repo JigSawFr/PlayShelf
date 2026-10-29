@@ -8,7 +8,7 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "tab/tab_base.hpp"
 
@@ -17,7 +17,7 @@ class PreferencesTab : public TabBase
   public:
     PreferencesTab();
     ~PreferencesTab() override;
-    static brls::View* create();
+    static aurore::View* create();
 
   protected:
     void refresh() override;
@@ -30,18 +30,18 @@ class PreferencesTab : public TabBase
 
     cadran::List list;
     int          titledb_listener = 0;
-    BRLS_BIND(brls::DetailCell,  language,      "pf_language");
-    BRLS_BIND(brls::DetailCell,  theme,         "pf_theme");
-    BRLS_BIND(brls::DetailCell,  palette,       "pf_palette");
-    BRLS_BIND(brls::DetailCell,  start_tab,     "pf_start_tab");
-    BRLS_BIND(brls::DetailCell,  text_size,     "pf_text_size");
-    BRLS_BIND(brls::DetailCell,  effects,       "pf_effects");
-    BRLS_BIND(brls::BooleanCell, intro,         "pf_intro");
-    BRLS_BIND(brls::BooleanCell, support_reminder, "pf_support_reminder");
-    BRLS_BIND(brls::BooleanCell, update_daily,   "pf_update_daily");
-    BRLS_BIND(brls::DetailCell,  update_via,     "pf_update_via");
-    BRLS_BIND(brls::DetailCell,  titledb,        "pf_titledb");
-    BRLS_BIND(brls::DetailCell,  title_sources,  "pf_title_sources");
-    BRLS_BIND(brls::BooleanCell, nlib_api,       "pf_nlib_api");
-    BRLS_BIND(brls::BooleanCell, popular_online, "pf_popular_online");
+    AURORE_BIND(aurore::DetailCell,  language,      "pf_language");
+    AURORE_BIND(aurore::DetailCell,  theme,         "pf_theme");
+    AURORE_BIND(aurore::DetailCell,  palette,       "pf_palette");
+    AURORE_BIND(aurore::DetailCell,  start_tab,     "pf_start_tab");
+    AURORE_BIND(aurore::DetailCell,  text_size,     "pf_text_size");
+    AURORE_BIND(aurore::DetailCell,  effects,       "pf_effects");
+    AURORE_BIND(aurore::BooleanCell, intro,         "pf_intro");
+    AURORE_BIND(aurore::BooleanCell, support_reminder, "pf_support_reminder");
+    AURORE_BIND(aurore::BooleanCell, update_daily,   "pf_update_daily");
+    AURORE_BIND(aurore::DetailCell,  update_via,     "pf_update_via");
+    AURORE_BIND(aurore::DetailCell,  titledb,        "pf_titledb");
+    AURORE_BIND(aurore::DetailCell,  title_sources,  "pf_title_sources");
+    AURORE_BIND(aurore::BooleanCell, nlib_api,       "pf_nlib_api");
+    AURORE_BIND(aurore::BooleanCell, popular_online, "pf_popular_online");
 };

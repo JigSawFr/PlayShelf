@@ -8,7 +8,7 @@
 #include <string>
 #include <sys/stat.h>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -82,9 +82,9 @@ bool offer(File<Book>& file, std::shared_ptr<const Book> book)
 template <typename Book>
 void load(File<Book>& file)
 {
-    std::shared_ptr<const Book> shipped = read<Book>(std::string(BRLS_ASSET("data/")) + file.name);
+    std::shared_ptr<const Book> shipped = read<Book>(std::string(AURORE_ASSET("data/")) + file.name);
     std::shared_ptr<const Book> cached = read<Book>(file.cached());
-    brls::sync([&file, shipped, cached]() {
+    aurore::sync([&file, shipped, cached]() {
         const bool a = offer(file, shipped);
         const bool b = offer(file, cached);
         if (a || b) tell();
@@ -98,17 +98,17 @@ bool fetch(File<Book>& file)
     http::Response r;
     std::string    why;
     if (!http::request(std::string(BASE) + file.name, {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
-        brls::Logger::debug("insights data: {} not fetched ({} {})", file.name, r.status, why);
+        aurore::Logger::debug("insights data: {} not fetched ({} {})", file.name, r.status, why);
         return false;
     }
     std::shared_ptr<const Book> book = parse<Book>(r.body);
     if (!book) {
-        brls::Logger::warning("insights data: the fetched {} is not one", file.name);
+        aurore::Logger::warning("insights data: the fetched {} is not one", file.name);
         return false;
     }
     if (paths::ensure_dir(paths::cache_dir())) paths::atomic_write(file.cached(), r.body);
-    brls::Logger::info("insights data: {}, {} games, made {}", file.name, book->size(), book->generated());
-    brls::sync([&file, book]() {
+    aurore::Logger::info("insights data: {}, {} games, made {}", file.name, book->size(), book->generated());
+    aurore::sync([&file, book]() {
         if (offer(file, book)) tell();
     });
     return true;
@@ -120,7 +120,7 @@ void fetch_all()
     fetch(s_popular);
     fetch(s_signals);
     fetch(s_similar);
-    brls::sync([]() { s_fetching = false; });
+    aurore::sync([]() { s_fetching = false; });
 }
 }   // namespace
 
@@ -139,7 +139,7 @@ void start()
             oldest = std::max(oldest, age < 0 ? KEEP + 1 : age);
         }
         if (online && oldest > KEEP) fetch_all();
-        else brls::sync([]() { s_fetching = false; });
+        else aurore::sync([]() { s_fetching = false; });
     });
 }
 

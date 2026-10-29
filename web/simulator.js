@@ -41,7 +41,7 @@ function browserLanguage() {
   return SimLogic.firstConsoleLanguage(navigator.languages?.length ? navigator.languages : [navigator.language]);
 }
 
-// borealis' ControllerButton values (patches/borealis/0090-sdl-in-a-browser.patch).
+// Aurore's ControllerButton values (patches/Aurore/0090-sdl-in-a-browser.patch).
 const BUTTON = { ZL: 0, L: 1, UP: 3, RIGHT: 4, DOWN: 5, LEFT: 6, MINUS: 7, PLUS: 9, Y: 11, B: 12, A: 13, X: 14, R: 15, ZR: 16 };
 // The keys the page presses buttons for, by what they say (any layout); the
 // arrows, Enter and Escape reach SDL directly.
@@ -705,7 +705,7 @@ const STEP_BUTTONS = {
   x: BUTTON.X, y: BUTTON.Y, l: BUTTON.L, r: BUTTON.R, zl: BUTTON.ZL, zr: BUTTON.ZR, plus: BUTTON.PLUS, minus: BUTTON.MINUS,
 };
 const BUTTON_STEP = Object.fromEntries(Object.entries(STEP_BUTTONS).map(([name, code]) => [code, name]));
-// A touch's press, and the pause after a step: borealis' animations last
+// A touch's press, and the pause after a step: Aurore's animations last
 // 300 ms.
 const PRESS_MS = 60;
 const AFTER_MS = 400;
@@ -756,10 +756,10 @@ async function runSteps(text, onStep) {
       const step = list[i];
       onStep?.(i + 1, list.length, step.step);
       if (step.button) {
-        // A button is tapped: down and up at once, which brls_web_button()
+        // A button is tapped: down and up at once, which aurore_web_button()
         // keeps for the next frame as one press. Held for a while instead,
         // its release could come late on a busy page (SwiftShader's frames,
-        // a timer run late) and borealis repeat the press: the smoke test's
+        // a timer run late) and Aurore repeat the press: the smoke test's
         // tabs one off. Two refreshes then, so that a frame has read it
         // before the next tap.
         for (let n = step.times; n > 0 && !run.stopped; n--) {
