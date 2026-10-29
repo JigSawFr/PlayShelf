@@ -335,6 +335,63 @@ h2:hover > .anchor, h3:hover > .anchor, .anchor:focus-visible { opacity: 1; }
 .shots figure { margin: 0; }
 .shots img { display: block; width: 100%; height: auto; cursor: zoom-in; }
 .shots figcaption { color: var(--muted); font-size: 14px; margin-top: 6px; }
+/* The search's key, "/", at the end of its field (not on a touch screen). */
+.search-key {
+  position: absolute; top: 8px; right: 8px; min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font: 500 12px var(--mono); pointer-events: none;
+}
+.doc-search input:focus ~ .search-key, .doc-search input:not(:placeholder-shown) ~ .search-key { display: none; }
+@media (hover: none) { .search-key { display: none; } }
+
+/* The light reading's button, over the documentation's pages and in its bar. */
+.reading-toggle {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-bottom: 14px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--muted);
+  font: 500 14px var(--body); cursor: pointer;
+}
+.reading-toggle svg { width: 18px; height: 18px; }
+.reading-toggle:hover { color: var(--text); border-color: var(--muted); }
+.reading-toggle[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+/* The documentation's bar, once the header is scrolled away (site.js). */
+.doc-bar {
+  position: fixed; inset: 0 0 auto 0; z-index: 8; transform: translateY(-100%); transition: transform 0.2s;
+  background: rgb(11 20 36 / 0.88); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--night-line);
+}
+.doc-bar.on { transform: none; }
+.doc-bar-inner {
+  display: flex; align-items: center; gap: 14px; min-height: 52px;
+  padding: 0 max(var(--gutter-r), calc((100% - 1280px) / 2)) 0 max(var(--gutter-l), calc((100% - 1280px) / 2));
+}
+.doc-bar-home { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--snow); text-decoration: none; font: 700 16px var(--display); }
+.doc-bar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mist); font-size: 15px; }
+.doc-bar-search { display: grid; place-items: center; width: 44px; height: 40px; border: 1px solid var(--night-line); border-radius: 10px; background: transparent; color: var(--snow); cursor: pointer; }
+.doc-bar-search svg { width: 18px; height: 18px; }
+.doc-bar .reading-toggle { margin: 0; color: var(--mist); border-color: var(--night-line); }
+.doc-bar .reading-toggle[aria-pressed="true"] { color: var(--aurora); border-color: var(--aurora); background: rgb(0 255 204 / 0.08); }
+:root:has(.doc-bar.on) .doc-nav, :root:has(.doc-bar.on) .toc { top: 72px; max-height: calc(100vh - 92px); max-height: calc(100dvh - 92px); }
+@media (max-width: 640px) { .doc-bar .reading-toggle span, .doc-bar-home span { display: none; } .doc-bar .reading-toggle { padding: 0 10px; } }
+@media (prefers-reduced-motion: reduce) { .doc-bar { transition: none; } }
+
+/* The light reading: the documentation's page on a light ground, the
+   header and its bar staying on the night. */
+:root[data-reading="light"] main:has(.doc) {
+  --bg: #f5f7fb; --surface: #ffffff; --surface-2: #eef2f8; --text: #121b2c; --muted: #4c5870; --line: #d6deea;
+  --accent: #0a705f; --accent-soft: #e2f4f0; --link: #0a5fa8; --amber: #8a5300; --amber-soft: #fff4e2; --dusk: #5c6780;
+  background: var(--bg); color: var(--text); color-scheme: light;
+}
+:root[data-reading="light"] main:has(.doc) .doc-group h3 { color: var(--accent); }
+:root[data-reading="light"] main:has(.doc) a:hover { color: var(--accent); }
+:root[data-reading="light"] main:has(.doc) :not(pre) > code { background: #eef2f8; border-color: #dbe2ec; }
+:root[data-reading="light"] main:has(.doc) .callout { color: #3c475d; }
+:root[data-reading="light"] main:has(.doc) .callout.warning { background: #fff4e2; }
+:root[data-reading="light"] main:has(.doc) .callout.tip { background: #e2f4f0; border-left-color: #0a705f; }
+:root[data-reading="light"] main:has(.doc) .callout.important { background: #efe9ff; }
+:root[data-reading="light"] main:has(.doc) .callout:not(.tip, .warning, .important, .caution) { background: #e8f3fb; }
+:root[data-reading="light"] main:has(.doc) .callout.caution { background: #fde9eb; }
+:root[data-reading="light"] main:has(.doc) .doc-results mark { background: #c9f2e8; }
+
 /* The pages before and after. */
 .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 48px; }
 .pager a { display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; font-weight: 600; color: var(--text); background: var(--surface); }

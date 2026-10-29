@@ -131,6 +131,8 @@ def icon(name):
     return (f'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICONS[name]}</svg>')
 
+SUN_ICON = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>')
+
 ROOT = "."
 APP_TEXTS = {}
 
@@ -553,6 +555,18 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         f'{" selected" if c == lang else ""}>{html.escape(n)}</option>'
         for c, d, n, hl in LANGUAGES)
     home = f"{to_root}{lang_dir(lang)}"
+    # A page of the documentation: once the header is scrolled away, a slim
+    # bar at the top with the way home, the page's name, the search and the
+    # light reading (site.js).
+    doc_bar = ""
+    if '<div class="doc">' in body:
+        doc_bar = (f'  <div class="doc-bar" hidden><div class="doc-bar-inner">'
+                   f'<a class="doc-bar-home" href="{home}" aria-label="PlayShelf"><img src="{to_root}assets/mark.svg" alt="" width="24" height="24"><span>PlayShelf</span></a>'
+                   f'<span class="doc-bar-title">{html.escape(title)}</span>'
+                   f'<button class="doc-bar-search" type="button" aria-label="{t("search_placeholder")}">'
+                   f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">'
+                   f'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></button>'
+                   f'{reading_toggle(t)}</div></div>\n')
     full_title = full_title or ("PlayShelf" if not title else f"{title} · PlayShelf")
     head_extra = "\n".join(head)
     umami = "" if NOINDEX else (f'  <script src="{to_root}assets/umami.js" defer data-website-id="{UMAMI_WEBSITE}" '
@@ -586,13 +600,14 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <link rel="sitemap" type="application/xml" href="{SITE_URL}sitemap.xml">
   <link rel="alternate" type="application/atom+xml" title="PlayShelf releases" href="{SITE_URL}releases.atom">
 {"".join(json_ld(d) for d in structured)}
+  <script src="{to_root}assets/reading.js"></script>
   <link rel="preload" href="{to_root}assets/fonts/sora.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{to_root}assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{to_root}assets/site.css">
 {umami}</head>
 <body class="{body_class}">
   <a class="skip" href="#main">{t('skip')}</a>
-  <div class="sky{' sky-home' if hero else ''}">
+{doc_bar}  <div class="sky{' sky-home' if hero else ''}">
   {'<canvas id="sky" aria-hidden="true"></canvas>' if hero else ''}
   <header class="top">
     {switcher(t, lang, to_root, home, "playshelf", f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>', VERSIONS)}
@@ -809,12 +824,20 @@ def simulator_size():
     return total
 
 
+def reading_toggle(t):
+    """The documentation on a light ground or on the night (site.js, kept as
+    ps-reading; reading.js sets it before the first paint)."""
+    return (f'<button class="reading-toggle" type="button" aria-pressed="false" aria-label="{t("reading_light")}">{SUN_ICON}'
+            f'<span>{t("reading_light")}</span></button>')
+
+
 def docs_search(t, lang, to_root):
     """The documentation's search box: site.js shows it, and searches docs/search.json."""
     return (f'      <div class="doc-search" hidden><input type="search" placeholder="{t("search_placeholder")}"'
             f' aria-label="{t("search_placeholder")}" aria-controls="doc-results" autocomplete="off"'
             f' autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search"'
             f' data-index="{to_root}{lang_dir(lang)}docs/search.json" data-none="{t("search_none")}">'
+            f'<kbd class="search-key" aria-hidden="true">/</kbd>'
             f'<ol id="doc-results" class="doc-results" hidden></ol></div>')
 
 
@@ -963,6 +986,7 @@ def doc_body(t, lang, to_root, page_name, assets):
         description = description[:177].rsplit(" ", 1)[0] + "…"
     return title, translated, description, body, f"""    <div class="doc">
       <nav class="doc-nav" aria-label="{t('docs_title')}">
+        {reading_toggle(t)}
 {versions}
 {docs_search(t, lang, to_root) if DOCSET.prefix == "docs/" else ""}
 {docs_list(t, lang, to_root, page_name)}

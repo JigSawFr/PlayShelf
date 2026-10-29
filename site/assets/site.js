@@ -535,3 +535,37 @@
     menu.style.left = `${Math.max(12, Math.min(box.left, screen - width - 12)) + window.scrollX}px`;
   });
 })();
+
+// The documentation: once the header is scrolled away, a slim bar at the top
+// (the way home, the page's name, the search, the light reading); and the
+// light reading itself, kept as ps-reading (reading.js sets it before the
+// first paint).
+(function () {
+  const root = document.documentElement;
+  const toggles = [...document.querySelectorAll('.reading-toggle')];
+  const shown = () => toggles.forEach((b) => b.setAttribute('aria-pressed', String(root.dataset.reading === 'light')));
+  for (const b of toggles) {
+    b.addEventListener('click', () => {
+      const light = root.dataset.reading !== 'light';
+      if (light) root.dataset.reading = 'light'; else delete root.dataset.reading;
+      try { localStorage.setItem('ps-reading', light ? 'light' : 'night'); } catch { /* storage refused */ }
+      shown();
+    });
+  }
+  shown();
+
+  const bar = document.querySelector('.doc-bar');
+  const sky = document.querySelector('.sky');
+  if (!bar || !sky || !('IntersectionObserver' in window)) return;
+  bar.hidden = false;
+  new IntersectionObserver((entries) => {
+    bar.classList.toggle('on', !entries[entries.length - 1].isIntersecting);
+  }).observe(sky);
+  bar.querySelector('.doc-bar-search').addEventListener('click', () => {
+    const input = document.querySelector('.doc-search input');
+    if (!input) return;
+    window.scrollTo({ top: 0 });
+    input.focus();
+  });
+})();
+
