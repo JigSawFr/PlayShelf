@@ -11,7 +11,8 @@ folder:
 - nlib/<id>/details.en.json and details.fr.json: its details, in Nlib API's
   shape (titledb/nlib.cpp reads them);
 - insights/prices/<COUNTRY>.json: every game's eShop price in each country
-  PlayInsights has prices for (PlayInsights' schema 1), a few on sale;
+  PlayInsights has prices for (PlayInsights' schema 1), a few on sale (the
+  wishlist's among them), with the lowest each has had;
 - titledb/index.json: every game of the table, as NXMeta's Tinfoil index
   (titledb/list.cpp): names, studios, releases, the coming ones among them.
 
@@ -162,10 +163,20 @@ def in_currency(dollars, country):
     return round(max(1, round(dollars * rate)) - 0.01, 2)
 
 
+def cut_of(regular, off, currency):
+    """`regular` less `off` percent, ending as eShop prices do."""
+    cut = regular * (100 - off) / 100
+    return float(round(cut / 10) * 10) if currency == "JPY" else round(max(1, round(cut)) - 0.01, 2)
+
+
 def prices(games, today):
-    """{country: prices/<COUNTRY>.json}: every game the server has its price; one in four on sale."""
+    """{country: prices/<COUNTRY>.json}: every game the server has its price;
+    one in four on sale, and the wishlist's (so the bell says it); each with
+    the lowest price it has had since the files began (`since`, four months
+    ago): a sale at it half the time, some deeper sale before for the rest."""
     out = {}
     end = int((today + datetime.timedelta(days=12)).strftime("%Y%m%d"))
+    since = today - datetime.timedelta(days=120)
     for country, (currency, _) in COUNTRIES.items():
         table = {}
         for i, g in enumerate(games):
@@ -173,15 +184,19 @@ def prices(games, today):
                 continue
             seed = sum(map(ord, g["name"]))
             regular = in_currency(TIERS[(seed // 4) % len(TIERS)], country)
-            sale, until = 0, 0
-            if seed % 4 == 1:
+            sale, until, off = 0, 0, (40, 50, 60)[seed % 3]
+            if seed % 4 == 1 or g.get("wished"):
                 off = (20, 33, 50, 60, 75)[seed % 5]
-                cut = regular * (100 - off) / 100
-                sale = float(round(cut / 10) * 10) if currency == "JPY" else round(max(1, round(cut)) - 0.01, 2)
-                until = end
-            table[f"{tid(i):016X}"] = [regular, sale, until]
+                sale, until = cut_of(regular, off, currency), end
+            # The lowest so far: today's sale, or a deeper one some weeks ago.
+            if sale and (seed // 7) % 2:
+                lowest, day = sale, today
+            else:
+                lowest = cut_of(regular, min(off + 15, 85) if sale else off, currency)
+                day = since + datetime.timedelta(days=seed % 90)
+            table[f"{tid(i):016X}"] = [regular, sale, until, lowest, int(day.strftime("%Y%m%d"))]
         out[country] = {"schema": 1, "generated": today.isoformat(), "country": country, "currency": currency,
-                        "source": "PlayShelf's web demo (made up)", "games": table}
+                        "since": since.isoformat(), "source": "PlayShelf's web demo (made up)", "games": table}
     return out
 
 

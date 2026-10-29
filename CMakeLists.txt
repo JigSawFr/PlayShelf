@@ -177,7 +177,7 @@ endif ()
 list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp)
 
 program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 
 target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${PLAYSHELF_INCLUDES})
 # -ffunction-sections / -fdata-sections come from Aurore (PUBLIC) and

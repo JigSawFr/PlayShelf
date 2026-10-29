@@ -80,7 +80,7 @@ WEB_DEMO_SOURCES := tools/web_demo.cpp source/kit/util/aes.cpp source/install/rs
                 source/install/cnmt.cpp source/install/nca.cpp source/kit/util/sha256.cpp
 %/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
 	@mkdir -p $*
-	$(CXX) -std=c++17 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
+	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
 	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
 ART_PYTHON ?= python3
 %/demo/index.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
@@ -142,7 +142,7 @@ write_guard_FLAGS := -std=gnu11 -Isource/kit/core
 # operators, under -Werror). util/date stands on core/calendar.c: a suite
 # that links it builds that C file too (its <name>_CSRC, without having to
 # say so).
-TEST_CXXFLAGS   := -std=c++17 -Isource -Isource/kit -isystem library/aurore/library/include
+TEST_CXXFLAGS   := -std=c++23 -Isource -Isource/kit -isystem library/aurore/library/include
 CALENDAR_C      := source/kit/core/calendar.c
 CALENDAR_CFLAGS := -std=gnu11 -Isource/kit/core
 K := source/kit
@@ -253,7 +253,7 @@ diagnostics_logic_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/
 # Aurore's own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
-# it, rewritten only then). C++20, as Aurore is built (its headers use
+# it, rewritten only then). C++23, as Aurore is built (its headers use
 # defaulted comparisons).
 I18N_COPY    := $(TESTOUT)/aurore_i18n
 I18N_STAMP   := $(TESTOUT)/aurore_i18n.commit
@@ -270,7 +270,7 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 	@sed 's/operator"" _i18n/operator""_i18n/' $(I18N_COPY)/library/lib/core/i18n.cpp > $@
 # With its string and file helpers (core/util.cpp), as it is.
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp library/aurore/library/lib/core/util.cpp tests/i18n_threads/test.cpp
-i18n_threads_FLAGS := -std=c++20 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
+i18n_threads_FLAGS := -std=c++23 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
                       -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/aurore/extern include/aurore/extern/nanovg \
                         include/aurore/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
@@ -372,7 +372,7 @@ $(FUZZOUT):
 # Rebuilt when the Makefile changes too (the flags above).
 $(FUZZ_PROGRAMS): $(FUZZOUT)/%: $$($$*_FUZZ) $$($$*_FUZZ_CSRC) tests/fuzz/fuzz.h $(TEST_HEADERS) Makefile | $(FUZZOUT)
 	$(if $($*_FUZZ_CSRC),$(FUZZ_CC) -std=gnu11 $(FUZZ_CFLAGS) $($*_FUZZ_FLAGS) -c $($*_FUZZ_CSRC) -o $@.c.o)
-	$(if $(filter %.c,$(lastword $($*_FUZZ))),$(FUZZ_CC) -std=gnu11 -Isource/kit/core,$(FUZZ_CXX) -std=c++17) \
+	$(if $(filter %.c,$(lastword $($*_FUZZ))),$(FUZZ_CC) -std=gnu11 -Isource/kit/core,$(FUZZ_CXX) -std=c++23) \
 		$(FUZZ_CFLAGS) $($*_FUZZ_FLAGS) $($*_FUZZ) $(if $($*_FUZZ_CSRC),$@.c.o) $($*_FUZZ_LIBS) -o $@
 
 # A run: its output in <name>.log, its final figures on the terminal (tagged

@@ -97,6 +97,30 @@ std::string genre_of(uint64_t id)
     return "";
 }
 
+// A game's sale on the eShop of the player's country, nullptr when not on sale.
+const library::Price* sale_of(uint64_t id)
+{
+    const library::Price* p = prices_flow::of(id);
+    return p && p->on_sale() ? p : nullptr;
+}
+
+// A sale as a cover's words, "-30 % · 13,99 €", and their ink: amber at its
+// lowest price yet, else pink.
+std::pair<std::string, const char*> sale_text(const library::Price& p)
+{
+    return { aurore::getStr("playshelf/home/deal", p.discount(), library::price_text(p.sale, prices_flow::country())),
+             p.at_lowest() ? "cadran/amber" : "cadran/pink" };
+}
+
+// A cover's mark for a sale: a tag, a gem at its lowest price yet. None
+// when not on sale (`lowest_only`: only the gem, where every cover is one).
+void mark_sale(GameTile* tile, uint64_t id, bool lowest_only = false)
+{
+    const library::Price* p = sale_of(id);
+    if (p && p->at_lowest()) tile->set_badge("gem", "cadran/amber");
+    else if (p && !lowest_only) tile->set_badge("tag", "cadran/pink");
+}
+
 constexpr uint32_t PLAYED_HOURS = 10;   // from which a suggestion says the hours played of the game it is like
 
 // Why a game is suggested, under its cover.
@@ -214,6 +238,8 @@ void HomeTab::build(bool force)
                 not_interested::add(game_id, name);
                 return true;
             });
+            // Its reason stays: a sale shows as the cover's mark.
+            mark_sale(tile, game_id);
         });
         std::vector<Pick>                  in_series;
         std::map<uint64_t, std::string>    series_of;
@@ -222,9 +248,14 @@ void HomeTab::build(bool force)
             series_of[l.pick.title().id] = l.series;
         }
         this->add_covers("playshelf/home/series"_i18n, "playshelf/home/series_line"_i18n, in_series, [series_of](const Pick& p) {
+            // A sale says more than the series the row is about.
+            if (const library::Price* sale = sale_of(p.title().id)) {
+                const auto [text, ink] = sale_text(*sale);
+                return Detail{ text, ink };
+            }
             const auto it = series_of.find(p.title().id);
             return Detail{ it == series_of.end() ? "" : it->second, "cadran/teal" };
-        });
+        }, [](GameTile* tile, const Pick& p) { mark_sale(tile, p.title().id); });
         // On sale on the eShop: the discount and the price, as the country writes it.
         std::vector<Pick>                     deals;
         std::map<uint64_t, library::Price>    price_of;
@@ -232,27 +263,34 @@ void HomeTab::build(bool force)
             deals.push_back(d.pick);
             price_of[d.pick.title().id] = d.price;
         }
-        const std::string country = prices_flow::country();
-        this->add_covers("playshelf/home/deals"_i18n, "playshelf/home/deals_line"_i18n, deals, [price_of, country](const Pick& p) {
+        this->add_covers("playshelf/home/deals"_i18n, "playshelf/home/deals_line"_i18n, deals, [price_of](const Pick& p) {
             const auto it = price_of.find(p.title().id);
             if (it == price_of.end()) return Detail{};
-            return Detail{ aurore::getStr("playshelf/home/deal", it->second.discount(), library::price_text(it->second.sale, country)),
-                           "cadran/pink" };
-        });
+            const auto [text, ink] = sale_text(it->second);
+            return Detail{ text, ink };
+        }, [](GameTile* tile, const Pick& p) { mark_sale(tile, p.title().id, true); });
     }
     this->add_wished(s.wished);
     const uint32_t today = day();
     this->add_covers("playshelf/home/added"_i18n, "playshelf/home/added_line"_i18n, s.added, [today](const Pick& p) {
+        if (const library::Price* sale = sale_of(p.title().id)) {
+            const auto [text, ink] = sale_text(*sale);
+            return Detail{ text, ink };
+        }
         const long days = std::max(0L, library::days_between(insights::first_seen(p), today));
         return Detail{ days == 0 ? "playshelf/home/added_today"_i18n
                        : days == 1 ? "playshelf/home/added_yesterday"_i18n
                                    : aurore::getStr("playshelf/home/added_days", days),
                        "cadran/teal" };
-    });
+    }, [](GameTile* tile, const Pick& p) { mark_sale(tile, p.title().id); });
     if (online) this->add_banners("playshelf/home/popular"_i18n, s.popular, false);
     this->add_covers("playshelf/home/trending"_i18n, "playshelf/home/trending_line"_i18n, s.trending, [](const Pick& p) {
+        if (const library::Price* sale = sale_of(p.title().id)) {
+            const auto [text, ink] = sale_text(*sale);
+            return Detail{ text, ink };
+        }
         return Detail{ aurore::getStr("playshelf/home/trend", popular_flow::of(p.title().id).trend), "cadran/teal" };
-    });
+    }, [](GameTile* tile, const Pick& p) { mark_sale(tile, p.title().id); });
     if (online) {
         if (s.month.size() >= 3) this->add_banners("playshelf/home/month"_i18n, s.month, false);
         else this->add_banners("playshelf/home/newest"_i18n, s.newest, false);
@@ -440,7 +478,11 @@ void HomeTab::add_banners(const std::string& title, const std::vector<Pick>& pic
                              : st.dlcs_missing == 1 ? "playshelf/installed/dlcs_missing_one"_i18n
                                                     : aurore::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing),
                              "cadran/amber");
-        else if (date_of(t) >= recent) card->set_kicker("playshelf/library/new"_i18n, "cadran/teal");
+        else if (const library::Price* sale = sale_of(t.id)) {
+            const auto [text, ink] = sale_text(*sale);
+            card->set_kicker(text, ink);
+        } else if (date_of(t) >= recent)
+            card->set_kicker("playshelf/library/new"_i18n, "cadran/teal");
         const auto   data = p.data;
         const size_t index = p.index;
         card->registerClickAction([data, index](aurore::View*) {
