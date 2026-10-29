@@ -220,6 +220,13 @@ void make()
     if (s.recent.size() > ROW) s.recent.resize(ROW);
     std::stable_sort(s.idle.begin(), s.idle.end(), [](const Played& a, const Played& b) { return a.game.size > b.game.size; });
 
+    // The games the player put away (not_interested): never suggested, so
+    // out of the rows that pick for them.
+    const std::vector<uint64_t> unwanted = not_interested::games();
+    auto wanted = [&unwanted](const Pick& p) {
+        return std::find(unwanted.begin(), unwanted.end(), library::base_of(p.title().id)) == unwanted.end();
+    };
+
     // The servers' games the console has not (no demos): by date, by when
     // they came, by how well known they are.
     const uint32_t        month_ago = today(-31), to_day = today();
@@ -232,6 +239,7 @@ void make()
         const uint32_t d = date_of(t);
         if (d) s.newest.push_back(p);
         if (d >= month_ago && d <= to_day) s.month.push_back(p);
+        if (!wanted(p)) continue;
         const uint32_t seen = s_seen.first_seen(p.data->server.id, t.id);
         if (seen && library::days_between(seen, to_day) <= (long)ADDED_DAYS) s.added.push_back(p);
         const library::Renown r = popular_flow::of(t.id);
@@ -258,10 +266,6 @@ void make()
     // liked, out lately (library/recommend), each with its reason.
     const auto signals = popular_flow::signals();
     const auto similar = popular_flow::similar();
-    const std::vector<uint64_t> unwanted = not_interested::games();
-    auto wanted = [&unwanted](const Pick& p) {
-        return std::find(unwanted.begin(), unwanted.end(), library::base_of(p.title().id)) == unwanted.end();
-    };
     {
         std::vector<library::Candidate> candidates;
         std::map<uint64_t, Pick>        by_id;
@@ -312,7 +316,7 @@ void make()
         std::map<uint64_t, Deal> on_sale;
         for (const Pick& p : fresh) {
             const library::Price* price = prices_flow::of(p.title().id);
-            if (price && price->on_sale() && !on_sale.count(p.title().id)) on_sale[p.title().id] = { p, *price };
+            if (price && price->on_sale() && wanted(p) && !on_sale.count(p.title().id)) on_sale[p.title().id] = { p, *price };
         }
         for (auto& d : on_sale) s.deals.push_back(std::move(d.second));
         std::stable_sort(s.deals.begin(), s.deals.end(), [](const Deal& a, const Deal& b) {

@@ -33,8 +33,14 @@ endif ()
 # aids still read from the environment there (AURORE_INSPECTOR,
 # AURORE_HOT_RELOAD…; docs/environment.md in Aurore). -DAURORE_DEV_TOOLS=AUTO
 # leaves them out of a release build again.
+# Its window stays GLFW's, as on the Switch: Aurore's default on the desktop
+# is SDL3 now (JigSawFr/Aurore#92), which needs more of the system's
+# packages. -DAURORE_WINDOW=SDL3 tries it.
 if (AURORE_PLATFORM STREQUAL "DESKTOP" AND NOT PLAYSHELF_WEB)
     set(AURORE_DEV_TOOLS ON CACHE STRING "")
+    if (NOT AURORE_WINDOW)
+        set(AURORE_WINDOW GLFW CACHE STRING "" FORCE)
+    endif ()
 endif ()
 
 # AURORE_PLATFORM / AURORE_GRAPHICS … options, and the PLATFORM_* and USE_*
@@ -254,6 +260,13 @@ target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${AURORE_INCLUDES})
 # On the Switch: a linker map (build/playshelf.map) to see what makes the .nro big.
 if (PLATFORM_SWITCH)
     target_link_options(${PROJECT_NAME} PRIVATE -Wl,-Map,${CMAKE_BINARY_DIR}/playshelf.map)
+endif ()
+# The desktop simulator's demo (docs/contributing/simulator.md): the folder
+# `make desktop` makes it in (tools/web_demo.cpp, tools/web_demo_art.py),
+# read from there at each start; empty, none.
+if (PLATFORM_DESKTOP AND NOT PLAYSHELF_WEB)
+    set(PLAYSHELF_DESKTOP_DEMO "" CACHE PATH "Desktop simulator: the demo's files (tools/web_demo.cpp); empty for none")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE PLAYSHELF_DEMO_DIR="${PLAYSHELF_DESKTOP_DEMO}")
 endif ()
 # The web simulator: threads (a pool started with the page: a thread asked
 # for later waits for the browser, which a busy main thread never lets it

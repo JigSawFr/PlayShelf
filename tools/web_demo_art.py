@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The web simulator's demo (web/README.md), the part tools/web_demo.cpp
+"""The simulators' demo (web/README.md), the part tools/web_demo.cpp
 leaves: each made-up game's pictures, what Nlib API says of it and a title
 database, from the same table (tools/web_demo_games.json), into the demo's
 folder:

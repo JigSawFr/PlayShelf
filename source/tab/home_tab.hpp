@@ -54,7 +54,8 @@ class HomeTab : public TabBase
     void add_welcome();
     void add_hero(const insights::Snapshot& s);
     void add_tiles(const insights::Snapshot& s);
-    void add_banners(const std::string& title, const std::vector<Pick>& picks, bool to_get);
+    // `suggested`: picked for the player, X puts one away.
+    void add_banners(const std::string& title, const std::vector<Pick>& picks, bool to_get, bool suggested = false);
     // `each`: anything more on each cover (an action).
     void add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,
                     const std::function<Detail(const Pick&)>& detail,

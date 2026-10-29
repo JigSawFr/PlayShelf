@@ -383,11 +383,31 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     }
     return http_logic::succeeded(outcome, error);
 }
+#ifndef __SWITCH__
+std::atomic<const StandIn*> s_stand_in{ nullptr };
+
+// The stand-in, when it answers `url`.
+const StandIn* stand_in(const std::string& url)
+{
+    const StandIn* s = s_stand_in.load();
+    return s && s->serves(url) ? s : nullptr;
+}
+#endif
 }   // namespace
+
+#ifndef __SWITCH__
+void set_stand_in(const StandIn* answers)
+{
+    s_stand_in = answers;
+}
+#endif
 
 bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long timeout_s,
          const Headers& headers, long* status)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->get(url, body, error, max_bytes, timeout_s, headers, status);
+#endif
     Extra x;
     x.headers = &headers;
     return perform(url, x, body, error, max_bytes, timeout_s, status);
@@ -396,6 +416,10 @@ bool get(const std::string& url, std::string* body, std::string* error, size_t m
 bool post(const std::string& url, const std::string& data, const char* content_type, std::string* body,
           std::string* error, long* status, size_t max_bytes, long timeout_s, const Headers& headers)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url))
+        return s->post(url, data, content_type, body, error, status, max_bytes, timeout_s, headers);
+#endif
     Extra x;
     x.post = &data;
     x.content_type = content_type;
@@ -405,6 +429,9 @@ bool post(const std::string& url, const std::string& data, const char* content_t
 
 bool redirect(const std::string& url, std::string* target, std::string* error, const Headers& headers, long* status)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->redirect(url, target, error, headers, status);
+#endif
     Extra x;
     x.headers = &headers;
     x.follow = false;
@@ -421,6 +448,10 @@ bool download(const std::string& url, const std::string& path, std::string* erro
               long timeout_s, std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from,
               const std::atomic<bool>* cancel)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url))
+        return s->download(url, path, error, max_bytes, timeout_s, std::move(progress), resume_from, cancel);
+#endif
     // Owner-writable only (fopen would ask for 0666): an executable lands here.
     const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | (resume_from ? O_APPEND : O_TRUNC), 0644);
     FILE* file = fd >= 0 ? ::fdopen(fd, resume_from ? "ab" : "wb") : nullptr;
@@ -453,6 +484,9 @@ bool range(const std::string& url, uint64_t offset, uint64_t length,
            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers,
            const std::atomic<bool>* cancel, const std::string& pinned_key)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->range(url, offset, length, sink, error, headers, cancel, pinned_key);
+#endif
     if (!length) return true;
     std::string unused;
     Sink        s{ &unused, (size_t)-1 };
@@ -476,6 +510,9 @@ bool range(const std::string& url, uint64_t offset, uint64_t length,
 bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers,
                    const std::string& pinned_key)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->resource_size(url, size, error, headers, pinned_key);
+#endif
     uint64_t           got = 0;
     const std::function<bool(const uint8_t*, size_t)> one = [&](const uint8_t*, size_t n) {
         got += n;
@@ -498,6 +535,9 @@ bool resource_size(const std::string& url, uint64_t* size, std::string* error, c
 bool request(const std::string& url, const Headers& headers, const std::string& pinned_key, Response* r,
              std::string* error, size_t max_bytes, long timeout_s)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->request(url, headers, pinned_key, r, error, max_bytes, timeout_s);
+#endif
     Extra x;
     x.headers = &headers;
     x.pinned_key = &pinned_key;
@@ -509,6 +549,9 @@ bool request(const std::string& url, const Headers& headers, const std::string& 
 bool call(const std::string& url, const Call& c, const Headers& headers, const std::string& pinned_key, Response* r,
           std::string* error, size_t max_bytes, long timeout_s)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->call(url, c, headers, pinned_key, r, error, max_bytes, timeout_s);
+#endif
     Extra x;
     x.headers = &headers;
     x.pinned_key = &pinned_key;
@@ -559,6 +602,9 @@ bool call(const std::string& url, const Call& c, const Headers& headers, const s
 
 bool peer_certificate(const std::string& url, std::string* pem, std::string* error)
 {
+#ifndef __SWITCH__
+    if (const StandIn* s = stand_in(url)) return s->peer_certificate(url, pem, error);
+#endif
     Extra x;
     x.peer_pem = pem;
     std::string body;

@@ -17,8 +17,13 @@ Usage: tools/desktop_smoke.py <out-dir> [loading]   (needs DISPLAY, xdotool, Ima
 Environment knobs of the simulated backend (PLAYSHELF_SIM_*) are passed
 through; the console time is fixed (PLAYSHELF_SIM_NOW, TZ), the focus glow
 still (PLAYSHELF_SIM_STILL_FOCUS) and the header's version badge on one
-development build (PLAYSHELF_SIM_VERSION) unless set.
+development build (PLAYSHELF_SIM_VERSION) and the demo's server at once
+(PLAYSHELF_SIM_SPEED) unless set. A build with the demo (`make desktop`)
+starts with its server and games; PLAYSHELF_SIM_NO_DEMO=1 as a new console.
 """
+import atexit
+import ctypes
+import ctypes.util
 import glob
 import os
 import re
@@ -52,12 +57,20 @@ env.setdefault("TZ", "UTC")
 # The focus highlight without its moving glow (ui/cadran_frame.cpp).
 env.setdefault("PLAYSHELF_SIM_STILL_FOCUS", "1")
 env["PLAYSHELF_SIM_FOCUS_LOG"] = "1"     # each line focused, by its words (go_to())
+# Aurore writes there, on every loop, its number and whether the screen has
+# settled (AURORE_SETTLE_FILE, a build with AURORE_DEV_TOOLS): pause() waits
+# for that instead of a fixed time.
+SETTLE = os.path.join(OUT, "settle.txt")
+env["AURORE_SETTLE_FILE"] = SETTLE
 # One made-up development build, not this build's version and commit
 # (app.cpp): the header's version badge stays the same from one build to the
 # next.
 env.setdefault("PLAYSHELF_SIM_VERSION", "1.0.0:1a2b3c4")
 # No network: the update check answers at once.
 env.setdefault("PLAYSHELF_SIM_LATEST", "offline")
+# The demo's server at once (docs/contributing/simulator.md): every icon of
+# the Catalogue there for its screenshot.
+env.setdefault("PLAYSHELF_SIM_SPEED", "0")
 if LOADING:
     env["PLAYSHELF_SIM_HOLD_LOADING"] = "1"
 
@@ -79,24 +92,103 @@ def alive():
     return proc.poll() is None
 
 
-# The pauses around a press and before a screenshot. Aurore's longest
-# animation (a toast coming in) takes 300 ms, and a label starts scrolling
-# after 1.5 s focused: a screenshot comes 0.9 s after the last press, every
+# The pauses around a press (the longest: pause() ends them as soon as the
+# screen has settled) and before a screenshot (all of it, shot()). Aurore's longest animation (a
+# toast coming in) takes 300 ms, and a label starts scrolling after 1.5 s
+# focused: a screenshot comes 0.9 s after the last press at most, every
 # animation over, no label moving yet.
 KEY_BEFORE = 0.35
 KEY_AFTER = 0.1
 SHOT_WAIT = 0.45
 
 
+def _settle():
+    """The app's loop number and whether its screen has settled, or None (no
+    file yet, a build without AURORE_DEV_TOOLS)."""
+    try:
+        with open(SETTLE) as f:
+            loop, ok = f.read().split()
+        return int(loop), ok == "1"
+    except (OSError, ValueError):
+        return None
+
+
+def pause(most):
+    """Waits for the screen to settle: a loop of the app's, begun after this
+    call, with no animation, no task, the input free and nothing to redraw
+    (Aurore's Application::isSettled()), `most` seconds at most, the fixed
+    pause this used to be. A screen that never settles (a label scrolling
+    after 1.5 s focused) gets that pause, no more; one that settles at once
+    no longer waits it out."""
+    end = time.time() + most
+    first = _settle()
+    if first is None:
+        time.sleep(most)
+        return
+    while time.time() < end:
+        now = _settle()
+        if now and now[0] > first[0] + 1 and now[1]:
+            return
+        time.sleep(0.01)
+
+
+class _Keys:
+    """Key presses through XTest (libXtst, which xdotool uses too): the press
+    and its release go together, the release with XTest's delay, which the X
+    server itself waits. Sent by xdotool with a sleep between them, a release
+    could come late on a busy machine, and a key the app sees held 250 ms is
+    repeated (Aurore's BUTTOM_REPEAT_TRIGGER)."""
+
+    def __init__(self):
+        self.x11 = ctypes.CDLL(ctypes.util.find_library("X11") or "libX11.so.6")
+        self.xtst = ctypes.CDLL(ctypes.util.find_library("Xtst") or "libXtst.so.6")
+        self.x11.XOpenDisplay.restype = ctypes.c_void_p
+        self.x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        self.x11.XStringToKeysym.restype = ctypes.c_ulong
+        self.x11.XStringToKeysym.argtypes = [ctypes.c_char_p]
+        self.x11.XKeysymToKeycode.restype = ctypes.c_ubyte
+        self.x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        self.x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        self.x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+        self.xtst.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+        self.display = self.x11.XOpenDisplay(env["DISPLAY"].encode())
+        if not self.display:
+            fail("cannot open the display " + env["DISPLAY"])
+        # Closed before the script ends: a client still connected kept
+        # xvfb-run's Xvfb alive for seconds, its display taken from the next
+        # run's.
+        atexit.register(self.close)
+
+    def close(self):
+        if self.display:
+            self.x11.XCloseDisplay(self.display)
+            self.display = None
+
+    def press(self, name, hold):
+        code = self.x11.XKeysymToKeycode(self.display, self.x11.XStringToKeysym(name.encode()))
+        if not code:
+            fail(f"no key {name!r}")
+        self.xtst.XTestFakeKeyEvent(self.display, code, 1, 0)
+        self.xtst.XTestFakeKeyEvent(self.display, code, 0, round(hold * 1000))
+        self.x11.XSync(self.display, 0)   # back once the server has released it
+
+
+_keys = None
+
+
 def key(name, n=1, hold=0.02):
-    """Presses `name` n times, each exactly once, waiting for the screen to
-    settle before each press (Aurore's animations last 300 ms at most) and
-    releasing it `hold` seconds later, both sent by one xdotool process so a
-    busy runner cannot delay the release."""
+    """Presses `name` n times, each exactly once: waits for the screen to
+    settle (pause(), KEY_BEFORE at most: Aurore's animations last 300 ms at
+    most), presses it and releases it `hold` seconds later, timed by the X
+    server (_Keys) so a busy machine cannot hold it longer, then waits for
+    the press to be taken in (pause(), KEY_AFTER at most)."""
+    global _keys
+    if _keys is None:
+        _keys = _Keys()
     for _ in range(n):
-        time.sleep(KEY_BEFORE)
-        subprocess.run(["xdotool", "keydown", name, "sleep", str(hold), "keyup", name], env=env)
-        time.sleep(KEY_AFTER)
+        pause(KEY_BEFORE)
+        _keys.press(name, hold)
+        pause(KEY_AFTER)
 
 
 def log_lines():
@@ -118,7 +210,7 @@ def focused():
 def go_to(label, direction="Down", most=25):
     """Presses `direction` until the line `label` has the focus (its words, in
     English), `most` times at most."""
-    time.sleep(KEY_BEFORE)
+    pause(KEY_BEFORE)
     for _ in range(most):
         if focused() == label:
             return
@@ -128,7 +220,11 @@ def go_to(label, direction="Down", most=25):
 
 
 def shot(name):
-    time.sleep(SHOT_WAIT)
+    # The old fixed pause before a screenshot, whatever pause() says: a view
+    # drawing itself on the clock without asking for a frame (a fade in a
+    # section's title) is out of Aurore's sight. The presses before it are
+    # where the time is won.
+    time.sleep(KEY_AFTER + SHOT_WAIT)
     subprocess.run(IM + ["import", "-window", "root", os.path.join(OUT, name + ".png")], env=env)
     if not alive():
         fail(f"app exited while showing {name}")
@@ -216,6 +312,11 @@ m = re.search(r"after (\d+) ms", ready[0]) if ready else None
 if not m or int(m.group(1)) < 2000:
     fail("the first screen came before the end of the intro: " + (ready[0].strip() if ready else "no line"))
 
+# The demo's pictures come one after the other (action/library_icons.cpp),
+# Home's first: a moment for them, so the Library's icons are there for its
+# screenshot.
+time.sleep(4)
+
 # The tabs, down the rail: Home, Library, Catalogue, Downloads | Preferences, About.
 shot("00_home")
 key("Down")
@@ -256,6 +357,9 @@ if not logged("developer mode: on"):
 shot("08_dev_enabled")
 go_to("Help & diagnostics")
 key("Return")
+# The seven presses' toasts gone (each on its own timer: one still fading
+# out or not depended on a few milliseconds), the screen alone.
+pause(6)
 shot("09_help")
 go_to("Show the diagnostic report")
 key("Return")

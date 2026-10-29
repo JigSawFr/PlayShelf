@@ -58,8 +58,15 @@ std::atomic<bool> s_config_saved{ true };   // the last config.json write went t
 // screen to say why.
 WorkerThreads& workers()
 {
-    static WorkerThreads* const instance = new WorkerThreads(
-        [](const std::string& what) { aurore::Logger::error("background task threw: {}", what); });
+    static WorkerThreads* const instance = []() {
+        auto* threads = new WorkerThreads(
+            [](const std::string& what) { aurore::Logger::error("background task threw: {}", what); });
+        // Work Aurore cannot see: while a task runs, the screen has not
+        // settled (Application::isSettled(), which the smoke test waits on
+        // through AURORE_SETTLE_FILE), its result still to show.
+        aurore::Application::setBusyCheck([threads]() { return threads->running() > 0; });
+        return threads;
+    }();
     return *instance;
 }
 }   // namespace

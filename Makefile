@@ -2,7 +2,8 @@
 #
 #   make              -> ./playshelf.nro            (needs devkitPro, DEVKITPRO set)
 #   make dist         -> ./playshelf.zip            (unzip onto the SD card root)
-#   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend; needs GLFW)
+#   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend and the demo; needs GLFW,
+#                        and Playwright for the demo's pictures: DESKTOP_DEMO= builds it without)
 #   make web          -> ./build-web/simulator/     (the web simulator; needs Emscripten's emcmake)
 #   make web-serve    -> make web, served at http://localhost:8000
 #   make test         -> host unit tests (plain gcc/g++, ASan + UBSan + libstdc++'s assertions; parallel, all suites)
@@ -68,23 +69,27 @@ dist: all
 	@cp packaging/sphaira/$(TARGET).json out/config/sphaira/github/
 	@cd out && $(ZIP_TREE) ../$(TARGET).zip
 
-# The web simulator (web/README.md): first its demo library server, made on
-# the host by tools/web_demo.cpp (the install suites' package builders, with
-# libzstd and zlib) and tools/web_demo_art.py (its pictures: SVG scenes
-# rendered in Chromium through Playwright, saved with Pillow, by ART_PYTHON),
-# then PlayShelf with Emscripten.
+# The simulators' demo (web/README.md, docs/contributing/simulator.md): its
+# library server and the other services' answers about its made-up games,
+# made on the host by tools/web_demo.cpp (the install suites' package
+# builders, with libzstd and zlib) and tools/web_demo_art.py (its pictures:
+# SVG scenes rendered in Chromium through Playwright, saved with Pillow, by
+# ART_PYTHON), into <build>/demo/: packaged with the web simulator, read from
+# there by the desktop one.
 WEB_DEMO_SOURCES := tools/web_demo.cpp source/kit/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
                 source/install/cnmt.cpp source/install/nca.cpp source/kit/util/sha256.cpp
-$(WEB)/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
-	@mkdir -p $(WEB)
+%/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
+	@mkdir -p $*
 	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
 	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
 ART_PYTHON ?= python3
-$(WEB)/demo/index.json: $(WEB)/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
-	@rm -rf $(WEB)/demo
-	@$(WEB)/web_demo $(WEB)/demo tools/web_demo_games.json
-	@$(ART_PYTHON) tools/web_demo_art.py tools/web_demo_games.json $(WEB)/demo
+%/demo/index.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
+	@rm -rf $*/demo
+	@$*/web_demo $*/demo tools/web_demo_games.json
+	@$(ART_PYTHON) tools/web_demo_art.py tools/web_demo_games.json $*/demo || { rm -rf $*/demo; exit 1; }
+.PRECIOUS: %/web_demo %/demo/index.json
 
+# Then PlayShelf with Emscripten.
 web: $(WEB)/demo/index.json
 	@emcmake cmake -B $(WEB) -S . -DCMAKE_BUILD_TYPE=Release -DPLAYSHELF_WEB_DEMO=$(abspath $(WEB))/demo $(CMAKE_ARGS)
 	@"$$(command -v cmake)" --build $(WEB) -j $(JOBS)
@@ -101,8 +106,12 @@ site:
 	@if [ -d $(WEB)/simulator ]; then cp -r $(WEB)/simulator build-site/simulator; fi
 	@python3 web/serve.py build-site 8000
 
-desktop:
-	@cmake -B $(DESKTOP) -S . -DAURORE_PLATFORM=DESKTOP -DCMAKE_BUILD_TYPE=Release $(CMAKE_ARGS)
+# The desktop simulator with the demo (DESKTOP_DEMO=1, the default; empty:
+# without it, and without Playwright).
+DESKTOP_DEMO ?= 1
+desktop: $(if $(DESKTOP_DEMO),$(DESKTOP)/demo/index.json)
+	@cmake -B $(DESKTOP) -S . -DAURORE_PLATFORM=DESKTOP -DCMAKE_BUILD_TYPE=Release \
+	    -DPLAYSHELF_DESKTOP_DEMO=$(if $(DESKTOP_DEMO),$(abspath $(DESKTOP))/demo,) $(CMAKE_ARGS)
 	@cmake --build $(DESKTOP) -j $(JOBS)
 
 # Host tests: one program per suite, built straight from its sources (no
