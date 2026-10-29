@@ -13,6 +13,7 @@
 #include "action/download_flow.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/prices_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "action/not_interested.hpp"
 #include "action/wishlist.hpp"
@@ -305,6 +306,22 @@ void make()
         }
     }
 
+    // On sale on the eShop of the player's country: the biggest discount
+    // first, then the best known; a game on two servers once.
+    {
+        std::map<uint64_t, Deal> on_sale;
+        for (const Pick& p : fresh) {
+            const library::Price* price = prices_flow::of(p.title().id);
+            if (price && price->on_sale() && !on_sale.count(p.title().id)) on_sale[p.title().id] = { p, *price };
+        }
+        for (auto& d : on_sale) s.deals.push_back(std::move(d.second));
+        std::stable_sort(s.deals.begin(), s.deals.end(), [](const Deal& a, const Deal& b) {
+            if (a.price.discount() != b.price.discount()) return a.price.discount() > b.price.discount();
+            return popular_flow::of(a.pick.title().id).score > popular_flow::of(b.pick.title().id).score;
+        });
+        if (s.deals.size() > ROW) s.deals.resize(ROW);
+    }
+
     // Coming out in the next two months (the title databases), better known
     // first, the console's servers aside.
     for (uint64_t id : titledb_flow::released(today(1), today(62), 400)) {
@@ -356,6 +373,7 @@ void start()
     // What changes what is made.
     nlib_flow::listen(soon);
     popular_flow::listen(soon);
+    prices_flow::listen(soon);
     wishlist::listen(soon);
     not_interested::listen(soon);
     titledb_flow::listen(soon);

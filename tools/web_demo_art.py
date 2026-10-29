@@ -10,6 +10,8 @@ folder:
   banner and screenshots, as Nlib API serves a game's;
 - nlib/<id>/details.en.json and details.fr.json: its details, in Nlib API's
   shape (titledb/nlib.cpp reads them);
+- insights/prices/<COUNTRY>.json: every game's eShop price in each country
+  PlayInsights has prices for (PlayInsights' schema 1), a few on sale;
 - titledb/index.json: every game of the table, as NXMeta's Tinfoil index
   (titledb/list.cpp): names, studios, releases, the coming ones among them.
 
@@ -142,6 +144,47 @@ def save(img, path, size):
     img.save(path, "JPEG", quality=QUALITY, optimize=True, progressive=True)
 
 
+# Each country of PlayInsights' prices: its currency, and how much its price
+# is of a US dollar one (rounded as its eShop would).
+COUNTRIES = {
+    "US": ("USD", 1.0), "CA": ("CAD", 1.35), "MX": ("MXN", 18.0), "BR": ("BRL", 5.5), "GB": ("GBP", 0.85),
+    "FR": ("EUR", 1.0), "DE": ("EUR", 1.0), "ES": ("EUR", 1.0), "IT": ("EUR", 1.0), "NL": ("EUR", 1.0),
+    "PT": ("EUR", 1.0), "AU": ("AUD", 1.5), "JP": ("JPY", 110.0),
+}
+TIERS = (9.99, 14.99, 19.99, 29.99, 39.99, 49.99, 59.99, 69.99)   # in US dollars
+
+
+def in_currency(dollars, country):
+    """A price of `dollars` in `country`'s currency, ending as eShop prices do."""
+    currency, rate = COUNTRIES[country]
+    if currency == "JPY":
+        return float(round(dollars * rate / 100) * 100 - 20)
+    return round(max(1, round(dollars * rate)) - 0.01, 2)
+
+
+def prices(games, today):
+    """{country: prices/<COUNTRY>.json}: every game the server has its price; one in four on sale."""
+    out = {}
+    end = int((today + datetime.timedelta(days=12)).strftime("%Y%m%d"))
+    for country, (currency, _) in COUNTRIES.items():
+        table = {}
+        for i, g in enumerate(games):
+            if not g.get("on_server", True):
+                continue
+            seed = sum(map(ord, g["name"]))
+            regular = in_currency(TIERS[(seed // 4) % len(TIERS)], country)
+            sale, until = 0, 0
+            if seed % 4 == 1:
+                off = (20, 33, 50, 60, 75)[seed % 5]
+                cut = regular * (100 - off) / 100
+                sale = float(round(cut / 10) * 10) if currency == "JPY" else round(max(1, round(cut)) - 0.01, 2)
+                until = end
+            table[f"{tid(i):016X}"] = [regular, sale, until]
+        out[country] = {"schema": 1, "generated": today.isoformat(), "country": country, "currency": currency,
+                        "source": "PlayShelf's web demo (made up)", "games": table}
+    return out
+
+
 def release_of(game, today):
     if "days" in game:
         return (today + datetime.timedelta(days=game["days"])).isoformat()
@@ -187,6 +230,10 @@ def main():
         titledb[gid] = {"name": g["name"], "publisher": g["studio"], "releaseDate": release.replace("-", ""),
                         "version": 0, "size": (1 + i % 12) * 1_000_000_000}
     render.close()
+    os.makedirs(f"{out}/insights/prices", exist_ok=True)
+    for country, payload in prices(games, today).items():
+        with open(f"{out}/insights/prices/{country}.json", "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
     os.makedirs(f"{out}/titledb", exist_ok=True)
     with open(f"{out}/titledb/index.json", "w", encoding="utf-8") as f:
         json.dump({"titledb": titledb}, f, ensure_ascii=False)

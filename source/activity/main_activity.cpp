@@ -6,6 +6,7 @@
 #include "action/notices.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/prices_flow.hpp"
 #include "action/rollback_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include <aurore/cadran/ui/cadran_frame.hpp>
@@ -36,6 +37,7 @@ void MainActivity::onContentAvailable()
     titledb_flow::start();
     nlib_flow::start();
     popular_flow::start();
+    prices_flow::start();
     wishlist::start();
     not_interested::start();
     download_flow::init();

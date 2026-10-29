@@ -774,7 +774,11 @@
         "similar": "相似遊戲",
         "series": "系列",
         "steam": "Steam 評論",
-        "steam_value": "{}% 好評 · {} 篇"
+        "steam_value": "{}% 好評 · {} 篇",
+        "price": "eShop 價格",
+        "free": "免費",
+        "price_sale": "{0} → {1}（{2}% 折扣）",
+        "price_sale_until": "{0} → {1}（{2}% 折扣，至 {3}）"
     },
     "genres": {
         "action": "動作",
@@ -898,7 +902,10 @@
         "because_series": "系列：{}",
         "because_developer": "{} 開發",
         "because_popular": "熱門",
-        "because_played": "{1} 小時：{0}"
+        "because_played": "{1} 小時：{0}",
+        "deals": "特惠",
+        "deals_line": "eShop 特惠中",
+        "deal": "{0}% 折扣 · {1}"
     },
     "wishlist": {
         "add": "加入願望清單",
@@ -929,5 +936,27 @@
         "about": "在主頁推薦的遊戲上按 X 會放到這裡：不再推薦它，很相似的遊戲也會少推薦。",
         "clear": "全部重新推薦",
         "none": "無"
+    },
+    "prices": {
+        "row": "eShop 價格地區",
+        "auto": "依語言",
+        "auto_value": "{}（語言）",
+        "none": "不顯示價格",
+        "none_for_language": "此語言沒有",
+        "countries": {
+            "US": "美國",
+            "CA": "加拿大",
+            "MX": "墨西哥",
+            "BR": "巴西",
+            "GB": "英國",
+            "FR": "法國",
+            "DE": "德國",
+            "ES": "西班牙",
+            "IT": "義大利",
+            "NL": "荷蘭",
+            "PT": "葡萄牙",
+            "AU": "澳洲",
+            "JP": "日本"
+        }
     }
 }

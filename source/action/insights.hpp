@@ -2,7 +2,7 @@
 // the tab: each server's catalogue read once a run (one after the other,
 // once the console's games are), then, every time something changes (a
 // catalogue, the console's games, the downloads, Nlib API's facts, the
-// popular games, the wishlist, the title databases), the rows Home shows
+// popular games, the eShop prices, the wishlist, the title databases), the rows Home shows
 // and what the notification bell says (action/notices): the updates and
 // add-ons to get, the games new on the servers (library/seen), the games of
 // the wishlist a server has, the updates the servers lack (the title
@@ -20,6 +20,7 @@
 
 #include "action/installed_flow.hpp"
 #include "action/library_flow.hpp"
+#include "library/prices.hpp"
 #include "library/recommend.hpp"
 
 namespace insights
@@ -83,6 +84,13 @@ struct InSeries
     std::string series;
 };
 
+// A game of the servers on sale on the eShop (action/prices_flow).
+struct Deal
+{
+    Pick           pick;
+    library::Price price;
+};
+
 struct Snapshot
 {
     size_t console_games = 0, server_games = 0;
@@ -101,6 +109,7 @@ struct Snapshot
     std::vector<Pick>    trending;   // more read lately
     std::vector<Suggested> like;     // for the console's player, from every signal (library/recommend)
     std::vector<InSeries>  series;   // in the series of the console's games, the most played's first
+    std::vector<Deal>      deals;    // on sale on the eShop, the biggest discount first (action/prices_flow)
     std::vector<Coming>  coming;     // coming out soon (the title databases)
     std::vector<Missing> missing;    // updates no server has yet
     std::vector<Wished>  wished;     // the wishlist, those a server has first

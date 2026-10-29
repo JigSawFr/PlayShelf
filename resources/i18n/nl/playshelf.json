@@ -774,7 +774,11 @@
         "similar": "Vergelijkbare games",
         "series": "Serie",
         "steam": "Steam-recensies",
-        "steam_value": "{}% positief · {} recensies"
+        "steam_value": "{}% positief · {} recensies",
+        "price": "eShop-prijs",
+        "free": "Gratis",
+        "price_sale": "{0} → {1} (-{2}%)",
+        "price_sale_until": "{0} → {1} (-{2}%) tot {3}"
     },
     "genres": {
         "action": "Actie",
@@ -898,7 +902,10 @@
         "because_series": "Serie: {}",
         "because_developer": "Door {}",
         "because_popular": "Populair",
-        "because_played": "{1} uur {0}"
+        "because_played": "{1} uur {0}",
+        "deals": "Aanbiedingen",
+        "deals_line": "In de aanbieding in de eShop",
+        "deal": "-{0}% · {1}"
     },
     "wishlist": {
         "add": "Op verlanglijst",
@@ -929,5 +936,27 @@
         "about": "X op een game die Start voorstelt zet hem hier: hij wordt niet meer voorgesteld, en sterk gelijkende games minder vaak.",
         "clear": "Ze allemaal weer voorstellen",
         "none": "Geen"
+    },
+    "prices": {
+        "row": "eShop-prijzen uit",
+        "auto": "Volgens de taal",
+        "auto_value": "{} (taal)",
+        "none": "Geen prijzen",
+        "none_for_language": "Geen voor deze taal",
+        "countries": {
+            "US": "Verenigde Staten",
+            "CA": "Canada",
+            "MX": "Mexico",
+            "BR": "Brazilië",
+            "GB": "Verenigd Koninkrijk",
+            "FR": "Frankrijk",
+            "DE": "Duitsland",
+            "ES": "Spanje",
+            "IT": "Italië",
+            "NL": "Nederland",
+            "PT": "Portugal",
+            "AU": "Australië",
+            "JP": "Japan"
+        }
     }
 }

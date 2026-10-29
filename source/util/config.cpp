@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <initializer_list>
 
+#include "library/prices.hpp"
 #include "util/date.hpp"
 #include "util/json_util.hpp"
 #include "util/paths.hpp"
@@ -97,6 +98,7 @@ void sanitize(Config& c)
     one_of(c.update_via, { "", "inplace", "auto", "sphaira", "appstore", "manual" }, "");
     one_of(c.dev_builds_order, { "newest", "number" }, "newest");
     one_of(c.library_view, { "grid", "list" }, "grid");
+    if (!c.prices_country.empty() && c.prices_country != "none" && !library::is_price_country(c.prices_country)) c.prices_country.clear();
     bool tab_ok = false;
     for (const char* t : START_TABS) tab_ok |= c.start_tab == t;
     if (!tab_ok) c.start_tab = "home";
@@ -189,6 +191,7 @@ static void load_shared()
     read_strings(j, "title_sources", c.title_sources);
     read_bool(j, "nlib_api", c.nlib_api);
     read_bool(j, "popular_online", c.popular_online);
+    read_string(j, "prices_country", c.prices_country);
     read_string(j, "support_reminded", c.support_reminded);
     read_string(j, "seen_version", c.seen_version);
     read_string(j, "crash_seen", c.crash_seen);
@@ -243,6 +246,7 @@ bool snapshot(Snapshot& snap)
     j["title_sources"] = s_config.title_sources;
     j["nlib_api"] = s_config.nlib_api;
     j["popular_online"] = s_config.popular_online;
+    j["prices_country"] = s_config.prices_country;
     j["support_reminded"] = s_config.support_reminded;
     j["seen_version"]    = s_config.seen_version;
     j["crash_seen"]      = s_config.crash_seen;
