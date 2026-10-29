@@ -1,5 +1,5 @@
 {
- "_comment": "The web simulator's settings panel (web/README.md): every PLAYSHELF_SIM_* variable of the desktop simulator (tools/check_web_params.py checks that none is missing), as a URL parameter: its name in lower case without the prefix (applet=1 is PLAYSHELF_SIM_APPLET=1). `config` entries are not variables: the page writes them into the simulated config.json before PlayShelf starts. `panel: false`: set from the page's header (the language, the theme), not the panel. `live`: read by PlayShelf at each use, so Apply changes it without a restart when nothing else changed. `sticky`: kept by a preset, as the first tab is. `page`: the page's own (the steps to replay, the tour, keeping the state, the demo server), no variable, and in the panel only with `panel: true`. The texts are in web/i18n/<language>.json.",
+ "_comment": "The web simulator's settings panel (web/README.md): every PLAYSHELF_SIM_* variable of the desktop simulator (tools/check_web_params.py checks that none is missing), as a URL parameter: its name in lower case without the prefix (applet=1 is PLAYSHELF_SIM_APPLET=1). `config` entries are not variables: the page writes them into the simulated config.json before PlayShelf starts. `panel: false`: set from the page's header (the language, the theme), not the panel. `live`: read by PlayShelf at each use, so Apply changes it without a restart when nothing else changed. `sticky`: kept by a preset, as the first tab is. `page`: the page's own (the steps to replay, the tour, keeping the state), no variable, and in the panel only with `panel: true`. The texts are in web/i18n/<language>.json.",
  "groups": [{"id": "app"}, {"id": "library"}, {"id": "console"}, {"id": "updates"}, {"id": "capture"}],
  "params": [
   {"name": "lang", "config": "language", "group": "app", "type": "select", "options": ["en-US", "fr", "fr-CA", "de", "es", "es-419", "it", "nl", "pt", "pt-BR", "ru", "ja", "ko", "zh-Hans", "zh-Hant"], "panel": false},
@@ -8,7 +8,7 @@
   {"name": "keep", "page": true, "panel": true, "group": "app", "type": "bool", "sticky": true},
   {"name": "rec", "page": true, "group": "app", "type": "text"},
   {"name": "tour", "page": true, "group": "app", "type": "bool"},
-  {"name": "no_demo", "page": true, "panel": true, "group": "library", "type": "bool"},
+  {"name": "no_demo", "group": "library", "type": "bool"},
   {"name": "signed", "live": true, "group": "library", "type": "bool"},
   {"name": "speed", "live": true, "group": "library", "type": "number", "min": 0, "placeholder": "96"},
   {"name": "free_mb", "live": true, "group": "library", "type": "number", "min": 0, "placeholder": "32768"},

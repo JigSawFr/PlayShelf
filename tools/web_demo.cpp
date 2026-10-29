@@ -1,18 +1,20 @@
-// The web simulator's library server (web/README.md): a catalogue of made-up
-// games, their packages and icons, written to <out-dir> and packaged with
-// the simulator at /app/samples/demo, which source/sim/web_http.cpp serves
-// as https://demo.playshelf.example. The packages are built as the install
+// The simulators' library server (web/README.md): a catalogue of made-up
+// games, their packages and icons, written to <out-dir>: packaged with the
+// web simulator at /app/samples/demo, read by the desktop one from
+// build-desktop/demo, and served by source/sim/sim_demo_http.cpp as
+// https://demo.playshelf.example. The packages are built as the install
 // suites build theirs (tests/install/packages.hpp: the test keys, which the
 // simulated console takes), small: what they install is a stand-in. Built
-// and run on the host by `make web` (it needs libzstd and zlib).
+// and run on the host by `make web` and `make desktop` (it needs libzstd and
+// zlib).
 //
 // With them, what Home reads of PlayInsights about those games, made up as
 // well (insights/: popular.json, games.json and similar.json, in
-// PlayInsights' schema 1), which web_http.cpp answers in place of
+// PlayInsights' schema 1), which sim_demo_http.cpp answers in place of
 // PlayInsights' own, and the console's first games (console/meta/: a content
 // meta record for each, empty; console/control/: its name and icon), which
-// the page puts on the simulated console at a first start with the demo
-// (source/sim/web_seed.cpp): so Home shows its rows, the recommendations
+// PlayShelf puts on the simulated console at a first start with the demo
+// (source/sim/sim_demo_seed.cpp): so Home shows its rows, the recommendations
 // and their reasons among them.
 //
 //   web_demo <out-dir>

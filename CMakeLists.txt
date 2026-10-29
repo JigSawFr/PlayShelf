@@ -255,6 +255,13 @@ target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${AURORE_INCLUDES})
 if (PLATFORM_SWITCH)
     target_link_options(${PROJECT_NAME} PRIVATE -Wl,-Map,${CMAKE_BINARY_DIR}/playshelf.map)
 endif ()
+# The desktop simulator's demo (docs/contributing/simulator.md): the folder
+# `make desktop` makes it in (tools/web_demo.cpp, tools/web_demo_art.py),
+# read from there at each start; empty, none.
+if (PLATFORM_DESKTOP AND NOT PLAYSHELF_WEB)
+    set(PLAYSHELF_DESKTOP_DEMO "" CACHE PATH "Desktop simulator: the demo's files (tools/web_demo.cpp); empty for none")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE PLAYSHELF_DEMO_DIR="${PLAYSHELF_DESKTOP_DEMO}")
+endif ()
 # The web simulator: threads (a pool started with the page: a thread asked
 # for later waits for the browser, which a busy main thread never lets it
 # have), WebGL 2, the resources and the demo library server packaged
