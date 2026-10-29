@@ -1,8 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/seen.hpp"
+#include "util/title_id.hpp"
 
-#include <cinttypes>
-#include <cstdio>
 #include <ctime>
 
 #include <aurore/extern/nlohmann/json.hpp>
@@ -13,13 +12,6 @@ namespace library
 namespace
 {
 constexpr int SCHEMA = 1;
-
-std::string hex(uint64_t id)
-{
-    char out[17];
-    std::snprintf(out, sizeof(out), "%016" PRIX64, id);
-    return out;
-}
 
 uint64_t parse_hex(const std::string& s)
 {
@@ -115,10 +107,10 @@ std::string SeenBook::to_json() const
         known.reserve(s.known.size() * 17);
         for (uint64_t k : s.known) {
             if (!known.empty()) known += ',';
-            known += hex(k);
+            known += title_id::text(k);
         }
         nlohmann::json dated = nlohmann::json::object();
-        for (const auto& [k, day] : s.dated) dated[hex(k)] = day;
+        for (const auto& [k, day] : s.dated) dated[title_id::text(k)] = day;
         out[id] = { { "known", known }, { "dated", std::move(dated) } };
     }
     return nlohmann::json({ { "schema", SCHEMA }, { "servers", std::move(out) } }).dump();
@@ -153,7 +145,7 @@ bool SeenBook::from_json(const std::string& text)
 std::string ids_text(const std::vector<uint64_t>& ids)
 {
     std::string out;
-    for (uint64_t id : ids) out += hex(id) + "\n";
+    for (uint64_t id : ids) out += title_id::text(id) + "\n";
     return out;
 }
 

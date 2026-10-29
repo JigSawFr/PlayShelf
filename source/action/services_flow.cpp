@@ -21,6 +21,7 @@
 #include "saves/archive.hpp"
 #include "ui/ui.hpp"
 #include "util/paths.hpp"
+#include "util/title_id.hpp"
 
 using namespace aurore::literals;
 
@@ -39,11 +40,6 @@ library::Link link_of(const library_flow::Loaded& l)
     return library::link_of(l.server, l.fetch, library::password_of(l.server));
 }
 
-std::string id_text(uint64_t id)
-{
-    return fmt::format("{:016X}", id);
-}
-
 // A game's name: the catalogue's, the title databases', else `fallback`,
 // else its title id.
 std::string game_name(const library_flow::Loaded& l, uint64_t id, const std::string& fallback = "")
@@ -51,7 +47,7 @@ std::string game_name(const library_flow::Loaded& l, uint64_t id, const std::str
     for (const library::Title& t : l.titles)
         if (t.id == id && !t.name.empty()) return t.name;
     if (const auto t = titledb_flow::title(id); t && !t->name.empty()) return t->name;
-    return fallback.empty() ? id_text(id) : fallback;
+    return fallback.empty() ? title_id::text(id) : fallback;
 }
 
 // A dialog while something runs in the background: its line below says how
@@ -225,7 +221,7 @@ void cheat_sheet(const Loaded& l, uint64_t title_id, const std::vector<library::
         return;
     }
     const std::string fallback = builds.empty() ? "" : builds.front().title_name;
-    ui::pick_actions(game_name(*l, title_id, fallback), choices, id_text(title_id) + " · " + "playshelf/services/cheats_note"_i18n);
+    ui::pick_actions(game_name(*l, title_id, fallback), choices, title_id::text(title_id) + " · " + "playshelf/services/cheats_note"_i18n);
 }
 
 // ---------------------------------------------------------------- saves
@@ -322,7 +318,7 @@ void restore(const Loaded& l, const CoreSaveUser& user, const library::SaveBacku
         char root[512];
         if (ok) {
             // The save as it is, kept first: nothing is replaced without it.
-            const std::string dir = paths::data_dir() + "/saves/" + id_text(backup.title_id);
+            const std::string dir = paths::data_dir() + "/saves/" + title_id::text(backup.title_id);
             std::string stamp = ui::today_date() + "_" + ui::now_hms();
             std::replace(stamp.begin(), stamp.end(), ':', '-');
             kept = dir + "/" + stamp + ".zip";
@@ -517,7 +513,7 @@ void search_and_ask(const Loaded& l)
                         [l, base]() {
                             // Its name only when known: never its title id in its place.
                             const std::string name = game_name(*l, base);
-                            ask_for(l, base, name == id_text(base) ? "" : name);
+                            ask_for(l, base, name == title_id::text(base) ? "" : name);
                         });
             return;
         }
@@ -535,7 +531,7 @@ void search_and_ask(const Loaded& l)
                 std::vector<std::string> names, details;
                 for (const auto& [id, name] : found) {
                     names.push_back(name);
-                    details.push_back(on_server.count(id) ? "playshelf/services/request_there"_i18n : id_text(id));
+                    details.push_back(on_server.count(id) ? "playshelf/services/request_there"_i18n : title_id::text(id));
                 }
                 ui::pick("playshelf/services/request_pick"_i18n, names, 0, [l, found, on_server](int i) {
                     const auto& [id, name] = found[(size_t)i];

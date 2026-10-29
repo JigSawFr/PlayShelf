@@ -15,6 +15,7 @@
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
 #include "ui/ui.hpp"
+#include "util/title_id.hpp"
 
 using namespace aurore::literals;
 
@@ -164,7 +165,7 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
     Installer inst(src, *pkg, console, *keys, InstallOptions{policy, false}, cb);
     if (!inst.prepare(&out.why)) return out;
     for (const TitlePlan& t : inst.plan())
-        out.titles += (out.titles.empty() ? "" : ", ") + fmt::format("{:016X}", t.meta.title_id);
+        out.titles += (out.titles.empty() ? "" : ", ") + title_id::text(t.meta.title_id);
     progress.written(0, inst.bytes_to_write());
     out.ok = inst.run(&out.why);
     out.unsigned_content = !out.ok && out.why.contains("not signed by Nintendo");

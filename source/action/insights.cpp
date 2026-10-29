@@ -22,6 +22,7 @@
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/paths.hpp"
+#include "util/title_id.hpp"
 
 using namespace aurore::literals;
 
@@ -349,7 +350,7 @@ void make()
         w.id = id;
         w.found = found_in(id);
         w.name = w.found.data ? w.found.title().name : name_of(id, "");
-        if (!w.found.data && w.name == fmt::format("{:016X}", id)) unnamed.push_back(id);
+        if (!w.found.data && w.name == title_id::text(id)) unnamed.push_back(id);
         w.installed = installed && installed->count(id);
         s.wished.push_back(std::move(w));
     }
@@ -475,7 +476,7 @@ std::string name_of(uint64_t id, const std::string& console)
             if (g.game.id == id && !g.name.empty()) return g.name;
     const Pick found = found_of(id);
     if (found.data && !found.title().name.empty()) return found.title().name;
-    return fmt::format("{:016X}", id);
+    return title_id::text(id);
 }
 
 Pick found_of(uint64_t id)
