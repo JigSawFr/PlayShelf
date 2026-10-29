@@ -110,8 +110,10 @@ SCREENSHOTS = ["catalogue", "game_sheet", "downloads", "library", "preferences"]
 LOCALIZED_SHOTS = SCREENSHOTS
 FAQ = ["what", "own", "servers", "https", "cfw", "switch2", "free"]
 FEATURES = ["catalogue", "downloads", "security", "lan", "titles", "library", "updates", "languages"]
-# The three the home page puts first; the others in a shorter list under them.
-FEATURED = ["catalogue", "downloads", "security"]
+# The three the home page puts first, each with the screen it shows (the
+# security, which has no screen of its own, its shield large instead); the
+# others in a shorter list under them.
+FEATURED = {"catalogue": "catalogue", "downloads": "downloads", "security": None}
 # Each feature's icon: a line drawing on a 24px grid, in the text's colour.
 ICONS = {
     "catalogue": '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>'
@@ -127,8 +129,23 @@ ICONS = {
 }
 
 
-def icon(name):
-    return (f'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+# The console's two sides around the home page's screen (site.css's .device):
+# a stick and a cross on the left, the four buttons and a stick on the right;
+# a handheld of our own, no maker's.
+DEVICE_GRIPS = (
+    '<svg class="grip grip-l" viewBox="0 0 140 470" aria-hidden="true">'
+    '<path d="M86 44h20"/><circle class="stick" cx="70" cy="128" r="34"/><circle class="cap" cx="70" cy="128" r="22"/>'
+    '<circle cx="70" cy="262" r="12"/><circle cx="70" cy="330" r="12"/><circle cx="36" cy="296" r="12"/><circle cx="104" cy="296" r="12"/></svg>'
+    '<svg class="grip grip-r" viewBox="0 0 140 470" aria-hidden="true">'
+    '<path d="M34 44h20M44 34v20"/><circle cx="70" cy="92" r="12"/><circle cx="70" cy="160" r="12"/><circle cx="36" cy="126" r="12"/><circle cx="104" cy="126" r="12"/>'
+    '<circle class="stick" cx="70" cy="300" r="34"/><circle class="cap" cx="70" cy="300" r="22"/></svg>')
+# Until the first release, the home page's status: what works, what is
+# under way and what comes next, as the README's warning says it.
+ROADMAP = ["done", "now", "next"]
+
+
+def icon(name, cls="icon"):
+    return (f'<svg class="{cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICONS[name]}</svg>')
 
 SUN_ICON = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>')
@@ -685,13 +702,24 @@ def hero_title(t):
     return title
 
 
+def whole_items(text):
+    """A line of items ("a · b · c") whose items each stay whole, a line
+    breaking only after a separator (site.css: `span` in nowrap)."""
+    items = text.split(" · ")
+    return " ".join(f"<span>{item}{'&nbsp;·' if i < len(items) - 1 else ''}</span>" for i, item in enumerate(items))
+
+
 def home_body(t, lang, to_root):
     """The home page: its hero (under the header, on the sky), and the rest."""
     code = lang
-    def feature(key):
-        return (f'      <li class="card">{icon(key)}'
-                f'<h3>{t(f"f_{key}_title")}</h3><p>{t(f"f_{key}_text")}</p></li>')
-    featured = "\n".join(feature(k) for k in FEATURES if k in FEATURED)
+    def feature(key, featured=False, shot=None):
+        # A featured one shows the top of its screen, fading into the card,
+        # or its icon large when it has none.
+        glimpse = (f'<img class="card-shot" src="{to_root}assets/{screenshot(lang, shot)}" alt="" width="1280" height="720" loading="lazy">'
+                   if shot else f'<span class="card-emblem">{icon(key, "emblem")}</span>' if featured else "")
+        return (f'      <li class="card{" card-featured" if featured else ""}">{icon(key)}'
+                f'<h3>{t(f"f_{key}_title")}</h3><p>{t(f"f_{key}_text")}</p>{glimpse}</li>')
+    featured = "\n".join(feature(k, True, FEATURED[k]) for k in FEATURES if k in FEATURED)
     others = "\n".join(feature(k) for k in FEATURES if k not in FEATURED)
     weight = simulator_size()
     size = f' <span class="size" data-bytes="{weight}"></span>' if weight else ""
@@ -717,18 +745,41 @@ def home_body(t, lang, to_root):
     # the title, a callout before the rest, the way to follow it rather than
     # to install it, and the install's steps marked as to come.
     wip = not releases
-    status = f'<p class="status">{t("status_wip")}</p>' if wip else ""
+    # Its items each kept whole, a line breaking between them only where
+    # the pill cannot hold them on one (a long translation on a small phone).
+    status = f'<p class="status"><span>{whole_items(t("status_wip"))}</span></p>' if wip else ""
     second = (f'<a class="button" href="{REPO_URL}">{t("follow_cta")}</a>' if wip
               else f'<a class="button" href="#install">{t("install_cta")}</a>')
-    wip_callout = (f'    <aside class="callout caution wide"><p><strong>{t("wip_title")}</strong> {t("wip_text")}</p></aside>\n'
-                   if wip else "")
+    # Then one panel says where it stands: not usable yet, what works, what
+    # is under way and what comes next, and, quieter, that it is for one's
+    # own content only (a callout of its own once released).
+    roadmap = "\n".join(
+        f'          <li class="roadmap-{step}"><span class="roadmap-state">{t(f"roadmap_{step}")}</span>'
+        f' <span>{t(f"roadmap_{step}_text")}</span></li>'
+        for step in ROADMAP)
+    notice = (f"""    <section class="project-status" aria-labelledby="project-status">
+      <div class="project-status-head">
+        <p class="eyebrow">{t('project_status_eyebrow')}</p>
+        <h2 id="project-status">{t('project_status_title')}</h2>
+        <p>{t('wip_text')}</p>
+      </div>
+      <div class="project-status-road">
+        <h3>{t('roadmap_title')}</h3>
+        <ol class="roadmap">
+{roadmap}
+        </ol>
+      </div>
+      <p class="project-status-own"><strong>{t('own_title')}</strong> {t('own_text')}</p>
+    </section>
+""" if wip else
+              f'    <aside class="callout warning wide"><p><strong>{t("own_title")}</strong> {t("own_text")}</p></aside>\n')
     install_note = f'\n        <p class="install-soon">{t("install_soon")}</p>' if wip else ""
     return f"""    <section class="hero">
       <div class="hero-text">
         {status}
-        <p class="eyebrow">{t('hero_eyebrow')}</p>
+        <p class="eyebrow">{whole_items(t('hero_eyebrow'))}</p>
         <h1>{hero_title(t)}</h1>
-        <p class="sub">{t('hero_sub')}</p>
+        <p class="sub">{whole_items(t('hero_sub'))}</p>
         <p>{t('hero_text')}</p>
         <div class="actions">
           <a class="button primary" href="{to_root}simulator/?lang={code}">{t('try')}{size}</a>
@@ -736,12 +787,16 @@ def home_body(t, lang, to_root):
         </div>
         <p class="source">{released}</p>
       </div>
+      <!-- The Catalogue on a console's screen: a handheld drawn by site.css
+           (.device), leaning towards the text on a wide screen. -->
+      <div class="device">
+      {DEVICE_GRIPS}
       <div class="hero-shot">
         <a href="{to_root}assets/{screenshot(lang, SCREENSHOTS[0])}">{gallery_image(t, lang, to_root, SCREENSHOTS[0], lazy=False)}</a>
       </div>
+      </div>
     </section>
-""", f"""{wip_callout}    <aside class="callout warning wide"><p><strong>{t('own_title')}</strong> {t('own_text')}</p></aside>
-
+""", f"""{notice}
     <section id="features" class="section">
       <p class="eyebrow">{t('features_eyebrow')}</p>
       <h2>{t('features_title')}</h2>

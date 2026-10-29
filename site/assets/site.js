@@ -132,7 +132,7 @@
   // in view lit.
   const gallery = document.querySelector('.gallery');
   if (gallery && 'IntersectionObserver' in window) {
-    const figures = [...gallery.querySelectorAll('figure')];
+    const figures = [...gallery.querySelectorAll(':scope > figure:not(.gallery-stage)')];
     const dots = document.createElement('div');
     dots.className = 'gallery-dots';
     dots.setAttribute('aria-hidden', 'true');
@@ -267,7 +267,9 @@
     };
     const step = (by) => { if (group[at + by]) { at += by; show(); } };
     const open = (figure) => {
-      group = [...figure.parentElement.children].filter((f) => f.tagName === 'FIGURE');
+      // The gallery's large screen is the one chosen in its strip.
+      if (figure.classList.contains('gallery-stage')) figure = figure.parentElement.querySelector(':scope > figure.on');
+      group = [...figure.parentElement.children].filter((f) => f.tagName === 'FIGURE' && !f.classList.contains('gallery-stage'));
       at = group.indexOf(figure);
       show();
       box.showModal();
@@ -569,3 +571,74 @@
   });
 })();
 
+// The showcase (site.css's block of the same name): the cards' edge lit
+// where the pointer is, the home page's sections rising into view once, and
+// the screens on a wide screen, the one chosen large over a strip of the others.
+(function () {
+  for (const card of document.querySelectorAll('.card')) {
+    card.addEventListener('pointermove', (e) => {
+      const box = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${e.clientX - box.left}px`);
+      card.style.setProperty('--my', `${e.clientY - box.top}px`);
+    });
+  }
+
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!still && 'IntersectionObserver' in window) {
+    const parts = document.querySelectorAll('.home main > .section, .home main > .band');
+    const seen = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { e.target.classList.add('in'); seen.unobserve(e.target); }
+      }
+    }, { rootMargin: '0px 0px -12% 0px' });
+    for (const part of parts) {
+      // Already in view at load (a link to a section): shown at once.
+      if (part.getBoundingClientRect().top < innerHeight * 0.88) continue;
+      part.classList.add('reveal');
+      [...part.querySelectorAll('.card')].forEach((card, i) => card.style.setProperty('--i', i % 5));
+      seen.observe(part);
+    }
+  }
+
+  const gallery = document.querySelector('.gallery');
+  if (!gallery) return;
+  const figures = [...gallery.querySelectorAll(':scope > figure')];
+  if (figures.length < 2) return;
+  const stage = document.createElement('figure');
+  stage.className = 'gallery-stage';
+  const link = document.createElement('a');
+  const img = document.createElement('img');
+  img.width = 1280;
+  img.height = 720;
+  link.append(img);
+  const caption = document.createElement('figcaption');
+  const name = document.createElement('strong');
+  const what = document.createElement('span');
+  caption.append(name, what);
+  stage.append(link, caption);
+  const choose = (figure) => {
+    const shot = figure.querySelector('img');
+    for (const f of figures) f.classList.toggle('on', f === figure);
+    link.href = figure.querySelector('a').href;
+    img.src = shot.currentSrc || shot.src;
+    img.alt = shot.alt;
+    name.textContent = figure.querySelector('figcaption')?.textContent || '';
+    // The alt says the screen's name first: once is enough.
+    const rest = shot.alt.startsWith(name.textContent) ? shot.alt.slice(name.textContent.length).replace(/^\s*[:：]\s*/, '') : shot.alt;
+    what.textContent = rest.charAt(0).toUpperCase() + rest.slice(1);
+  };
+  choose(figures[0]);
+  gallery.style.setProperty('--count', figures.length);
+  gallery.prepend(stage);
+  gallery.classList.add('staged');
+  const wide = matchMedia('(min-width: 861px)');
+  // On a wide screen, a screen of the strip comes up large; elsewhere (the
+  // row of a phone) it opens full screen, as before.
+  gallery.addEventListener('click', (e) => {
+    const figure = e.target.closest('figure');
+    if (!wide.matches || !figure || figure === stage || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    e.stopPropagation();
+    choose(figure);
+  });
+})();
