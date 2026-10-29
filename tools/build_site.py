@@ -41,6 +41,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import urllib.request
 from urllib.parse import urlsplit
 
 import markdown
@@ -49,6 +50,7 @@ REPO_URL = "https://github.com/JigSawFr/PlayShelf"
 # The site's address, for the links that must be absolute (the canonical
 # page, the other languages, the preview image, the sitemap, llms.txt).
 SITE_URL = os.environ.get("SITE_URL", "https://shelf.boreale.dev/").rstrip("/") + "/"
+VERSIONS = {}  # the projects' latest releases, for the menu of Boréale's sites (main())
 # A pull request's preview: not for search engines (main's site is the one).
 NOINDEX = os.environ.get("SITE_NOINDEX") == "1"
 # The audience, counted by Umami Cloud (site/README.md): its tracker, served
@@ -370,11 +372,23 @@ SITES = [(None, [("boreale", "Boréale", "https://boreale.dev/")]),
          ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")])]
 
 
-def switcher(t, lang, to_root, home, here, name):
+def boreale_versions():
+    """The projects' latest releases as boreale.dev publishes them
+    (versions.json), for the menu; none when it cannot be read (offline, a
+    local build), and the menu shows no versions."""
+    try:
+        with urllib.request.urlopen("https://boreale.dev/versions.json", timeout=10) as r:
+            return {k: v for k, v in json.load(r).items() if isinstance(v, str)}
+    except (OSError, ValueError):
+        return {}
+
+
+def switcher(t, lang, to_root, home, here, name, versions):
     """The header's name (`name`), a button that opens the menu of Boréale's
     sites, `here` marked and leading to `home`, each in French where the page
-    is (the four sites have it). A popover: the browser closes it on Esc or a
-    click elsewhere; site.css's and site.js's "site switcher" blocks."""
+    is (the four sites have it), with its latest release (`versions`). A
+    popover: the browser closes it on Esc or a click elsewhere; site.css's
+    and site.js's "site switcher" blocks."""
     label = t("sites_label")
     french = lang.lower().startswith("fr")
     groups = []
@@ -383,10 +397,11 @@ def switcher(t, lang, to_root, home, here, name):
         for key, site, url in sites:
             href = home if key == here else url + ("fr/" if french else "")
             soon = f'<em class="soon">{t("sites_soon")}</em>' if key == "playshelf" else ""
+            version = f' <span class="sites-version">{html.escape(versions[key])}</span>' if key in versions else ""
             current = ' aria-current="true"' if key == here else ""
             items.append(f'<li><a href="{href}"{current}>'
                          f'<img src="{to_root}assets/marks/{key}.svg" alt="" width="36" height="36">'
-                         f'<span><strong>{site}</strong><small>{t(f"sites_{key}")}</small></span>{soon}</a></li>')
+                         f'<span><strong>{site}{version}</strong><small>{t(f"sites_{key}")}</small></span>{soon}</a></li>')
         heading = f'<p class="sites-title">{t(title)}</p>' if title else ""
         groups.append(f'        {heading}<ul>\n          ' + "\n          ".join(items) + '\n        </ul>')
     title = next(site for _, sites in SITES for key, site, _ in sites if key == here)
@@ -578,7 +593,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <div class="sky{' sky-home' if hero else ''}">
   {'<canvas id="sky" aria-hidden="true"></canvas>' if hero else ''}
   <header class="top">
-    {switcher(t, lang, to_root, home, "playshelf", f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>')}
+    {switcher(t, lang, to_root, home, "playshelf", f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>', VERSIONS)}
     <nav class="nav" aria-label="PlayShelf">
       <a href="{home}#features">{t('nav_features')}</a>
       <a href="{home}#install">{t('nav_install')}</a>
@@ -614,6 +629,14 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
           <ul><li><a href="{REPO_URL}">GitHub</a></li><li><a href="{home}changelog/">{t('footer_changelog')}</a></li>
             <li><a href="{SITE_URL}releases.atom">{t('releases_feed')}</a></li>
             <li><a href="{REPO_URL}/issues/new">{t('report_bug')}</a></li></ul>
+        </div>
+        <div>
+          <h2>Boréale</h2>
+          <ul><li><a href="https://boreale.dev/{"fr/" if code.startswith("fr") else ""}">boreale.dev</a></li>
+            <li><a href="https://guard.boreale.dev/{"fr/" if code.startswith("fr") else ""}">PlayGuard</a></li>
+            <li><a href="https://aurore.boreale.dev/{"fr/" if code.startswith("fr") else ""}">Aurore</a></li>
+            <li><a href="https://boreale.dev/{"fr/" if code.startswith("fr") else ""}legal/">{t('sites_legal')}</a></li>
+            <li><a href="mailto:contact@boreale.dev">contact@boreale.dev</a></li></ul>
         </div>
         <div>
           <h2>{t('support')}</h2>
@@ -1241,6 +1264,9 @@ def main():
     global LANGUAGES
     LANGUAGES = [l for l in LANGUAGES if os.path.exists(os.path.join(ROOT, "site", "i18n", f"{l[0]}.json"))]
     version = "v" + read_json(".release-please-manifest.json")["."]
+    # PlayShelf's own once it has a release (its menu line says "Coming soon" until then).
+    global VERSIONS
+    VERSIONS = {**boreale_versions(), **({"playshelf": version[1:]} if changelog_releases() else {})}
     # The documentation in two versions: main's, and the latest release's
     # out of its tag, with what main has since (git's history: none in a
     # tarball or a shallow clone, and the site has main's alone).
