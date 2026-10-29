@@ -403,7 +403,8 @@ function saveData() {
 // Before PlayShelf starts: the data folder from IndexedDB, then config.json
 // with the page's language, theme and first tab over what it kept.
 // The demo library server (source/sim/web_http.cpp answers it), in
-// servers.json unless `no_demo` or a servers.json kept from an earlier visit.
+// servers.json unless `no_demo` or a servers.json kept from an earlier visit;
+// with it, the demo's first games on the simulated console.
 const DEMO_SERVER = {
   id: 'de0de0de0de0de00', name: 'Demo shelf', lan_url: '', wan_url: 'https://demo.playshelf.example',
   connection: 'auto', format: 'auto', username: '', password: '', pin: '',
@@ -424,6 +425,10 @@ function writeDemo(m) {
   m.FS.writeFile(`${SYS_PATCH}/flags/boot2.flag`, '');
   m.FS.mkdirTree(`${DATA}/sd/config/sys-patch`);
   m.FS.writeFile(`${DATA}/sd/config/sys-patch/log.ini`, SYS_PATCH_LOG);
+  // And a few of its games on the console, played (source/sim/web_seed.cpp
+  // puts them there at the start).
+  m.FS.mkdirTree(`${DATA}/sim_console`);
+  m.FS.writeFile(`${DATA}/sim_console/seed_demo`, '');
 }
 
 function mountKept(m, config) {

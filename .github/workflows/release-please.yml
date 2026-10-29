@@ -42,10 +42,13 @@ jobs:
   assets:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
+    # Every permission a job of build.yml asks for, or the workflow does not
+    # start (desktop reads the pull request's Screens: line).
     permissions:
       contents: write
       id-token: write
       attestations: write
+      pull-requests: read
     uses: ./.github/workflows/build.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}

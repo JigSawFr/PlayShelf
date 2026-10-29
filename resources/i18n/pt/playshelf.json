@@ -897,7 +897,8 @@
         "because_like": "Como {}",
         "because_series": "Série: {}",
         "because_developer": "De {}",
-        "because_popular": "Popular"
+        "because_popular": "Popular",
+        "because_played": "{1} h de {0}"
     },
     "wishlist": {
         "add": "Adicionar à lista de desejos",
@@ -919,5 +920,14 @@
         "days": "jogado há {} dias",
         "months": "jogado há {} meses",
         "open_page": "Abrir a página"
+    },
+    "not_interested": {
+        "action": "Não me interessa",
+        "added": "{} não voltará a ser sugerido",
+        "cleared": "Todos os jogos podem voltar a ser sugeridos",
+        "row": "Jogos a não sugerir",
+        "about": "X num jogo sugerido pelo Início guarda-o aqui: deixa de ser sugerido, e os jogos muito parecidos são-no menos.",
+        "clear": "Voltar a sugerir todos",
+        "none": "Nenhum"
     }
 }

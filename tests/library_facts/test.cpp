@@ -8,11 +8,11 @@ using namespace library;
 
 namespace
 {
-Facts zelda()
+Facts aster()
 {
     Facts f;
-    f.name = "The Legend of Zelda: Breath of the Wild";
-    f.publisher = "Nintendo";
+    f.name = "The Ballad of Aster: Wind of the Wilds";
+    f.publisher = "Northfox";
     f.release_date = 20170303;
     f.categories = { "Adventure", "Action" };
     f.languages = { "ja", "en", "fr" };
@@ -25,8 +25,8 @@ Facts zelda()
 void test_book()
 {
     FactsBook b;
-    CHECK(!b.find(0x01007EF00011E000) && !b.put(0, zelda()));
-    CHECK(b.put(0x01007EF00011E000, zelda()));
+    CHECK(!b.find(0x01007EF00011E000) && !b.put(0, aster()));
+    CHECK(b.put(0x01007EF00011E000, aster()));
     Facts other;
     other.publisher = "Studio";
     other.categories = { "Racing", "Action" };
@@ -34,24 +34,24 @@ void test_book()
     CHECK(b.put(0x0100000000010000, other));
     CHECK(b.size() == 2 && b.find(0x01007EF00011E000)->players == 1);
     // Known again: in place of what was.
-    Facts again = zelda();
+    Facts again = aster();
     again.players = 2;
     CHECK(b.put(0x01007EF00011E000, again) && b.size() == 2 && b.find(0x01007EF00011E000)->players == 2);
     CHECK(b.categories() == (std::vector<std::string>{ "Action", "Adventure", "Racing" }));
-    CHECK(b.publishers() == (std::vector<std::string>{ "Nintendo", "Studio" }));
+    CHECK(b.publishers() == (std::vector<std::string>{ "Northfox", "Studio" }));
 
     // Written, then read back whole.
     FactsBook back;
     CHECK(back.from_json(b.to_json()) && back.size() == 2);
     const Facts* z = back.find(0x01007EF00011E000);
-    CHECK(z && z->name == zelda().name && z->publisher == "Nintendo" && z->release_date == 20170303 && z->players == 2 && z->nsu_id == 70010000000025ull);
-    CHECK(z && z->categories == zelda().categories && z->languages == zelda().languages && z->rating == zelda().rating && !z->demo);
+    CHECK(z && z->name == aster().name && z->publisher == "Northfox" && z->release_date == 20170303 && z->players == 2 && z->nsu_id == 70010000000025ull);
+    CHECK(z && z->categories == aster().categories && z->languages == aster().languages && z->rating == aster().rating && !z->demo);
     const Facts* s = back.find(0x0100000000010000);
     CHECK(s && s->demo && s->release_date == 0 && s->developer.empty());
 
     // The ones read at start-up added to those that came meanwhile, which stay.
     FactsBook now;
-    Facts     newer = zelda();
+    Facts     newer = aster();
     newer.players = 8;
     CHECK(now.put(0x01007EF00011E000, newer));
     now.add_missing(back);

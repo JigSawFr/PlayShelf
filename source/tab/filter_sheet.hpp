@@ -37,7 +37,7 @@ struct Order
 void open(library::Filter* filter, std::vector<uint64_t> games, States states, Order order,
           std::function<void()> changed);
 
-// What is set, in a few words ("Adventure · Nintendo · +1"; "" for nothing).
+// What is set, in a few words ("Adventure · Northfox · +1"; "" for nothing).
 std::string summary(const library::Filter& filter);
 
 }   // namespace filter_sheet

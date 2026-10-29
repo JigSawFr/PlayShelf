@@ -897,7 +897,8 @@
         "because_like": "Como {}",
         "because_series": "Saga: {}",
         "because_developer": "De {}",
-        "because_popular": "Popular"
+        "because_popular": "Popular",
+        "because_played": "{1} h de {0}"
     },
     "wishlist": {
         "add": "Añadir a la lista de deseos",
@@ -919,5 +920,14 @@
         "days": "jugado hace {} días",
         "months": "jugado hace {} meses",
         "open_page": "Abrir su página"
+    },
+    "not_interested": {
+        "action": "No me interesa",
+        "added": "{} no se te volverá a sugerir",
+        "cleared": "Todos los juegos pueden volver a sugerirse",
+        "row": "Juegos que no sugerir",
+        "about": "X sobre un juego que sugiere Inicio lo guarda aquí: deja de sugerirse, y los juegos muy parecidos se sugieren menos.",
+        "clear": "Volver a sugerirlos todos",
+        "none": "Ninguno"
     }
 }

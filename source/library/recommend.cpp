@@ -13,6 +13,19 @@ namespace
 {
 // How much each signal counts in a suggestion's score.
 constexpr double LIKE = 1.6, SERIES = 1.0, DEVELOPER = 0.5, GENRE = 0.6, QUALITY = 0.5, FRESH = 0.15;
+constexpr double UNWANTED = 1.6;   // as much as a likeness: one cancels the other
+// What a game already in the row takes off the next ones: of its series,
+// by its developer, much like it (similar.json, from SIMILAR on).
+constexpr double SAME_SERIES = 0.45, SAME_DEVELOPER = 0.75, MUCH_LIKE = 0.7;
+constexpr int    SIMILAR = 60;
+
+bool share(const std::vector<Trait>& a, const std::vector<Trait>& b)
+{
+    for (const Trait& x : a)
+        for (const Trait& y : b)
+            if (x.id == y.id) return true;
+    return false;
+}
 constexpr uint64_t STEAM_TRUSTED = 50;   // reviews below which Steam's say is left out
 
 // A trait of `kinds` shared with the console's games: the weightiest such
@@ -51,7 +64,8 @@ double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, ui
 
 std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::vector<Candidate>& candidates,
                                   const std::map<std::string, double>& genres, const SimilarBook& similar,
-                                  const SignalBook& signals, uint32_t today, size_t max)
+                                  const SignalBook& signals, const std::vector<uint64_t>& unwanted, uint32_t today,
+                                  size_t max)
 {
     double top = 0;
     for (const Owned& o : owned) top = std::max(top, o.weight);
@@ -60,6 +74,10 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
 
     std::vector<Suggestion> out;
     for (const Candidate& c : candidates) {
+        // One the player does not want: never; like one: less.
+        if (std::find(unwanted.begin(), unwanted.end(), c.id) != unwanted.end()) continue;
+        double unlike = 0;
+        for (uint64_t u : unwanted) unlike = std::max(unlike, similar.between(u, c.id) / 100.0);
         // Like the console's games: each one's likeness, by its weight.
         double   like = 0, like_best = 0;
         uint64_t because = 0;
@@ -97,28 +115,54 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
 
         const double parts[] = { LIKE * like, SERIES * series.weight, DEVELOPER * developer.weight, GENRE * genre,
                                  QUALITY * quality };
-        const double score = parts[0] + parts[1] + parts[2] + parts[3] + parts[4] + FRESH * fresh;
-        // Nothing of the player's taste and little renown: not worth saying.
+        const double score = parts[0] + parts[1] + parts[2] + parts[3] + parts[4] + FRESH * fresh - UNWANTED * unlike;
+        // Nothing of the player's taste and little renown, or more like what
+        // they do not want than anything: not worth saying.
         if (parts[0] + parts[1] + parts[2] + parts[3] <= 0 && quality < 0.3) continue;
+        if (score <= 0) continue;
         Suggestion s;
         s.id = c.id;
         s.score = score;
         const size_t why = (size_t)(std::max_element(std::begin(parts), std::end(parts)) - std::begin(parts));
         switch (why) {
-            case 0: s.reason = { Reason::Kind::Like, because, "" }; break;
-            case 1: s.reason = { Reason::Kind::Series, 0, series.label }; break;
-            case 2: s.reason = { Reason::Kind::Developer, 0, developer.label }; break;
-            case 3: s.reason = { Reason::Kind::Genre, 0, genre_label }; break;
-            default: s.reason = { Reason::Kind::Popular, 0, "" }; break;
+            case 0: s.reason = { Reason::Kind::Like, because, 0, "" }; break;
+            case 1: s.reason = { Reason::Kind::Series, 0, 0, series.label }; break;
+            case 2: s.reason = { Reason::Kind::Developer, 0, 0, developer.label }; break;
+            case 3: s.reason = { Reason::Kind::Genre, 0, 0, genre_label }; break;
+            default: s.reason = { Reason::Kind::Popular, 0, 0, "" }; break;
         }
         // A series or a studio without a name says nothing: its likeness instead.
         if ((s.reason.kind == Reason::Kind::Series || s.reason.kind == Reason::Kind::Developer) && s.reason.label.empty())
-            s.reason = because ? Reason{ Reason::Kind::Like, because, "" } : Reason{ Reason::Kind::Popular, 0, "" };
+            s.reason = because ? Reason{ Reason::Kind::Like, because, 0, "" } : Reason{ Reason::Kind::Popular, 0, 0, "" };
+        if (s.reason.kind == Reason::Kind::Like)
+            for (const Owned& o : owned)
+                if (o.id == s.reason.because) s.reason.hours = o.hours;
         out.push_back(std::move(s));
     }
     std::stable_sort(out.begin(), out.end(), [](const Suggestion& a, const Suggestion& b) { return a.score > b.score; });
-    if (out.size() > max) out.resize(max);
-    return out;
+
+    // Varied: the best one at a time, each counting against the next ones
+    // like it (a few hundred candidates, a dozen picked).
+    std::vector<Suggestion> row;
+    std::vector<double>     kept(out.size(), 1.0);   // what is left of each one's score
+    std::vector<bool>       taken(out.size(), false);
+    while (row.size() < max) {
+        size_t best = out.size();
+        for (size_t i = 0; i < out.size(); i++)
+            if (!taken[i] && (best == out.size() || out[i].score * kept[i] > out[best].score * kept[best])) best = i;
+        if (best == out.size()) break;
+        taken[best] = true;
+        row.push_back(out[best]);
+        const GameSignals* picked = signals.find(out[best].id);
+        for (size_t i = 0; i < out.size(); i++) {
+            if (taken[i]) continue;
+            const GameSignals* g = signals.find(out[i].id);
+            if (picked && g && share(picked->series, g->series)) kept[i] *= SAME_SERIES;
+            else if (picked && g && share(picked->developers, g->developers)) kept[i] *= SAME_DEVELOPER;
+            if (similar.between(out[best].id, out[i].id) >= SIMILAR) kept[i] *= MUCH_LIKE;
+        }
+    }
+    return row;
 }
 
 }   // namespace library

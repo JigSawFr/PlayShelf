@@ -1,4 +1,4 @@
-<!-- translated from docs/themes.md, sha256 7f1059e5a003 -->
+<!-- translated from docs/themes.md, sha256 3ac05abb637c -->
 # Thèmes
 
 PlayShelf prend toutes ses couleurs dans son thème : le thème clair ou sombre, puis une **palette** par-dessus. La palette peut être celle de PlayShelf, l'une de celles qui l'accompagnent, ou un thème à vous : un fichier de couleurs, ou un dossier qui apporte aussi des images (un fond, un logo, l'image d'un jeu sans jaquette, des décorations). Un changement se voit tout de suite, sur tous les écrans, sans redémarrer.

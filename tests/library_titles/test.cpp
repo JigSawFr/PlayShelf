@@ -33,36 +33,36 @@ const Title* find(const std::vector<Title>& titles, uint64_t id)
 void test_group()
 {
     Catalog c;
-    c.items.push_back(item("Zelda Update [0100000000010800][v65536].nsp", 0x0100000000010800, 65536, 10, "updates"));
-    c.items.push_back(item("Zelda [0100000000010000][v0].nsp", 0x0100000000010000, 0, 1000));
-    c.items.push_back(item("Zelda Update 2 [0100000000010800][v131072].nsp", 0x0100000000010800, 131072, 20, "updates"));
-    c.items.push_back(item("Zelda DLC B", 0x0100000000011002, 0, 5));
-    c.items.push_back(item("Zelda DLC A", 0x0100000000011001, 0, 5));
+    c.items.push_back(item("Aster Update [0100000000010800][v65536].nsp", 0x0100000000010800, 65536, 10, "updates"));
+    c.items.push_back(item("Aster [0100000000010000][v0].nsp", 0x0100000000010000, 0, 1000));
+    c.items.push_back(item("Aster Update 2 [0100000000010800][v131072].nsp", 0x0100000000010800, 131072, 20, "updates"));
+    c.items.push_back(item("Aster DLC B", 0x0100000000011002, 0, 5));
+    c.items.push_back(item("Aster DLC A", 0x0100000000011001, 0, 5));
     c.items.push_back(item("homebrew.nsp", 0, 0, 7));
-    c.items.push_back(item("Mario Update [0100000000020800][v65536].nsz", 0x0100000000020800, 65536, 3));
-    c.items[1].icon_url = "https://h/zelda.jpg";
+    c.items.push_back(item("Comet Update [0100000000020800][v65536].nsz", 0x0100000000020800, 65536, 3));
+    c.items[1].icon_url = "https://h/aster.jpg";
     c.items[1].release_date = 20170303;
-    c.titles[0x0100000000020000] = {"Super Mario", 65536};
+    c.titles[0x0100000000020000] = {"Super Comet", 65536};
 
     const std::vector<Title> titles = group_titles(c);
     CHECK(titles.size() == 3);
-    const Title* zelda = find(titles, 0x0100000000010000);
-    if (!CHECK(zelda)) return;
-    CHECK(zelda->name == "Zelda");
-    CHECK(zelda->base == 1);
-    CHECK(zelda->updates == std::vector<size_t>({2, 0}));
-    CHECK(latest_update(*zelda) == 2);
-    CHECK(zelda->dlcs == std::vector<size_t>({4, 3}));
-    CHECK(zelda->size == 1040);
-    CHECK(zelda->icon_url == "https://h/zelda.jpg");
-    CHECK(zelda->release_date == 20170303);
-    CHECK(zelda->sections == std::vector<std::string>({"updates", "s"}));
+    const Title* aster = find(titles, 0x0100000000010000);
+    if (!CHECK(aster)) return;
+    CHECK(aster->name == "Aster");
+    CHECK(aster->base == 1);
+    CHECK(aster->updates == std::vector<size_t>({2, 0}));
+    CHECK(latest_update(*aster) == 2);
+    CHECK(aster->dlcs == std::vector<size_t>({4, 3}));
+    CHECK(aster->size == 1040);
+    CHECK(aster->icon_url == "https://h/aster.jpg");
+    CHECK(aster->release_date == 20170303);
+    CHECK(aster->sections == std::vector<std::string>({"updates", "s"}));
 
-    const Title* mario = find(titles, 0x0100000000020000);
-    if (!CHECK(mario)) return;
-    CHECK(mario->name == "Super Mario");   // the titledb's
-    CHECK(mario->base == -1);
-    CHECK(latest_update(*mario) == 6);
+    const Title* comet = find(titles, 0x0100000000020000);
+    if (!CHECK(comet)) return;
+    CHECK(comet->name == "Super Comet");   // the titledb's
+    CHECK(comet->base == -1);
+    CHECK(latest_update(*comet) == 6);
 
     const Title* hb = find(titles, 0);
     if (!CHECK(hb)) return;
@@ -84,7 +84,7 @@ void test_two_bases()
 
 void test_names()
 {
-    CHECK(fold("Pokémon ÉCARLATE Œuvre") == "pokemon ecarlate oeuvre");
+    CHECK(fold("Créatures ÉCARLATE Œuvre") == "creatures ecarlate oeuvre");
     CHECK(fold("ゼルダ") == "ゼルダ");
     CHECK(fold("Straße") == "strasse");
     CHECK(clean_name("Game [0100ABCD00010000][v0].nsp") == "Game");
@@ -202,10 +202,10 @@ void test_filter()
 void test_state()
 {
     Catalog c;
-    c.items.push_back(item("Zelda", 0x0100000000010000, 0, 1000));
-    c.items.push_back(item("Zelda Update", 0x0100000000010800, 131072, 10));
-    c.items.push_back(item("Zelda DLC A", 0x0100000000011001, 0, 5));
-    c.items.push_back(item("Zelda DLC B", 0x0100000000011002, 0, 5));
+    c.items.push_back(item("Aster", 0x0100000000010000, 0, 1000));
+    c.items.push_back(item("Aster Update", 0x0100000000010800, 131072, 10));
+    c.items.push_back(item("Aster DLC A", 0x0100000000011001, 0, 5));
+    c.items.push_back(item("Aster DLC B", 0x0100000000011002, 0, 5));
     const std::vector<Title> titles = group_titles(c);
     if (!CHECK(titles.size() == 1)) return;
     const Title& t = titles[0];

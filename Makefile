@@ -70,16 +70,20 @@ dist: all
 
 # The web simulator (web/README.md): first its demo library server, made on
 # the host by tools/web_demo.cpp (the install suites' package builders, with
-# libzstd and zlib), then PlayShelf with Emscripten.
+# libzstd and zlib) and tools/web_demo_art.py (its pictures: SVG scenes
+# rendered in Chromium through Playwright, saved with Pillow, by ART_PYTHON),
+# then PlayShelf with Emscripten.
 WEB_DEMO_SOURCES := tools/web_demo.cpp source/kit/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
                 source/install/cnmt.cpp source/install/nca.cpp source/kit/util/sha256.cpp
 $(WEB)/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
 	@mkdir -p $(WEB)
 	$(CXX) -std=c++17 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
 	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
-$(WEB)/demo/index.json: $(WEB)/web_demo
+ART_PYTHON ?= python3
+$(WEB)/demo/index.json: $(WEB)/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
 	@rm -rf $(WEB)/demo
-	@$(WEB)/web_demo $(WEB)/demo
+	@$(WEB)/web_demo $(WEB)/demo tools/web_demo_games.json
+	@$(ART_PYTHON) tools/web_demo_art.py tools/web_demo_games.json $(WEB)/demo
 
 web: $(WEB)/demo/index.json
 	@emcmake cmake -B $(WEB) -S . -DCMAKE_BUILD_TYPE=Release -DPLAYSHELF_WEB_DEMO=$(abspath $(WEB))/demo $(CMAKE_ARGS)

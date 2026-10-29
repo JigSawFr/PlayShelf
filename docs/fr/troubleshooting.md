@@ -1,4 +1,4 @@
-<!-- translated from docs/troubleshooting.md, sha256 735248a3007a -->
+<!-- translated from docs/troubleshooting.md, sha256 20277d9da266 -->
 # Dépannage
 
 Que faire quand un catalogue ne peut pas être lu, qu'un serveur n'est pas trouvé, qu'un téléchargement échoue ou qu'un jeu installé ne démarre pas, et comment envoyer un rapport.
@@ -37,7 +37,7 @@ Un jeu connu seulement par son nom de fichier prend son nom et son icône dans l
 
 ## Envoyer un rapport
 
-*Préférences › Aide et diagnostic* :
+*À propos › Aide et diagnostic* :
 
 - **Exporter un rapport de diagnostic** en enregistre un sur la carte SD, à joindre à un [signalement de bug](https://github.com/JigSawFr/PlayShelf/issues/new). Il ne contient jamais le numéro de série de la console.
 - **Envoyer un rapport…** le met dans un gist secret de votre compte GitHub et affiche son lien avec un QR code.

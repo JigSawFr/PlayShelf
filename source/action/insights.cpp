@@ -14,6 +14,7 @@
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
 #include "action/titledb_flow.hpp"
+#include "action/not_interested.hpp"
 #include "action/wishlist.hpp"
 #include "library/installed.hpp"
 #include "library/seen.hpp"
@@ -184,7 +185,7 @@ void make()
     if (games)
         for (const installed_flow::Game& g : *games) {
             const double weight = library::owned_weight(g.play_s, g.launches, g.last_played, now);
-            owned.push_back({ g.game.id, weight });
+            owned.push_back({ g.game.id, weight, (uint32_t)(g.play_s / 3600) });
             for (const std::string& c : nlib_flow::facts(g.game.id).categories)
                 if (c != "Other") genres[c] += weight;
             if (!g.launches && !g.play_s) s.never_played++;
@@ -256,6 +257,10 @@ void make()
     // liked, out lately (library/recommend), each with its reason.
     const auto signals = popular_flow::signals();
     const auto similar = popular_flow::similar();
+    const std::vector<uint64_t> unwanted = not_interested::games();
+    auto wanted = [&unwanted](const Pick& p) {
+        return std::find(unwanted.begin(), unwanted.end(), library::base_of(p.title().id)) == unwanted.end();
+    };
     {
         std::vector<library::Candidate> candidates;
         std::map<uint64_t, Pick>        by_id;
@@ -269,7 +274,7 @@ void make()
             candidates.push_back(std::move(c));
             by_id[t.id] = p;
         }
-        for (library::Suggestion& sug : library::recommend(owned, candidates, genres, *similar, *signals, to_day, ROW))
+        for (library::Suggestion& sug : library::recommend(owned, candidates, genres, *similar, *signals, unwanted, to_day, ROW))
             s.like.push_back({ by_id[sug.id], std::move(sug.reason) });
     }
 
@@ -285,7 +290,7 @@ void make()
         std::vector<std::pair<double, InSeries>> found;
         for (const Pick& p : fresh) {
             const library::GameSignals* g = signals->find(p.title().id);
-            if (!g) continue;
+            if (!g || !wanted(p)) continue;
             for (const library::Trait& t : g->series) {
                 const auto it = mine.find(t.id);
                 if (it == mine.end() || it->second.second.empty()) continue;
@@ -352,6 +357,7 @@ void start()
     nlib_flow::listen(soon);
     popular_flow::listen(soon);
     wishlist::listen(soon);
+    not_interested::listen(soon);
     titledb_flow::listen(soon);
     download_flow::listen([]() {
         // A running download's speed, for its server's rank.
@@ -440,7 +446,14 @@ std::string name_of(uint64_t id, const std::string& console)
     if (const auto t = titledb_flow::title(id))
         if (!t->name.empty()) return t->name;
     const std::string known = nlib_flow::facts(id).name;
-    return known.empty() ? fmt::format("{:016X}", id) : known;
+    if (!known.empty()) return known;
+    // Not told: the console's name of it, else a catalogue's.
+    if (const auto games = installed_flow::games())
+        for (const installed_flow::Game& g : *games)
+            if (g.game.id == id && !g.name.empty()) return g.name;
+    const Pick found = found_of(id);
+    if (found.data && !found.title().name.empty()) return found.title().name;
+    return fmt::format("{:016X}", id);
 }
 
 Pick found_of(uint64_t id)

@@ -897,7 +897,8 @@
         "because_like": "類似 {}",
         "because_series": "系列：{}",
         "because_developer": "{} 開發",
-        "because_popular": "熱門"
+        "because_popular": "熱門",
+        "because_played": "{1} 小時：{0}"
     },
     "wishlist": {
         "add": "加入願望清單",
@@ -919,5 +920,14 @@
         "days": "{} 天前玩過",
         "months": "{} 個月前玩過",
         "open_page": "開啟頁面"
+    },
+    "not_interested": {
+        "action": "不感興趣",
+        "added": "不再推薦 {}",
+        "cleared": "所有遊戲都可再次推薦",
+        "row": "不推薦的遊戲",
+        "about": "在主頁推薦的遊戲上按 X 會放到這裡：不再推薦它，很相似的遊戲也會少推薦。",
+        "clear": "全部重新推薦",
+        "none": "無"
     }
 }

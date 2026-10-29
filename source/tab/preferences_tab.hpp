@@ -2,7 +2,8 @@
 // tab as tiles, the palette (a preset or a theme file), visual effects and
 // the intro; the monthly "Support PlayShelf" reminder; how PlayShelf
 // updates; the title database (action/titledb_flow: fetched, its sources in
-// their order; the icons it lacks asked of Nlib API or not). A setting
+// their order; the icons it lacks asked of Nlib API or not); Home's
+// suggestions put away (action/not_interested), to show again. A setting
 // that shapes one feature lives in that feature's tab; checking for
 // updates now and Help & diagnostics are in About.
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
@@ -44,4 +45,5 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::DetailCell,  title_sources,  "pf_title_sources");
     AURORE_BIND(aurore::BooleanCell, nlib_api,       "pf_nlib_api");
     AURORE_BIND(aurore::BooleanCell, popular_online, "pf_popular_online");
+    AURORE_BIND(aurore::DetailCell,  not_interested, "pf_not_interested");
 };

@@ -73,14 +73,20 @@ jobs:
             || { echo "::error::emsdk's $EMSDK_VERSION tag is not $EMSDK_COMMIT any more"; exit 1; }
           "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
           "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
-      # The demo server's packages are made on the host (libzstd, zlib);
+      # The demo server's packages are made on the host (libzstd, zlib), its
+      # games' pictures in Chromium through Playwright, saved with Pillow
+      # (tools/web_demo_art.py: a venv that sees the system's Pillow);
       # Japanese, Korean and Chinese drawn with a CJK font cut out of Noto
       # Sans CJK with fontTools (tools/web_cjk_font.py); the website's
       # documentation is Markdown (tools/build_site.py).
       - name: Dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools python3-markdown ccache
+          sudo apt-get install -y -q --no-install-recommends libzstd-dev zlib1g-dev fonts-noto-cjk python3-fonttools python3-markdown python3-pil ccache
+          python3 -m venv --system-site-packages "$RUNNER_TEMP/playwright"
+          "$RUNNER_TEMP/playwright/bin/pip" install -q "playwright==$PLAYWRIGHT_VERSION"
+          sudo "$RUNNER_TEMP/playwright/bin/python" -m playwright install-deps chromium
+          "$RUNNER_TEMP/playwright/bin/python" -m playwright install chromium
       - name: The simulator
         env:
           PLAYSHELF_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -90,7 +96,7 @@ jobs:
           # were built in emsdk's own folder and the cache above stayed empty.
           source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
           export EM_CACHE="$HOME/.emscripten_cache"
-          make web JOBS="$(nproc)" CMAKE_ARGS="-DPLAYSHELF_WERROR=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+          make web JOBS="$(nproc)" ART_PYTHON="$RUNNER_TEMP/playwright/bin/python" CMAKE_ARGS="-DPLAYSHELF_WERROR=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
           ccache --show-stats || true
           test -f build-web/simulator/cjk.otf || { echo "::error::no CJK font in the web build"; exit 1; }
           {
@@ -115,10 +121,6 @@ jobs:
       - name: The simulator in a browser
         timeout-minutes: 15
         run: |
-          python3 -m venv "$RUNNER_TEMP/playwright"
-          "$RUNNER_TEMP/playwright/bin/pip" install -q "playwright==$PLAYWRIGHT_VERSION"
-          sudo "$RUNNER_TEMP/playwright/bin/python" -m playwright install-deps chromium
-          "$RUNNER_TEMP/playwright/bin/python" -m playwright install chromium
           "$RUNNER_TEMP/playwright/bin/python" -u tools/web_smoke.py build-web/simulator build-web/shots
           if [ -f build-web/shots/timings.json ]; then
             { echo; echo "Starts (s): $(python3 -c 'import json; print(", ".join(f"{k} {v}" for k, v in json.load(open("build-web/shots/timings.json")).items()))')"; } >> "$GITHUB_STEP_SUMMARY"
@@ -152,11 +154,39 @@ jobs:
           } | tee -a "$GITHUB_ENV"
       # The website's screenshots, each screen of its gallery in each of its
       # languages, in the dark theme the site shows (tools/site_screenshots.py),
-      # from the simulator just built: about 40 seconds each.
+      # from the simulator just built: about 40 seconds each, the languages
+      # one per processor. Taken again only when what they show can change:
+      # the simulator's sources, the submodule, the site's languages, the
+      # script and the versions of Emscripten and Playwright. Otherwise the
+      # last ones are reused (a pull request of docs, of the site's texts, of
+      # CI). Their only difference from one run to the next is the clock.
+      - name: The screenshots' inputs
+        id: shots-inputs
+        run: |
+          key=$({ git ls-tree HEAD source resources web library CMakeLists.txt Makefile \
+                    tools/web_demo.cpp tools/web_cjk_font.py tools/site_screenshots.py
+                  ls site/i18n
+                  echo "$EMSDK_VERSION $PLAYWRIGHT_VERSION"; } | sha256sum | cut -c1-16)
+          echo "key=site-shots-$key" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: shots
+        with:
+          path: shots
+          key: ${{ steps.shots-inputs.outputs.key }}
       - name: The website's screenshots
+        if: steps.shots.outputs.cache-hit != 'true'
         timeout-minutes: 20
         run: |
           "$RUNNER_TEMP/playwright/bin/python" -u tools/site_screenshots.py build-web/simulator shots
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: steps.shots.outputs.cache-hit != 'true'
+        with:
+          path: shots
+          key: ${{ steps.shots-inputs.outputs.key }}
+      - name: The website's screenshots, reused
+        if: steps.shots.outputs.cache-hit == 'true'
+        run: |
+          echo "The website's screenshots: reused (nothing they show has changed)." >> "$GITHUB_STEP_SUMMARY"
       - name: The website, the simulator in it
         env:
           REPO: ${{ github.repository }}

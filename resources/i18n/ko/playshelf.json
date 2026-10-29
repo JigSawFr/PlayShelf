@@ -897,7 +897,8 @@
         "because_like": "{}와(과) 비슷함",
         "because_series": "시리즈: {}",
         "because_developer": "{} 개발",
-        "because_popular": "인기"
+        "because_popular": "인기",
+        "because_played": "{1}시간: {0}"
     },
     "wishlist": {
         "add": "위시리스트에 추가",
@@ -919,5 +920,14 @@
         "days": "{}일 전에 플레이",
         "months": "{}개월 전에 플레이",
         "open_page": "페이지 열기"
+    },
+    "not_interested": {
+        "action": "관심 없음",
+        "added": "{}은(는) 더 이상 추천되지 않습니다",
+        "cleared": "모든 게임이 다시 추천될 수 있습니다",
+        "row": "추천하지 않을 게임",
+        "about": "홈에서 추천하는 게임에서 X를 누르면 여기에 보관됩니다. 더 이상 추천되지 않고, 매우 비슷한 게임도 덜 추천됩니다.",
+        "clear": "모두 다시 추천",
+        "none": "없음"
     }
 }
