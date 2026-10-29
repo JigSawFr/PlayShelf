@@ -3,7 +3,7 @@
 
 Errors:
 - the kit (source/kit) including the app: a file of the kit includes only
-  the kit, the standard library, borealis and the vendored libraries, plus
+  the kit, the standard library, Aurore and the vendored libraries, plus
   the app's identity and settings (APP_CONTRACT below); it asks the app's
   screens through ui::app_hooks (ui/app_hooks.hpp) or Aurore's ui::hooks. The kit is what PlayShelf shares
   with PlayGuard: it must stay ready to become a library of its own;
@@ -49,7 +49,7 @@ for rel, text in sources("source/kit"):
         # A relative include ("../core/x.h", "sim_state.h") inside the kit.
         if os.path.normpath(os.path.join(here, inc)) in kit_files:
             continue
-        if inc.startswith(("borealis", "nanovg", "yoga", "fmt/")) or inc in ("qrcodegen.hpp", "check.h"):
+        if inc.startswith(("Aurore", "nanovg", "yoga", "fmt/")) or inc in ("qrcodegen.hpp", "check.h"):
             continue
         errors.append(f'{rel} includes "{inc}", which is the app\'s: the kit includes only itself, '
                       f'{" and ".join(sorted(APP_CONTRACT))} (ask the app through ui/app_hooks.hpp)')

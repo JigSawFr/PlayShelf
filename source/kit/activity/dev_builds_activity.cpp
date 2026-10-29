@@ -3,7 +3,7 @@
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/view/cadran_icon.hpp>
+#include <aurore/cadran/view/cadran_icon.hpp>
 
 #include "action/dev_build_flow.hpp"
 #include "action/rollback_flow.hpp"
@@ -12,7 +12,7 @@
 #include "util/config.hpp"
 #include "view/build_cell.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -33,15 +33,15 @@ dev_builds::Order order()
 // (the sparkle of their tag in the list).
 struct NewCount
 {
-    brls::Box*   box;
+    aurore::Box*   box;
     CadranIcon*  glyph;
-    brls::Label* count;
+    aurore::Label* count;
 };
 
-NewCount add_new_count(brls::Button* tab)
+NewCount add_new_count(aurore::Button* tab)
 {
-    auto* box = new brls::Box(brls::Axis::ROW);
-    box->setAlignItems(brls::AlignItems::CENTER);
+    auto* box = new aurore::Box(aurore::Axis::ROW);
+    box->setAlignItems(aurore::AlignItems::CENTER);
     box->setMarginLeft(10);
     auto* glyph = new CadranIcon();
     glyph->setIcon("sparkle");
@@ -49,7 +49,7 @@ NewCount add_new_count(brls::Button* tab)
     glyph->setHeight(18);
     glyph->setMarginRight(4);
     box->addView(glyph);
-    auto* count = new brls::Label();
+    auto* count = new aurore::Label();
     count->setSingleLine(true);
     count->setFontSize(20);
     box->addView(count);
@@ -60,7 +60,7 @@ NewCount add_new_count(brls::Button* tab)
 // `n` new in that tab's ink (dark on the chosen tab's teal); none: gone.
 void set_new_count(const NewCount& c, size_t n, bool chosen)
 {
-    const std::string& ink = (chosen ? brls::BUTTONSTYLE_PRIMARY : brls::BUTTONSTYLE_DEFAULT).enabledLabelColor;
+    const std::string& ink = (chosen ? aurore::BUTTONSTYLE_PRIMARY : aurore::BUTTONSTYLE_DEFAULT).enabledLabelColor;
     c.glyph->setThemeColor("color", ink);
     c.count->setThemeColor("textColor", ink);
     c.count->setText(std::to_string(n));
@@ -76,14 +76,14 @@ void DevBuildsActivity::show(const dev_builds::Cache& cache)
         s_open->update(cache);
         return;
     }
-    brls::Application::pushActivity(new DevBuildsActivity(cache));
+    aurore::Application::pushActivity(new DevBuildsActivity(cache));
 }
 
 void DevBuildsActivity::loading(const std::string& text, float done, bool steady)
 {
     if (!s_open) return;
     DevBuildsActivity* a = s_open;
-    if (a->loading_box->getVisibility() != brls::Visibility::VISIBLE) {
+    if (a->loading_box->getVisibility() != aurore::Visibility::VISIBLE) {
         a->loading_bar->reset();
         ui::set_visible(a->loading_box.getView(), true);
     }
@@ -129,22 +129,22 @@ void DevBuildsActivity::onContentAvailable()
     loading_text->setSingleLine(false);
     // The bar in the header, at its right (the room the title leaves there),
     // not over the tabs.
-    auto* frame = dynamic_cast<brls::AppletFrame*>(this->getContentView());
-    if (brls::Box* header = frame ? frame->getHeader() : nullptr) {
-        if (brls::Box* parent = loading_box->getParent()) parent->removeView(loading_box.getView(), false);
-        loading_box->setAlignSelf(brls::AlignSelf::CENTER);
+    auto* frame = dynamic_cast<aurore::AppletFrame*>(this->getContentView());
+    if (aurore::Box* header = frame ? frame->getHeader() : nullptr) {
+        if (aurore::Box* parent = loading_box->getParent()) parent->removeView(loading_box.getView(), false);
+        loading_box->setAlignSelf(aurore::AlignSelf::CENTER);
         loading_box->setMarginRight(16);
         header->addView(loading_box.getView(), 1);
     }
     // Not the running build: the header's badge names it already, the list
     // marks it, and the build's page and the download name it again.
     note->setText("playshelf/dev_build/note"_i18n);
-    const std::pair<brls::Button*, dev_builds::Kind> buttons[] = { { tab_release.getView(), KINDS[0] },
+    const std::pair<aurore::Button*, dev_builds::Kind> buttons[] = { { tab_release.getView(), KINDS[0] },
                                                                    { tab_main.getView(), KINDS[1] },
                                                                    { tab_pulls.getView(), KINDS[2] } };
     for (const auto& b : buttons) {
         const dev_builds::Kind kind = b.second;
-        b.first->registerClickAction([this, kind](brls::View*) {
+        b.first->registerClickAction([this, kind](aurore::View*) {
             // A on the pull requests' tab when it is the one shown: the other
             // order (the tab says which); else, that tab.
             if (kind == dev_builds::Kind::PullRequest && this->tab == kind) this->sort();
@@ -152,11 +152,11 @@ void DevBuildsActivity::onContentAvailable()
             return true;
         });
     }
-    sign_in->registerClickAction([](brls::View*) {
+    sign_in->registerClickAction([](aurore::View*) {
         dev_build_flow::sign_in();
         return true;
     });
-    back->registerClickAction([](brls::View*) {
+    back->registerClickAction([](aurore::View*) {
         dev_build_flow::go_back();
         return true;
     });
@@ -164,19 +164,19 @@ void DevBuildsActivity::onContentAvailable()
     // glyphs as the footer's hints); no hint of their own in the footer.
     s_new_release = add_new_count(tab_release.getView());
     s_new_main = add_new_count(tab_main.getView());
-    tab_l->setText(brls::Hint::getKeyIcon(brls::BUTTON_LB, true));
-    tab_r->setText(brls::Hint::getKeyIcon(brls::BUTTON_RB, true));
-    this->getContentView()->registerAction("", brls::BUTTON_RB, [this](brls::View*) {
+    tab_l->setText(aurore::Hint::getKeyIcon(aurore::BUTTON_LB, true));
+    tab_r->setText(aurore::Hint::getKeyIcon(aurore::BUTTON_RB, true));
+    this->getContentView()->registerAction("", aurore::BUTTON_RB, [this](aurore::View*) {
         this->next_tab(1);
         return true;
     }, true);
-    this->getContentView()->registerAction("", brls::BUTTON_LB, [this](brls::View*) {
+    this->getContentView()->registerAction("", aurore::BUTTON_LB, [this](aurore::View*) {
         this->next_tab(-1);
         return true;
     }, true);
     // Ⓨ's place among the hints (before Ⓧ); fill() sets what it does.
-    this->getContentView()->registerAction("", brls::BUTTON_Y, [](brls::View*) { return true; }, true);
-    this->getContentView()->registerAction("playshelf/hints/refresh"_i18n, brls::BUTTON_X, [](brls::View*) {
+    this->getContentView()->registerAction("", aurore::BUTTON_Y, [](aurore::View*) { return true; }, true);
+    this->getContentView()->registerAction("playshelf/hints/refresh"_i18n, aurore::BUTTON_X, [](aurore::View*) {
         dev_build_flow::open(true);
         return true;
     });
@@ -194,14 +194,14 @@ void DevBuildsActivity::onContentAvailable()
     this->refresh_timer.start();
     this->fill();
     // The screen opens on the first build, not on the tabs above it.
-    if (!cells.empty() && cells[0]->getVisibility() == brls::Visibility::VISIBLE) brls::Application::giveFocus(cells[0]);
+    if (!cells.empty() && cells[0]->getVisibility() == aurore::Visibility::VISIBLE) aurore::Application::giveFocus(cells[0]);
 }
 
 void DevBuildsActivity::update(const dev_builds::Cache& fresh)
 {
     // Signed in from this screen: its line goes, the focus to the first build.
     // So does a first list, the screen having opened empty under its bar.
-    brls::View* focus = brls::Application::getCurrentFocus();
+    aurore::View* focus = aurore::Application::getCurrentFocus();
     const bool was_empty = this->cache.builds.empty();
     const bool focus_moves = (!fresh.needs_login && focus == sign_in.getView()) || was_empty;
     this->cache = fresh;
@@ -211,16 +211,16 @@ void DevBuildsActivity::update(const dev_builds::Cache& fresh)
     this->fill();
     // Never under a dialog (Back to the previous build, the sign-in code).
     if (!ui::has_focus(this)) return;
-    if (focus_moves && !cells.empty() && cells[0]->getVisibility() == brls::Visibility::VISIBLE)
-        brls::Application::giveFocus(cells[0]);
+    if (focus_moves && !cells.empty() && cells[0]->getVisibility() == aurore::Visibility::VISIBLE)
+        aurore::Application::giveFocus(cells[0]);
 }
 
 // Back from a build's screen or a dialog: the list fetched meanwhile may
 // have hidden the build it was opened from (fewer builds) or a tab.
 void DevBuildsActivity::onResume()
 {
-    brls::View* first = cells.empty() ? nullptr : cells[0];
-    ui::keep_focus(this, first && first->getVisibility() == brls::Visibility::VISIBLE ? first : nullptr);
+    aurore::View* first = cells.empty() ? nullptr : cells[0];
+    ui::keep_focus(this, first && first->getVisibility() == aurore::Visibility::VISIBLE ? first : nullptr);
 }
 
 std::vector<dev_builds::Build> DevBuildsActivity::builds(dev_builds::Kind kind) const
@@ -249,37 +249,37 @@ void DevBuildsActivity::fill()
         for (const dev_builds::Build& b : kind_builds) n += dev_builds::newer(b, app::version(), running) ? 1 : 0;
         return n;
     };
-    tab_release->setText(brls::getStr("playshelf/dev_build/section_release", (int)releases.size()));
-    tab_main->setText(brls::getStr("playshelf/dev_build/section_main", (int)mains.size()));
+    tab_release->setText(aurore::getStr("playshelf/dev_build/section_release", (int)releases.size()));
+    tab_main->setText(aurore::getStr("playshelf/dev_build/section_main", (int)mains.size()));
     set_new_count(s_new_release, newer_count(releases), this->tab == dev_builds::Kind::Release);
     set_new_count(s_new_main, newer_count(mains), this->tab == dev_builds::Kind::Main);
-    tab_pulls->setText(brls::getStr("playshelf/dev_build/section_pulls", (int)pulls));
+    tab_pulls->setText(aurore::getStr("playshelf/dev_build/section_pulls", (int)pulls));
     // The order in A's hint, on the pull requests' tab when it is shown (what
     // A does there): not in the tab, which it made too wide.
-    tab_pulls->updateActionHint(brls::BUTTON_A, this->tab != dev_builds::Kind::PullRequest
+    tab_pulls->updateActionHint(aurore::BUTTON_A, this->tab != dev_builds::Kind::PullRequest
                                                     ? "hints/ok"_i18n
-                                                    : brls::getStr("playshelf/dev_build/sort_hint",
+                                                    : aurore::getStr("playshelf/dev_build/sort_hint",
                                                                    order() == dev_builds::Order::Number
                                                                        ? "playshelf/dev_build/order_newest"_i18n
                                                                        : "playshelf/dev_build/order_number"_i18n));
-    tab_release->setStyle(this->tab == dev_builds::Kind::Release ? &brls::BUTTONSTYLE_PRIMARY : &brls::BUTTONSTYLE_DEFAULT);
-    tab_main->setStyle(this->tab == dev_builds::Kind::Main ? &brls::BUTTONSTYLE_PRIMARY : &brls::BUTTONSTYLE_DEFAULT);
-    tab_pulls->setStyle(this->tab == dev_builds::Kind::PullRequest ? &brls::BUTTONSTYLE_PRIMARY : &brls::BUTTONSTYLE_DEFAULT);
+    tab_release->setStyle(this->tab == dev_builds::Kind::Release ? &aurore::BUTTONSTYLE_PRIMARY : &aurore::BUTTONSTYLE_DEFAULT);
+    tab_main->setStyle(this->tab == dev_builds::Kind::Main ? &aurore::BUTTONSTYLE_PRIMARY : &aurore::BUTTONSTYLE_DEFAULT);
+    tab_pulls->setStyle(this->tab == dev_builds::Kind::PullRequest ? &aurore::BUTTONSTYLE_PRIMARY : &aurore::BUTTONSTYLE_DEFAULT);
     ui::set_visible(tab_release.getView(), !releases.empty());
     ui::set_visible(tab_main.getView(), !mains.empty());
     ui::set_visible(tab_pulls.getView(), pulls > 0);
-    brls::View* focus = brls::Application::getCurrentFocus();
+    aurore::View* focus = aurore::Application::getCurrentFocus();
     const bool tabs_go = mains.empty() && pulls == 0;
     ui::set_visible(tabs.getView(), !tabs_go);
     // Ⓨ looks for the build of any pull request or commit: with a GitHub
     // token only (signed out, no hint: the Sign in line is there instead).
     const bool can_find = !cache.needs_login;
-    this->getContentView()->registerAction(can_find ? "playshelf/dev_build/find_hint"_i18n : "", brls::BUTTON_Y,
-                                           [can_find](brls::View*) {
+    this->getContentView()->registerAction(can_find ? "playshelf/dev_build/find_hint"_i18n : "", aurore::BUTTON_Y,
+                                           [can_find](aurore::View*) {
                                                if (can_find) dev_build_flow::find();
                                                return true;
                                            }, !can_find);
-    brls::Application::getGlobalHintsUpdateEvent()->fire();
+    aurore::Application::getGlobalHintsUpdateEvent()->fire();
 
     const std::vector<dev_builds::Build> shown = this->builds(this->tab);
     for (size_t i = 0; i < shown.size(); i++) {
@@ -293,7 +293,7 @@ void DevBuildsActivity::fill()
         // installed or new); how old it is and its commit at the right.
         const bool is_newer = dev_builds::newer(b, app::version(), running);
         cell->set(b, is_newer);
-        cell->registerClickAction([b, is_newer](brls::View*) {
+        cell->registerClickAction([b, is_newer](aurore::View*) {
             dev_build_flow::choose(b, is_newer);
             return true;
         });
@@ -302,13 +302,13 @@ void DevBuildsActivity::fill()
     for (size_t i = shown.size(); i < cells.size(); i++) ui::set_visible(cells[i], false);
     // Never the focus left on a tab that went with its row.
     if (tabs_go && focus && focus->getParent() == tabs.getView() && !shown.empty())
-        brls::Application::giveFocus(cells[0]);
+        aurore::Application::giveFocus(cells[0]);
     // Without a token GitHub hands out the releases only: a line signs in.
     ui::set_visible(sign_in.getView(), cache.needs_login);
     // The build installed before this one, kept: a line goes back to it.
     std::string previous;
     const bool have_previous = rollback_flow::previous(&previous);
-    if (have_previous) back->setText(brls::getStr("playshelf/dev_build/back", previous));
+    if (have_previous) back->setText(aurore::getStr("playshelf/dev_build/back", previous));
     ui::set_visible(back.getView(), have_previous);
     checked->setText(cache.builds.empty() ? " " : dev_build_flow::checked_text(cache));
 }
@@ -320,7 +320,7 @@ void DevBuildsActivity::show_tab(dev_builds::Kind kind, bool focus_list)
     s_tab = kind;
     s_tab_chosen = true;
     this->fill();
-    if (focus_list) brls::Application::giveFocus(cells[0]);
+    if (focus_list) aurore::Application::giveFocus(cells[0]);
 }
 
 void DevBuildsActivity::next_tab(int step)
@@ -330,12 +330,12 @@ void DevBuildsActivity::next_tab(int step)
         at = (at + step + 3) % 3;
         if (this->builds(KINDS[at]).empty()) continue;
         // From a tab, the focus goes to the tab chosen; else to its first build.
-        brls::View* focus = brls::Application::getCurrentFocus();
+        aurore::View* focus = aurore::Application::getCurrentFocus();
         const bool on_tabs = focus && focus->getParent() == tabs.getView();
         this->show_tab(KINDS[at], !on_tabs);
         if (on_tabs) {
-            brls::Button* b = at == 0 ? tab_release.getView() : at == 1 ? tab_main.getView() : tab_pulls.getView();
-            brls::Application::giveFocus(b);
+            aurore::Button* b = at == 0 ? tab_release.getView() : at == 1 ? tab_main.getView() : tab_pulls.getView();
+            aurore::Application::giveFocus(b);
         }
         return;
     }
@@ -348,7 +348,7 @@ void DevBuildsActivity::sort()
     if (this->tab == dev_builds::Kind::PullRequest) {
         const std::vector<dev_builds::Build> before = this->builds(dev_builds::Kind::PullRequest);
         for (size_t i = 0; i < cells.size() && i < before.size(); i++)
-            if (cells[i] == brls::Application::getCurrentFocus()) focused_pr = before[i].pr;
+            if (cells[i] == aurore::Application::getCurrentFocus()) focused_pr = before[i].pr;
     }
 
     const bool by_number = order() == dev_builds::Order::Number;
@@ -360,5 +360,5 @@ void DevBuildsActivity::sort()
     if (!focused_pr) return;
     const std::vector<dev_builds::Build> after = this->builds(dev_builds::Kind::PullRequest);
     for (size_t i = 0; i < after.size() && i < cells.size(); i++)
-        if (after[i].pr == focused_pr) brls::Application::giveFocus(cells[i]);
+        if (after[i].pr == focused_pr) aurore::Application::giveFocus(cells[i]);
 }

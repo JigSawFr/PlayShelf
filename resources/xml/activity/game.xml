@@ -7,7 +7,7 @@
      of it fills in once it answers. Filled by
      source/activity/game_activity.cpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
     <ScrollView
@@ -18,44 +18,44 @@
         alignItems="stretch"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="gp_column"
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingTop="@style/brls/sidebar/padding_top"
-            paddingRight="@style/brls/sidebar/padding_right"
-            paddingBottom="@style/brls/sidebar/padding_bottom"
-            paddingLeft="@style/brls/sidebar/padding_left">
+            paddingTop="@style/aurore/sidebar/padding_top"
+            paddingRight="@style/aurore/sidebar/padding_right"
+            paddingBottom="@style/aurore/sidebar/padding_bottom"
+            paddingLeft="@style/aurore/sidebar/padding_left">
 
             <!-- The banner, once it came, with the head laid over its lower part. -->
-            <brls:Box id="gp_hero" width="auto" height="auto" axis="column" alignItems="stretch" marginBottom="18">
-                <brls:Box id="gp_head" width="auto" height="auto" axis="row" alignItems="flexEnd"/>
-            </brls:Box>
-            <brls:Box id="gp_tabs" width="auto" height="auto" axis="row" marginBottom="20"/>
+            <aurore:Box id="gp_hero" width="auto" height="auto" axis="column" alignItems="stretch" marginBottom="18">
+                <aurore:Box id="gp_head" width="auto" height="auto" axis="row" alignItems="flexEnd"/>
+            </aurore:Box>
+            <aurore:Box id="gp_tabs" width="auto" height="auto" axis="row" marginBottom="20"/>
 
-            <brls:Box id="gp_overview" width="auto" height="auto" axis="column" alignItems="stretch">
-                <brls:Label id="gp_intro" text="" fontSize="20" marginBottom="20" visibility="gone"
+            <aurore:Box id="gp_overview" width="auto" height="auto" axis="column" alignItems="stretch">
+                <aurore:Label id="gp_intro" text="" fontSize="20" marginBottom="20" visibility="gone"
                     textColor="@theme/cadran/text2"/>
-                <brls:Box id="gp_lines" width="auto" height="auto" axis="column" alignItems="stretch"/>
-                <brls:Header id="gp_screens_header" title="@i18n/playshelf/game/screenshots" marginTop="24" marginBottom="8"
+                <aurore:Box id="gp_lines" width="auto" height="auto" axis="column" alignItems="stretch"/>
+                <aurore:Header id="gp_screens_header" title="@i18n/playshelf/game/screenshots" marginTop="24" marginBottom="8"
                     visibility="gone"/>
-                <brls:Box id="gp_screens" width="auto" height="auto" axis="column" alignItems="flexStart"/>
-                <brls:Header id="gp_about_header" title="@i18n/playshelf/game/about" marginTop="24" marginBottom="8"
+                <aurore:Box id="gp_screens" width="auto" height="auto" axis="column" alignItems="flexStart"/>
+                <aurore:Header id="gp_about_header" title="@i18n/playshelf/game/about" marginTop="24" marginBottom="8"
                     visibility="gone"/>
-                <brls:Label id="gp_description" text="" fontSize="18" visibility="gone"/>
-                <brls:Box id="gp_others" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            </brls:Box>
-            <brls:Box id="gp_updates" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
-            <brls:Box id="gp_dlcs" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
-            <brls:Box id="gp_details" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
+                <aurore:Label id="gp_description" text="" fontSize="18" visibility="gone"/>
+                <aurore:Box id="gp_others" width="auto" height="auto" axis="column" alignItems="stretch"/>
+            </aurore:Box>
+            <aurore:Box id="gp_updates" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
+            <aurore:Box id="gp_dlcs" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
+            <aurore:Box id="gp_details" width="auto" height="auto" axis="column" alignItems="stretch" visibility="gone"/>
 
-            <brls:Label id="gp_source" text="@i18n/playshelf/game/source" fontSize="15" marginTop="16"
+            <aurore:Label id="gp_source" text="@i18n/playshelf/game/source" fontSize="15" marginTop="16"
                 visibility="gone" textColor="@theme/cadran/text3"/>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

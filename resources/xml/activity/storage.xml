@@ -4,7 +4,7 @@
      room they take, those not played for months first. Built by
      source/activity/storage_activity.cpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear">
 
     <ScrollView
@@ -16,7 +16,7 @@
         alignItems="stretch"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="st_root"
             width="auto"
             height="auto"
@@ -25,4 +25,4 @@
 
     </ScrollView>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

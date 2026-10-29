@@ -6,12 +6,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <string>
 
 class CadranIcon;
 
-class ToolChip : public brls::Box
+class ToolChip : public aurore::Box
 {
   public:
     ToolChip(const char* icon_name, const std::string& what);
@@ -24,7 +24,7 @@ class ToolChip : public brls::Box
 
   private:
     CadranIcon*  icon = nullptr;
-    brls::Label* what = nullptr;
-    brls::Label* value = nullptr;
+    aurore::Label* what = nullptr;
+    aurore::Label* value = nullptr;
     bool         active = false;
 };

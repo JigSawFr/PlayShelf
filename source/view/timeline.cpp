@@ -19,10 +19,10 @@ void Timeline::set(std::vector<download::Segment> s)
     this->segments = std::move(s);
 }
 
-void Timeline::draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style, brls::FrameContext*)
+void Timeline::draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style, aurore::FrameContext*)
 {
     if (this->segments.empty()) return;
-    brls::Theme theme = brls::Application::getTheme();
+    aurore::Theme theme = aurore::Application::getTheme();
     const float room = width - GAP * (float)(this->segments.size() - 1);
     const float radius = height / 2.0f;
     float       at = x;

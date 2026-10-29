@@ -7,7 +7,7 @@
 #include "ui/ui.hpp"
 #include "util/diagnostics.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
@@ -25,7 +25,7 @@ void DiagnosticActivity::onContentAvailable()
     auto flush = [this, &chunk, &lines]() {
         if (chunk.empty()) return;
         if (chunk.back() == '\n') chunk.pop_back();
-        auto* label = new brls::Label();
+        auto* label = new aurore::Label();
         label->setText(chunk);
         label->setFontSize(18);
         label->setSingleLine(false);
@@ -41,14 +41,14 @@ void DiagnosticActivity::onContentAvailable()
     }
     flush();
 
-    this->getContentView()->registerAction("playshelf/dev/report_save"_i18n, brls::BUTTON_Y, [this](brls::View*) {
+    this->getContentView()->registerAction("playshelf/dev/report_save"_i18n, aurore::BUTTON_Y, [this](aurore::View*) {
         std::string err;
         const std::string path = diagnostic::save(this->report, &err);
         if (path.empty()) ui::error("playshelf/toast/diag_err"_i18n, err);
-        else ui::notify(brls::getStr("playshelf/toast/diag_saved", path));
+        else ui::notify(aurore::getStr("playshelf/toast/diag_saved", path));
         return true;
     });
-    this->getContentView()->registerAction("playshelf/dev/report_upload"_i18n, brls::BUTTON_X, [this](brls::View*) {
+    this->getContentView()->registerAction("playshelf/dev/report_upload"_i18n, aurore::BUTTON_X, [this](aurore::View*) {
         upload_flow::send_report(this->report);
         return true;
     });

@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-#include <borealis/core/theme_image.hpp>
+#include <aurore/core/theme_image.hpp>
 
 #include "util/paths.hpp"
 #ifndef __SWITCH__
@@ -36,7 +36,7 @@ int icon_texture(NVGcontext* vg)
     static int texture = -1;
     if (texture < 0) {
         std::string bytes;
-        texture = paths::read_file(BRLS_ASSET("img/app_icon.jpg"), bytes) && !bytes.empty()
+        texture = paths::read_file(AURORE_ASSET("img/app_icon.jpg"), bytes) && !bytes.empty()
                       ? nvgCreateImageMem(vg, NVG_IMAGE_GENERATE_MIPMAPS, (unsigned char*)bytes.data(), (int)bytes.size())
                       : 0;
     }
@@ -54,7 +54,7 @@ LoadingMark::LoadingMark()
 }
 
 void LoadingMark::draw(NVGcontext* vg, float x, float y, float width, float height,
-                       brls::Style style, brls::FrameContext* ctx)
+                       aurore::Style style, aurore::FrameContext* ctx)
 {
     (void)style;
     (void)ctx;
@@ -65,7 +65,7 @@ void LoadingMark::draw(NVGcontext* vg, float x, float y, float width, float heig
     // from its teal to its violet while the app starts.
     float violet = 0.35f;
     if (!this->still) {
-        const double t = (double)brls::getCPUTimeUsec() / 1e6;
+        const double t = (double)aurore::getCPUTimeUsec() / 1e6;
         violet = 0.5f - 0.5f * std::cos((float)std::fmod(t / BREATH_S, 1.0) * 2.0f * PI);
     }
     const struct { NVGcolor colour; float share; } glows[] = { { AURORA_TEAL, 1.0f - violet }, { AURORA_VIOLET, violet } };
@@ -81,8 +81,8 @@ void LoadingMark::draw(NVGcontext* vg, float x, float y, float width, float heig
     // The theme's logo when it has one (`logo =`, loaded), fitted in the
     // icon's square as Cadran fits it in its mark; asked at each frame, so
     // a theme chosen live shows its own at once.
-    const std::shared_ptr<brls::ThemeImage> logo = brls::Theme::logo();
-    if (logo && logo->draw(vg, cx - size / 2.0f, cy - size / 2.0f, size, size, brls::BackgroundFit::CONTAIN, nullptr,
+    const std::shared_ptr<aurore::ThemeImage> logo = aurore::Theme::logo();
+    if (logo && logo->draw(vg, cx - size / 2.0f, cy - size / 2.0f, size, size, aurore::BackgroundFit::CONTAIN, nullptr,
                            this->getAlpha()))
         return;
 
@@ -95,7 +95,7 @@ void LoadingMark::draw(NVGcontext* vg, float x, float y, float width, float heig
     nvgFill(vg);
 }
 
-brls::View* LoadingMark::create()
+aurore::View* LoadingMark::create()
 {
     return new LoadingMark();
 }

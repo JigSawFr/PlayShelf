@@ -6,11 +6,11 @@
 #include <dirent.h>
 #include <utility>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
 
-#include <borealis/cadran/util/text.hpp>
-#include <borealis/cadran/util/utf8.hpp>
+#include <aurore/cadran/util/text.hpp>
+#include <aurore/cadran/util/utf8.hpp>
 
 #include "util/json_util.hpp"
 #include "util/log_files.hpp"

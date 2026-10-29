@@ -11,7 +11,7 @@
 #include <mutex>
 #include <unistd.h>
 
-#include <borealis/cadran/util/utf8.hpp>
+#include <aurore/cadran/util/utf8.hpp>
 
 #include "util/date.hpp"
 #include "util/log_files.hpp"

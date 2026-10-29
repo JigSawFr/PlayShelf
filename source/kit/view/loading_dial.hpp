@@ -7,19 +7,19 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class LoadingDial : public brls::View
+class LoadingDial : public aurore::View
 {
   public:
     LoadingDial();
 
     // Its theme keys, in both variants' base colours: added once, before
-    // borealis starts (a theme file read then knows them).
+    // Aurore starts (a theme file read then knows them).
     static void addColors();
 
     void draw(NVGcontext* vg, float x, float y, float width, float height,
-              brls::Style style, brls::FrameContext* ctx) override;
+              aurore::Style style, aurore::FrameContext* ctx) override;
 
-    static brls::View* create();
+    static aurore::View* create();
 };

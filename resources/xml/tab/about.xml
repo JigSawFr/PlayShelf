@@ -10,7 +10,7 @@
      dialog; how to support it (QR codes of the funding links, Ⓐ shows one
      larger), and "Made in France". -->
 
-<brls:Box
+<aurore:Box
     width="auto"
     height="auto">
 
@@ -19,28 +19,28 @@
         height="auto"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingLeft="@style/brls/tab_frame/content_padding_sides"
-            paddingRight="@style/brls/tab_frame/content_padding_sides"
-            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+            paddingLeft="@style/aurore/tab_frame/content_padding_sides"
+            paddingRight="@style/aurore/tab_frame/content_padding_sides"
+            paddingTop="@style/aurore/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/aurore/tab_frame/content_padding_top_bottom">
 
-            <brls:Header title="@i18n/playshelf/tools/section_about" marginBottom="8"/>
-            <brls:DetailCell id="ab_version" title="@i18n/playshelf/tools/version"/>
-            <brls:DetailCell id="ab_update" title="@i18n/playshelf/tools/update"/>
-            <brls:DetailCell id="ab_help" title="@i18n/playshelf/prefs/help" marginTop="24"/>
-            <brls:DetailCell id="ab_credits" title="@i18n/playshelf/about/credits_open" marginTop="24"/>
-            <brls:Header title="@i18n/playshelf/about/section_support" marginTop="24" marginBottom="8"/>
-            <brls:Label id="ab_support_note" text="@i18n/playshelf/about/support_note" fontSize="20" marginBottom="6" textColor="@theme/cadran/text3"/>
-            <brls:Box id="ab_funding" width="auto" height="auto" axis="row" justifyContent="spaceEvenly" marginTop="8"/>
+            <aurore:Header title="@i18n/playshelf/tools/section_about" marginBottom="8"/>
+            <aurore:DetailCell id="ab_version" title="@i18n/playshelf/tools/version"/>
+            <aurore:DetailCell id="ab_update" title="@i18n/playshelf/tools/update"/>
+            <aurore:DetailCell id="ab_help" title="@i18n/playshelf/prefs/help" marginTop="24"/>
+            <aurore:DetailCell id="ab_credits" title="@i18n/playshelf/about/credits_open" marginTop="24"/>
+            <aurore:Header title="@i18n/playshelf/about/section_support" marginTop="24" marginBottom="8"/>
+            <aurore:Label id="ab_support_note" text="@i18n/playshelf/about/support_note" fontSize="20" marginBottom="6" textColor="@theme/cadran/text3"/>
+            <aurore:Box id="ab_funding" width="auto" height="auto" axis="row" justifyContent="spaceEvenly" marginTop="8"/>
             <MadeInFrance marginTop="32" marginBottom="8"/>
 
-        </brls:Box>
+        </aurore:Box>
 
     </ScrollView>
 
-</brls:Box>
+</aurore:Box>

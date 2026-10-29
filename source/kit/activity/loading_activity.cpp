@@ -1,17 +1,17 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "activity/loading_activity.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 LoadingActivity::~LoadingActivity()
 {
-    if (this->themed) brls::Application::getThemeChangedEvent()->unsubscribe(this->theme_changed);
+    if (this->themed) aurore::Application::getThemeChangedEvent()->unsubscribe(this->theme_changed);
 }
 
 void LoadingActivity::onContentAvailable()
 {
     this->follow_theme();
-    this->theme_changed = brls::Application::getThemeChangedEvent()->subscribe([this](brls::ThemeVariant) {
+    this->theme_changed = aurore::Application::getThemeChangedEvent()->subscribe([this](aurore::ThemeVariant) {
         this->follow_theme();
     });
     this->themed = true;
@@ -47,11 +47,11 @@ void LoadingActivity::show(Step step)
 
 void LoadingActivity::startIntro()
 {
-    this->introStart = brls::getCPUTimeUsec();
+    this->introStart = aurore::getCPUTimeUsec();
     this->bar->fillOver(1.0f, INTRO_US);
     // The anchor holds the focus while this screen is the top one.
-    for (brls::ControllerButton button : { brls::BUTTON_A, brls::BUTTON_B })
-        this->anchor->registerAction("", button, [this](brls::View*) {
+    for (aurore::ControllerButton button : { aurore::BUTTON_A, aurore::BUTTON_B })
+        this->anchor->registerAction("", button, [this](aurore::View*) {
             this->skipped = true;
             return true;
         }, true);
@@ -65,11 +65,11 @@ void LoadingActivity::follow_theme()
     // banner. The background and the texts are the theme's (XML); with a
     // theme's background picture the screen has no fill of its own, so that
     // the picture shows behind it as behind the other screens.
-    if (brls::Theme::getBackground(brls::Application::getThemeVariant()).hasImage())
+    if (aurore::Theme::getBackground(aurore::Application::getThemeVariant()).hasImage())
         this->root->setBackgroundColor(nvgRGBA(0, 0, 0, 0));
     else
-        this->root->setThemeColor("backgroundColor", "brls/background");
-    const NVGcolor bg = brls::Application::getTheme()["brls/background"];
+        this->root->setThemeColor("backgroundColor", "aurore/background");
+    const NVGcolor bg = aurore::Application::getTheme()["aurore/background"];
     const bool light = 0.2126f * bg.r + 0.7152f * bg.g + 0.0722f * bg.b > 0.5f;
     this->bar->setBrand(!light);
     if (this->light_wordmark == light) return;
@@ -79,5 +79,5 @@ void LoadingActivity::follow_theme()
 
 bool LoadingActivity::inIntro() const
 {
-    return this->introStart && !this->skipped && brls::getCPUTimeUsec() - this->introStart < INTRO_US;
+    return this->introStart && !this->skipped && aurore::getCPUTimeUsec() - this->introStart < INTRO_US;
 }

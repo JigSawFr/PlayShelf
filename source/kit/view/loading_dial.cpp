@@ -28,11 +28,11 @@ NVGcolor faded(NVGcolor c, float a)
 
 void LoadingDial::addColors()
 {
-    brls::Theme& dark = brls::Theme::getDarkTheme();
+    aurore::Theme& dark = aurore::Theme::getDarkTheme();
     dark.addColor(LINE, nvgRGBA(0xFF, 0xFF, 0xFF, 128));
     dark.addColor(TRACK, nvgRGBA(0x1F, 0x33, 0x55, 71));
     dark.addColor(TEAL, nvgRGB(0x2E, 0xC4, 0xA6));
-    brls::Theme& light = brls::Theme::getLightTheme();
+    aurore::Theme& light = aurore::Theme::getLightTheme();
     light.addColor(LINE, nvgRGBA(0x0B, 0x14, 0x24, 255));
     light.addColor(TRACK, nvgRGBA(0x1F, 0x33, 0x55, 30));
     light.addColor(TEAL, nvgRGB(0x2E, 0xC4, 0xA6));
@@ -44,7 +44,7 @@ LoadingDial::LoadingDial()
 }
 
 void LoadingDial::draw(NVGcontext* vg, float x, float y, float width, float height,
-                       brls::Style style, brls::FrameContext* ctx)
+                       aurore::Style style, aurore::FrameContext* ctx)
 {
     (void)width;
     (void)height;
@@ -101,7 +101,7 @@ void LoadingDial::draw(NVGcontext* vg, float x, float y, float width, float heig
     nvgLineCap(vg, NVG_BUTT);
 }
 
-brls::View* LoadingDial::create()
+aurore::View* LoadingDial::create()
 {
     return new LoadingDial();
 }

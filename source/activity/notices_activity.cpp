@@ -4,18 +4,18 @@
 #include <string>
 #include <vector>
 
-#include <borealis/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace
 {
 // What an entry says below its title.
-brls::Label* detail_label(const std::string& detail)
+aurore::Label* detail_label(const std::string& detail)
 {
-    auto* text = new brls::Label();
+    auto* text = new aurore::Label();
     text->setSingleLine(false);
     text->setFontSize(18);
     text->setThemeColor("textColor", "cadran/text3");
@@ -36,18 +36,18 @@ NoticesActivity::~NoticesActivity()
 
 void NoticesActivity::open()
 {
-    brls::Logger::info("notices: {} to do, {} for information", notices::action_count(), notices::info_count());
+    aurore::Logger::info("notices: {} to do, {} for information", notices::action_count(), notices::info_count());
     if (notices::list().empty()) {
         ui::notify("playshelf/notices/none"_i18n);
         return;
     }
-    brls::Application::pushActivity(new NoticesActivity());
+    aurore::Application::pushActivity(new NoticesActivity());
 }
 
 void NoticesActivity::onContentAvailable()
 {
     // Every entry for information put away at once.
-    this->getContentView()->registerAction("playshelf/notices/read_all"_i18n, brls::BUTTON_Y, [](brls::View*) {
+    this->getContentView()->registerAction("playshelf/notices/read_all"_i18n, aurore::BUTTON_Y, [](aurore::View*) {
         notices::dismiss_all();
         return true;
     });
@@ -59,7 +59,7 @@ void NoticesActivity::onContentAvailable()
     // a dialog: once back on top, as the dialog gives the focus back to a
     // cell a rebuild deletes.
     this->listener = notices::listen([this]() {
-        brls::sync(ui::guarded(this->alive, [this]() {
+        aurore::sync(ui::guarded(this->alive, [this]() {
             if (this->closing) return;
             if (ui::has_focus(this)) this->rebuild();
             else this->stale = true;
@@ -71,14 +71,14 @@ void NoticesActivity::onResume()
 {
     if (!this->stale) return;
     this->stale = false;
-    brls::sync(ui::guarded(this->alive, [this]() { if (!this->closing) this->rebuild(); }));
+    aurore::sync(ui::guarded(this->alive, [this]() { if (!this->closing) this->rebuild(); }));
 }
 
 // An entry: its title (amber when it is to do), and A for its action, or to
 // put it away. X puts one for information away.
-brls::DetailCell* NoticesActivity::entry_cell(const notices::Entry& e, bool todo)
+aurore::DetailCell* NoticesActivity::entry_cell(const notices::Entry& e, bool todo)
 {
-    auto* cell = new brls::DetailCell();
+    auto* cell = new aurore::DetailCell();
     cell->setText(e.item.title);
     if (todo) cell->title->setThemeColor("textColor", "cadran/amber");
     cell->detail->setThemeColor("textColor", "cadran/text2");
@@ -86,16 +86,16 @@ brls::DetailCell* NoticesActivity::entry_cell(const notices::Entry& e, bool todo
     cell->setDetailText(has_action ? e.action_label + "  ›" : todo ? "" : "playshelf/notices/seen"_i18n);
     const std::string id = e.item.id;
     const auto action = e.action;
-    cell->registerClickAction([this, id, todo, has_action, action](brls::View*) {
+    cell->registerClickAction([this, id, todo, has_action, action](aurore::View*) {
         // Information acted on is read.
         if (!todo) notices::dismiss(id);
         if (!has_action) return true;
         this->closing = true;
-        brls::Application::popActivity(brls::TransitionAnimation::FADE, [action]() { action(); });
+        aurore::Application::popActivity(aurore::TransitionAnimation::FADE, [action]() { action(); });
         return true;
     });
     if (!todo)
-        cell->registerAction("playshelf/notices/seen"_i18n, brls::BUTTON_X, [id](brls::View*) {
+        cell->registerAction("playshelf/notices/seen"_i18n, aurore::BUTTON_X, [id](aurore::View*) {
             notices::dismiss(id);
             return true;
         });
@@ -108,16 +108,16 @@ void NoticesActivity::rebuild()
     if (all.empty()) {
         // Nothing left: back to the main screen, once.
         this->closing = true;
-        brls::Application::popActivity();
+        aurore::Application::popActivity();
         ui::notify("playshelf/notices/none"_i18n);
         return;
     }
 
     // New cells in a new box, the focus moved to it, then the old box
-    // removed: borealis would keep a pointer to a deleted focused cell.
-    auto* box = new brls::Box(brls::Axis::COLUMN);
-    box->setAlignItems(brls::AlignItems::STRETCH);
-    brls::View* first = nullptr;
+    // removed: Aurore would keep a pointer to a deleted focused cell.
+    auto* box = new aurore::Box(aurore::Axis::COLUMN);
+    box->setAlignItems(aurore::AlignItems::STRETCH);
+    aurore::View* first = nullptr;
     std::vector<std::string> ids;
     std::vector<bool>        todo_of;
     int section = -1;
@@ -125,13 +125,13 @@ void NoticesActivity::rebuild()
         const bool todo = e.item.level == notices::Level::Action;
         if ((int)todo != section) {
             section = todo;
-            auto* h = new brls::Header();
+            auto* h = new aurore::Header();
             h->setTitle(todo ? "playshelf/notices/section_todo"_i18n : "playshelf/notices/section_info"_i18n);
             h->setMarginTop(first ? 24 : 0);
             h->setMarginBottom(8);
             box->addView(h);
         }
-        brls::DetailCell* cell = this->entry_cell(e, todo);
+        aurore::DetailCell* cell = this->entry_cell(e, todo);
         ids.push_back("notice_line_" + std::to_string(ids.size()));
         todo_of.push_back(todo);
         cell->setId(ids.back());
@@ -147,10 +147,10 @@ void NoticesActivity::rebuild()
     cadran::List(box, box).apply(icons);
     for (size_t i = 0; i < ids.size(); i++)
         if (todo_of[i])
-            cadran::List::recolor_icon(static_cast<brls::DetailCell*>(box->getView(ids[i])), nullptr, "cadran/amber",
+            cadran::List::recolor_icon(static_cast<aurore::DetailCell*>(box->getView(ids[i])), nullptr, "cadran/amber",
                                        "cadran/amber_surf");
     root->addView(box);
-    brls::Application::giveFocus(first);
+    aurore::Application::giveFocus(first);
     if (this->content) root->removeView(this->content);
     this->content = box;
 }

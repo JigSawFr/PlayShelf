@@ -5,7 +5,7 @@ Starts build-desktop/playshelf on an X display (Xvfb), opens every tab, the
 pickers of Preferences, the quick settings (−), About › Help & diagnostics
 and, with the developer mode turned on by seven presses of Y on About ›
 Version, the developer tools and the diagnostic report; it fails if the app
-dies on the way (borealis throws on unknown XML attributes, missing views,
+dies on the way (Aurore throws on unknown XML attributes, missing views,
 …). Screenshots of each screen are written to the output folder.
 
 The "loading" scenario stops the start-up on the loading screen
@@ -79,7 +79,7 @@ def alive():
     return proc.poll() is None
 
 
-# The pauses around a press and before a screenshot. borealis' longest
+# The pauses around a press and before a screenshot. Aurore's longest
 # animation (a toast coming in) takes 300 ms, and a label starts scrolling
 # after 1.5 s focused: a screenshot comes 0.9 s after the last press, every
 # animation over, no label moving yet.
@@ -90,7 +90,7 @@ SHOT_WAIT = 0.45
 
 def key(name, n=1, hold=0.02):
     """Presses `name` n times, each exactly once, waiting for the screen to
-    settle before each press (borealis' animations last 300 ms at most) and
+    settle before each press (Aurore's animations last 300 ms at most) and
     releasing it `hold` seconds later, both sent by one xdotool process so a
     busy runner cannot delay the release."""
     for _ in range(n):

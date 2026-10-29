@@ -129,7 +129,7 @@ def main():
                 errors.append(f"preset {preset.get('id')}: {name} {value!r} is neither POSIX seconds nor @HH:MM")
 
     # The console's languages: one catalog each, all in the page's `lang` entry.
-    prefs = os.path.join(root, "library", "aurore", "library", "include", "borealis", "cadran", "ui", "prefs.hpp")
+    prefs = os.path.join(root, "library", "aurore", "library", "include", "aurore", "cadran", "ui", "prefs.hpp")
     with open(prefs, encoding="utf-8") as f:
         m = re.search(r"LANGUAGES\[\]\s*=\s*\{([^}]*)\}", f.read())
     languages = [l for l in re.findall(r'"([^"]+)"', m.group(1)) if l != "system"] if m else []

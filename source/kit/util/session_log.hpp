@@ -1,4 +1,4 @@
-// session_log — every line PlayShelf logs (borealis' Logger, which only
+// session_log — every line PlayShelf logs (Aurore's Logger, which only
 // reaches a PC over nxlink) kept on the SD card, one file per run:
 //
 //   logs/sessions/session_20261015_142530.txt
@@ -13,7 +13,7 @@
 // in a crash file (main.cpp, unfinished()).
 //
 // The lines are written to the file together, not one by one (each write
-// opens and closes it, under borealis' log lock): they wait in memory, up to
+// opens and closes it, under Aurore's log lock): they wait in memory, up to
 // PENDING_BYTES, and go FLUSH_MS after the first of them (at the next line,
 // or flush() from the app's main loop: due()), at once for a warning or an
 // error, and before the end line, a crash's too (end_crash() writes them
@@ -24,7 +24,7 @@
 // the diagnostic report: that part allocates nothing and takes no lock
 // (recent()), as the CPU exception handler reads it.
 // The files are pruned with the reports (the limits of About › Help & diagnostics).
-// Plain C++ (no borealis): host-tested (tests/session_log).
+// Plain C++ (no Aurore): host-tested (tests/session_log).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 

@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <sstream>
 
-#include <borealis/cadran/util/emoji.hpp>
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/util/emoji.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 
 namespace changelog

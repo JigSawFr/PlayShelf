@@ -18,20 +18,20 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <borealis/cadran/ui/guarded.hpp>
-#include <borealis/cadran/ui/ui.hpp>
+#include <aurore/cadran/ui/guarded.hpp>
+#include <aurore/cadran/ui/ui.hpp>
 
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
 #include "titledb/nlib.hpp"
 
-class GameActivity : public brls::Activity
+class GameActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/game.xml");
@@ -72,20 +72,20 @@ class GameActivity : public brls::Activity
   private:
     Page                     page;
     ui::Alive                alive = ui::make_alive();
-    brls::Image*             icon = nullptr;
-    brls::Label*             title = nullptr;
-    brls::Label*             meta = nullptr;
-    brls::Box*               chips = nullptr;
-    std::vector<brls::Box*>  tabs;      // the tab bar's tabs
-    std::vector<brls::Box*>  panes;     // each tab's content
+    aurore::Image*             icon = nullptr;
+    aurore::Label*             title = nullptr;
+    aurore::Label*             meta = nullptr;
+    aurore::Box*               chips = nullptr;
+    std::vector<aurore::Box*>  tabs;      // the tab bar's tabs
+    std::vector<aurore::Box*>  panes;     // each tab's content
     size_t                   current = 0;
-    brls::Image*             banner = nullptr;   // gp_hero's first child
+    aurore::Image*             banner = nullptr;   // gp_hero's first child
     std::shared_ptr<const titledb::Details> details;
 
     void add_head();
     void add_tabs();
     void select(size_t tab, bool focus);
-    void add_lines(brls::Box* pane, const std::vector<ui::Choice>& lines);
+    void add_lines(aurore::Box* pane, const std::vector<ui::Choice>& lines);
     void show_details(std::shared_ptr<const titledb::Details> d);
     void show_chips();
     // The head over the banner, on a shade fading into the page.
@@ -94,19 +94,19 @@ class GameActivity : public brls::Activity
     void add_screens(int count);
     void add_others(const std::string& title, std::vector<Other> others);
 
-    BRLS_BIND(brls::Box,   hero,     "gp_hero");
-    BRLS_BIND(brls::Box,   head,     "gp_head");
-    BRLS_BIND(brls::Box,   tab_bar,  "gp_tabs");
-    BRLS_BIND(brls::Box,   overview, "gp_overview");
-    BRLS_BIND(brls::Box,   updates,  "gp_updates");
-    BRLS_BIND(brls::Box,   dlcs,     "gp_dlcs");
-    BRLS_BIND(brls::Box,   facts,    "gp_details");
-    BRLS_BIND(brls::Label, intro,    "gp_intro");
-    BRLS_BIND(brls::Box,   lines_box, "gp_lines");
-    BRLS_BIND(brls::Header, screens_header, "gp_screens_header");
-    BRLS_BIND(brls::Box,   screens_box, "gp_screens");
-    BRLS_BIND(brls::Header, about_header, "gp_about_header");
-    BRLS_BIND(brls::Label, description, "gp_description");
-    BRLS_BIND(brls::Box,   others_box, "gp_others");
-    BRLS_BIND(brls::Label, source,   "gp_source");
+    AURORE_BIND(aurore::Box,   hero,     "gp_hero");
+    AURORE_BIND(aurore::Box,   head,     "gp_head");
+    AURORE_BIND(aurore::Box,   tab_bar,  "gp_tabs");
+    AURORE_BIND(aurore::Box,   overview, "gp_overview");
+    AURORE_BIND(aurore::Box,   updates,  "gp_updates");
+    AURORE_BIND(aurore::Box,   dlcs,     "gp_dlcs");
+    AURORE_BIND(aurore::Box,   facts,    "gp_details");
+    AURORE_BIND(aurore::Label, intro,    "gp_intro");
+    AURORE_BIND(aurore::Box,   lines_box, "gp_lines");
+    AURORE_BIND(aurore::Header, screens_header, "gp_screens_header");
+    AURORE_BIND(aurore::Box,   screens_box, "gp_screens");
+    AURORE_BIND(aurore::Header, about_header, "gp_about_header");
+    AURORE_BIND(aurore::Label, description, "gp_description");
+    AURORE_BIND(aurore::Box,   others_box, "gp_others");
+    AURORE_BIND(aurore::Label, source,   "gp_source");
 };

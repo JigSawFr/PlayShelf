@@ -5,41 +5,41 @@
      main.cpp and implemented in source/tab/. Their positions:
      activity/tabs.hpp. -->
 
-<brls:AppletFrame
+<aurore:AppletFrame
     iconInterpolation="linear"
     footerHidden="false">
 
-    <brls:TabFrame
+    <aurore:TabFrame
         id="main_tabs"
         title="@i18n/playshelf/title"
         icon="@res/img/app_icon.jpg">
 
-        <brls:Tab label="@i18n/playshelf/tabs/home">
+        <aurore:Tab label="@i18n/playshelf/tabs/home">
             <HomeTab/>
-        </brls:Tab>
+        </aurore:Tab>
 
-        <brls:Tab label="@i18n/playshelf/tabs/library">
+        <aurore:Tab label="@i18n/playshelf/tabs/library">
             <LibraryTab/>
-        </brls:Tab>
+        </aurore:Tab>
 
-        <brls:Tab label="@i18n/playshelf/tabs/catalogue">
+        <aurore:Tab label="@i18n/playshelf/tabs/catalogue">
             <CatalogueTab/>
-        </brls:Tab>
+        </aurore:Tab>
 
-        <brls:Tab label="@i18n/playshelf/tabs/downloads">
+        <aurore:Tab label="@i18n/playshelf/tabs/downloads">
             <DownloadsTab/>
-        </brls:Tab>
+        </aurore:Tab>
 
-        <brls:Separator/>
+        <aurore:Separator/>
 
-        <brls:Tab label="@i18n/playshelf/tabs/preferences">
+        <aurore:Tab label="@i18n/playshelf/tabs/preferences">
             <PreferencesTab/>
-        </brls:Tab>
+        </aurore:Tab>
 
-        <brls:Tab label="@i18n/playshelf/tabs/about">
+        <aurore:Tab label="@i18n/playshelf/tabs/about">
             <AboutTab/>
-        </brls:Tab>
+        </aurore:Tab>
 
-    </brls:TabFrame>
+    </aurore:TabFrame>
 
-</brls:AppletFrame>
+</aurore:AppletFrame>

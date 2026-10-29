@@ -10,11 +10,11 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include "util/dev_builds.hpp"
 
-class DevBuildActivity : public brls::Activity
+class DevBuildActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/dev_build.xml");
@@ -35,12 +35,12 @@ class DevBuildActivity : public brls::Activity
     std::string page() const;
     void show_page();
 
-    BRLS_BIND(brls::Box,    tags,         "dbd_tags");
-    BRLS_BIND(brls::Label,  headline,     "dbd_headline");
-    BRLS_BIND(brls::Box,    facts,        "dbd_facts");
-    BRLS_BIND(brls::Label,  warning,      "dbd_warning");
-    BRLS_BIND(brls::Button, install,      "dbd_install");
-    BRLS_BIND(brls::Button, github,       "dbd_github");
-    BRLS_BIND(brls::Header, notes_header, "dbd_notes_header");
-    BRLS_BIND(brls::Box,    notes,        "dbd_notes");
+    AURORE_BIND(aurore::Box,    tags,         "dbd_tags");
+    AURORE_BIND(aurore::Label,  headline,     "dbd_headline");
+    AURORE_BIND(aurore::Box,    facts,        "dbd_facts");
+    AURORE_BIND(aurore::Label,  warning,      "dbd_warning");
+    AURORE_BIND(aurore::Button, install,      "dbd_install");
+    AURORE_BIND(aurore::Button, github,       "dbd_github");
+    AURORE_BIND(aurore::Header, notes_header, "dbd_notes_header");
+    AURORE_BIND(aurore::Box,    notes,        "dbd_notes");
 };

@@ -7,12 +7,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <memory>
 
 #include "action/insights.hpp"
 
-class StorageActivity : public brls::Activity
+class StorageActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/storage.xml");
@@ -25,10 +25,10 @@ class StorageActivity : public brls::Activity
   private:
     int  listener = 0;
     std::shared_ptr<bool> alive = std::make_shared<bool>(true);
-    brls::Box* content = nullptr;
+    aurore::Box* content = nullptr;
 
     void rebuild();
-    brls::DetailCell* game_cell(const insights::Played& p);
+    aurore::DetailCell* game_cell(const insights::Played& p);
 
-    BRLS_BIND(brls::Box, root, "st_root");
+    AURORE_BIND(aurore::Box, root, "st_root");
 };

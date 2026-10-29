@@ -10,7 +10,7 @@
 #include "sim/sim_net.hpp"
 #endif
 
-#include <borealis/cadran/util/text.hpp>
+#include <aurore/cadran/util/text.hpp>
 
 #include "app.hpp"
 #include "core/sim_env.h"

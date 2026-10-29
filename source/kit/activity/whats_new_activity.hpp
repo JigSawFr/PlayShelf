@@ -5,9 +5,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class WhatsNewActivity : public brls::Activity
+class WhatsNewActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/whats_new.xml");
@@ -15,10 +15,10 @@ class WhatsNewActivity : public brls::Activity
     void onContentAvailable() override;
 
   private:
-    BRLS_BIND(brls::Header,         header,       "wn_header");
-    BRLS_BIND(brls::Box,            notes,        "wn_notes");
-    BRLS_BIND(brls::DetailCell,     full,         "wn_full");
-    BRLS_BIND(brls::DetailCell,     close,        "wn_close");
-    BRLS_BIND(brls::Label,          support_note, "wn_support_note");
-    BRLS_BIND(brls::Box,            funding_box,  "wn_funding");
+    AURORE_BIND(aurore::Header,         header,       "wn_header");
+    AURORE_BIND(aurore::Box,            notes,        "wn_notes");
+    AURORE_BIND(aurore::DetailCell,     full,         "wn_full");
+    AURORE_BIND(aurore::DetailCell,     close,        "wn_close");
+    AURORE_BIND(aurore::Label,          support_note, "wn_support_note");
+    AURORE_BIND(aurore::Box,            funding_box,  "wn_funding");
 };

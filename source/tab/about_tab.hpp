@@ -7,7 +7,7 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "tab/tab_base.hpp"
 
@@ -15,23 +15,23 @@ class AboutTab : public TabBase
 {
   public:
     AboutTab();
-    static brls::View* create();
+    static aurore::View* create();
 
   protected:
     void refresh() override;
 
   private:
     cadran::List list;
-    brls::Label* version_line = nullptr;   // the top's version and commit
+    aurore::Label* version_line = nullptr;   // the top's version and commit
     int        version_presses    = 0;
-    brls::Time last_version_press = 0;
+    aurore::Time last_version_press = 0;
 
     void count_version_press();
 
-    BRLS_BIND(brls::DetailCell,  version,          "ab_version");
-    BRLS_BIND(brls::DetailCell,  update_cell,      "ab_update");
-    BRLS_BIND(brls::DetailCell,  help,             "ab_help");
-    BRLS_BIND(brls::DetailCell,  credits,          "ab_credits");
-    BRLS_BIND(brls::Label,       support_note,     "ab_support_note");
-    BRLS_BIND(brls::Box,         funding,          "ab_funding");
+    AURORE_BIND(aurore::DetailCell,  version,          "ab_version");
+    AURORE_BIND(aurore::DetailCell,  update_cell,      "ab_update");
+    AURORE_BIND(aurore::DetailCell,  help,             "ab_help");
+    AURORE_BIND(aurore::DetailCell,  credits,          "ab_credits");
+    AURORE_BIND(aurore::Label,       support_note,     "ab_support_note");
+    AURORE_BIND(aurore::Box,         funding,          "ab_funding");
 };

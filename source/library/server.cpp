@@ -5,7 +5,7 @@
 #include <cctype>
 #include <cstdio>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
 #include "library/catalog.hpp"
 #include "util/sha256.hpp"

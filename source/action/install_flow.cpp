@@ -3,20 +3,20 @@
 
 #include <algorithm>
 #include <atomic>
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <memory>
 
 #include <fmt/format.h>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_modal.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_modal.hpp>
 
 #include "install/console_core.hpp"
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace install_flow
 {
@@ -34,7 +34,7 @@ std::string mb_text(uint64_t bytes)
 
 // The dialog of an install: what is under way, the package, a bar and
 // "3,2 of 4,7 MB", and Cancel (B too), updated from the install's thread
-// at most once a percent (through brls::sync). Cancel sets the flag the
+// at most once a percent (through aurore::sync). Cancel sets the flag the
 // install checks between pieces and closes the dialog at once; nothing
 // touches it after it closed.
 class Progress
@@ -43,25 +43,25 @@ class Progress
     explicit Progress(const std::string& name)
     {
         this->body = cadran::progress_body("playshelf/install/preparing"_i18n, name);
-        this->button = new brls::Button();
+        this->button = new aurore::Button();
         this->button->setText("hints/cancel"_i18n);
         cadran::style_button(this->button);
         this->button->setWidth(260);
         this->button->setMarginTop(28);
-        this->button->setAlignSelf(brls::AlignSelf::CENTER);
-        this->button->registerClickAction([this](brls::View*) {
+        this->button->setAlignSelf(aurore::AlignSelf::CENTER);
+        this->button->registerClickAction([this](aurore::View*) {
             this->cancel();
             return true;
         });
         this->body.box->addView(this->button);
-        this->dialog = new brls::Dialog(this->body.box);
+        this->dialog = new aurore::Dialog(this->body.box);
         this->dialog->setCancelable(false);
         this->dialog->getAppletFrame()->registerAction(
-            "hints/cancel"_i18n, brls::BUTTON_B, [this](brls::View*) {
+            "hints/cancel"_i18n, aurore::BUTTON_B, [this](aurore::View*) {
                 this->cancel();
                 return true;
             },
-            false, false, brls::SOUND_BACK);
+            false, false, aurore::SOUND_BACK);
         this->body.show(0.0f, "");
         this->dialog->open();
     }
@@ -71,7 +71,7 @@ class Progress
     {
         const int now = total ? (int)std::min<uint64_t>(100, done * 100 / total) : 0;
         if (now == this->percent.exchange(now)) return;
-        brls::sync([this, done, total]() { this->show(done, total); });
+        aurore::sync([this, done, total]() { this->show(done, total); });
     }
 
     // The next package: its name, and "2 of 3" before it (empty: one only).
@@ -98,8 +98,8 @@ class Progress
   private:
     std::atomic<int>  percent{-1};
     std::atomic<bool> cancelled{false};
-    brls::Dialog*     dialog = nullptr;
-    brls::Button*     button = nullptr;
+    aurore::Dialog*     dialog = nullptr;
+    aurore::Button*     button = nullptr;
     cadran::Progress  body;
     std::string       step;
 
@@ -120,7 +120,7 @@ class Progress
         if (!this->dialog) return;
         this->body.heading->setText(this->with_step("playshelf/install/installing"_i18n));
         const float part = total ? std::min(1.0f, (float)done / (float)total) : 1.0f;
-        this->body.show(part, brls::getStr("playshelf/dev_build/downloaded_mb", mb_text(done), mb_text(total)));
+        this->body.show(part, aurore::getStr("playshelf/dev_build/downloaded_mb", mb_text(done), mb_text(total)));
     }
 };
 
@@ -184,28 +184,28 @@ void run(const std::vector<Package>& packages, size_t first, install::SignatureP
         uint64_t written = 0;
         for (; i < count; i++) {
             const std::string name = packages[i].name;
-            const std::string step = count > 1 ? brls::getStr("playshelf/install/step", i + 1, count) : "";
-            brls::sync([progress, name, step]() { progress->package(name, step); });
+            const std::string step = count > 1 ? aurore::getStr("playshelf/install/step", i + 1, count) : "";
+            aurore::sync([progress, name, step]() { progress->package(name, step); });
             progress->restart();
             o = install_one(packages[i], policy, *progress);
             if (!o.ok) break;
             written += o.written;
-            brls::Logger::info("install: {} installed ({} bytes)", name, o.written);
+            aurore::Logger::info("install: {} installed ({} bytes)", name, o.written);
         }
-        brls::sync([packages, first, i, count, o, written, progress, after]() {
+        aurore::sync([packages, first, i, count, o, written, progress, after]() {
             const bool cancelled = progress->was_cancelled();
             progress->close();
             if (i >= count) {
-                if (count == 1) ui::info(brls::getStr("playshelf/install/done", packages[0].name, o.titles, mb_text(written)));
-                else ui::info(brls::getStr("playshelf/install/done_many", count, mb_text(written)));
+                if (count == 1) ui::info(aurore::getStr("playshelf/install/done", packages[0].name, o.titles, mb_text(written)));
+                else ui::info(aurore::getStr("playshelf/install/done_many", count, mb_text(written)));
             } else if (cancelled) {
                 ui::notify("playshelf/install/cancelled"_i18n);
             } else if (o.unsigned_content) {
-                ui::confirm(brls::getStr("playshelf/install/unsigned_body", o.why), "playshelf/install/unsigned_confirm"_i18n,
+                ui::confirm(aurore::getStr("playshelf/install/unsigned_body", o.why), "playshelf/install/unsigned_confirm"_i18n,
                             [packages, i, after]() { run(packages, i, install::SignaturePolicy::Off, after); });
             } else {
-                brls::Logger::warning("install: {} failed: {}", packages[i].name, o.why);
-                ui::error(brls::getStr("playshelf/install/failed", packages[i].name), o.why);
+                aurore::Logger::warning("install: {} failed: {}", packages[i].name, o.why);
+                ui::error(aurore::getStr("playshelf/install/failed", packages[i].name), o.why);
             }
             if (i > first && after) after();   // one installed at least
         });

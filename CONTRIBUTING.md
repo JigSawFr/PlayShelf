@@ -17,7 +17,7 @@ Then a pull request with a conventional title and a scope (`fix(install): …`),
 
 | Page | What it covers |
 |---|---|
-| [Build from source](docs/contributing/build.md) | Every `make` target and what it needs; the borealis submodule (Aurore) |
+| [Build from source](docs/contributing/build.md) | Every `make` target and what it needs; the Aurore submodule (Aurore) |
 | [The desktop simulator](docs/contributing/simulator.md) | `make desktop` against a simulated console, every `PLAYSHELF_SIM_*` variable |
 | [The web simulator](web/README.md) | `make web`: the desktop simulator in a browser, with a demo library server |
 | [The website](site/README.md) | `make site`: the home page and the documentation (`docs/`), on GitHub Pages with the simulator |

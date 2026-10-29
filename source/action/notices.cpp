@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"

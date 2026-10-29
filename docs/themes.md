@@ -69,7 +69,7 @@ danger = #ff6b6b
 
 - Colours are written `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb(r, g, b)` or `rgba(r, g, b, a)` (`a` from 0 to 1).
 - `[light]` and `[dark]` sections hold what is for one theme only: with both, the file follows *Preferences › Theme*.
-- `[colors]` sets any single colour by its key (the list is in [Aurore's guide to themes](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#every-key)), such as `cadran/text3` for the quietest text or `brls/sidebar/background` for the sidebar.
+- `[colors]` sets any single colour by its key (the list is in [Aurore's guide to themes](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#every-key)), such as `cadran/text3` for the quietest text or `aurore/sidebar/background` for the sidebar.
 - `counterpart = other.theme` (or a palette, `builtin:ocean`), in a file made for one theme only: the file with the other theme, the same look in light or dark. Choosing the other theme switches to it.
 - `icon = moon` is the motif its row shows in the palette list: `snowflake`, `heart`, `lantern`, `blossom`, `sun`, `wave`, `leaf`, `pumpkin`, `tree`, `firework`, `gem`, `dune`, `contrast`, `moon`, `bolt`, `sparkle` (the default), or any other of [Aurore's icons](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#the-format).
 - `background_image = picture.jpg` puts a picture behind every screen; pictures and the keys that use them are [below](#theme-folders-and-pictures).

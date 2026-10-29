@@ -70,7 +70,7 @@ danger = #ff6b6b
 
 - Les couleurs s'écrivent `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb(r, g, b)` ou `rgba(r, g, b, a)` (`a` de 0 à 1).
 - Les sections `[light]` et `[dark]` contiennent ce qui vaut pour un seul thème : avec les deux, le fichier suit *Préférences › Thème*.
-- `[colors]` règle n'importe quelle couleur par sa clé (la liste est dans [le guide des thèmes d'Aurore](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#every-key), en anglais), comme `cadran/text3` pour le texte le plus discret ou `brls/sidebar/background` pour la barre latérale.
+- `[colors]` règle n'importe quelle couleur par sa clé (la liste est dans [le guide des thèmes d'Aurore](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#every-key), en anglais), comme `cadran/text3` pour le texte le plus discret ou `aurore/sidebar/background` pour la barre latérale.
 - `counterpart = autre.theme` (ou une palette, `builtin:ocean`), dans un fichier fait pour un seul thème : le fichier de l'autre thème, le même style en clair ou en sombre. Choisir l'autre thème passe à lui.
 - `icon = moon` est le motif que montre sa ligne dans la liste des palettes : `snowflake`, `heart`, `lantern`, `blossom`, `sun`, `wave`, `leaf`, `pumpkin`, `tree`, `firework`, `gem`, `dune`, `contrast`, `moon`, `bolt`, `sparkle` (par défaut), ou n'importe quelle autre des [icônes d'Aurore](https://github.com/JigSawFr/Aurore/blob/main/docs/themes.md#the-format) (en anglais).
 - `background_image = image.jpg` met une image derrière tous les écrans ; les images et les clés qui s'en servent sont [plus bas](#dossiers-de-thème-et-images).

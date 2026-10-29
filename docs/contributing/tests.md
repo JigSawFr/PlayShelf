@@ -11,7 +11,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 CI (`.github/workflows/build.yml`) runs, for every pull request: the host tests with gcc (and the checks), the host tests with clang with coverage and a short fuzz run, the desktop build, its smoke test and the visual check of its stable screens against main's (`tests/visual/README.md`: a screen that changes fails the job unless the pull request names it on its `Screens:` line), and the Switch build (`make dist` with warnings as errors) in devkitPro's container, pinned by digest. A pull request's title is checked too (`pr-title.yml`). Two static analyses run beside it: CodeQL (`codeql.yml`: the C/C++, the Python tools and the workflows, with the `security-extended` queries; findings in the Security tab and on the pull request, plus a weekly run; skipped while the repository is private) and clang-tidy (`clang-tidy.yml`: the checks of `.clang-tidy` on the files a pull request changes, every file for a push to main, and the static analyzer once a week; findings as annotations and a table on the run page, never a failure). Locally:
 
 ```sh
-CC=clang CXX=clang++ cmake -B build-tidy -S . -DPLATFORM_DESKTOP=ON \
+CC=clang CXX=clang++ cmake -B build-tidy -S . -DAURORE_PLATFORM=DESKTOP \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON
 run-clang-tidy -p build-tidy -quiet "$PWD/source/"
 ```

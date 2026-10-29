@@ -10,7 +10,7 @@
 #include "view/funding.hpp"
 #include "view/release_notes.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace support_flow
 {
@@ -32,17 +32,17 @@ void show_reminder()
 }
 }   // namespace
 
-void at_start(brls::Activity* main)
+void at_start(aurore::Activity* main)
 {
     // Another version than the last one started: the bell says it was
     // installed (an update in place says it with the previous build).
     const std::string seen = config::get().seen_version;
     if (!seen.empty() && seen != app::version() && ui::app_hooks::get().notice_set)
-        ui::app_hooks::get().notice_set("installed", brls::getStr("playshelf/notices/installed", app::version()),
-                                    brls::getStr("playshelf/notices/updated_from", seen), "playshelf/notices/whats_new"_i18n,
-                                    []() { brls::Application::pushActivity(new WhatsNewActivity()); });
+        ui::app_hooks::get().notice_set("installed", aurore::getStr("playshelf/notices/installed", app::version()),
+                                    aurore::getStr("playshelf/notices/updated_from", seen), "playshelf/notices/whats_new"_i18n,
+                                    []() { aurore::Application::pushActivity(new WhatsNewActivity()); });
 
-    brls::delay(START_DELAY_MS, [main]() {
+    aurore::delay(START_DELAY_MS, [main]() {
         if (!ui::on_top(main)) return;   // something else first: next start
 
         auto& cfg = config::get();
@@ -57,7 +57,7 @@ void at_start(brls::Activity* main)
             cfg.seen_version     = d.next.seen_version;
             ui::save_config();
         }
-        if (d.show == support::Show::WhatsNew) brls::Application::pushActivity(new WhatsNewActivity());
+        if (d.show == support::Show::WhatsNew) aurore::Application::pushActivity(new WhatsNewActivity());
         else if (d.show == support::Show::Reminder) show_reminder();
     });
 }

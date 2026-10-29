@@ -5,11 +5,11 @@
 
 #include <cmath>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/effects.hpp>
-#include <borealis/cadran/ui/motion.hpp>
-#include <borealis/cadran/view/header_settings.hpp>
-#include <borealis/cadran/view/version_badge.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/effects.hpp>
+#include <aurore/cadran/ui/motion.hpp>
+#include <aurore/cadran/view/header_settings.hpp>
+#include <aurore/cadran/view/version_badge.hpp>
 
 #include "action/notices.hpp"
 #include "ui/app_hooks.hpp"
@@ -26,9 +26,9 @@ NoticeBell::NoticeBell()
     this->setFocusable(false);
     this->setWidth(SIZE);
     this->setHeight(SIZE);
-    this->setAlignSelf(brls::AlignSelf::CENTER);
+    this->setAlignSelf(aurore::AlignSelf::CENTER);
     // A tap opens the list, as Y does (hitTest finds it, focusable or not).
-    this->addGestureRecognizer(new brls::TapGestureRecognizer(this, []() {
+    this->addGestureRecognizer(new aurore::TapGestureRecognizer(this, []() {
         if (ui::app_hooks::get().open_notices) ui::app_hooks::get().open_notices();
     }));
     this->listener = notices::listen([this]() { this->update(); });
@@ -40,10 +40,10 @@ NoticeBell::~NoticeBell()
     notices::unlisten(this->listener);
 }
 
-brls::View* NoticeBell::hitTest(brls::Point point)
+aurore::View* NoticeBell::hitTest(aurore::Point point)
 {
-    // brls::View::hitTest skips a view that cannot take the focus.
-    if (this->getAlpha() == 0.0f || this->getVisibility() != brls::Visibility::VISIBLE) return nullptr;
+    // aurore::View::hitTest skips a view that cannot take the focus.
+    if (this->getAlpha() == 0.0f || this->getVisibility() != aurore::Visibility::VISIBLE) return nullptr;
     return this->getFrame().pointInside(point) ? this : nullptr;
 }
 
@@ -62,8 +62,8 @@ void NoticeBell::update()
     this->counted = true;
 }
 
-void NoticeBell::draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-                      brls::FrameContext* ctx)
+void NoticeBell::draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+                      aurore::FrameContext* ctx)
 {
     (void)style;
     (void)ctx;
@@ -121,10 +121,10 @@ void NoticeBell::draw(NVGcontext* vg, float x, float y, float width, float heigh
         nvgCircle(vg, bx, by, r);
         nvgFillColor(vg, cadran::kit::color("cadran/amber"));
         nvgFill(vg);
-        nvgFontFaceId(vg, brls::Application::getDefaultFont());
+        nvgFontFaceId(vg, aurore::Application::getDefaultFont());
         nvgFontSize(vg, r * 1.45f);
         nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-        nvgFillColor(vg, brls::Application::getTheme()["brls/background"]);
+        nvgFillColor(vg, aurore::Application::getTheme()["aurore/background"]);
         nvgText(vg, bx, by + r * 0.06f, n.c_str(), nullptr);
     } else if (this->infos > 0) {
         nvgBeginPath(vg);
@@ -138,11 +138,11 @@ void NoticeBell::draw(NVGcontext* vg, float x, float y, float width, float heigh
 // The main screen (its tab frame) holding `focus`: the bell goes in the
 // header's row at the right, after the language, theme and text size
 // (Aurore's, which may be there first), unless it has one.
-static void bell_screen_of(brls::View* focus)
+static void bell_screen_of(aurore::View* focus)
 {
     if (!focus) return;
     while (focus->hasParent()) focus = focus->getParent();
-    auto* frame = dynamic_cast<brls::AppletFrame*>(focus);
+    auto* frame = dynamic_cast<aurore::AppletFrame*>(focus);
     if (!frame || !frame->getView("main_tabs")) return;
     auto* tools = VersionBadge::header_tools(frame);
     if (!tools || tools->getView(BELL_ID)) return;
@@ -154,5 +154,5 @@ static void bell_screen_of(brls::View* focus)
 
 void NoticeBell::install()
 {
-    brls::Application::getGlobalFocusChangeEvent()->subscribe(bell_screen_of);
+    aurore::Application::getGlobalFocusChangeEvent()->subscribe(bell_screen_of);
 }

@@ -3,9 +3,9 @@
 
 #include "ui/ui.hpp"
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 FrenchFlag::FrenchFlag()
 {
@@ -15,7 +15,7 @@ FrenchFlag::FrenchFlag()
 }
 
 void FrenchFlag::draw(NVGcontext* vg, float x, float y, float width, float height,
-                      brls::Style, brls::FrameContext*)
+                      aurore::Style, aurore::FrameContext*)
 {
     // The official shades (Marianne's blue and red).
     const NVGcolor bands[] = { nvgRGB(0x00, 0x00, 0x91), nvgRGB(0xFF, 0xFF, 0xFF), nvgRGB(0xE1, 0x00, 0x0F) };
@@ -34,12 +34,12 @@ void FrenchFlag::draw(NVGcontext* vg, float x, float y, float width, float heigh
 }
 
 MadeInFrance::MadeInFrance()
-    : brls::Box(brls::Axis::ROW)
+    : aurore::Box(aurore::Axis::ROW)
 {
-    this->setAlignItems(brls::AlignItems::CENTER);
-    this->setJustifyContent(brls::JustifyContent::CENTER);
+    this->setAlignItems(aurore::AlignItems::CENTER);
+    this->setJustifyContent(aurore::JustifyContent::CENTER);
     this->setFocusable(false);
-    auto* label = new brls::Label();
+    auto* label = new aurore::Label();
     label->setText("playshelf/about/made_in_france"_i18n);
     label->setFontSize(20);
     label->setThemeColor("textColor", "cadran/text3");
@@ -48,7 +48,7 @@ MadeInFrance::MadeInFrance()
     this->addView(label);
 }
 
-brls::View* MadeInFrance::create()
+aurore::View* MadeInFrance::create()
 {
     return new MadeInFrance();
 }

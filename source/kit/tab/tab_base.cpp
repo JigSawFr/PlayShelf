@@ -2,13 +2,13 @@
 #include "tab/tab_base.hpp"
 
 #include "action/frame_stats_flow.hpp"
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/motion.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/motion.hpp>
 
 #include "app.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 // The tab last shown (tabs are deleted when another one is opened).
 static TabBase* s_shown = nullptr;
@@ -22,11 +22,11 @@ TabBase::TabBase(const std::string& xml_res, bool refreshes)
     if (this->screen.size() > 4 && this->screen.compare(this->screen.size() - 4, 4, ".xml") == 0)
         this->screen.resize(this->screen.size() - 4);
     if (refreshes)
-        this->registerAction("playshelf/hints/refresh"_i18n, brls::BUTTON_X, [this](brls::View*) {
+        this->registerAction("playshelf/hints/refresh"_i18n, aurore::BUTTON_X, [this](aurore::View*) {
             this->refresh();
             return true;
         });
-    if (auto* note = dynamic_cast<brls::Label*>(this->getView("tab_ro_note"))) note->setSingleLine(false);
+    if (auto* note = dynamic_cast<aurore::Label*>(this->getView("tab_ro_note"))) note->setSingleLine(false);
 }
 
 TabBase::~TabBase()
@@ -34,22 +34,22 @@ TabBase::~TabBase()
     if (s_shown == this) s_shown = nullptr;
 }
 
-void TabBase::onChildFocusGained(brls::View* directChild, brls::View* focusedView)
+void TabBase::onChildFocusGained(aurore::View* directChild, aurore::View* focusedView)
 {
-    brls::Box::onChildFocusGained(directChild, focusedView);
+    aurore::Box::onChildFocusGained(directChild, focusedView);
     this->focused_once = true;
 }
 
 void TabBase::update_ro_note()
 {
-    if (auto* note = dynamic_cast<brls::Label*>(this->getView("tab_ro_note"))) ui::set_visible(note, app::read_only());
+    if (auto* note = dynamic_cast<aurore::Label*>(this->getView("tab_ro_note"))) ui::set_visible(note, app::read_only());
 }
 
 void TabBase::willAppear(bool resetState)
 {
-    brls::Box::willAppear(resetState);
+    aurore::Box::willAppear(resetState);
     s_shown = this;
-    for (brls::View* v = this; v; v = v->hasParent() ? v->getParent() : nullptr)
+    for (aurore::View* v = this; v; v = v->hasParent() ? v->getParent() : nullptr)
         if (v->getId() == "main_tabs") s_main_screen = this->screen;
     frame_stats_flow::set_screen(this->screen);
     this->update_ro_note();

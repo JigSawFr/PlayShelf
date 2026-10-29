@@ -19,10 +19,10 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <vector>
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
 
 #include "tab/tab_base.hpp"
 #include "view/timeline.hpp"
@@ -34,7 +34,7 @@ class DownloadsTab : public TabBase
   public:
     DownloadsTab();
     ~DownloadsTab() override;
-    static brls::View* create();
+    static aurore::View* create();
 
   protected:
     void refresh() override;
@@ -43,10 +43,10 @@ class DownloadsTab : public TabBase
     struct Row
     {
         std::vector<std::string> ids;   // its jobs
-        brls::Box*               card = nullptr;
-        brls::Image*             icon = nullptr;
-        brls::Label*             name = nullptr;
-        brls::Label*             state = nullptr;
+        aurore::Box*               card = nullptr;
+        aurore::Image*             icon = nullptr;
+        aurore::Label*             name = nullptr;
+        aurore::Label*             state = nullptr;
         Timeline*                timeline = nullptr;
         BannerBackdrop*          backdrop = nullptr;   // the game's banner behind the card
     };
@@ -63,10 +63,10 @@ class DownloadsTab : public TabBase
     int              generation = 0;   // the cards' build: an icon arriving for an older one is freed
     int              listener = 0;
 
-    BRLS_BIND(brls::Box, empty_box, "dl_empty");
-    BRLS_BIND(brls::Box, list,      "dl_list");
-    BRLS_BIND(brls::Box, settings,  "dl_settings");
-    brls::BooleanCell* keep_awake = nullptr;
-    brls::DetailCell*  connections = nullptr;
-    brls::DetailCell*  prefetch = nullptr;
+    AURORE_BIND(aurore::Box, empty_box, "dl_empty");
+    AURORE_BIND(aurore::Box, list,      "dl_list");
+    AURORE_BIND(aurore::Box, settings,  "dl_settings");
+    aurore::BooleanCell* keep_awake = nullptr;
+    aurore::DetailCell*  connections = nullptr;
+    aurore::DetailCell*  prefetch = nullptr;
 };

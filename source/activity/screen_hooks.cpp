@@ -1,12 +1,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "activity/screen_hooks.hpp"
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include <string>
 
-#include <borealis/cadran/ui/hooks.hpp>
-#include <borealis/cadran/ui/prefs.hpp>
+#include <aurore/cadran/ui/hooks.hpp>
+#include <aurore/cadran/ui/prefs.hpp>
 
 #include "action/frame_stats_flow.hpp"
 #include "action/upload_flow.hpp"
@@ -66,21 +66,21 @@ void install_screen_hooks()
 {
     ui::hooks::Hooks& h = ui::hooks::get();
 
-    h.is_main = [](brls::Activity* a) { return dynamic_cast<MainActivity*>(a) != nullptr; };
-    h.open_tab = [](brls::Activity* main, int position, const std::string& row) {
+    h.is_main = [](aurore::Activity* a) { return dynamic_cast<MainActivity*>(a) != nullptr; };
+    h.open_tab = [](aurore::Activity* main, int position, const std::string& row) {
         static_cast<MainActivity*>(main)->open_tab(position, row);
     };
-    h.update_title = [](brls::Activity* main) { static_cast<MainActivity*>(main)->update_title(); };
+    h.update_title = [](aurore::Activity* main) { static_cast<MainActivity*>(main)->update_title(); };
     h.push_main = [](int position, const std::string& row) {
         auto* main = new MainActivity();
-        brls::Application::pushActivity(main, brls::TransitionAnimation::NONE);
+        aurore::Application::pushActivity(main, aurore::TransitionAnimation::NONE);
         main->open_tab(position, row);
     };
 
     h.refresh_shown = []() { TabBase::refresh_shown(); };
     h.shown_screen = []() { return TabBase::shown_screen(); };
     h.main_screen = []() { return TabBase::main_screen(); };
-    h.is_tab = [](brls::View* v) { return dynamic_cast<TabBase*>(v) != nullptr; };
+    h.is_tab = [](aurore::View* v) { return dynamic_cast<TabBase*>(v) != nullptr; };
     h.tab_position = [](const std::string& screen) { return tabs::position_of(screen); };
     h.settings_tab = []() { return tabs::preferences; };
     h.rail_icons = []() { return std::vector<std::string>{ "home", "shelf", "server", "download", "", "settings", "info" }; };
@@ -96,7 +96,7 @@ void install_screen_hooks()
     h.today = []() { return ui::today_date(); };
     h.mark = mark;
     h.tab_title = [](const std::string& screen) {
-        return screen.rfind("tab/", 0) == 0 ? brls::getStr("playshelf/tabs/" + screen.substr(4)) : std::string();
+        return screen.rfind("tab/", 0) == 0 ? aurore::getStr("playshelf/tabs/" + screen.substr(4)) : std::string();
     };
     // The look's preferences live in config.json; the simulators' flags are
     // PLAYSHELF_SIM_* (core/sim_env.h).
@@ -109,7 +109,7 @@ void install_screen_hooks()
 
     // What the kit's own flows ask (ui/app_hooks.hpp).
     ui::app_hooks::Hooks& a = ui::app_hooks::get();
-    a.make_help_tab = []() -> brls::View* { return new HelpTab(); };
+    a.make_help_tab = []() -> aurore::View* { return new HelpTab(); };
     a.mode_changed = []() { frame_stats_flow::apply(); };
     a.open_notices = []() { NoticesActivity::open(); };
 }

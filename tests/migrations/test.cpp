@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <borealis/extern/nlohmann/json.hpp>
+#include <aurore/extern/nlohmann/json.hpp>
 
 #include "util/migrations.hpp"
 

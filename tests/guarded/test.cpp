@@ -5,7 +5,7 @@
 #include <functional>
 #include <string>
 
-#include <borealis/cadran/ui/guarded.hpp>
+#include <aurore/cadran/ui/guarded.hpp>
 
 static void test_runs_while_alive()
 {
@@ -45,7 +45,7 @@ static void test_arguments()
 
 static void test_copies_share_the_token()
 {
-    // A copy (brls::sync's queue, a std::function) sees the same token.
+    // A copy (aurore::sync's queue, a std::function) sees the same token.
     ui::Alive alive = ui::make_alive();
     int runs = 0;
     const auto f = ui::guarded(alive, [&]() { runs++; });

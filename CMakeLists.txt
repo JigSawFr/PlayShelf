@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Borealis lives in library/aurore as a git submodule: Aurore (JigSawFr/Aurore, main),
-# xfangfang/borealis with our fixes and some from its other forks.
-set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/library/aurore/library)
+# Aurore (JigSawFr/Aurore, main) lives in library/aurore as a git submodule:
+# xfangfang/borealis renamed, with our fixes and some from its other forks.
+set(AURORE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/library/aurore/library)
 
 # On the Switch, draw with deko3d (devkitPro's own GPU API) rather than mesa's
 # OpenGL: mesa (libEGL + libglapi) was ~5 MB of the 9.4 MB .nro and most of
-# the start-up time. -DUSE_DEKO3D=OFF (make GL=1) builds the OpenGL variant.
-# Declared before borealis' options so this default wins; ignored on desktop.
-option(USE_DEKO3D "Switch: draw with deko3d instead of OpenGL (mesa)" ON)
+# the start-up time. -DAURORE_GRAPHICS=GL3 (make GL=1) builds the OpenGL
+# variant. Set before Aurore's options so this default wins.
+if (AURORE_PLATFORM STREQUAL "SWITCH" AND NOT AURORE_GRAPHICS)
+    set(AURORE_GRAPHICS DEKO3D CACHE STRING "" FORCE)
+endif ()
 
 # The web simulator (web/README.md): the desktop build, compiled by
 # Emscripten for a browser, with SDL2 and OpenGL ES 3 (WebGL 2) from
@@ -19,19 +21,20 @@ if (CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten\\.cmake$")
     set(PLAYSHELF_WEB ON)
 endif ()
 if (PLAYSHELF_WEB)
-    set(PLATFORM_DESKTOP ON CACHE BOOL "" FORCE)
-    set(USE_SDL2 ON CACHE BOOL "" FORCE)
+    set(AURORE_PLATFORM DESKTOP CACHE STRING "" FORCE)
+    set(AURORE_WINDOW SDL2 CACHE STRING "" FORCE)
     set(USE_SYSTEM_SDL2 ON CACHE BOOL "" FORCE)
-    set(USE_GLES3 ON CACHE BOOL "" FORCE)
+    set(AURORE_GRAPHICS GLES3 CACHE STRING "" FORCE)
     set(SDL2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/web/cmake)
     add_compile_options(-pthread -sUSE_SDL=2 -sUSE_ZLIB=1 -fexceptions)
 endif ()
 
-# PLATFORM_SWITCH / PLATFORM_DESKTOP / USE_DEKO3D … options.
-include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
+# AURORE_PLATFORM / AURORE_GRAPHICS … options, and the PLATFORM_* and USE_*
+# variables they set.
+include(${AURORE_LIBRARY}/cmake/commonOption.cmake)
 
-# Sets up the devkitPro cross-toolchain when PLATFORM_SWITCH=ON.
-include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
+# Sets up the devkitPro cross-toolchain when AURORE_PLATFORM=SWITCH.
+include(${AURORE_LIBRARY}/cmake/toolchain.cmake)
 
 project(playshelf LANGUAGES CXX C)
 
@@ -43,7 +46,7 @@ if (PLATFORM_SWITCH)
     endif ()
 endif ()
 # devkitPro's platform file defaults to Release (-O2 -g; elf2nro keeps no
-# debug data). borealis prints its "Build Type:" line before project() picks
+# debug data). Aurore prints its "Build Type:" line before project() picks
 # that default, so say what is actually used.
 string(TOUPPER "${CMAKE_BUILD_TYPE}" PLAYSHELF_BUILD_TYPE_UC)
 message(STATUS "PlayShelf build type: ${CMAKE_BUILD_TYPE}; C++ flags: ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${PLAYSHELF_BUILD_TYPE_UC}}")
@@ -62,30 +65,30 @@ set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS ON)
 
-# On desktop borealis looks for "<BRLS_RESOURCES_DIR>/resources/" at runtime:
+# On desktop Aurore looks for "<AURORE_RESOURCES_ROOT>/resources/" at runtime:
 # point it at the merged copy assembled below.
 if (PLAYSHELF_WEB)
     # Packaged into the page's file system at /app/resources (the web target's
     # --preload-file, below).
-    set(BRLS_RESOURCES_DIR /app)
+    set(AURORE_RESOURCES_ROOT /app)
 elseif (PLATFORM_DESKTOP)
-    set(BRLS_RESOURCES_DIR ${CMAKE_BINARY_DIR})
+    set(AURORE_RESOURCES_ROOT ${CMAKE_BINARY_DIR})
 endif ()
 
-# borealis links stdc++fs under clang, which Emscripten's libc++ has no
+# Aurore links stdc++fs under clang, which Emscripten's libc++ has no
 # need of: an empty stand-in.
 if (PLAYSHELF_WEB)
     add_library(stdc++fs INTERFACE)
 endif ()
 
-add_subdirectory(${BOREALIS_LIBRARY} ${CMAKE_BINARY_DIR}/borealis_library)
+add_subdirectory(${AURORE_LIBRARY} ${CMAKE_BINARY_DIR}/aurore)
 
 # deko3d draws with nanovg's shaders, which Aurore compiles with uam (part of
-# switch-dev) and builds into the library (<build>/borealis_library/dksh/).
+# switch-dev) and builds into the library (<build>/aurore/dksh/).
 # Without uam it only warns and looks for them in the romfs, where PlayShelf
 # puts none: the app would stop at its first frame, so stop here instead.
 if (PLATFORM_SWITCH AND USE_DEKO3D)
-    file(READ ${CMAKE_BINARY_DIR}/borealis_library/dksh/dk_shaders.h PLAYSHELF_DKSH_HEADER)
+    file(READ ${CMAKE_BINARY_DIR}/aurore/dksh/dk_shaders.h PLAYSHELF_DKSH_HEADER)
     if (PLAYSHELF_DKSH_HEADER MATCHES "nullptr")
         message(FATAL_ERROR "Aurore could not compile the deko3d shaders: install uam (dkp-pacman -S uam)")
     endif ()
@@ -149,7 +152,7 @@ endif ()
 file(GLOB_RECURSE PLAYSHELF_SRC CONFIGURE_DEPENDS source/*.cpp source/*.c)
 if (PLATFORM_SWITCH)
     list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?sim/.*")
-    list(APPEND PLAYSHELF_SRC ${BOREALIS_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
+    list(APPEND PLAYSHELF_SRC ${AURORE_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
 else ()
     list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?core/.*\\.c$")
     if (PLAYSHELF_WEB)
@@ -169,9 +172,9 @@ program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
 
 target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${PLAYSHELF_INCLUDES})
-# -ffunction-sections / -fdata-sections come from borealis (PUBLIC) and
+# -ffunction-sections / -fdata-sections come from Aurore (PUBLIC) and
 # --gc-sections from libnx's switch.specs.
-# Warnings on PlayShelf's own sources (not borealis, not the vendored
+# Warnings on PlayShelf's own sources (not Aurore, not the vendored
 # qrcodegen and stb); CI turns them into errors with -DPLAYSHELF_WERROR=ON.
 option(PLAYSHELF_WERROR "Treat PlayShelf's compiler warnings as errors" OFF)
 # Also a switch case falling into the next unmarked, a class with virtual
@@ -217,7 +220,7 @@ message(STATUS "PlayShelf release build: ${APP_RELEASE}")
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source/app.cpp APPEND PROPERTY COMPILE_DEFINITIONS
              APP_VERSION="${APP_VERSION}" APP_COMMIT="${APP_COMMIT}" APP_PR=${APP_PR} APP_RELEASE=${APP_RELEASE})
 target_link_libraries(${PROJECT_NAME} PRIVATE Aurore::aurore ${PLAYSHELF_LIBS})
-# On the desktop: borealis, fmt and the standard headers most files include,
+# On the desktop: Aurore, fmt and the standard headers most files include,
 # parsed once (a precompiled header) instead of in each of the 200-odd C++
 # files: a change to a header many include (ui/ui.hpp, app.hpp) rebuilds in
 # about half the time. The Switch and the web keep compiling as before (their
@@ -226,7 +229,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Aurore::aurore ${PLAYSHELF_LIBS})
 # qrcodegen is not ours (-w).
 if (PLATFORM_DESKTOP AND NOT CMAKE_VERSION VERSION_LESS 3.16)
     target_precompile_headers(${PROJECT_NAME} PRIVATE
-        "$<$<COMPILE_LANGUAGE:CXX>:<borealis.hpp$<ANGLE-R>>"
+        "$<$<COMPILE_LANGUAGE:CXX>:<aurore.hpp$<ANGLE-R>>"
         "$<$<COMPILE_LANGUAGE:CXX>:<fmt/format.h$<ANGLE-R>>"
         "$<$<COMPILE_LANGUAGE:CXX>:<algorithm$<ANGLE-R>>"
         "$<$<COMPILE_LANGUAGE:CXX>:<chrono$<ANGLE-R>>"
@@ -237,9 +240,9 @@ if (PLATFORM_DESKTOP AND NOT CMAKE_VERSION VERSION_LESS 3.16)
     set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp
                                 PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif ()
-# borealis' headers as system headers: their warnings are not PlayShelf's.
-get_target_property(BOREALIS_INCLUDES Aurore::aurore INTERFACE_INCLUDE_DIRECTORIES)
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${BOREALIS_INCLUDES})
+# Aurore's headers as system headers: their warnings are not PlayShelf's.
+get_target_property(AURORE_INCLUDES Aurore::aurore INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${AURORE_INCLUDES})
 # On the Switch: a linker map (build/playshelf.map) to see what makes the .nro big.
 if (PLATFORM_SWITCH)
     target_link_options(${PROJECT_NAME} PRIVATE -Wl,-Map,${CMAKE_BINARY_DIR}/playshelf.map)
@@ -268,24 +271,24 @@ if (PLAYSHELF_WEB)
         "SHELL:--preload-file ${CMAKE_BINARY_DIR}/resources@/app/resources"
         "SHELL:--preload-file ${PLAYSHELF_WEB_DEMO}@/app/samples/demo")
 endif ()
-# On the Switch: borealis' userAppInit, which libnx calls before main, timed
+# On the Switch: Aurore's userAppInit, which libnx calls before main, timed
 # for the diagnostic report's start-up section (source/core/startup_hook.c).
 if (PLATFORM_SWITCH)
     target_link_options(${PROJECT_NAME} PRIVATE -Wl,--wrap=userAppInit)
 endif ()
 
-# Resources: borealis built-ins first, then ours on top, without Aurore's demo
+# Resources: Aurore built-ins first, then ours on top, without Aurore's demo
 # assets. On the Switch Aurore's desktop fonts (Inter, PromptFont's buttons)
 # are dropped too (the system shared font is used); ours stay (resources/font:
 # Cadran's figures).
-# en-GB reuses the English strings, already in British spelling (borealis looks
+# en-GB reuses the English strings, already in British spelling (Aurore looks
 # the locale up verbatim), except the quoted system menu labels, spelt as on a
 # US console ("Synchronize Clock via Internet").
-set(BOREALIS_RESOURCES ${BOREALIS_LIBRARY}/../resources)
+set(AURORE_RESOURCES ${AURORE_LIBRARY}/../resources)
 set(MERGED_RESOURCES ${CMAKE_BINARY_DIR}/resources)
 set(ASSEMBLE_RESOURCES
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${MERGED_RESOURCES}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${BOREALIS_RESOURCES} ${MERGED_RESOURCES}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${AURORE_RESOURCES} ${MERGED_RESOURCES}
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${MERGED_RESOURCES}/xml
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${MERGED_RESOURCES}/img/gallery
     COMMAND ${CMAKE_COMMAND} -E remove -f ${MERGED_RESOURCES}/img/tiles.png ${MERGED_RESOURCES}/img/demo_icon.jpg
@@ -316,7 +319,7 @@ if (PLAYSHELF_WEB)
     endif ()
     if (Python3_FOUND AND NOT PLAYSHELF_NO_FONTTOOLS AND EXISTS "${PLAYSHELF_WEB_CJK_FONT}")
         set(PLAYSHELF_CJK_CATALOGS)
-        foreach (resources ${PROJECT_RESOURCES} ${BOREALIS_RESOURCES})
+        foreach (resources ${PROJECT_RESOURCES} ${AURORE_RESOURCES})
             file(GLOB catalogs ${resources}/i18n/ja/*.json ${resources}/i18n/ko/*.json
                  ${resources}/i18n/zh-Hans/*.json ${resources}/i18n/zh-Hant/*.json)
             list(APPEND PLAYSHELF_CJK_CATALOGS ${catalogs})

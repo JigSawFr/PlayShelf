@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <map>
 
 #include <fmt/format.h>
@@ -17,7 +17,7 @@
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace library_flow
 {
@@ -35,7 +35,7 @@ std::shared_ptr<const Installed> read_installed()
 {
     std::string why;
     auto        out = std::make_shared<Installed>(install::installed_versions(&why));
-    if (!why.empty()) brls::Logger::warning("library: what is installed could not be read: {}", why);
+    if (!why.empty()) aurore::Logger::warning("library: what is installed could not be read: {}", why);
     return out;
 }
 
@@ -67,7 +67,7 @@ void fetched(const library::Server& server, const std::shared_ptr<Loaded>& l, st
         return;
     }
     if (f.status == library::FetchStatus::UnknownCertificate) {
-        const std::string body = brls::getStr("playshelf/library/trust_body", server.name, f.endpoint, f.offered_short);
+        const std::string body = aurore::getStr("playshelf/library/trust_body", server.name, f.endpoint, f.offered_short);
         const std::string pin = f.offered_pin;
         ui::confirm(
             body, "playshelf/library/trust"_i18n,
@@ -81,13 +81,13 @@ void fetched(const library::Server& server, const std::shared_ptr<Loaded>& l, st
             [done]() { done(nullptr, ""); });
         return;
     }
-    brls::Logger::warning("library: {} could not be read: {}", server.name, f.why);
+    aurore::Logger::warning("library: {} could not be read: {}", server.name, f.why);
     done(nullptr, f.why);
 }
 
 void open_editor(const library::Server& server, bool is_new, const std::function<void(const std::string&)>& saved)
 {
-    brls::Application::pushActivity(new ServerActivity(server, is_new, [saved](const std::string& id) {
+    aurore::Application::pushActivity(new ServerActivity(server, is_new, [saved](const std::string& id) {
         forget(id);
         if (saved) saved(id);
     }));
@@ -113,10 +113,10 @@ std::vector<Source> sources(uint64_t title_id)
         if (!t.updates.empty()) src.newest = l->fetch.catalog.items[t.updates.front()].version;
         std::vector<std::string> parts;
         if (src.base) parts.push_back("playshelf/game/source_base"_i18n);
-        if (src.updates == 1) parts.push_back(brls::getStr("playshelf/game/source_update_one", src.newest));
-        else if (src.updates) parts.push_back(brls::getStr("playshelf/game/source_update", src.updates, src.newest));
+        if (src.updates == 1) parts.push_back(aurore::getStr("playshelf/game/source_update_one", src.newest));
+        else if (src.updates) parts.push_back(aurore::getStr("playshelf/game/source_update", src.updates, src.newest));
         if (src.dlcs == 1) parts.push_back("playshelf/game/source_dlc_one"_i18n);
-        else if (src.dlcs) parts.push_back(brls::getStr("playshelf/game/source_dlc", src.dlcs));
+        else if (src.dlcs) parts.push_back(aurore::getStr("playshelf/game/source_dlc", src.dlcs));
         for (size_t i = 0; i < parts.size(); i++) src.what += (i ? " · " : "") + parts[i];
         out.push_back(std::move(src));
     }
@@ -130,7 +130,7 @@ std::string size_text(uint64_t bytes)
     std::string text = mb >= 1024.0 ? fmt::format("{:.1f}", mb / 1024.0) : mb < 10.0 ? fmt::format("{:.1f}", mb) : fmt::format("{:.0f}", mb);
     const size_t dot = text.find('.');
     if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
-    return brls::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
+    return aurore::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
 }
 
 std::shared_ptr<const Installed> installed()
@@ -183,7 +183,7 @@ void load(const library::Server& server, const Done& done)
             }
         }
         const auto now = read_installed();
-        brls::sync([server, l, now, all]() { fetched(server, l, now, all); });
+        aurore::sync([server, l, now, all]() { fetched(server, l, now, all); });
     });
 }
 
@@ -204,13 +204,13 @@ void discover(const std::function<void(const std::string&)>& saved)
 {
     if (ui::refuse_read_only()) return;
     auto          cancel = std::make_shared<std::atomic<bool>>(false);
-    brls::Dialog* dialog = ui::dialog("playshelf/library/discovering"_i18n);
+    aurore::Dialog* dialog = ui::dialog("playshelf/library/discovering"_i18n);
     ui::add_cancel(dialog, [cancel]() { *cancel = true; });
     dialog->open();
     ui::in_background("discovery", [cancel, dialog, saved]() {
         std::string why;
         const auto  found = library::discover(cancel.get(), &why);
-        brls::sync([cancel, dialog, saved, found, why]() {
+        aurore::sync([cancel, dialog, saved, found, why]() {
             if (*cancel) return;   // the dialog is closed already
             dialog->close();
             if (found.empty()) {
@@ -240,7 +240,7 @@ void reread_installed(const std::function<void()>& after)
 {
     ui::in_background("installed", [after]() {
         const auto now = read_installed();
-        brls::sync([now, after]() {
+        aurore::sync([now, after]() {
             s_installed = now;
             if (after) after();
         });
@@ -299,7 +299,7 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
         const auto [source, i] = best_source(from, asked);
         const Loaded& l = *source;
         if (&l != &from)
-            brls::Logger::info("library: {} from {} rather than {}", l.fetch.catalog.items[i].name, l.server.name, from.server.name);
+            aurore::Logger::info("library: {} from {} rather than {}", l.fetch.catalog.items[i].name, l.server.name, from.server.name);
         const library::Item& it = l.fetch.catalog.items[i];
         download::Job        j;
         // Its game's name, and which item of it ("Update v131072", an
@@ -313,7 +313,7 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
             j.game = t.name;
             j.game_id = t.id;
             j.icon_url = t.icon_url;
-            j.label = update ? brls::getStr("playshelf/library/update", it.version)
+            j.label = update ? aurore::getStr("playshelf/library/update", it.version)
                     : dlc    ? library::clean_name(it.name)
                              : "playshelf/library/base"_i18n;
             j.name = update || dlc ? t.name + " · " + j.label : t.name;
@@ -339,7 +339,7 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     auto       add = [data](const std::vector<size_t>& chosen) {
         return [data, chosen]() {
             const size_t added = install(*data, chosen);
-            if (added) ui::notify(brls::getStr("playshelf/downloads/added", added));
+            if (added) ui::notify(aurore::getStr("playshelf/downloads/added", added));
             else if (!chosen.empty()) ui::notify("playshelf/downloads/already"_i18n);
         };
     };
@@ -383,7 +383,7 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
                                  size_text(items[(size_t)latest].size));
     for (size_t i : t.updates) {
         // Its number (the version's high half) before the version itself.
-        line(out.updates, i, "refresh", brls::getStr("playshelf/game/update_line", items[i].version >> 16, items[i].version));
+        line(out.updates, i, "refresh", aurore::getStr("playshelf/game/update_line", items[i].version >> 16, items[i].version));
         out.updates_size += items[i].size;
     }
     out.update_count = t.updates.size();
@@ -403,7 +403,7 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     out.installed = st.base;
     out.installed_version = st.base ? st.version : 0;
     out.facts = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
-    if (st.base) out.facts += " · " + brls::getStr("playshelf/library/installed_version", st.version);
+    if (st.base) out.facts += " · " + aurore::getStr("playshelf/library/installed_version", st.version);
     return out;
 }
 

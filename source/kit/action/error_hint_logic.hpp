@@ -2,7 +2,7 @@
 // PlayShelf's own results (core/nx_types.h), and one for the system results
 // whose meaning is documented (switchbrew Error_codes, or seen and explained
 // in PlayShelf's own reports). Any other code is shown alone, with the
-// generic next step (ui::rc_text). No borealis, so the host tests can run it
+// generic next step (ui::rc_text). No Aurore, so the host tests can run it
 // (tests/error_hint_logic).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once

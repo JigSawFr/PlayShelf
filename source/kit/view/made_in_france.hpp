@@ -5,20 +5,20 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class FrenchFlag : public brls::View
+class FrenchFlag : public aurore::View
 {
   public:
     FrenchFlag();
 
     void draw(NVGcontext* vg, float x, float y, float width, float height,
-              brls::Style style, brls::FrameContext* ctx) override;
+              aurore::Style style, aurore::FrameContext* ctx) override;
 };
 
-class MadeInFrance : public brls::Box
+class MadeInFrance : public aurore::Box
 {
   public:
     MadeInFrance();
-    static brls::View* create();
+    static aurore::View* create();
 };

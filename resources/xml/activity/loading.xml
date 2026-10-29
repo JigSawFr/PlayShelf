@@ -6,14 +6,14 @@
      Aurore's aurora glow, breathing, the wordmark, the tagline, and a progress bar over the
      start-up steps. -->
 
-<brls:Box
+<aurore:Box
     id="loading_root"
     width="auto"
     height="auto"
     axis="column"
     justifyContent="center"
     alignItems="center"
-    backgroundColor="@theme/brls/background">
+    backgroundColor="@theme/aurore/background">
 
     <!-- Cadran's dial on the right, behind the rest (as the PIN gate's). -->
     <LoadingDial
@@ -29,13 +29,13 @@
         height="168"
         marginBottom="40"/>
 
-    <brls:Image
+    <aurore:Image
         id="loading_wordmark"
         image="@res/img/wordmark.png"
         width="360"
         height="88"/>
 
-    <brls:Label
+    <aurore:Label
         id="loading_tagline"
         text="@i18n/playshelf/loading/tagline"
         fontSize="22"
@@ -49,7 +49,7 @@
         height="8"
         marginBottom="18"/>
 
-    <brls:Label
+    <aurore:Label
         id="loading_step"
         text=" "
         fontSize="18"
@@ -59,7 +59,7 @@
     <!-- Holds the focus while this screen is the top one (nothing to press
          here): pushed over it, the first screen hands it back to a view of
          this screen, which outlives every other start screen. -->
-    <brls:Rectangle
+    <aurore:Rectangle
         id="loading_anchor"
         width="1"
         height="1"
@@ -67,4 +67,4 @@
         focusable="true"
         hideHighlight="true"/>
 
-</brls:Box>
+</aurore:Box>

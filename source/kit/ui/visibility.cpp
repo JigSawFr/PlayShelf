@@ -2,16 +2,16 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "ui/ui.hpp"
 
-#include <borealis/cadran/ui/cadran_kit.hpp>
-#include <borealis/cadran/ui/cadran_list.hpp>
-#include <borealis/cadran/ui/hooks.hpp>
+#include <aurore/cadran/ui/cadran_kit.hpp>
+#include <aurore/cadran/ui/cadran_list.hpp>
+#include <aurore/cadran/ui/hooks.hpp>
 
 #include "app.hpp"
 
 #include <algorithm>
 #include <yoga/Yoga.h>
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace ui
 {
@@ -23,9 +23,9 @@ bool refuse_read_only()
     return true;
 }
 
-void guard_switch(brls::BooleanCell* cell)
+void guard_switch(aurore::BooleanCell* cell)
 {
-    cell->registerClickAction([cell](brls::View*) {
+    cell->registerClickAction([cell](aurore::View*) {
         if (refuse_read_only()) return true;
         cell->setOn(!cell->isOn());
         cell->getEvent()->fire(cell->isOn());

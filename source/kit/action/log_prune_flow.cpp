@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/log_prune_flow.hpp"
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <ctime>
 
 #include "ui/ui.hpp"
@@ -23,7 +23,7 @@ void run()
                                log_files::prune(paths::crashes_dir(), log_files::CRASH, limits, now) +
                                log_files::prune(paths::sessions_dir(), log_files::SESSION, limits, now) +
                                log_files::prune(paths::uploads_dir(), log_files::UPLOAD, limits, now);
-        if (removed) brls::Logger::info("logs: {} old report, crash, session or upload file(s) removed", removed);
+        if (removed) aurore::Logger::info("logs: {} old report, crash, session or upload file(s) removed", removed);
     });
 }
 

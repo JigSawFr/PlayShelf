@@ -6,11 +6,11 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 namespace support_flow
 {
 
-void at_start(brls::Activity* main);
+void at_start(aurore::Activity* main);
 
 }   // namespace support_flow

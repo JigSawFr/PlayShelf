@@ -7,7 +7,7 @@
      console's as rows of wide banners and covers. With no server and no
      game yet, a welcome to add a server. -->
 
-<brls:Box
+<aurore:Box
     width="auto"
     height="auto">
 
@@ -16,17 +16,17 @@
         height="auto"
         grow="1.0">
 
-        <brls:Box
+        <aurore:Box
             id="ho_content"
             width="auto"
             height="auto"
             axis="column"
             alignItems="stretch"
-            paddingLeft="@style/brls/tab_frame/content_padding_sides"
-            paddingRight="@style/brls/tab_frame/content_padding_sides"
-            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"/>
+            paddingLeft="@style/aurore/tab_frame/content_padding_sides"
+            paddingRight="@style/aurore/tab_frame/content_padding_sides"
+            paddingTop="@style/aurore/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/aurore/tab_frame/content_padding_top_bottom"/>
 
     </ScrollView>
 
-</brls:Box>
+</aurore:Box>

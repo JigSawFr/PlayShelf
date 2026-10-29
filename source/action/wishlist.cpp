@@ -5,7 +5,7 @@
 #include <map>
 #include <memory>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
 #include "library/catalog.hpp"
 #include "library/seen.hpp"
@@ -49,20 +49,20 @@ bool has(uint64_t title_id)
 
 void toggle(uint64_t title_id, const std::string& name)
 {
-    using namespace brls::literals;
+    using namespace aurore::literals;
     const uint64_t base = library::base_of(title_id);
     if (!base) return;
     const auto it = std::find(s_games.begin(), s_games.end(), base);
     if (it != s_games.end()) {
         s_games.erase(it);
-        ui::notify(brls::getStr("playshelf/wishlist/removed", name));
+        ui::notify(aurore::getStr("playshelf/wishlist/removed", name));
     } else {
         if (s_games.size() >= MAX_GAMES) {
             ui::notify("playshelf/wishlist/full"_i18n, ui::Toast::Refused);
             return;
         }
         s_games.insert(s_games.begin(), base);
-        ui::notify(brls::getStr("playshelf/wishlist/added", name), ui::Toast::Done);
+        ui::notify(aurore::getStr("playshelf/wishlist/added", name), ui::Toast::Done);
     }
     save();
     const auto listeners = s_listeners;

@@ -5,7 +5,7 @@
 #include <atomic>
 #include <cctype>
 #include <cstdlib>
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <cstdio>
 #include <map>
 #include <set>
@@ -22,7 +22,7 @@
 #include "ui/ui.hpp"
 #include "util/paths.hpp"
 
-using namespace brls::literals;
+using namespace aurore::literals;
 
 namespace services_flow
 {
@@ -58,8 +58,8 @@ std::string game_name(const library_flow::Loaded& l, uint64_t id, const std::str
 // far it got; a Cancel button when it may be stopped.
 struct Busy
 {
-    brls::Dialog*                      dialog = nullptr;
-    brls::Label*                       line = nullptr;
+    aurore::Dialog*                      dialog = nullptr;
+    aurore::Label*                       line = nullptr;
     std::shared_ptr<std::atomic<bool>> cancel = std::make_shared<std::atomic<bool>>(false);
     int                                shown = -1;   // the percentage on its line
 };
@@ -67,8 +67,8 @@ struct Busy
 std::shared_ptr<Busy> busy(const std::string& text, bool cancellable)
 {
     auto b = std::make_shared<Busy>();
-    b->line = new brls::Label();
-    b->line->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+    b->line = new aurore::Label();
+    b->line->setHorizontalAlign(aurore::HorizontalAlign::CENTER);
     b->line->setText(" ");
     b->dialog = ui::dialog(text, b->line);
     if (cancellable) {
@@ -84,7 +84,7 @@ void show_progress(const std::shared_ptr<Busy>& b, uint64_t done, uint64_t total
 {
     if (!total) return;
     const int pct = (int)std::min<uint64_t>(100, done * 100 / total);
-    brls::sync([b, pct, done, total]() {
+    aurore::sync([b, pct, done, total]() {
         if (*b->cancel || pct == b->shown) return;
         b->shown = pct;
         b->line->setText(fmt::format("{} %  ·  {} / {}", pct, library_flow::size_text(done), library_flow::size_text(total)));
@@ -125,11 +125,11 @@ void install_cheats(const Loaded& l, const std::vector<library::Cheat>& chosen, 
             done++;
             show_progress(b, done, chosen.size());
         }
-        brls::sync([b, done, total = chosen.size(), why, after]() {
+        aurore::sync([b, done, total = chosen.size(), why, after]() {
             finish(b);
             if (done < total) ui::error("playshelf/services/cheats_failed"_i18n, why);
             else ui::notify(total == 1 ? "playshelf/services/cheat_installed"_i18n
-                                       : brls::getStr("playshelf/services/cheats_installed", total));
+                                       : aurore::getStr("playshelf/services/cheats_installed", total));
             if (after) after();
         });
     });
@@ -143,7 +143,7 @@ void view_cheat(const Loaded& l, const library::Cheat& c)
         library::HttpTransport t;
         std::string            text, why;
         const bool             ok = library::fetch_cheat(link, t, c, &text, &why);
-        brls::sync([b, ok, text, why, c]() {
+        aurore::sync([b, ok, text, why, c]() {
             if (!finish(b)) return;
             if (!ok) {
                 ui::error("playshelf/services/cheat_failed"_i18n, why);
@@ -160,7 +160,7 @@ void view_cheat(const Loaded& l, const library::Cheat& c)
                 lines++;
             }
             if (at < text.size()) shown += "…";
-            ui::info(brls::getStr("playshelf/services/build", c.build_id) + "\n\n" + shown);
+            ui::info(aurore::getStr("playshelf/services/build", c.build_id) + "\n\n" + shown);
         });
     });
 }
@@ -168,7 +168,7 @@ void view_cheat(const Loaded& l, const library::Cheat& c)
 void remove_cheat(uint64_t title_id, const std::string& build_id, const std::function<void()>& after)
 {
     if (ui::refuse_read_only()) return;
-    ui::confirm_danger(brls::getStr("playshelf/services/cheat_remove_body", build_id), "playshelf/services/cheat_remove"_i18n,
+    ui::confirm_danger(aurore::getStr("playshelf/services/cheat_remove_body", build_id), "playshelf/services/cheat_remove"_i18n,
                        [title_id, build_id, after]() {
                            const std::string path = library::cheat_path(paths::sd_root(), title_id, build_id);
                            if (path.empty() || std::remove(path.c_str()) != 0) ui::error("playshelf/services/cheat_remove_failed"_i18n);
@@ -190,7 +190,7 @@ void build_sheet(const Loaded& l, uint64_t title_id, const std::vector<library::
         choices.emplace_back("playshelf/services/cheat_remove"_i18n,
                              [title_id, c, again]() { remove_cheat(title_id, c.build_id, again); }, "trash", "", "",
                              Choice::Tone::DANGER);
-    ui::pick_actions(brls::getStr("playshelf/services/build", c.build_id), choices,
+    ui::pick_actions(aurore::getStr("playshelf/services/build", c.build_id), choices,
                      c.note.empty() ? game_name(*l, title_id, c.title_name) : c.note);
 }
 
@@ -205,17 +205,17 @@ void cheat_sheet(const Loaded& l, uint64_t title_id, const std::vector<library::
     if (missing.size() > 1)
         choices.emplace_back("playshelf/services/cheats_install_all"_i18n,
                              [l, missing, title_id, builds]() { install_cheats(l, missing, [l, title_id, builds]() { cheat_sheet(l, title_id, builds); }); },
-                             "download", brls::getStr("playshelf/services/cheats_count", missing.size()));
+                             "download", aurore::getStr("playshelf/services/cheats_count", missing.size()));
     for (const library::Cheat& c : builds) {
         const bool on = std::find(have.begin(), have.end(), c.build_id) != have.end();
-        choices.emplace_back(brls::getStr("playshelf/services/build", c.build_id),
+        choices.emplace_back(aurore::getStr("playshelf/services/build", c.build_id),
                              [l, title_id, builds, c]() { build_sheet(l, title_id, builds, c); }, "code",
                              on ? "playshelf/services/cheat_on_console"_i18n : c.note,
                              "playshelf/services/group_server_builds"_i18n, on ? Choice::Tone::ON : Choice::Tone::PLAIN);
     }
     for (const std::string& bid : have) {
         if (std::any_of(builds.begin(), builds.end(), [&](const library::Cheat& c) { return c.build_id == bid; })) continue;
-        choices.emplace_back(brls::getStr("playshelf/services/build", bid),
+        choices.emplace_back(aurore::getStr("playshelf/services/build", bid),
                              [title_id, bid, l, builds]() { remove_cheat(title_id, bid, [l, title_id, builds]() { cheat_sheet(l, title_id, builds); }); },
                              "code", "playshelf/services/cheat_remove"_i18n, "playshelf/services/group_console_builds"_i18n,
                              Choice::Tone::DANGER);
@@ -259,14 +259,14 @@ std::shared_ptr<const SaveData> read_saves(const library::Link& link, const Core
 std::string backup_label(const library::SaveBackup& s)
 {
     std::string when = s.created ? ui::time_text((uint64_t)s.created) : s.created_at;
-    if (s.server_copy) return brls::getStr("playshelf/services/save_server_copy", when);
+    if (s.server_copy) return aurore::getStr("playshelf/services/save_server_copy", when);
     return s.note.empty() ? when : when + " · " + s.note;
 }
 
 void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const std::string& note)
 {
     const library::Link link = link_of(*l);
-    auto                b = busy(brls::getStr("playshelf/services/save_sending", game_name(*l, title_id)), true);
+    auto                b = busy(aurore::getStr("playshelf/services/save_sending", game_name(*l, title_id)), true);
     ui::in_background("save backup", [b, link, user, title_id, note, l]() {
         std::string       why;
         const std::string zip = paths::cache_dir() + "/save_upload.zip";
@@ -288,7 +288,7 @@ void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const
         // The game's backups again, in the same go (no other dialog opening
         // while this one closes).
         const auto d = ok ? read_saves(link, user) : nullptr;
-        brls::sync([b, ok, why, l, d, title_id]() {
+        aurore::sync([b, ok, why, l, d, title_id]() {
             if (!finish(b)) return;
             if (!ok) {
                 ui::error("playshelf/services/save_send_failed"_i18n, why);
@@ -309,7 +309,7 @@ void restore(const Loaded& l, const CoreSaveUser& user, const library::SaveBacku
     if (ui::refuse_read_only()) return;
     const library::Link link = link_of(*l);
     const std::string   name = game_name(*l, backup.title_id, backup.title_name);
-    auto                b = busy(brls::getStr("playshelf/services/save_restoring", name), false);
+    auto                b = busy(aurore::getStr("playshelf/services/save_restoring", name), false);
     ui::in_background("save restore", [b, link, user, backup, l, name]() {
         std::string       why, kept;
         const std::string zip = paths::cache_dir() + "/save_restore.zip";
@@ -332,7 +332,7 @@ void restore(const Loaded& l, const CoreSaveUser& user, const library::SaveBacku
                 ok = save_archive::zip_dir(root, kept, nullptr, &why);
                 core_save_unmount();
             }
-            if (!ok) why = brls::getStr("playshelf/services/save_keep_failed", why);
+            if (!ok) why = aurore::getStr("playshelf/services/save_keep_failed", why);
         }
         bool put_back = false;
         if (ok) {
@@ -352,23 +352,23 @@ void restore(const Loaded& l, const CoreSaveUser& user, const library::SaveBacku
             }
         }
         std::remove(zip.c_str());
-        brls::sync([b, ok, why, kept, put_back, name]() {
+        aurore::sync([b, ok, why, kept, put_back, name]() {
             finish(b);
             if (!ok) {
                 std::string before;
                 if (put_back) before = "playshelf/services/save_put_back"_i18n;
-                else if (!kept.empty()) before = brls::getStr("playshelf/services/save_kept_at", kept);
+                else if (!kept.empty()) before = aurore::getStr("playshelf/services/save_kept_at", kept);
                 ui::error("playshelf/services/save_restore_failed"_i18n, before.empty() ? why : before + "\n\n" + why);
                 return;
             }
-            ui::info(brls::getStr("playshelf/services/save_restored", name, kept));
+            ui::info(aurore::getStr("playshelf/services/save_restored", name, kept));
         });
     });
 }
 
 void remove_backup(const Loaded& l, const CoreSaveUser& user, const library::SaveBackup& backup)
 {
-    ui::confirm_danger(brls::getStr("playshelf/services/save_delete_body", backup_label(backup)),
+    ui::confirm_danger(aurore::getStr("playshelf/services/save_delete_body", backup_label(backup)),
                        "playshelf/services/save_delete"_i18n, [l, user, backup]() {
                            const library::Link link = link_of(*l);
                            auto                b = busy("playshelf/services/save_deleting"_i18n, false);
@@ -377,7 +377,7 @@ void remove_backup(const Loaded& l, const CoreSaveUser& user, const library::Sav
                                std::string            why;
                                const bool             ok = library::delete_save(link, t, backup, &why);
                                const auto             d = ok ? read_saves(link, user) : nullptr;
-                               brls::sync([b, ok, why, l, d, backup]() {
+                               aurore::sync([b, ok, why, l, d, backup]() {
                                    finish(b);
                                    if (!ok) ui::error("playshelf/services/save_delete_failed"_i18n, why);
                                    else game_saves(l, d, backup.title_id);
@@ -399,7 +399,7 @@ void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint6
                              [l, user, title_id]() {
                                  ui::prompt_text("playshelf/services/save_note"_i18n, "", (int)library::MAX_NOTE,
                                                  [l, user, title_id](const std::string& note) {
-                                                     brls::sync([l, user, title_id, note]() { back_up(l, user, title_id, note); });
+                                                     aurore::sync([l, user, title_id, note]() { back_up(l, user, title_id, note); });
                                                  });
                              },
                              "pencil", "", "playshelf/services/group_console"_i18n);
@@ -416,7 +416,7 @@ void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint6
                                  std::vector<Choice> what;
                                  if (here)
                                      what.emplace_back("playshelf/services/save_restore"_i18n, [l, user, s]() {
-                                         ui::confirm_danger(brls::getStr("playshelf/services/save_restore_body", game_name(*l, s.title_id, s.title_name),
+                                         ui::confirm_danger(aurore::getStr("playshelf/services/save_restore_body", game_name(*l, s.title_id, s.title_name),
                                                                          user.name, backup_label(s)),
                                                             "playshelf/services/save_restore"_i18n, [l, user, s]() { restore(l, user, s); });
                                      }, "restore");
@@ -433,7 +433,7 @@ void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint6
     if (!count)
         choices.emplace_back(d->why.empty() ? "playshelf/services/save_none_server"_i18n : d->why, nullptr, "info", "",
                              "playshelf/services/group_server"_i18n);
-    ui::pick_actions(game_name(*l, title_id, fallback), choices, brls::getStr("playshelf/services/save_user", d->user.name));
+    ui::pick_actions(game_name(*l, title_id, fallback), choices, aurore::getStr("playshelf/services/save_user", d->user.name));
 }
 
 void games_with_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d)
@@ -444,7 +444,7 @@ void games_with_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d)
     std::set<uint64_t> ids = d->local;
     for (const auto& kv : backups) ids.insert(kv.first);
     if (ids.empty()) {
-        ui::info(d->why.empty() ? "playshelf/services/saves_none"_i18n : brls::getStr("playshelf/services/saves_failed", d->why));
+        ui::info(d->why.empty() ? "playshelf/services/saves_none"_i18n : aurore::getStr("playshelf/services/saves_failed", d->why));
         return;
     }
     std::vector<std::pair<std::string, uint64_t>> games;
@@ -462,10 +462,10 @@ void games_with_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d)
         std::string  detail = d->local.count(id) ? "playshelf/services/save_here"_i18n : "playshelf/services/save_not_here"_i18n;
         detail += " · " + (n == 0   ? "playshelf/services/no_backup"_i18n
                            : n == 1 ? "playshelf/services/backups_one"_i18n
-                                    : brls::getStr("playshelf/services/backups", n));
+                                    : aurore::getStr("playshelf/services/backups", n));
         details.push_back(detail);
     }
-    ui::pick(brls::getStr("playshelf/services/saves_of", d->user.name), names, 0,
+    ui::pick(aurore::getStr("playshelf/services/saves_of", d->user.name), names, 0,
              [l, d, games](int i) { game_saves(l, d, games[(size_t)i].second); }, false, details);
 }
 
@@ -475,7 +475,7 @@ void open_saves(const Loaded& l, const CoreSaveUser& user, uint64_t only)
     auto                b = busy("playshelf/services/saves_reading"_i18n, true);
     ui::in_background("saves", [b, link, user, only, l]() {
         const auto d = read_saves(link, user);
-        brls::sync([b, d, l, only]() {
+        aurore::sync([b, d, l, only]() {
             if (!finish(b)) return;
             if (only) game_saves(l, d, only);
             else games_with_saves(l, d);
@@ -495,7 +495,7 @@ void ask_for(const Loaded& l, uint64_t id, const std::string& name)
         library::HttpTransport t;
         std::string            message, why;
         const bool             ok = library::request_title(link, t, session, id, name, &message, &why);
-        brls::sync([b, ok, message, why, session, server_id]() {
+        aurore::sync([b, ok, message, why, session, server_id]() {
             s_sessions[server_id] = session;
             finish(b);
             if (!ok) ui::error("playshelf/services/request_failed"_i18n, why);
@@ -513,7 +513,7 @@ void search_and_ask(const Loaded& l)
             typed = std::strtoull(query.c_str(), nullptr, 16);
         if (typed) {
             const uint64_t base = library::base_of(typed);
-            ui::confirm(brls::getStr("playshelf/services/request_body", game_name(*l, base)), "playshelf/services/request"_i18n,
+            ui::confirm(aurore::getStr("playshelf/services/request_body", game_name(*l, base)), "playshelf/services/request"_i18n,
                         [l, base]() {
                             // Its name only when known: never its title id in its place.
                             const std::string name = game_name(*l, base);
@@ -524,7 +524,7 @@ void search_and_ask(const Loaded& l)
         auto b = busy("playshelf/services/request_searching"_i18n, true);
         ui::in_background("title search", [b, l, query]() {
             const auto found = titledb_flow::search(query, 60);
-            brls::sync([b, l, found]() {
+            aurore::sync([b, l, found]() {
                 if (!finish(b)) return;
                 if (found.empty()) {
                     ui::info("playshelf/services/request_nothing"_i18n);
@@ -587,7 +587,7 @@ void cheats(const Loaded& l, uint64_t title_id)
         std::vector<library::Cheat> list;
         std::string                 why;
         const bool                  ok = library::list_cheats(link, t, session, &list, &why);
-        brls::sync([b, ok, list, why, session, server_id, l, title_id]() {
+        aurore::sync([b, ok, list, why, session, server_id, l, title_id]() {
             s_sessions[server_id] = session;
             if (!finish(b)) return;
             if (!ok) {
@@ -615,7 +615,7 @@ void cheats(const Loaded& l, uint64_t title_id)
             for (const auto& [name, id] : games) {
                 names.push_back(name);
                 const size_t n = by_game[id].size();
-                details.push_back(n == 1 ? "playshelf/services/builds_one"_i18n : brls::getStr("playshelf/services/builds", n));
+                details.push_back(n == 1 ? "playshelf/services/builds_one"_i18n : aurore::getStr("playshelf/services/builds", n));
             }
             ui::pick("playshelf/services/cheats"_i18n, names, 0, [l, games, by_game](int i) {
                 const uint64_t id = games[(size_t)i].second;
@@ -632,7 +632,7 @@ void saves(const Loaded& l, uint64_t title_id)
         std::vector<CoreSaveUser> users(CORE_SAVE_USERS_MAX);
         const int                 n = core_save_users(users.data(), (int)users.size());
         users.resize(n > 0 ? (size_t)n : 0);
-        brls::sync([l, title_id, users]() {
+        aurore::sync([l, title_id, users]() {
             if (users.empty()) {
                 ui::error("playshelf/services/saves_no_user"_i18n);
                 return;
@@ -661,7 +661,7 @@ void requests(const Loaded& l)
         std::vector<library::TitleRequest> list;
         std::string                        why;
         const bool                         ok = library::list_requests(link, t, session, &list, &why);
-        brls::sync([b, ok, list, why, session, server_id, l]() {
+        aurore::sync([b, ok, list, why, session, server_id, l]() {
             s_sessions[server_id] = session;
             if (!finish(b)) return;
             if (!ok) {

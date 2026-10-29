@@ -19,13 +19,13 @@
 #   analyzer's;
 # - cert-err33-c: every snprintf into a fixed buffer, whose truncation is
 #   the point (bugprone-unused-return-value keeps the calls that matter);
-# - cert-err58-cpp: static objects whose constructors may throw (borealis'
+# - cert-err58-cpp: static objects whose constructors may throw (Aurore's
 #   own strings);
 # - performance-enum-size, performance-avoid-endl,
 #   performance-inefficient-string-concatenation: style, nothing to gain;
 # - clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling:
 #   every memcpy and snprintf, for C11 Annex K functions no libc here has;
-# - clang-analyzer-cplusplus.NewDeleteLeaks: borealis' views are `new`ed and
+# - clang-analyzer-cplusplus.NewDeleteLeaks: Aurore's views are `new`ed and
 #   owned by the view they are added to, which the analyzer cannot see;
 # - clang-analyzer-optin.performance.Padding: the order of a struct's fields
 #   is the reader's, not the compiler's.
@@ -55,7 +55,7 @@ CheckOptions:
   bugprone-reserved-identifier.AllowedIdentifiers: '_POSIX_C_SOURCE;_GNU_SOURCE;_DEFAULT_SOURCE;_XOPEN_SOURCE'
   cert-dcl37-c.AllowedIdentifiers: '_POSIX_C_SOURCE;_GNU_SOURCE;_DEFAULT_SOURCE;_XOPEN_SOURCE'
   cert-dcl51-cpp.AllowedIdentifiers: '_POSIX_C_SOURCE;_GNU_SOURCE;_DEFAULT_SOURCE;_XOPEN_SOURCE'
-# PlayShelf's headers only: borealis' (a system include path) stay out.
+# PlayShelf's headers only: Aurore's (a system include path) stay out.
 HeaderFilterRegex: '/source/.*\.(h|hpp)$'
 WarningsAsErrors: ''
 FormatStyle: none

@@ -3,9 +3,9 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 
-class InitErrorActivity : public brls::Activity
+class InitErrorActivity : public aurore::Activity
 {
   public:
     CONTENT_FROM_XML_RES("activity/init_error.xml");
@@ -13,6 +13,6 @@ class InitErrorActivity : public brls::Activity
     void onContentAvailable() override;
 
   private:
-    BRLS_BIND(brls::Label, error_code, "error_code");
-    BRLS_BIND(brls::Label, error_fw,   "error_fw");
+    AURORE_BIND(aurore::Label, error_code, "error_code");
+    AURORE_BIND(aurore::Label, error_fw,   "error_fw");
 };

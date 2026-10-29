@@ -6,11 +6,11 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <cstdint>
 #include <string>
 
-class GameTile : public brls::Box
+class GameTile : public aurore::Box
 {
   public:
     // Its width, margins included: the grid fits as many a row as its width
@@ -29,16 +29,16 @@ class GameTile : public brls::Box
     void set_icon(const uint8_t* rgba, int width, int height);
     bool has_icon() const { return this->iconed; }
 
-    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
-              brls::FrameContext* ctx) override;
+    void draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
+              aurore::FrameContext* ctx) override;
 
   private:
-    brls::Box*   cover = nullptr;
-    brls::View*  placeholder = nullptr;   // a CoverPlaceholder
-    brls::Image* icon = nullptr;
-    brls::Label* name = nullptr;
-    brls::Label* detail = nullptr;
-    brls::Box*   badge = nullptr;
+    aurore::Box*   cover = nullptr;
+    aurore::View*  placeholder = nullptr;   // a CoverPlaceholder
+    aurore::Image* icon = nullptr;
+    aurore::Label* name = nullptr;
+    aurore::Label* detail = nullptr;
+    aurore::Box*   badge = nullptr;
     bool         iconed = false;
-    brls::Time   icon_since = 0;   // the icon arrived then (µs): it fades in; 0 at rest
+    aurore::Time   icon_since = 0;   // the icon arrived then (µs): it fades in; 0 at rest
 };

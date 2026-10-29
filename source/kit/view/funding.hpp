@@ -4,7 +4,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <functional>
 
 namespace funding
@@ -13,11 +13,11 @@ namespace funding
 // The two cards side by side. Focusable cards (in a tab or a screen) let the
 // D-pad reach them and show their code larger on Ⓐ; in a dialog, whose
 // buttons take the focus, they are not.
-brls::Box* cards(float qr_side, bool focusable);
+aurore::Box* cards(float qr_side, bool focusable);
 
 // A dialog of `text` with both codes under it (`qr_side` px), its buttons
 // left to the caller.
-brls::Dialog* dialog(const std::string& text, float qr_side);
+aurore::Dialog* dialog(const std::string& text, float qr_side);
 
 // The support note and both codes, OK; `then` runs once it closes.
 void open_dialog(std::function<void()> then = nullptr);

@@ -1,17 +1,17 @@
 // ui — PlayShelf's own helpers (background tasks, the SD card's writes,
 // config.json, result codes, the console's clock and system), beside Aurore's
-// Cadran helpers (borealis/cadran/ui/ui.hpp: dialogs, toasts, pickers…) in
+// Cadran helpers (Aurore/cadran/ui/ui.hpp: dialogs, toasts, pickers…) in
 // the same namespace.
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <string>
 
-#include <borealis/cadran/ui/ui.hpp>
+#include <aurore/cadran/ui/ui.hpp>
 
 #include "core/calendar.h"
 #include "core/nx_types.h"
@@ -28,7 +28,7 @@ namespace ui
 // out (the start-up error and recovery screens say what to do themselves).
 std::string rc_text(Result rc, bool next_step = true);
 
-// Runs `task` on a thread of its own, rather than brls::async: that single
+// Runs `task` on a thread of its own, rather than aurore::async: that single
 // queue runs one task after the other, so a network request queued there
 // waits behind loading game icons (minutes, on a console with many games),
 // or behind another request's timeout. Every network task goes here; the
@@ -39,7 +39,7 @@ void in_background(const char* what, std::function<void()> task);
 // At exit, after the main loop: says the app is quitting (quitting() turns
 // true, for a task that waits or polls) and waits up to `max` for the tasks
 // of in_background still running, so none of them outlives the objects it
-// uses (brls::sync's queue, curl, statics), joining the threads of those
+// uses (aurore::sync's queue, curl, statics), joining the threads of those
 // that ended. The writes of write_later are finished first, and any asked
 // for later run at once. False when some are still running.
 bool finish_background(std::chrono::milliseconds max);
@@ -131,7 +131,7 @@ bool refuse_read_only();
 // A BooleanCell flips before telling its listener: in read-only mode the
 // switch would flip, the write be refused and the switch flip back. This
 // checks first, then flips as BooleanCell does.
-void guard_switch(brls::BooleanCell* cell);
+void guard_switch(aurore::BooleanCell* cell);
 
 // After app::set_read_only / set_dev_mode: updates the main screen title,
 // tells the app (ui::hooks::mode_changed) and re-reads the tab on screen.

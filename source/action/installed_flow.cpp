@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include <borealis.hpp>
+#include <aurore.hpp>
 #include <map>
 #include <mutex>
 
@@ -92,7 +92,7 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
             if (play) core_play_close();
             Space room;
             room.known = core_sd_space(&room.total, &room.free);
-            brls::sync([out, room]() {
+            aurore::sync([out, room]() {
                 s_games = out;
                 s_space = room;
                 const std::vector<Done> waiting = std::move(s_waiting);
@@ -108,13 +108,13 @@ void remove(uint64_t id, const std::string& name, const std::function<void(std::
 {
     ui::in_background("delete game", [id, name, done]() {
         const Result rc = core_game_delete(id);
-        brls::sync([id, name, done, rc]() {
+        aurore::sync([id, name, done, rc]() {
             if (R_FAILED(rc)) {
-                brls::Logger::warning("library: {:016X} could not be deleted: 0x{:X}", id, rc);
-                ui::notify(brls::getStr("playshelf/installed/delete_failed", name), ui::Toast::Refused);
+                aurore::Logger::warning("library: {:016X} could not be deleted: 0x{:X}", id, rc);
+                ui::notify(aurore::getStr("playshelf/installed/delete_failed", name), ui::Toast::Refused);
             } else {
-                brls::Logger::info("library: {:016X} deleted", id);
-                ui::notify(brls::getStr("playshelf/installed/deleted", name), ui::Toast::Done);
+                aurore::Logger::info("library: {:016X} deleted", id);
+                ui::notify(aurore::getStr("playshelf/installed/deleted", name), ui::Toast::Done);
             }
             read(done);
         });
@@ -123,8 +123,8 @@ void remove(uint64_t id, const std::string& name, const std::function<void(std::
 
 std::string play_text(uint64_t seconds)
 {
-    if (seconds >= 3600) return brls::getStr("playshelf/home/played_hours", seconds / 3600);
-    return brls::getStr("playshelf/home/played_minutes", std::max<uint64_t>(1, seconds / 60));
+    if (seconds >= 3600) return aurore::getStr("playshelf/home/played_hours", seconds / 3600);
+    return aurore::getStr("playshelf/home/played_minutes", std::max<uint64_t>(1, seconds / 60));
 }
 
 std::shared_ptr<const std::vector<Game>> games()
