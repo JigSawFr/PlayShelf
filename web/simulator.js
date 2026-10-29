@@ -129,7 +129,7 @@ function showTheme() {
 // The browser's bar (Android) and the home-screen app's, in the page's
 // theme: the header's colour (simulator.css' --surface).
 function barColour(theme) {
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#111d31' : '#ffffff');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0e1a33');
 }
 
 function chooseTheme(choice) {
@@ -906,6 +906,29 @@ function homeLink() {
   $('nav-install').href = `${home}#install`;
   $('nav-docs').href = `${home}docs/getting-started/`;
   $('language-face').textContent = language.split('-')[0].toUpperCase();
+  // Boréale's other sites, in French where the page is (the four have it).
+  const french = language.startsWith('fr');
+  for (const link of document.querySelectorAll('#sites [data-site]')) {
+    link.href = link.dataset.site + (french ? 'fr/' : '');
+  }
+  $('sites-button').setAttribute('aria-label', `PlayShelf · ${t('sites_label')}`);
+}
+
+// Boréale's site switcher: the menu of the four sites opens under the name, as
+// on the website (site/assets/site.js' "site switcher" block). Without
+// popovers (an old browser), the menu stays closed.
+function setUpSites() {
+  const menu = $('sites');
+  const anchor = menu.closest('.switcher');
+  if (!menu.showPopover) return;
+  menu.addEventListener('beforetoggle', (event) => {
+    if (event.newState !== 'open') return;
+    const box = anchor.getBoundingClientRect();
+    const screen = document.documentElement.clientWidth;
+    const width = Math.min(400, screen - 24); // simulator.css' width
+    menu.style.top = `${box.bottom + window.scrollY + 6}px`;
+    menu.style.left = `${Math.max(12, Math.min(box.left, screen - width - 12)) + window.scrollX}px`;
+  });
 }
 
 function setUpHeader() {
@@ -1050,6 +1073,7 @@ async function main() {
   const build = showBuild();
   translatePage();
   homeLink();
+  setUpSites();
   setUpHeader();
   setUpPanel();
   setUpVersions(build);

@@ -4,9 +4,11 @@ The desktop simulator (`make desktop`, `source/sim/`), compiled with
 [Emscripten](https://emscripten.org) for a browser: the real borealis UI
 against a simulated console and a demo library server, to click through a
 change, try a state or show a screen without a build on the console.
-In the website's look: its colours, its header (the name, the language and
+In the website's look: its colours, its header in Boréale's night whatever
+the theme (the name opening the menu of Boréale's sites, the language and
 theme menus, a short face of them on a phone) and Sora for the name
-(`site/assets/fonts/sora.woff2`, with `branding/mark.svg`, copied by CMake).
+(`site/assets/fonts/sora.woff2`, with `branding/mark.svg` and the sites' marks
+of `site/assets/marks/`, copied by CMake).
 
 ## The demo library server
 
