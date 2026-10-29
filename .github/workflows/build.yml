@@ -132,10 +132,12 @@ jobs:
             build/fuzz/*.log
           if-no-files-found: ignore
 
-  # The real UI against a simulated console, warnings as errors, then the
-  # smoke test through every screen (tools/desktop_smoke.py), the visual
-  # check of its stable screens against main's (tests/visual/README.md) and
-  # the screenshots as an artifact.
+  # The real UI against a simulated console and the demo (its games'
+  # pictures drawn in Chromium through Playwright, docs/contributing/
+  # simulator.md), warnings as errors, then the smoke test through every
+  # screen (tools/desktop_smoke.py), the visual check of its stable screens
+  # against main's (tests/visual/README.md) and the screenshots as an
+  # artifact.
   desktop:
     needs: meta
     runs-on: ubuntu-26.04
@@ -149,6 +151,8 @@ jobs:
       # A push to main, a release or a manual run keep their screens as the
       # references; a pull request compares with them.
       KEEP: ${{ github.event_name != 'pull_request' && '1' || '0' }}
+      # Playwright, pinned as web.yml's, for the demo's pictures.
+      PLAYWRIGHT_VERSION: 1.64.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -159,7 +163,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends cmake ccache libgl1-mesa-dev libgl1-mesa-dri \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxkbcommon-dev libwayland-dev \
-            wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev libzstd-dev libwebp-dev xvfb xauth xdotool imagemagick dbus
+            wayland-protocols libdbus-1-dev libcurl4-openssl-dev zlib1g-dev libzstd-dev libwebp-dev xvfb xauth xdotool imagemagick dbus \
+            python3-pil
+          python3 -m venv --system-site-packages "$RUNNER_TEMP/playwright"
+          "$RUNNER_TEMP/playwright/bin/pip" install -q "playwright==$PLAYWRIGHT_VERSION"
+          sudo "$RUNNER_TEMP/playwright/bin/python" -m playwright install-deps chromium
+          "$RUNNER_TEMP/playwright/bin/python" -m playwright install chromium
       - name: Compiler messages as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -173,7 +182,7 @@ jobs:
           CMAKE_CXX_COMPILER_LAUNCHER: ccache
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_MAXSIZE: 400M
-        run: make desktop CMAKE_ARGS=-DPLAYSHELF_WERROR=ON
+        run: make desktop ART_PYTHON="$RUNNER_TEMP/playwright/bin/python" CMAKE_ARGS=-DPLAYSHELF_WERROR=ON
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: github.ref == 'refs/heads/main'
         with:

@@ -36,8 +36,8 @@
 #include "app.hpp"
 #include "core/platform.h"
 #include "core/sim_env.h"
-#ifdef __EMSCRIPTEN__
-#include "sim/web_demo.hpp"
+#ifndef __SWITCH__
+#include "sim/sim_demo.hpp"
 #endif
 #include "core/sysinfo.h"
 #include "tab/about_tab.hpp"
@@ -337,8 +337,8 @@ int main(int argc, char* argv[])
     migrations::set_latest(migrations::None);
     migrations::run(paths::migrations_file(), {}, app::version());
     startup_mark(StartupStep_Migrations);
-#ifdef __EMSCRIPTEN__
-    web_demo::seed_console();   // the web demo's first games, on a first start
+#ifndef __SWITCH__
+    sim_demo::start();   // the simulators' demo: its answers, and on a first start its server and games
 #endif
     start_session();
     startup_mark(StartupStep_Session);

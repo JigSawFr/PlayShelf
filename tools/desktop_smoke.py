@@ -17,7 +17,9 @@ Usage: tools/desktop_smoke.py <out-dir> [loading]   (needs DISPLAY, xdotool, Ima
 Environment knobs of the simulated backend (PLAYSHELF_SIM_*) are passed
 through; the console time is fixed (PLAYSHELF_SIM_NOW, TZ), the focus glow
 still (PLAYSHELF_SIM_STILL_FOCUS) and the header's version badge on one
-development build (PLAYSHELF_SIM_VERSION) unless set.
+development build (PLAYSHELF_SIM_VERSION) and the demo's server at once
+(PLAYSHELF_SIM_SPEED) unless set. A build with the demo (`make desktop`)
+starts with its server and games; PLAYSHELF_SIM_NO_DEMO=1 as a new console.
 """
 import glob
 import os
@@ -58,6 +60,9 @@ env["PLAYSHELF_SIM_FOCUS_LOG"] = "1"     # each line focused, by its words (go_t
 env.setdefault("PLAYSHELF_SIM_VERSION", "1.0.0:1a2b3c4")
 # No network: the update check answers at once.
 env.setdefault("PLAYSHELF_SIM_LATEST", "offline")
+# The demo's server at once (docs/contributing/simulator.md): every icon of
+# the Catalogue there for its screenshot.
+env.setdefault("PLAYSHELF_SIM_SPEED", "0")
 if LOADING:
     env["PLAYSHELF_SIM_HOLD_LOADING"] = "1"
 
@@ -215,6 +220,11 @@ ready = [l for l in log_lines() if "start-up: first screen ready after" in l]
 m = re.search(r"after (\d+) ms", ready[0]) if ready else None
 if not m or int(m.group(1)) < 2000:
     fail("the first screen came before the end of the intro: " + (ready[0].strip() if ready else "no line"))
+
+# The demo's pictures come one after the other (action/library_icons.cpp),
+# Home's first: a moment for them, so the Library's icons are there for its
+# screenshot.
+time.sleep(4)
 
 # The tabs, down the rail: Home, Library, Catalogue, Downloads | Preferences, About.
 shot("00_home")

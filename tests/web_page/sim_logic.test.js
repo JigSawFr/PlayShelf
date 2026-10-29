@@ -78,8 +78,9 @@ test('the variables and config.json PlayShelf starts with', () => {
   assert.equal(env.PLAYSHELF_SIM_EMUMMC, undefined);
   assert.equal(env.PLAYSHELF_SIM_FW, '20.5.0');
   assert.equal(env.PLAYSHELF_SIM_UNKNOWN_ONE, 'v');   // a newer build's variable still reaches it
+  assert.equal(env.PLAYSHELF_SIM_NO_DEMO, '1');       // PlayShelf's own first start (sim/sim_demo.hpp)
   // The page's own: no variable.
-  for (const own of ['REC', 'NO_DEMO', 'KEEP']) assert.equal(env[`PLAYSHELF_SIM_${own}`], undefined, own);
+  for (const own of ['REC', 'KEEP']) assert.equal(env[`PLAYSHELF_SIM_${own}`], undefined, own);
   assert.equal(L.envValue(known.get('applet'), 'off'), '');
   assert.equal(L.envName('dev_builds'), 'PLAYSHELF_SIM_DEV_BUILDS');
 });

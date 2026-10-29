@@ -26,16 +26,23 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_NOW=<POSIX seconds>` | A frozen console time (with `TZ=` for its time zone) |
 | `PLAYSHELF_SIM_NO_CFW=1` | No Atmosphère |
 | `PLAYSHELF_SIM_NO_GAME=1` | No game open (applet mode with nothing behind it) |
+| `PLAYSHELF_SIM_NO_DEMO=1` | A first start without the demo (below): no library server, no game on the console, a console as new (its services' answers stay the demo's) |
 | `PLAYSHELF_SIM_NO_PLAY=1` | No play time on the console (`sim/sim_play.cpp`; unset, each game's play time, starts and last play are made up from its title id) |
 | `PLAYSHELF_SIM_PASTE=https://gist.github.com/u/ab12` | What GitHub answers to *Send a report…* (`offline` for no network) |
 | `PLAYSHELF_SIM_REGION=2` | The console region |
-| `PLAYSHELF_SIM_SIGNED=1` | The packages signed with the host tests' key (the web simulator's demo server's, `tools/web_demo.cpp`) taken as signed by Nintendo: installed without the question an unsigned content asks |
-| `PLAYSHELF_SIM_SPEED=96` | The web simulator only: how fast its demo library server answers, in KB/s (96 unless set; `0`: at once), so a download is seen going (`source/sim/web_http.cpp`) |
+| `PLAYSHELF_SIM_SIGNED=1` | The packages signed with the host tests' key (the demo server's, `tools/web_demo.cpp`) taken as signed by Nintendo: installed without the question an unsigned content asks. Set by the demo unless set (`0`: each install asks) |
+| `PLAYSHELF_SIM_SPEED=96` | How fast the demo library server answers, in KB/s (96 unless set; `0`: at once), so a download is seen going (`source/sim/sim_demo_http.cpp`) |
 | `PLAYSHELF_SIM_STATS=<file>` | Not the console: one line per frame (frame time with the FPS limiter off, nanovg's draw calls and triangles). On the console (and the desktop), *About › Help & diagnostics › Developer › Frame statistics* writes one line per second to `logs/frame_stats.txt` instead: the mode (docked, handheld), the UI thread's own time per frame and the late frames (`source/kit/action/frame_stats_flow.cpp`) |
 | `PLAYSHELF_SIM_STILL_FOCUS=1` | Not the console: the focus highlight without its moving glow, the loading screen's ring still, every movement of the look drawn at its end (`effects::motion()`: no entrance, no pulse, no slide), and the footer's hints never greyed while a screen or a dialog opens or closes (Aurore patch `0014`), for screenshots that compare |
 | `PLAYSHELF_SIM_STORE=1.1.0` | The version of PlayShelf the Homebrew App Store's catalogue has (`none`: not listed, `offline` for no network): with its record on the simulated SD card (`playshelf_data/sd/switch/appstore/.get/packages/PlayShelf/manifest.install`), an update through a store first checks the catalogue has the new version |
 | `PLAYSHELF_SIM_VERSION=1.0.0:1a2b3c4` | Not the console: the version and commit the header's badge shows (`1.0.0:` for a release), not the build's own, for screenshots that compare |
 
 The simulated console's games each take 1 to 16 GB (made up from their title id, `sim/sim_games.cpp`) on an SD card of 128 GB with 9.6 GB free: under a tenth, so the notification bell says the card is nearly full.
+
+## The demo
+
+`make desktop` first makes the web simulator's demo ([web/README.md](../../web/README.md#the-demo-library-server)) in `build-desktop/demo/` (about a minute: the pictures are drawn in Chromium, so it needs Playwright for Python and Pillow; `CHROMIUM=…` for another Chromium, `ART_PYTHON=…` for another Python), and PlayShelf reads it from there at each start (`source/sim/sim_demo.hpp`): 28 made-up games, a library server of 24 of them at `https://demo.playshelf.example`, and the answers of the services that tell about games (PlayInsights, Nlib API, a title database) about them, given in place of the network's (`util/http`'s stand-in). Every other address goes to the network as before.
+
+On a first start (no `servers.json` yet) PlayShelf adds the demo server, sys-patch on the simulated SD card, six of its games on the console, played, three on its wishlist, and fetches the title database: Home has every row, a game's page its pictures, the Catalogue the server's games, which install (`PLAYSHELF_SIM_SIGNED`). `PLAYSHELF_SIM_NO_DEMO=1` starts as a new console instead; `make desktop DESKTOP_DEMO=` builds without the demo, the services then fetched from the network.
 
 Run it on a desktop with a D-Bus session (`dbus-run-session -- build-desktop/playshelf`); its data folder is `playshelf_data/` in the working directory, the simulated SD card `playshelf_data/sd/`.

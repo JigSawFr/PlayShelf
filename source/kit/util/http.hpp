@@ -128,4 +128,25 @@ void abort_all();
 // does nothing while a request is still running.
 void cleanup();
 
+#ifndef __SWITCH__
+// Not the console (the simulator): what answers some addresses in place of
+// the network, without libcurl (the app's demo, source/sim/sim_demo.hpp).
+// `serves` says which; each of the others answers as the function of its
+// name above. Set once, before the first request; nullptr: the network.
+struct StandIn
+{
+    bool (*serves)(const std::string& url);
+    decltype(&http::get)              get;
+    decltype(&http::post)             post;
+    decltype(&http::redirect)         redirect;
+    decltype(&http::download)         download;
+    decltype(&http::range)            range;
+    decltype(&http::resource_size)    resource_size;
+    decltype(&http::request)          request;
+    decltype(&http::call)             call;
+    decltype(&http::peer_certificate) peer_certificate;
+};
+void set_stand_in(const StandIn* answers);
+#endif
+
 }   // namespace http

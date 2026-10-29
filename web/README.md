@@ -25,8 +25,10 @@ A browser cannot reach a library server without its CORS headers, nor speak
 plain TCP: every request is answered as a console without a connection
 (`source/sim/web_http.cpp`), but those to `https://demo.playshelf.example`,
 a server packaged with the page (`/app/samples/demo`), and those to the
-services that tell about games, answered about the demo's: nothing real is
-fetched. All of it is made from one table, `tools/web_demo_games.json`: 28
+services that tell about games, answered about the demo's
+(`source/sim/sim_demo_http.cpp`): nothing real is fetched. The desktop
+simulator has the same demo, read from `build-desktop/demo/`
+([docs/contributing/simulator.md](../docs/contributing/simulator.md)). All of it is made from one table, `tools/web_demo_games.json`: 28
 made-up games like today's best known ones (an open world, a kart race,
 monsters to collect, a village to live in…), of made-up series and studios,
 none of a real game's names, characters or pictures. 24 are on the server,
@@ -76,17 +78,17 @@ none of a real game's names, characters or pictures. 24 are on the server,
 The dates the table gives in `days` are counted from the day of the build:
 the month's releases and the coming ones stay so for the weeks after it.
 
-The page adds the server to `servers.json` on a first start (`no_demo=1`:
-none, a console with no server yet), with sys-patch on the simulated SD
-card, as a console that installs games has, and `PLAYSHELF_SIM_SIGNED=1`:
-the demo's packages, signed with the test key, are taken as Nintendo's
-(`signed=0`: each install asks first, as an unsigned package does). Six of
-its games are on the console from that first start, played
-(`source/sim/sim_play.cpp`), three on its wishlist, so Home has every row:
-the page asks for them (`sim_console/seed_demo` in the data folder) and
-PlayShelf puts their content meta records, names and icons and the
-wishlist (`console/` of the demo) on the simulated console as it starts,
-and fetches the title database (`source/sim/web_seed.cpp`).
+On a first start PlayShelf adds the server to `servers.json` itself
+(`no_demo=1`, `PLAYSHELF_SIM_NO_DEMO`: none, a console with no server yet),
+with sys-patch on the simulated SD card, as a console that installs games
+has. The page sets `PLAYSHELF_SIM_SIGNED=1`: the demo's packages, signed
+with the test key, are taken as Nintendo's (`signed=0`: each install asks
+first, as an unsigned package does). Six of its games are on the console
+from that first start, played (`source/sim/sim_play.cpp`), three on its
+wishlist, so Home has every row: PlayShelf puts their content meta
+records, names and icons and the wishlist (`console/` of the demo) on the
+simulated console as it starts, and fetches the title database
+(`source/sim/sim_demo_seed.cpp`).
 
 ## The page
 

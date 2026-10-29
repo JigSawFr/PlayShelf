@@ -5,7 +5,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | Command | What it does | Needs |
 |---|---|---|
 | `make test` | Host unit tests of the kit's console-free C and of the UI-free C++ helpers and flow logic, with ASan + UBSan (`SAN=` to turn them off) and libstdc++'s assertions; the suites run in parallel, all of them even when one fails | gcc and g++ with the sanitizers, zlib and zstd headers, the Aurore submodule — no devkitPro |
-| `make desktop` | The real UI on Linux, against a simulated console ([the simulator](simulator.md)), with Aurore's debugging aids read from the environment (`AURORE_INSPECTOR=1`, `AURORE_HOT_RELOAD=<resources folder>`) | GLFW / X11 / Wayland / D-Bus dev packages |
+| `make desktop` | The real UI on Linux, against a simulated console and the demo's made-up games ([the simulator](simulator.md)), with Aurore's debugging aids read from the environment (`AURORE_INSPECTOR=1`, `AURORE_HOT_RELOAD=<resources folder>`) | GLFW / X11 / Wayland / D-Bus dev packages, libzstd, and Playwright for Python with Pillow for the demo's pictures (`DESKTOP_DEMO=`: without the demo) |
 | `make` | `./playshelf.nro` — drawn with deko3d (`GL=1` for OpenGL) | devkitPro `switch-dev`, `DEVKITPRO` set |
 | `make dist` | `./playshelf.zip` (SD-card layout, reproducible) | as above |
 | `make check` | `make test`, then the resource, source and compatibility checks ([tests](tests.md)) | as `make test`, Python 3 |
