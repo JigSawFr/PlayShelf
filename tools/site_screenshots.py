@@ -14,12 +14,16 @@ the Library and the Downloads show it.
 
 Usage: tools/site_screenshots.py <simulator-dir> <out-dir> [language…] [--png]
 (the site's languages, site/i18n/*.json, by default; needs Playwright for
-Python with Chromium; PLAYWRIGHT_CHROMIUM=<path> for a browser of its own)
+Python with Chromium; PLAYWRIGHT_CHROMIUM=<path> for a browser of its own).
+The languages are taken SITE_SCREENSHOT_JOBS at a time (the processors, by
+default), each in a process and a browser of its own.
 """
 import base64
+import concurrent.futures
 import functools
 import glob
 import http.server
+import multiprocessing
 import os
 import sys
 import threading
@@ -108,6 +112,20 @@ def take(browser, base, lang, theme, out):
         context.close()
 
 
+def run(base, lang, theme, out):
+    """One language in one theme, in a Playwright and a browser of its own (a
+    worker process): SwiftShader's GPU process can stop answering after a
+    few starts in one browser."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM") or None,
+            args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
+        try:
+            return take(browser, base, lang, theme, out)
+        finally:
+            browser.close()
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if len(args) < 2:
@@ -118,22 +136,14 @@ def main():
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(Handler, directory=site))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{server.server_address[1]}/"
-    failed = 0
-    with sync_playwright() as p:
-        for lang in langs:
-            # The light theme only for the English PNGs: two runs for each of
-            # the fifteen languages outlast the CI step.
-            themes = ("dark", "light") if lang == "en-US" and "--png" in sys.argv else ("dark",)
-            for theme in themes:
-                # A browser for each run: SwiftShader's GPU process can stop
-                # answering after a few starts in one.
-                browser = p.chromium.launch(
-                    executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM") or None,
-                    args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
-                try:
-                    failed += not take(browser, base, lang, theme, out)
-                finally:
-                    browser.close()
+    # The light theme only for the English PNGs.
+    runs = [(lang, theme) for lang in langs
+            for theme in (("dark", "light") if lang == "en-US" and "--png" in sys.argv else ("dark",))]
+    jobs = max(1, int(os.environ.get("SITE_SCREENSHOT_JOBS") or os.cpu_count() or 1))
+    # Spawned, not forked: a fork of this process would copy the server's thread.
+    with concurrent.futures.ProcessPoolExecutor(min(jobs, len(runs)), mp_context=multiprocessing.get_context("spawn")) as pool:
+        done = list(pool.map(run, *zip(*[(base, lang, theme, out) for lang, theme in runs])))
+    failed = done.count(False)
     if "--png" in sys.argv and os.path.exists(os.path.join(out, "en-US", f"{SCREENS[0]}.webp")):
         from PIL import Image
         for name in SCREENS:
