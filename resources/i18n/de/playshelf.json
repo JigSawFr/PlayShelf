@@ -919,5 +919,14 @@
         "days": "vor {} Tagen gespielt",
         "months": "vor {} Monaten gespielt",
         "open_page": "Seite öffnen"
+    },
+    "not_interested": {
+        "action": "Kein Interesse",
+        "added": "{} wird nicht mehr vorgeschlagen",
+        "cleared": "Alle Spiele können wieder vorgeschlagen werden",
+        "row": "Nicht vorzuschlagende Spiele",
+        "about": "X auf einem vorgeschlagenen Spiel der Startseite legt es hier ab: Es wird nicht mehr vorgeschlagen, sehr ähnliche Spiele seltener.",
+        "clear": "Alle wieder vorschlagen",
+        "none": "Keine"
     }
 }

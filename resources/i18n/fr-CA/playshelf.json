@@ -919,5 +919,14 @@
         "days": "joué il y a {} jours",
         "months": "joué il y a {} mois",
         "open_page": "Ouvrir sa page"
+    },
+    "not_interested": {
+        "action": "Pas intéressé",
+        "added": "{} ne vous sera plus suggéré",
+        "cleared": "Tous les jeux peuvent de nouveau être suggérés",
+        "row": "Jeux à ne plus suggérer",
+        "about": "X sur un jeu que l'Accueil suggère le range ici : il n'est plus suggéré, et les jeux qui lui ressemblent beaucoup le sont moins.",
+        "clear": "Les suggérer tous de nouveau",
+        "none": "Aucun"
     }
 }
