@@ -572,7 +572,11 @@
         "downloads_done_one": "다운로드 1개가 설치되었습니다",
         "downloads_done": "다운로드 {}개가 설치되었습니다",
         "downloads_failed_one": "다운로드 1개가 실패했습니다",
-        "downloads_failed": "다운로드 {}개가 실패했습니다"
+        "downloads_failed": "다운로드 {}개가 실패했습니다",
+        "sale": "{} 할인 중",
+        "sale_lowest": "{} 역대 최저가",
+        "sale_until": "-{0}% · {1} ({2}까지)",
+        "day": "{1} {0}일"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "eShop 가격",
         "free": "무료",
         "price_sale": "{0} → {1} ({2}% 할인)",
-        "price_sale_until": "{0} → {1} ({2}% 할인, {3}까지)"
+        "price_sale_until": "{0} → {1} ({2}% 할인, {3}까지)",
+        "price_lowest_now": "역대 최저가",
+        "lowest": "{} 이후 최저가",
+        "lowest_value": "{0} ({1})"
     },
     "genres": {
         "action": "액션",

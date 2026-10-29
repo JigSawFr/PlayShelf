@@ -572,7 +572,11 @@
         "downloads_done_one": "Загрузка установлена",
         "downloads_done": "Установлено загрузок: {}",
         "downloads_failed_one": "Загрузка не удалась",
-        "downloads_failed": "Не удалось загрузок: {}"
+        "downloads_failed": "Не удалось загрузок: {}",
+        "sale": "{} со скидкой",
+        "sale_lowest": "{} по самой низкой цене",
+        "sale_until": "-{0}% · {1} до {2}",
+        "day": "{0} {1}"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "Цена в eShop",
         "free": "Бесплатно",
         "price_sale": "{0} → {1} (-{2}%)",
-        "price_sale_until": "{0} → {1} (-{2}%) до {3}"
+        "price_sale_until": "{0} → {1} (-{2}%) до {3}",
+        "price_lowest_now": "самая низкая цена",
+        "lowest": "Минимум с {}",
+        "lowest_value": "{0}, {1}"
     },
     "genres": {
         "action": "Экшен",

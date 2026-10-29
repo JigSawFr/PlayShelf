@@ -615,18 +615,26 @@ void GameActivity::fill_details_tab()
                  aurore::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews), reviews));
     }
     // Its eShop price in the player's country (action/prices_flow); on sale,
-    // the regular price, the sale's and its last day.
+    // the regular price, the sale's and its last day, and whether it is the
+    // lowest yet; then the lowest it has had, when lower than today's.
     if (const library::Price* price = prices_flow::of(this->page.title_id)) {
         const std::string country = prices_flow::country();
         const std::string regular = library::price_text(price->regular, country);
-        if (!price->on_sale()) fact(card, "playshelf/game/price"_i18n, price->regular > 0 ? regular : "playshelf/game/free"_i18n);
+        std::string       line;
+        if (!price->on_sale()) line = price->regular > 0 ? regular : "playshelf/game/free"_i18n;
         else if (price->until)
-            fact(card, "playshelf/game/price"_i18n, aurore::getStr("playshelf/game/price_sale_until", regular,
-                                                                   library::price_text(price->sale, country), price->discount(),
-                                                                   date_text(price->until)));
+            line = aurore::getStr("playshelf/game/price_sale_until", regular, library::price_text(price->sale, country),
+                                  price->discount(), date_text(price->until));
         else
-            fact(card, "playshelf/game/price"_i18n, aurore::getStr("playshelf/game/price_sale", regular,
-                                                                   library::price_text(price->sale, country), price->discount()));
+            line = aurore::getStr("playshelf/game/price_sale", regular, library::price_text(price->sale, country), price->discount());
+        if (price->on_sale() && price->at_lowest()) line += " · " + "playshelf/game/price_lowest_now"_i18n;
+        fact(card, "playshelf/game/price"_i18n, line);
+        const std::string since = prices_flow::book() ? prices_flow::book()->since() : "";
+        if (price->lowest > 0 && price->lowest < price->now() - 0.004 && price->lowest_day && since.size() == 10) {
+            const uint32_t first = (uint32_t)std::stoul(since.substr(0, 4) + since.substr(5, 2) + since.substr(8, 2));
+            fact(card, aurore::getStr("playshelf/game/lowest", date_text(first)),
+                 aurore::getStr("playshelf/game/lowest_value", library::price_text(price->lowest, country), date_text(price->lowest_day)));
+        }
     }
     // What critics gave it (PlayInsights, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)

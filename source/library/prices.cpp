@@ -60,6 +60,7 @@ bool PriceBook::from_json(const std::string& text)
     this->games.clear();
     this->day.clear();
     this->where.clear();
+    this->first.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
     if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("games") || !root["games"].is_object()) return false;
     const auto generated = root.find("generated");
@@ -77,10 +78,17 @@ bool PriceBook::from_json(const std::string& text)
         if (!std::isfinite(p.regular) || !std::isfinite(p.sale) || p.regular < 0 || p.regular > MAX_PRICE || p.sale < 0) continue;
         // A sale above the regular price is no sale.
         if (p.sale >= p.regular) p.sale = 0, p.until = 0;
+        // The lowest so far, when the file has it: a price, the same or lower than the regular one.
+        if (value.size() >= 5 && value[3].is_number() && day_of(value[4])) {
+            const double lowest = value[3].get<double>();
+            if (std::isfinite(lowest) && lowest > 0 && lowest <= p.regular) p.lowest = lowest, p.lowest_day = day_of(value[4]);
+        }
         this->games[id] = p;
     }
     this->day = generated->get<std::string>();
     this->where = country->get<std::string>();
+    const auto since = root.find("since");
+    if (since != root.end() && since->is_string() && is_day(since->get<std::string>())) this->first = since->get<std::string>();
     return true;
 }
 

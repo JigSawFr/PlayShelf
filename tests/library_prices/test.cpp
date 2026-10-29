@@ -1,6 +1,6 @@
 // library/prices: prices/<COUNTRY>.json read (bad entries skipped, a sale
-// above its price no sale), the country of a language, a price as each
-// country writes it.
+// above its price no sale), the lowest price so far, the country of a
+// language, a price as each country writes it.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "library/prices.hpp"
@@ -43,6 +43,29 @@ void test_read()
     CHECK(other.size() == 0);
 }
 
+void test_lowest()
+{
+    PriceBook book;
+    CHECK(book.from_json(R"({"schema":1,"generated":"2026-10-30","country":"FR","since":"2026-10-29","games":{
+        "0100000000010000":[19.99,9.99,20261112,9.99,20261030],
+        "0100000000020000":[59.99,0,0,39.99,20261029],
+        "0100000000030000":[9.99,0,0],
+        "0100000000040000":[9.99,0,0,12.5,20261029],
+        "0100000000050000":[9.99,0,0,5,"bad"]}})"));
+    CHECK(book.since() == "2026-10-29");
+    const Price* s = book.find(SALE);
+    if (CHECK(s != nullptr)) CHECK(s->lowest == 9.99 && s->lowest_day == 20261030 && s->at_lowest() && s->now() == 9.99);
+    const Price* f = book.find(FULL);
+    if (CHECK(f != nullptr)) CHECK(f->lowest == 39.99 && !f->at_lowest() && f->now() == 59.99);
+    // An old row of three, a lowest above the price, a lowest without its day: none known.
+    for (uint64_t id : { ODD, uint64_t(0x0100000000040000), uint64_t(0x0100000000050000) }) {
+        const Price* p = book.find(id);
+        if (CHECK(p != nullptr)) CHECK(p->lowest == 0 && p->lowest_day == 0 && !p->at_lowest());
+    }
+    PriceBook old;
+    CHECK(old.from_json(R"({"schema":1,"generated":"2026-10-29","country":"FR","games":{}})") && old.since().empty());
+}
+
 void test_countries()
 {
     CHECK(price_country_of("fr") == "FR");
@@ -70,6 +93,7 @@ void test_text()
 int main()
 {
     test_read();
+    test_lowest();
     test_countries();
     test_text();
     CHECK_DONE("library_prices");

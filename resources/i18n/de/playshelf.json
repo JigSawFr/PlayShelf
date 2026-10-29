@@ -572,7 +572,11 @@
         "downloads_done_one": "Ein Download ist installiert",
         "downloads_done": "{} Downloads sind installiert",
         "downloads_failed_one": "Ein Download ist fehlgeschlagen",
-        "downloads_failed": "{} Downloads sind fehlgeschlagen"
+        "downloads_failed": "{} Downloads sind fehlgeschlagen",
+        "sale": "{} ist im Angebot",
+        "sale_lowest": "{} ist so günstig wie nie",
+        "sale_until": "-{0} % · {1} bis {2}",
+        "day": "{0}. {1}"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "eShop-Preis",
         "free": "Kostenlos",
         "price_sale": "{0} → {1} (-{2} %)",
-        "price_sale_until": "{0} → {1} (-{2} %) bis {3}"
+        "price_sale_until": "{0} → {1} (-{2} %) bis {3}",
+        "price_lowest_now": "so günstig wie nie",
+        "lowest": "Am günstigsten seit {}",
+        "lowest_value": "{0} am {1}"
     },
     "genres": {
         "action": "Action",

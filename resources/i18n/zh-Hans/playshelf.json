@@ -572,7 +572,11 @@
         "downloads_done_one": "1 个下载已安装",
         "downloads_done": "{} 个下载已安装",
         "downloads_failed_one": "1 个下载失败",
-        "downloads_failed": "{} 个下载失败"
+        "downloads_failed": "{} 个下载失败",
+        "sale": "{} 正在促销",
+        "sale_lowest": "{} 史低价",
+        "sale_until": "-{0}% · {1}，至 {2}",
+        "day": "{1}{0}日"
     },
     "cadran": {
         "about": {
@@ -778,7 +782,10 @@
         "price": "eShop 价格",
         "free": "免费",
         "price_sale": "{0} → {1}（{2}% 折扣）",
-        "price_sale_until": "{0} → {1}（{2}% 折扣，至 {3}）"
+        "price_sale_until": "{0} → {1}（{2}% 折扣，至 {3}）",
+        "price_lowest_now": "史低价",
+        "lowest": "{} 以来最低价",
+        "lowest_value": "{0}（{1}）"
     },
     "genres": {
         "action": "动作",
