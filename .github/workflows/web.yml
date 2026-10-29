@@ -152,11 +152,39 @@ jobs:
           } | tee -a "$GITHUB_ENV"
       # The website's screenshots, each screen of its gallery in each of its
       # languages, in the dark theme the site shows (tools/site_screenshots.py),
-      # from the simulator just built: about 40 seconds each.
+      # from the simulator just built: about 40 seconds each, the languages
+      # one per processor. Taken again only when what they show can change:
+      # the simulator's sources, the submodule, the site's languages, the
+      # script and the versions of Emscripten and Playwright. Otherwise the
+      # last ones are reused (a pull request of docs, of the site's texts, of
+      # CI). Their only difference from one run to the next is the clock.
+      - name: The screenshots' inputs
+        id: shots-inputs
+        run: |
+          key=$({ git ls-tree HEAD source resources web library CMakeLists.txt Makefile \
+                    tools/web_demo.cpp tools/web_cjk_font.py tools/site_screenshots.py
+                  ls site/i18n
+                  echo "$EMSDK_VERSION $PLAYWRIGHT_VERSION"; } | sha256sum | cut -c1-16)
+          echo "key=site-shots-$key" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: shots
+        with:
+          path: shots
+          key: ${{ steps.shots-inputs.outputs.key }}
       - name: The website's screenshots
+        if: steps.shots.outputs.cache-hit != 'true'
         timeout-minutes: 20
         run: |
           "$RUNNER_TEMP/playwright/bin/python" -u tools/site_screenshots.py build-web/simulator shots
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: steps.shots.outputs.cache-hit != 'true'
+        with:
+          path: shots
+          key: ${{ steps.shots-inputs.outputs.key }}
+      - name: The website's screenshots, reused
+        if: steps.shots.outputs.cache-hit == 'true'
+        run: |
+          echo "The website's screenshots: reused (nothing they show has changed)." >> "$GITHUB_STEP_SUMMARY"
       - name: The website, the simulator in it
         env:
           REPO: ${{ github.repository }}
