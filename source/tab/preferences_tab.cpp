@@ -9,6 +9,7 @@
 #include <aurore/cadran/ui/cadran_frame.hpp>
 
 #include "action/download_flow.hpp"
+#include "action/not_interested.hpp"
 #include "action/titledb_flow.hpp"
 #include "action/popular_flow.hpp"
 #include "action/update_flow.hpp"
@@ -153,6 +154,17 @@ PreferencesTab::PreferencesTab()
         ui::save_config();
         if (on) popular_flow::refresh();
     });
+    // Home's suggestions put away (X on one): all of them suggested again.
+    not_interested->registerClickAction([this](aurore::View*) {
+        const size_t n = not_interested::games().size();
+        std::vector<ui::Choice> lines;
+        if (n) lines.emplace_back("playshelf/not_interested/clear"_i18n, ui::guarded(this->alive, [this]() {
+            not_interested::clear();
+            this->refresh();
+        }), "refresh");
+        ui::pick_actions("playshelf/not_interested/row"_i18n, lines, "playshelf/not_interested/about"_i18n);
+        return true;
+    });
     this->titledb_listener = titledb_flow::listen(ui::guarded(this->alive, [this]() { this->show_titledb(); }));
 
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
@@ -161,7 +173,7 @@ PreferencesTab::PreferencesTab()
                        { "pf_support_reminder", "heart" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
-                       { "pf_popular_online", "bolt" } });
+                       { "pf_popular_online", "bolt" }, { "pf_not_interested", "eye" } });
 }
 
 PreferencesTab::~PreferencesTab()
@@ -301,6 +313,10 @@ void PreferencesTab::refresh()
     update_daily->setOn(cfg.update_daily, false);
     nlib_api->setOn(cfg.nlib_api, false);
     popular_online->setOn(cfg.popular_online, false);
+    const size_t put_away = not_interested::games().size();
+    not_interested->setDetailText(!put_away      ? "playshelf/not_interested/none"_i18n
+                                  : put_away == 1 ? "playshelf/installed/count_one"_i18n
+                                                  : aurore::getStr("playshelf/installed/count", put_away));
     update_via->setDetailText(update_flow::method_text());
     this->show_titledb();
     this->list.sync();

@@ -13,6 +13,7 @@ namespace
 {
 // How much each signal counts in a suggestion's score.
 constexpr double LIKE = 1.6, SERIES = 1.0, DEVELOPER = 0.5, GENRE = 0.6, QUALITY = 0.5, FRESH = 0.15;
+constexpr double UNWANTED = 1.6;   // as much as a likeness: one cancels the other
 constexpr uint64_t STEAM_TRUSTED = 50;   // reviews below which Steam's say is left out
 
 // A trait of `kinds` shared with the console's games: the weightiest such
@@ -51,7 +52,8 @@ double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, ui
 
 std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::vector<Candidate>& candidates,
                                   const std::map<std::string, double>& genres, const SimilarBook& similar,
-                                  const SignalBook& signals, uint32_t today, size_t max)
+                                  const SignalBook& signals, const std::vector<uint64_t>& unwanted, uint32_t today,
+                                  size_t max)
 {
     double top = 0;
     for (const Owned& o : owned) top = std::max(top, o.weight);
@@ -60,6 +62,10 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
 
     std::vector<Suggestion> out;
     for (const Candidate& c : candidates) {
+        // One the player does not want: never; like one: less.
+        if (std::find(unwanted.begin(), unwanted.end(), c.id) != unwanted.end()) continue;
+        double unlike = 0;
+        for (uint64_t u : unwanted) unlike = std::max(unlike, similar.between(u, c.id) / 100.0);
         // Like the console's games: each one's likeness, by its weight.
         double   like = 0, like_best = 0;
         uint64_t because = 0;
@@ -97,9 +103,11 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
 
         const double parts[] = { LIKE * like, SERIES * series.weight, DEVELOPER * developer.weight, GENRE * genre,
                                  QUALITY * quality };
-        const double score = parts[0] + parts[1] + parts[2] + parts[3] + parts[4] + FRESH * fresh;
-        // Nothing of the player's taste and little renown: not worth saying.
+        const double score = parts[0] + parts[1] + parts[2] + parts[3] + parts[4] + FRESH * fresh - UNWANTED * unlike;
+        // Nothing of the player's taste and little renown, or more like what
+        // they do not want than anything: not worth saying.
         if (parts[0] + parts[1] + parts[2] + parts[3] <= 0 && quality < 0.3) continue;
+        if (score <= 0) continue;
         Suggestion s;
         s.id = c.id;
         s.score = score;

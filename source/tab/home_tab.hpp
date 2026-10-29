@@ -12,8 +12,8 @@
 // with its reason) and the next ones in the console's series, the wishlist,
 // the games new on the servers, the servers' best known and most read lately
 // games (action/popular_flow), the month's releases (else the newest) and
-// the games coming out soon. A on a game:
-// its page (action/game_page). With no server and no game, a welcome to add
+// the games coming out soon. A on a game: its page (action/game_page); X on
+// a suggestion: not interested (action/not_interested). With no server and no game, a welcome to add
 // a server or find one.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -54,8 +54,10 @@ class HomeTab : public TabBase
     void add_hero(const insights::Snapshot& s);
     void add_tiles(const insights::Snapshot& s);
     void add_banners(const std::string& title, const std::vector<Pick>& picks, bool to_get);
+    // `each`: anything more on each cover (an action).
     void add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,
-                    const std::function<Detail(const Pick&)>& detail);
+                    const std::function<Detail(const Pick&)>& detail,
+                    const std::function<void(GameTile*, const Pick&)>& each = {});
     void add_recent(const std::vector<insights::Played>& recent);
     void add_wished(const std::vector<insights::Wished>& wished);
     void add_coming(const std::vector<insights::Coming>& coming);
@@ -69,6 +71,8 @@ class HomeTab : public TabBase
     std::string              built_key;
     std::vector<BannerCard*> cards;
     std::vector<GameTile*>   tiles;
+    // Each row by its title: the focus kept on its place when they are built again.
+    std::vector<std::pair<std::string, aurore::Box*>> rows;
     int                      generation = 0;   // the rows' build: a picture for an older one is freed
     int                      insights_listener = 0;
 
