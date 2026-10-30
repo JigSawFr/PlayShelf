@@ -10,7 +10,7 @@ folder:
   banner and screenshots, as Nlib API serves a game's;
 - nlib/<id>/details.en.json and details.fr.json: its details, in Nlib API's
   shape (titledb/nlib.cpp reads them);
-- insights/switch/prices/<COUNTRY>.json: every game's eShop price in each country
+- insights/platforms/switch/prices/<COUNTRY>.json: every game's eShop price in each country
   Atlas has prices for (Atlas' schema 1), a few on sale (the
   wishlist's among them), with the lowest each has had;
 - insights/index.json: each of the demo's Atlas files (tools/web_demo.cpp's
@@ -249,9 +249,9 @@ def main():
         titledb[gid] = {"name": g["name"], "publisher": g["studio"], "releaseDate": release.replace("-", ""),
                         "version": 0, "size": (1 + i % 12) * 1_000_000_000}
     render.close()
-    os.makedirs(f"{out}/insights/switch/prices", exist_ok=True)
+    os.makedirs(f"{out}/insights/platforms/switch/prices", exist_ok=True)
     for country, payload in prices(games, today).items():
-        with open(f"{out}/insights/switch/prices/{country}.json", "w", encoding="utf-8") as f:
+        with open(f"{out}/insights/platforms/switch/prices/{country}.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False)
     write_index(f"{out}/insights", today)
     os.makedirs(f"{out}/titledb", exist_ok=True)
@@ -263,8 +263,8 @@ def main():
 
 
 def write_index(folder, today):
-    """insights/index.json: every file under it (switch/popular.json,
-    switch/prices/FR.json), as Atlas lists them."""
+    """insights/index.json: every file under it (platforms/switch/popular.json,
+    platforms/switch/prices/FR.json), as Atlas lists them."""
     files = {}
     for root, _, names in os.walk(folder):
         for name in names:

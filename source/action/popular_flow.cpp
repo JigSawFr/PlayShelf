@@ -19,9 +19,9 @@ namespace popular_flow
 
 namespace
 {
-// The Switch's files, in Atlas' switch/ folder.
+// The Switch's files, in Atlas' platforms/switch/ folder.
 constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/";
-constexpr const char* FOLDER = "switch/";
+constexpr const char* FOLDER = "platforms/switch/";
 constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;   // fetched again a day after
 
