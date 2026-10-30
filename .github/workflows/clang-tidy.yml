@@ -58,8 +58,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
-      - name: Aurore GLFW fork
-        run: git -C library/aurore submodule update --init --depth 1 library/lib/extern/glfw
+      - name: Aurore's SDL3 and GLFW
+        run: git -C library/aurore submodule update --init --depth 1 library/lib/extern/SDL3 library/lib/extern/glfw
       # A finding becomes an annotation on the file's line (the same matcher
       # as the compilers': `file:line:col: warning: …`). Not for extern/ nor library/.
       - name: Findings as annotations
