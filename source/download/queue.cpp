@@ -3,7 +3,8 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstdio>
+#include <format>
+#include <iterator>
 #include <random>
 #include <utility>
 
@@ -43,11 +44,7 @@ bool flag(const json& j, const char* key)
 std::string hex(const uint8_t* p, size_t n)
 {
     std::string out;
-    char        b[3];
-    for (size_t i = 0; i < n; i++) {
-        std::snprintf(b, sizeof b, "%02x", p[i]);
-        out += b;
-    }
+    for (size_t i = 0; i < n; i++) std::format_to(std::back_inserter(out), "{:02x}", p[i]);
     return out;
 }
 

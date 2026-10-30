@@ -1,8 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "install/console_core.hpp"
 
-#include <cstdio>
 #include <cstring>
+#include <format>
 #include <utility>
 #include <vector>
 
@@ -29,9 +29,7 @@ bool check(Result rc, const char* what, std::string* why)
 
 std::string result_text(Result rc, const char* what)
 {
-    char b[96];
-    std::snprintf(b, sizeof b, "%s: %04u-%04u", what, 2000 + (unsigned)(rc & 0x1ff), (unsigned)((rc >> 9) & 0x1fff));
-    return b;
+    return std::format("{}: {:04}-{:04}", what, 2000 + (unsigned)(rc & 0x1ff), (unsigned)((rc >> 9) & 0x1fff));
 }
 
 CoreConsole::CoreConsole(CoreStorage storage)

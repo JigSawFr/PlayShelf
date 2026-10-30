@@ -2,7 +2,7 @@
 #include "library/titles.hpp"
 
 #include <algorithm>
-#include <cstdio>
+#include <format>
 #include <map>
 
 namespace library
@@ -19,9 +19,7 @@ const char* const LATIN1[64] = {
 
 std::string hex16(uint64_t id)
 {
-    char text[17];
-    std::snprintf(text, sizeof text, "%016llx", (unsigned long long)id);
-    return text;
+    return std::format("{:016x}", id);
 }
 
 }   // namespace

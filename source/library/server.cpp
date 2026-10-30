@@ -3,7 +3,8 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstdio>
+#include <format>
+#include <iterator>
 
 #include <aurore/extern/nlohmann/json.hpp>
 
@@ -235,11 +236,7 @@ std::string pin_text(const std::array<uint8_t, 32>& h) { return "sha256//" + bas
 std::string pin_short(const std::array<uint8_t, 32>& h)
 {
     std::string out;
-    char        b[4];
-    for (int i = 0; i < 8; i++) {
-        std::snprintf(b, sizeof b, "%02X", h[i]);
-        out += (i ? ":" : "") + std::string(b);
-    }
+    for (int i = 0; i < 8; i++) std::format_to(std::back_inserter(out), "{}{:02X}", i ? ":" : "", h[i]);
     return out;
 }
 
