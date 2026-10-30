@@ -3,10 +3,12 @@
 // (popular.json: library/popular), its name, its traits, Steam audience and IGDB
 // players' rating (games.json), the games most like it (similar.json) and
 // the game an edition is one of (editions.json: library/signals).
-// Each as PlayShelf came with it and, once a day when config popular_online
-// allows it, the newest from Atlas' data branch (its platforms/switch/ folder) through jsDelivr
-// (kept in cache_dir()), whichever was made last. Read off the UI thread at
-// start-up; the books are the UI thread's.
+// popular.json and games.json as PlayShelf came with them; each, once a day
+// when config popular_online allows it, the newest from Atlas' data branch
+// (its platforms/switch/ folder) through jsDelivr (kept in cache_dir()),
+// whichever was made last. similar.json and editions.json are only fetched:
+// empty until they first come. Read off the UI thread at start-up; the books
+// are the UI thread's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -21,8 +23,9 @@
 namespace popular_flow
 {
 
-// The file PlayShelf came with, the cached one, then (a day after the last
-// time, popular_online on) the newest one fetched. Once, at start-up.
+// The file PlayShelf came with (popular.json, games.json), the cached one,
+// then (a day after the last time, or one never fetched, popular_online on)
+// the newest one fetched. Once, at start-up.
 void start();
 // Fetched again now (Preferences turned it on).
 void refresh();
@@ -36,7 +39,8 @@ size_t size();
 std::string name_of(uint64_t base_id);
 
 // games.json's, similar.json's and editions.json's, empty before they are
-// read (editions.json does not ship with PlayShelf: fetched only).
+// read (similar.json and editions.json do not ship with PlayShelf: empty
+// until the first fetch, and for good with popular_online off).
 std::shared_ptr<const library::SignalBook>  signals();
 std::shared_ptr<const library::SimilarBook> similar();
 std::shared_ptr<const library::EditionBook> editions();

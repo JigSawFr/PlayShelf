@@ -84,6 +84,12 @@ void test_recommend()
     const auto unwanted = recommend(owned, candidates, genres, similar, signals, { SAME_SERIES, NOTHING }, 20261029, 10);
     CHECK(unwanted.size() == 3);
     for (const Suggestion& s : unwanted) CHECK(s.id != SAME_SERIES && s.id != FAMOUS);
+    // similar.json not there yet (it does not ship): the other signals
+    // still suggest, nothing for being like a game of the console.
+    const auto unlike = recommend(owned, candidates, genres, SimilarBook{}, signals, {}, 20261029, 10);
+    if (!CHECK(!unlike.empty())) return;
+    CHECK(unlike[0].id == SAME_SERIES && unlike[0].reason.kind == Reason::Kind::Series);
+    for (const Suggestion& s : unlike) CHECK(s.reason.kind != Reason::Kind::Like && s.id != LIKE_P && s.id != LIKE_N);
 }
 
 // A row is varied: five games of one series, all scored above three others,

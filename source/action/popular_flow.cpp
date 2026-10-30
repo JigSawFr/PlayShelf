@@ -26,21 +26,25 @@ constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;   // fetched again a day after
 
 // One of Atlas' files: the book read from it, the newest kept. Its
-// name is the one shipped and cached; in Atlas it is in FOLDER.
+// name is the one cached (and shipped, when `shipped`); in Atlas it is in FOLDER.
 template <typename Book>
 struct File
 {
     const char*                 name;
+    bool                        shipped;
     std::shared_ptr<const Book> book = std::make_shared<Book>();
 
     std::string cached() const { return paths::cache_dir() + "/" + name; }
     std::string published() const { return std::string(FOLDER) + name; }
 };
 
-File<library::PopularBook> s_popular{ "popular.json" };
-File<library::SignalBook>  s_signals{ "games.json" };
-File<library::SimilarBook> s_similar{ "similar.json" };
-File<library::EditionBook> s_editions{ "editions.json" };
+// popular.json and games.json ship (Home's popular rows and the names of the
+// games nothing else names, offline); similar.json (megabytes) and
+// editions.json are only fetched.
+File<library::PopularBook> s_popular{ "popular.json", true };
+File<library::SignalBook>  s_signals{ "games.json", true };
+File<library::SimilarBook> s_similar{ "similar.json", false };
+File<library::EditionBook> s_editions{ "editions.json", false };
 Listeners                            s_listeners;
 bool                                 s_fetching = false;
 
@@ -72,11 +76,13 @@ bool offer(File<Book>& file, std::shared_ptr<const Book> book)
     return true;
 }
 
-// On a worker: the file shipped with PlayShelf and the cached one, offered.
+// On a worker: the file shipped with PlayShelf, if it is one, and the cached
+// one, offered; neither there, the book stays empty.
 template <typename Book>
 void load(File<Book>& file)
 {
-    std::shared_ptr<const Book> shipped = read<Book>(std::string(AURORE_ASSET("data/")) + file.name);
+    std::shared_ptr<const Book> shipped =
+        file.shipped ? read<Book>(std::string(AURORE_ASSET("data/")) + file.name) : nullptr;
     std::shared_ptr<const Book> cached = read<Book>(file.cached());
     aurore::sync([&file, shipped, cached]() {
         const bool a = offer(file, shipped);
