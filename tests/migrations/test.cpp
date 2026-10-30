@@ -14,6 +14,7 @@
 
 #include <aurore/extern/nlohmann/json.hpp>
 
+#include "app_id.h"
 #include "util/migrations.hpp"
 
 namespace mg = migrations;
@@ -84,7 +85,7 @@ static void test_first_and_next()
     CHECK(g_lines.size() == 4);
     CHECK(logged("migrations: no " + file + " (a first start, or a build from before it): steps 1 to 2 to run"));
     CHECK(logged("migration 1 (test): 2 entries moved in ") && logged("migration 2 (test): 0 entries moved in "));
-    CHECK(logged("migrations: level 2 and PlayShelf 1.2.0 written to " + file));
+    CHECK(logged("migrations: level 2 and " APP_NAME " 1.2.0 written to " + file));
     const nlohmann::json j = nlohmann::json::parse(fs::read(file));
     CHECK(j["schema"] == mg::SCHEMA && j["level"] == LogsDirs && j["version"] == "1.2.0");
 
@@ -99,13 +100,13 @@ static void test_first_and_next()
     g_lines.clear();
     CHECK(mg::run(file, start_steps(), "1.2.0", log_line) == 0);
     CHECK(g_ran.empty() && fs::read(file) == before);
-    CHECK(g_lines.size() == 2 && logged("migrations: level 3 recorded, last started by PlayShelf 1.2.0") &&
+    CHECK(g_lines.size() == 2 && logged("migrations: level 3 recorded, last started by " APP_NAME " 1.2.0") &&
           logged("migrations: steps 1 to 2 already done, nothing run"));
 
     // An update: nothing to run, the build recorded.
     g_lines.clear();
     CHECK(mg::run(file, { step(NandDirs) }, "1.3.0", log_line) == 0 && state(file).version == "1.3.0");
-    CHECK(logged("migrations: PlayShelf 1.2.0 started last, an earlier build (an update since); this is PlayShelf 1.3.0"));
+    CHECK(logged("migrations: " APP_NAME " 1.2.0 started last, an earlier build (an update since); this is " APP_NAME " 1.3.0"));
     CHECK(logged("migrations: step 3 already done") && logged("written to"));
 }
 
@@ -164,7 +165,7 @@ static void test_later_then_earlier()
     CHECK(mg::run(file, start_steps(), "1.2.0", log_line) == 0);
     CHECK(mg::run(file, { step(NandDirs) }, "1.2.0") == 0);
     CHECK(g_ran.empty());
-    CHECK(logged("migrations: PlayShelf 1.4.0 started last, a later build; this is PlayShelf 1.2.0"));
+    CHECK(logged("migrations: " APP_NAME " 1.4.0 started last, a later build; this is " APP_NAME " 1.2.0"));
     CHECK(logged("migrations: level 5 is a later build's (this one knows up to 3): back to 3"));
     // Its own level and version: the later build runs 4 and 5 again.
     CHECK(state(file).level == mg::latest() && state(file).version == "1.2.0");
@@ -182,7 +183,7 @@ static void test_earlier_build_next()
     CHECK(mg::write(file, { mg::latest(), "1.2.0" }));
     g_lines.clear();
     CHECK(mg::earlier_build_next(file, log_line));
-    CHECK(logged("is next: level 3 set to 0") && logged("level 0 and PlayShelf 1.2.0 written"));
+    CHECK(logged("is next: level 3 set to 0") && logged("level 0 and " APP_NAME " 1.2.0 written"));
     g_lines.clear();
     CHECK(mg::earlier_build_next(file, log_line) && logged("level already 0"));
     CHECK(state(file).level == mg::None && state(file).version == "1.2.0");
