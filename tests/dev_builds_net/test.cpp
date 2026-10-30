@@ -68,28 +68,24 @@ static std::atomic<bool>*  s_cancel_on_call = nullptr;   // set by the fake down
 
 namespace http
 {
-bool get(const std::string&, std::string*, std::string* error, size_t, long, const Headers&, long*)
+Result<Reply> get(const std::string&, size_t, long, const Headers&)
 {
-    if (error) *error = "not in this test";
-    return false;
+    return std::unexpected(Failure{ "not in this test" });
 }
 
-bool redirect(const std::string&, std::string* target, std::string* error, const Headers& headers, long* status)
+Result<std::string> redirect(const std::string&, const Headers& headers)
 {
     s_redirect_headers = headers;
-    if (status) *status = 302;
     if (s_redirect_to.empty()) {
-        if (error) *error = s_redirect_error;
         // The status behind an "HTTP <status>" error (http_logic::succeeded).
-        if (status) *status = s_redirect_error.compare(0, 5, "HTTP ") == 0 ? std::atol(s_redirect_error.c_str() + 5) : 0;
-        return false;
+        const long status = s_redirect_error.starts_with("HTTP ") ? std::atol(s_redirect_error.c_str() + 5) : 0;
+        return std::unexpected(Failure{ s_redirect_error, status });
     }
-    *target = s_redirect_to;
-    return true;
+    return s_redirect_to;
 }
 
-bool download(const std::string& url, const std::string& path, std::string* error, size_t,
-              long, std::function<void(uint64_t, uint64_t)>, uint64_t resume_from, const std::atomic<bool>*)
+Result<void> download(const std::string& url, const std::string& path, size_t, long,
+                      std::function<void(uint64_t, uint64_t)>, uint64_t resume_from, const std::atomic<bool>*)
 {
     DownloadCall c;
     c.url = url;
@@ -99,28 +95,16 @@ bool download(const std::string& url, const std::string& path, std::string* erro
     c.meta_there = paths::read_file(path + ".json", meta) && meta == s_identity;
     s_calls.push_back(c);
     if (s_cancel_on_call) s_cancel_on_call->store(true);
-    if (s_answers.empty()) {
-        if (error) *error = "no answer scripted";
-        return false;
-    }
+    if (s_answers.empty()) return std::unexpected(Failure{ "no answer scripted" });
     const Answer a = s_answers.front();
     s_answers.pop_front();
-    if (a.error == "HTTP 416") {
-        if (error) *error = a.error;
-        return false;
-    }
+    if (a.error == "HTTP 416") return std::unexpected(Failure{ a.error, 416 });
     FILE* f = std::fopen(path.c_str(), resume_from ? "ab" : "wb");
-    if (!f) {
-        if (error) *error = "cannot open";
-        return false;
-    }
+    if (!f) return std::unexpected(Failure{ "cannot open" });
     std::fwrite(a.bytes.data(), 1, a.bytes.size(), f);
     std::fclose(f);
-    if (!a.error.empty()) {
-        if (error) *error = a.error;
-        return false;
-    }
-    return true;
+    if (!a.error.empty()) return std::unexpected(Failure{ a.error });
+    return {};
 }
 }   // namespace http
 

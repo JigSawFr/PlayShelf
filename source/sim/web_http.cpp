@@ -12,27 +12,26 @@
 namespace http
 {
 
-bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long timeout_s,
-         const Headers& headers, long* status)
+Result<Reply> get(const std::string& url, size_t max_bytes, long timeout_s, const Headers& headers)
 {
-    return sim_demo::get(url, body, error, max_bytes, timeout_s, headers, status);
+    return sim_demo::get(url, max_bytes, timeout_s, headers);
 }
 
-bool post(const std::string& url, const std::string& data, const char* content_type, std::string* body,
-          std::string* error, long* status, size_t max_bytes, long timeout_s, const Headers& headers)
+Result<Reply> post(const std::string& url, const std::string& data, const char* content_type, size_t max_bytes,
+                   long timeout_s, const Headers& headers)
 {
-    return sim_demo::post(url, data, content_type, body, error, status, max_bytes, timeout_s, headers);
+    return sim_demo::post(url, data, content_type, max_bytes, timeout_s, headers);
 }
 
-bool redirect(const std::string& url, std::string* target, std::string* error, const Headers& headers, long* status)
+Result<std::string> redirect(const std::string& url, const Headers& headers)
 {
-    return sim_demo::redirect(url, target, error, headers, status);
+    return sim_demo::redirect(url, headers);
 }
 
-bool download(const std::string& url, const std::string& path, std::string* error, size_t max_bytes, long timeout_s,
-              std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel)
+Result<void> download(const std::string& url, const std::string& path, size_t max_bytes, long timeout_s,
+                      std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel)
 {
-    return sim_demo::download(url, path, error, max_bytes, timeout_s, std::move(progress), resume_from, cancel);
+    return sim_demo::download(url, path, max_bytes, timeout_s, std::move(progress), resume_from, cancel);
 }
 
 bool range(const std::string& url, uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,

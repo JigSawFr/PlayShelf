@@ -74,7 +74,9 @@ void seed_console()
     titledb::Net net;
     net.save = [](const std::string& url, const std::string& path, uint64_t max,
                   const std::function<void(uint64_t, uint64_t)>& progress, std::string* why) {
-        return http::download(url, path, why, (size_t)max, 30, progress, 0, nullptr);
+        const auto done = http::download(url, path, (size_t)max, 30, progress, 0, nullptr);
+        if (!done && why) *why = done.error().error;
+        return done.has_value();
     };
     std::string why;
     if (titledb::update(TITLEDB_URL, titledb::source_dir(paths::data_dir() + "/titledb", TITLEDB_URL), net,
