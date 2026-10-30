@@ -10,25 +10,17 @@ namespace install
 {
 namespace
 {
-std::optional<Package> fail(std::string* why, const std::string& text)
-{
-    if (why) *why = text;
-    return std::nullopt;
-}
-
 // The archive at `offset` of `src`: its base header, then all of it.
-std::optional<Pfs> read_pfs(Source& src, uint64_t offset, uint64_t limit, std::string* why)
+Parsed<Pfs> read_pfs(Source& src, uint64_t offset, uint64_t limit)
 {
-    uint8_t base[PFS_BASE_HEADER];
-    if (!src.read(offset, base, sizeof base, why)) return std::nullopt;
+    uint8_t     base[PFS_BASE_HEADER];
+    std::string why;
+    if (!src.read(offset, base, sizeof base, &why)) return fail(why);
     const auto hs = pfs_header_size(base);
-    if (!hs) {
-        if (why) *why = "not a PFS0 or HFS0 archive, or a header too big";
-        return std::nullopt;
-    }
+    if (!hs) return fail("not a PFS0 or HFS0 archive, or a header too big");
     std::vector<uint8_t> header((size_t)hs->size);
-    if (!src.read(offset, header.data(), header.size(), why)) return std::nullopt;
-    return pfs_parse(header, limit, why);
+    if (!src.read(offset, header.data(), header.size(), &why)) return fail(why);
+    return pfs_parse(header, limit);
 }
 }   // namespace
 
@@ -91,7 +83,7 @@ std::vector<const PackageFile*> Package::tickets() const
     return out;
 }
 
-std::optional<Package> package_open(Source& src, std::string* why)
+Parsed<Package> package_open(Source& src)
 {
     const uint64_t size = src.size();
     uint8_t        head[XCI_HEADER];
@@ -100,26 +92,26 @@ std::optional<Package> package_open(Source& src, std::string* why)
     Package        pkg;
     if (long_enough && src.read(0, head, sizeof head, &err) && le32(head + 0x100) == 0x44414548) {
         // A game card image: the root HFS0, then its secure partition.
-        const auto root = xci_root(head, size, why);
-        if (!root) return std::nullopt;
-        const auto rp = read_pfs(src, root->offset, size ? size - root->offset : 0, why);
-        if (!rp) return std::nullopt;
-        if (rp->kind != PfsKind::Hfs0) return fail(why, "a game card image whose root is not an HFS0");
+        const auto root = xci_root(head, size);
+        if (!root) return fail(root.error());
+        const auto rp = read_pfs(src, root->offset, size ? size - root->offset : 0);
+        if (!rp) return fail(rp.error());
+        if (rp->kind != PfsKind::Hfs0) return fail("a game card image whose root is not an HFS0");
         const PfsEntry* secure = nullptr;
         for (const PfsEntry& e : rp->entries)
             if (e.name == "secure") secure = &e;
-        if (!secure) return fail(why, "a game card image without a secure partition");
+        if (!secure) return fail("a game card image without a secure partition");
         const uint64_t at = root->offset + secure->offset;
-        const auto     sp = read_pfs(src, at, secure->size, why);
-        if (!sp) return std::nullopt;
+        const auto     sp = read_pfs(src, at, secure->size);
+        if (!sp) return fail(sp.error());
         pkg.kind = PackageKind::Xci;
         for (const PfsEntry& e : sp->entries)
             pkg.files.push_back(PackageFile{e.name, at + e.offset, e.size});
         return pkg;
     }
-    const auto p = read_pfs(src, 0, size, why);
-    if (!p) return std::nullopt;
-    if (p->kind != PfsKind::Pfs0) return fail(why, "an HFS0 where an NSP's PFS0 was expected");
+    const auto p = read_pfs(src, 0, size);
+    if (!p) return fail(p.error());
+    if (p->kind != PfsKind::Pfs0) return fail("an HFS0 where an NSP's PFS0 was expected");
     pkg.kind = PackageKind::Nsp;
     for (const PfsEntry& e : p->entries)
         pkg.files.push_back(PackageFile{e.name, e.offset, e.size});

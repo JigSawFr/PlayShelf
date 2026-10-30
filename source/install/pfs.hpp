@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "install/bytes.hpp"
+
 namespace install
 {
 
@@ -61,7 +63,7 @@ std::optional<PfsHeaderSize> pfs_header_size(std::span<const uint8_t> base);
 // The whole header (at least pfs_header_size's size). archive_size, when
 // known (non-zero), bounds the files' data. Nothing, with `why` set, when
 // it is not a well-formed archive.
-[[nodiscard]] std::optional<Pfs> pfs_parse(std::span<const uint8_t> data, uint64_t archive_size = 0, std::string* why = nullptr);
+[[nodiscard]] Parsed<Pfs> pfs_parse(std::span<const uint8_t> data, uint64_t archive_size = 0);
 
 // A game card image (XCI): where its root HFS0 is, from the first 0x200
 // bytes ("HEAD" at 0x100). Only the image's own claims are checked here
@@ -72,6 +74,6 @@ struct XciRoot
     uint64_t header_size = 0;   // the root HFS0's header, as the card header gives it
 };
 constexpr size_t XCI_HEADER = 0x200;
-[[nodiscard]] std::optional<XciRoot> xci_root(std::span<const uint8_t> header, uint64_t image_size = 0, std::string* why = nullptr);
+[[nodiscard]] Parsed<XciRoot> xci_root(std::span<const uint8_t> header, uint64_t image_size = 0);
 
 }   // namespace install

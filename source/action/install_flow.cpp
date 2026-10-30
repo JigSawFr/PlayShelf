@@ -149,15 +149,21 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
     Outcome    out;
     HttpSource src(p.url, p.headers, progress.cancel_flag(), p.pin);
     if (!src.open(&out.why)) return out;
-    const auto pkg = package_open(src, &out.why);
-    if (!pkg) return out;
+    const auto pkg = package_open(src);
+    if (!pkg) {
+        out.why = pkg.error();
+        return out;
+    }
     CoreConsole console(CoreStorage_Sd);
     if (!console.ok()) {
         out.why = console.error();
         return out;
     }
-    const auto keys = core_keys(&out.why);
-    if (!keys) return out;
+    const auto keys = core_keys();
+    if (!keys) {
+        out.why = keys.error();
+        return out;
+    }
     InstallCallbacks cb;
     cb.cancel = progress.cancel_flag();
     cb.progress = [&progress](uint64_t done, uint64_t total, const std::string&) { progress.written(done, total); };

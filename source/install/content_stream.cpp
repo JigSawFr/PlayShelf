@@ -105,8 +105,11 @@ struct ContentStream::Impl
         uint8_t plain[NCA_HEADER];
         std::memcpy(plain, buf.data(), NCA_HEADER);
         nca_header_crypt(plain, header_key.data(), false);
-        const auto h = nca_parse_header(plain, 0, why);
-        if (!h) return false;
+        const auto h = nca_parse_header(plain, 0);
+        if (!h) {
+            *why = h.error();
+            return false;
+        }
         if (expected_size && h->size != expected_size) {
             *why = "the NCA's size differs from what the content meta gives";
             return false;

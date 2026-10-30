@@ -198,8 +198,11 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     // What was fetched ahead read from its file, the rest from the server.
     PrefixSource prefixed(ahead_path(job.id), ahead, http);
     CutSource    src(prefixed, *ctl, &cut_why);
-    const auto pkg = package_open(src, &o.why);
-    if (!pkg) return ctl->stop ? stopped() : o;
+    const auto pkg = package_open(src);
+    if (!pkg) {
+        o.why = pkg.error();
+        return ctl->stop ? stopped() : o;
+    }
     CoreConsole console(CoreStorage_Sd);
     if (!console.ok()) {
         o.why = console.error();
@@ -210,8 +213,11 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         aurore::Logger::info("downloads: an orphan placeholder deleted ({})", content_id_hex(id));
         console.delete_placeholder(id);
     }
-    const auto keys = core_keys(&o.why);
-    if (!keys) return o;
+    const auto keys = core_keys();
+    if (!keys) {
+        o.why = keys.error();
+        return o;
+    }
 
     const std::string id = job.id;
     auto              last = std::chrono::steady_clock::now();

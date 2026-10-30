@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "install/bytes.hpp"
+
 namespace install
 {
 
@@ -83,7 +85,7 @@ struct ContentMeta
     std::vector<ContentInfo> installable() const;
 };
 
-[[nodiscard]] std::optional<ContentMeta> cnmt_parse(std::span<const uint8_t> data, std::string* why = nullptr);
+[[nodiscard]] Parsed<ContentMeta> cnmt_parse(std::span<const uint8_t> data);
 
 // The record ncm keeps: NcmContentMetaHeader, the extended header, the
 // content infos (the .cnmt.nca's own first, as `meta_content`, then the

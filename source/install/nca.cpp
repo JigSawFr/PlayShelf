@@ -33,11 +33,6 @@ const uint8_t FIXED_MODULUS_0[256] = {
     0x42, 0xFE, 0x82, 0x78, 0xEC, 0x0D, 0xEB, 0xE6, 0x83, 0x4B, 0x6D, 0x81, 0x04, 0x40, 0x1A, 0x9E, 0x9A, 0x67, 0xF6,
     0x72, 0x29, 0xFA, 0x04, 0xF0, 0x9D, 0xE4, 0xF4, 0x03};
 
-template <class T> std::optional<T> fail(std::string* why, const char* text)
-{
-    if (why) *why = text;
-    return std::nullopt;
-}
 }   // namespace
 
 bool NcaHeader::has_rights_id() const
@@ -52,9 +47,9 @@ void nca_header_crypt(uint8_t header[NCA_HEADER], const uint8_t header_key[32], 
     aes128_xts_nintendo(header_key, {header, NCA_HEADER}, 0, 0x200, encrypt);
 }
 
-std::optional<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size, std::string* why)
+Parsed<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size)
 {
-    if (le32(d + 0x200) != MAGIC_NCA3) return fail<NcaHeader>(why, "not an NCA3 header (or the wrong header key)");
+    if (le32(d + 0x200) != MAGIC_NCA3) return fail("not an NCA3 header (or the wrong header key)");
     NcaHeader h;
     h.distribution = d[0x204];
     h.content_type = d[0x205];
@@ -66,10 +61,10 @@ std::optional<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size, s
     h.signature_key_generation = d[0x221];
     std::memcpy(h.rights_id.data(), d + 0x230, 16);
     std::memcpy(h.key_area.data(), d + 0x300, 0x40);
-    if (h.distribution > 1) return fail<NcaHeader>(why, "unknown distribution type");
-    if (h.key_area_index > 2) return fail<NcaHeader>(why, "unknown key area index");
-    if (h.size < NCA_FULL_HEADER) return fail<NcaHeader>(why, "content smaller than its header");
-    if (nca_size && h.size != nca_size) return fail<NcaHeader>(why, "content size differs from its file's");
+    if (h.distribution > 1) return fail("unknown distribution type");
+    if (h.key_area_index > 2) return fail("unknown key area index");
+    if (h.size < NCA_FULL_HEADER) return fail("content smaller than its header");
+    if (nca_size && h.size != nca_size) return fail("content size differs from its file's");
     for (int i = 0; i < 4; i++) {
         const uint8_t* e = d + 0x240 + 0x10 * i;
         const uint32_t start = le32(e), end = le32(e + 4);
@@ -79,12 +74,12 @@ std::optional<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size, s
         s.start = (uint64_t)start * NCA_MEDIA;
         s.end = (uint64_t)end * NCA_MEDIA;
         if (s.end < s.start || s.start < NCA_FULL_HEADER || s.end > h.size)
-            return fail<NcaHeader>(why, "a section out of the content's bounds");
+            return fail("a section out of the content's bounds");
         std::memcpy(s.fs_header.data(), d + 0x400 + 0x200 * i, 0x200);
         Sha256 sha;
         sha.update(s.fs_header);
         if (std::memcmp(sha.digest().data(), d + 0x280 + 0x20 * i, 32) != 0)
-            return fail<NcaHeader>(why, "a section's fs header does not match its hash");
+            return fail("a section's fs header does not match its hash");
         s.fs_type = s.fs_header[2];
         s.hash_type = s.fs_header[3];
         s.encryption = (NcaEncryption)s.fs_header[4];
@@ -132,38 +127,38 @@ std::array<uint8_t, 16> nca_section_iv(const NcaSection& s)
     return iv;
 }
 
-std::optional<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys, std::string* why)
+Parsed<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys)
 {
     using Bytes = std::vector<uint8_t>;
-    if (nca.size() < NCA_FULL_HEADER) return fail<Bytes>(why, "content meta NCA cut short");
+    if (nca.size() < NCA_FULL_HEADER) return fail("content meta NCA cut short");
     uint8_t head[NCA_HEADER];
     std::memcpy(head, nca.data(), NCA_HEADER);
     nca_header_crypt(head, keys.header_key.data(), false);
-    const auto h = nca_parse_header(head, nca.size(), why);
-    if (!h) return std::nullopt;
-    if (h->content_type != 1) return fail<Bytes>(why, "not a content meta NCA");
-    if (h->has_rights_id()) return fail<Bytes>(why, "a content meta NCA with a rights id");
+    const auto h = nca_parse_header(head, nca.size());
+    if (!h) return fail(h.error());
+    if (h->content_type != 1) return fail("not a content meta NCA");
+    if (h->has_rights_id()) return fail("a content meta NCA with a rights id");
     const NcaSection& s = h->sections[0];
-    if (!s.present || s.fs_type != 1) return fail<Bytes>(why, "no partition section");
+    if (!s.present || s.fs_type != 1) return fail("no partition section");
     if (s.encryption != NcaEncryption::Ctr && s.encryption != NcaEncryption::None)
-        return fail<Bytes>(why, "section encryption other than CTR");
+        return fail("section encryption other than CTR");
 
     // The PFS0's place in the section (hierarchical SHA-256: its second region).
     const uint64_t pfs_at = le64(s.fs_header.data() + 0x40), pfs_size = le64(s.fs_header.data() + 0x48);
     uint64_t       from, to;
     if (!add_ok(s.start, pfs_at, &from) || !add_ok(from, pfs_size, &to) || to > s.end || pfs_size > (64u << 20))
-        return fail<Bytes>(why, "the partition out of its section");
+        return fail("the partition out of its section");
     Bytes pfs(nca.data() + from, nca.data() + to);
     if (s.encryption == NcaEncryption::Ctr) {
         const auto key = nca_ctr_key(*h, keys);
-        if (!key) return fail<Bytes>(why, "no key for the section (key generation newer than the console)");
+        if (!key) return fail("no key for the section (key generation newer than the console)");
         const auto iv = nca_section_iv(s);
         Aes128Ctr(key->data(), iv.data()).crypt(pfs, from);
     }
-    const auto p = pfs_parse(pfs, pfs.size(), why);
-    if (!p) return std::nullopt;
+    const auto p = pfs_parse(pfs, pfs.size());
+    if (!p) return fail(p.error());
     const auto files = p->ending_with(".cnmt");
-    if (files.empty()) return fail<Bytes>(why, "no .cnmt in the partition");
+    if (files.empty()) return fail("no .cnmt in the partition");
     const PfsEntry* e = files.front();
     return Bytes(pfs.begin() + (long)e->offset, pfs.begin() + (long)(e->offset + e->size));
 }

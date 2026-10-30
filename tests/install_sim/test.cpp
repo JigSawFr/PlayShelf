@@ -37,11 +37,17 @@ bool install_package(const Bytes& package, std::string* why)
         *why = console.error();
         return false;
     }
-    const auto keys = core_keys(why);
-    if (!keys) return false;
+    const auto keys = core_keys();
+    if (!keys) {
+        *why = keys.error();
+        return false;
+    }
     MemorySource src(package);
-    const auto   pkg = package_open(src, why);
-    if (!pkg) return false;
+    const auto   pkg = package_open(src);
+    if (!pkg) {
+        *why = pkg.error();
+        return false;
+    }
     Installer inst(src, *pkg, console, *keys, {SignaturePolicy::Off, false});
     return inst.prepare(why) && inst.run(why);
 }
