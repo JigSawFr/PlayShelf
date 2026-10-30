@@ -24,6 +24,9 @@
 using dev_builds::Build;
 using dev_builds::Kind;
 
+// What a failed step says ("" when it succeeded).
+template <class T> static std::string error_of(const std::expected<T, std::string>& r) { return r ? "" : r.error(); }
+
 static std::string sha(const std::string& s)
 {
     Sha256 h;
@@ -498,41 +501,41 @@ static void test_files()
     CHECK(paths::atomic_write(file, content));
 
     std::string err;
-    CHECK(dev_builds::verify_file(file, content.size(), sha(content), &err));
+    CHECK(dev_builds::verify_file(file, content.size(), sha(content)));
     // No digest: refused, whatever the size and the header say.
-    CHECK(!dev_builds::verify_file(file, content.size(), "", &err) && err == dev_builds::NO_DIGEST);
-    CHECK(!dev_builds::verify_file(file, content.size(), sha(content + "x"), &err) && err == "SHA-256 does not match");
-    CHECK(!dev_builds::verify_file(file, 4999, sha(content), &err) && err.find("size") == 0);
-    CHECK(!dev_builds::verify_file(dir + "/missing.nro", 1, sha(content), &err));
-    CHECK(dev_builds::verify_nro(file, &err));
+    CHECK(error_of(dev_builds::verify_file(file, content.size(), "")) == dev_builds::NO_DIGEST);
+    CHECK(error_of(dev_builds::verify_file(file, content.size(), sha(content + "x"))) == "SHA-256 does not match");
+    CHECK(error_of(dev_builds::verify_file(file, 4999, sha(content))).find("size") == 0);
+    CHECK(!dev_builds::verify_file(dir + "/missing.nro", 1, sha(content)));
+    CHECK(dev_builds::verify_nro(file));
     CHECK(paths::atomic_write(dir + "/zip.nro", std::string(5000, 'z')));
-    CHECK(!dev_builds::verify_nro(dir + "/zip.nro", &err) && err == "not an NRO file");
-    CHECK(!dev_builds::verify_nro(dir + "/missing.nro", &err));
+    CHECK(error_of(dev_builds::verify_nro(dir + "/zip.nro")) == "not an NRO file");
+    CHECK(!dev_builds::verify_nro(dir + "/missing.nro"));
 
     // Replace: the old one goes, the new one takes its name.
     const std::string target = dir + "/playshelf.nro";
     CHECK(paths::atomic_write(target, "old"));
-    CHECK(dev_builds::replace(target, file, &err));
+    CHECK(dev_builds::replace(target, file));
     std::string got;
     CHECK(paths::read_file(target, got) && got == content);
     CHECK(!paths::read_file(file, got) && !paths::read_file(target + ".old", got));
     // A missing new file: the old one stays in place.
-    CHECK(!dev_builds::replace(target, dir + "/missing.nro", &err));
+    CHECK(!dev_builds::replace(target, dir + "/missing.nro"));
     CHECK(paths::read_file(target, got) && got == content);
     // No target yet: simply created.
     CHECK(paths::atomic_write(file, "new"));
-    CHECK(dev_builds::replace(dir + "/first.nro", file, &err));
+    CHECK(dev_builds::replace(dir + "/first.nro", file));
     CHECK(paths::read_file(dir + "/first.nro", got) && got == "new");
     // Kept as the previous build, the one kept before going.
     CHECK(paths::atomic_write(target + ".previous", "older"));
     CHECK(paths::atomic_write(file, "newest"));
-    CHECK(dev_builds::replace(target, file, &err, target + ".previous"));
+    CHECK(dev_builds::replace(target, file, target + ".previous"));
     CHECK(paths::read_file(target, got) && got == "newest");
     CHECK(paths::read_file(target + ".previous", got) && got == content);
     CHECK(!paths::read_file(target + ".old", got));
     // Nothing replaced (no target): no previous build made up, the one kept stays.
     CHECK(paths::atomic_write(file, "x"));
-    CHECK(dev_builds::replace(dir + "/second.nro", file, &err, dir + "/second.nro.previous"));
+    CHECK(dev_builds::replace(dir + "/second.nro", file, dir + "/second.nro.previous"));
     CHECK(!paths::read_file(dir + "/second.nro.previous", got));
 }
 

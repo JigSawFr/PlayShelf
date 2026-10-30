@@ -20,8 +20,8 @@ test('every language has its flag, as on the website', () => {
   assert.equal(L.flag('es-419'), '\u{1F1F2}\u{1F1FD}');
   assert.equal(L.flag('zh-Hant'), '\u{1F1F9}\u{1F1FC}');
   assert.equal(L.flag('xx'), '');
-  // The website's (tools/build_site.py's FLAGS), the same.
-  const site = fs.readFileSync(path.join(__dirname, '../../tools/build_site.py'), 'utf8');
+  // The website's (boreale-site's FLAGS, library/boreale-site), the same.
+  const site = fs.readFileSync(path.join(__dirname, '../../library/boreale-site/boreale_site/__init__.py'), 'utf8');
   const pairs = /^FLAGS = \{([^}]*)\}/m.exec(site)[1].matchAll(/"([^"]+)": "([A-Z]{2})"/g);
   assert.deepEqual(Object.fromEntries([...pairs].map(([, c, f]) => [c, f])), L.FLAGS);
 });

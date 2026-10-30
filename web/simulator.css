@@ -1,5 +1,5 @@
 /* The web simulator's page (web/README.md), in the website's look
-   (site/assets/site.css): its colours, its header, Sora for the name. The
+   (boreale-site's boreale.css): its colours, its header, Sora for the name. The
    teal of the focus highlight, on a navy that frames the console's screen. */
 /* Light by default; dark when the page says so (data-theme, set before the
    first paint from the URL, the choice kept or the system's). */
@@ -11,7 +11,7 @@
 }
 /* The language menu's flags, the same everywhere (Windows draws none of its
    own): the website's 15 cut out of Twemoji's (CC-BY 4.0,
-   LICENSE-twemoji-flags.txt; both copied by CMake from site/assets/fonts/). */
+   LICENSE-twemoji-flags.txt; both copied by CMake from boreale-site's assets/fonts/). */
 @font-face {
   font-family: "Twemoji Flags";
   src: url("twemoji-flags.woff2") format("woff2");
@@ -379,7 +379,7 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 .btn.primary.pending { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
 .btn.ghost { background: transparent; }
 .header-settings { display: flex; gap: 8px; margin-left: auto; }
-/* The language button as the website's (site/assets/site.css), the theme's
+/* The language button as the website's (boreale-site's boreale.css), the theme's
    select of the same height and look beside it. */
 .header-settings select { width: auto; height: 40px; padding: 0 8px 0 10px; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
 .lang-button {
@@ -567,7 +567,7 @@ html:not(.game) .fs-exit { display: none; }
 /* ---- Boréale's site switcher: the name, a button that opens the menu of
    the four sites (a popover: the browser closes it on Esc or a click
    elsewhere), PlayShelf's leading to the website. The website's block
-   (site/assets/site.css), its marks copied by CMake into marks/. */
+   (boreale-site's boreale.css), its marks copied by CMake into marks/. */
 .switcher { display: flex; flex-shrink: 0; align-items: center; }
 .switch {
   min-height: 44px; margin-left: -8px; padding: 0 8px; border: 0; border-radius: 12px;

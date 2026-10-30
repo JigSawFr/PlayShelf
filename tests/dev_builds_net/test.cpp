@@ -37,6 +37,9 @@
 
 using dev_builds::Build;
 
+// What a failed step says ("" when it succeeded).
+template <class T> static std::string error_of(const std::expected<T, std::string>& r) { return r ? "" : r.error(); }
+
 namespace app
 {
 const char* repo_url() { return "https://github.com/o/r"; }
@@ -160,13 +163,12 @@ static void test_refused()
 {
     const std::string target = paths::data_dir() + "/refused.nro";
     reset(target);
-    std::string err;
     Build b = release(nro(5000));
     b.size = 64 * 1024 * 1024 + 1;
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "too large for PlayShelf");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "too large for PlayShelf");
     b = release(nro(5000));
     b.sha256.clear();
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == dev_builds::NO_DIGEST);
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == dev_builds::NO_DIGEST);
     CHECK(s_calls.empty() && !exists(target) && clean(target));
 }
 
@@ -178,8 +180,7 @@ static void test_fresh()
     reset(target);
     s_identity = identity(b);
     s_answers = { { content, "" } };
-    std::string err;
-    CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(b, target, nullptr, nullptr));
     REQUIRE(s_calls.size() == 1);
     CHECK(s_calls[0].url == b.url && s_calls[0].path == target + ".part" && s_calls[0].resume_from == 0);
     CHECK(s_calls[0].meta_there);   // what the part is of, written before it is fetched
@@ -189,7 +190,7 @@ static void test_fresh()
     reset(target);
     CHECK(paths::atomic_write(target, "left by an earlier attempt"));
     s_answers = { { content, "" } };
-    CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(b, target, nullptr, nullptr));
     CHECK(content_of(target) == content && clean(target));
 }
 
@@ -199,14 +200,13 @@ static void test_resume()
     const std::string content = nro(5000);
     const Build b = release(content);
     s_identity = identity(b);
-    std::string err;
 
     // The part of the same build: the rest is asked for and appended.
     reset(target);
     CHECK(paths::atomic_write(target + ".part", content.substr(0, 2000)));
     CHECK(paths::atomic_write(target + ".part.json", identity(b)));
     s_answers = { { content.substr(2000), "" } };
-    CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(b, target, nullptr, nullptr));
     REQUIRE(s_calls.size() == 1);
     CHECK(s_calls[0].resume_from == 2000 && s_calls[0].meta_there);
     CHECK(content_of(target) == content && clean(target));
@@ -219,7 +219,7 @@ static void test_resume()
         CHECK(paths::atomic_write(target + ".part", "junk from another build"));
         if (!kept.empty()) CHECK(paths::atomic_write(target + ".part.json", kept));
         s_answers = { { content, "" } };
-        CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+        CHECK(dev_builds::download(b, target, nullptr, nullptr));
         REQUIRE(s_calls.size() == 1);
         CHECK(s_calls[0].resume_from == 0 && s_calls[0].meta_there);
         CHECK(content_of(target) == content && clean(target));
@@ -232,7 +232,7 @@ static void test_resume()
         CHECK(paths::atomic_write(target + ".part", part));
         CHECK(paths::atomic_write(target + ".part.json", identity(b)));
         s_answers = { { content, "" } };
-        CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+        CHECK(dev_builds::download(b, target, nullptr, nullptr));
         REQUIRE(s_calls.size() == 1);
         CHECK(s_calls[0].resume_from == 0);
         CHECK(content_of(target) == content && clean(target));
@@ -244,7 +244,7 @@ static void test_resume()
     CHECK(paths::atomic_write(target + ".part", content.substr(0, 3000)));
     CHECK(paths::atomic_write(target + ".part.json", identity(b)));
     s_answers = { { "", "HTTP 416" }, { content, "" } };
-    CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(b, target, nullptr, nullptr));
     REQUIRE(s_calls.size() == 2);
     CHECK(s_calls[0].resume_from == 3000 && s_calls[1].resume_from == 0);
     CHECK(content_of(target) == content && clean(target));
@@ -256,7 +256,7 @@ static void test_resume()
     std::atomic<bool> cancel(false);
     s_cancel_on_call = &cancel;
     s_answers = { { "", "HTTP 416" }, { content, "" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, &cancel) && err == "HTTP 416");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, &cancel)) == "HTTP 416");
     CHECK(s_calls.size() == 1);
     CHECK(content_of(target + ".part") == content.substr(0, 3000) && content_of(target + ".part.json") == identity(b));
     CHECK(!exists(target));
@@ -264,7 +264,7 @@ static void test_resume()
     // HTTP 416 to a download from the start is a plain failure.
     reset(target);
     s_answers = { { "", "HTTP 416" }, { content, "" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "HTTP 416");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "HTTP 416");
     CHECK(s_calls.size() == 1 && clean(target) && !exists(target));
 }
 
@@ -274,19 +274,18 @@ static void test_cut_short()
     const std::string content = nro(5000);
     const Build b = release(content);
     s_identity = identity(b);
-    std::string err;
 
     // Cut after 1200 bytes: they are kept, with what they are of...
     reset(target);
     s_answers = { { content.substr(0, 1200), "timed out" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "timed out");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "timed out");
     CHECK(content_of(target + ".part") == content.substr(0, 1200));
     CHECK(content_of(target + ".part.json") == identity(b));
     CHECK(!exists(target));
     // ... and the next attempt goes on from there.
     s_calls.clear();
     s_answers = { { content.substr(1200), "" } };
-    CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(b, target, nullptr, nullptr));
     REQUIRE(s_calls.size() == 1);
     CHECK(s_calls[0].resume_from == 1200);
     CHECK(content_of(target) == content && clean(target));
@@ -294,7 +293,7 @@ static void test_cut_short()
     // Nothing arrived: nothing kept.
     reset(target);
     s_answers = { { "", "no connection" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "no connection");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "no connection");
     CHECK(clean(target) && !exists(target));
 
     // A resume that fails at once: the part held before is kept as it was.
@@ -302,7 +301,7 @@ static void test_cut_short()
     CHECK(paths::atomic_write(target + ".part", content.substr(0, 700)));
     CHECK(paths::atomic_write(target + ".part.json", identity(b)));
     s_answers = { { "", "HTTP 503" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "HTTP 503");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "HTTP 503");
     CHECK(content_of(target + ".part") == content.substr(0, 700) && content_of(target + ".part.json") == identity(b));
 }
 
@@ -312,7 +311,6 @@ static void test_bad_download()
     const std::string content = nro(5000);
     const Build b = release(content);
     s_identity = identity(b);
-    std::string err;
 
     // Other bytes than announced: refused, the part dropped (a bad one would
     // only fail again), the target never made.
@@ -320,13 +318,13 @@ static void test_bad_download()
     other[100] = '!';
     reset(target);
     s_answers = { { other, "" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "SHA-256 does not match");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "SHA-256 does not match");
     CHECK(clean(target) && !exists(target));
 
     // Fewer bytes than announced, yet a success from the server.
     reset(target);
     s_answers = { { content.substr(0, 4000), "" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "size 4000 instead of 5000");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "size 4000 instead of 5000");
     CHECK(clean(target) && !exists(target));
 
     // The right bytes, but no NRO: refused and removed.
@@ -335,7 +333,7 @@ static void test_bad_download()
     s_identity = identity(not_nro);
     reset(target);
     s_answers = { { zip, "" } };
-    CHECK(!dev_builds::download(not_nro, target, &err, nullptr, nullptr) && err == "not an NRO file");
+    CHECK(error_of(dev_builds::download(not_nro, target, nullptr, nullptr)) == "not an NRO file");
     CHECK(clean(target) && !exists(target));
 
     // The target cannot be replaced (here a folder with something in it):
@@ -345,7 +343,7 @@ static void test_bad_download()
     REQUIRE(mkdir(target.c_str(), 0755) == 0);
     CHECK(paths::atomic_write(target + "/inside", "x"));
     s_answers = { { content, "" } };
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "cannot rename the download");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "cannot rename the download");
     CHECK(clean(target));
     CHECK(content_of(target + "/inside") == "x");
     std::remove((target + "/inside").c_str());
@@ -376,7 +374,7 @@ static void test_artifact()
     reset(target);
     s_redirect_to = "https://pipelines.example/signed";
     s_answers = { { zip, "" } };
-    CHECK(dev_builds::download(b, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(b, target, nullptr, nullptr));
     REQUIRE(s_calls.size() == 1);
     CHECK(s_calls[0].url == s_redirect_to && s_calls[0].path == target + ".zip.part" && s_calls[0].meta_there);
     CHECK(s_redirect_headers == github_auth::api_headers("ghu_abc"));
@@ -388,7 +386,7 @@ static void test_artifact()
     s_identity = identity(elsewhere);
     reset(target);
     s_answers = { { zip, "" } };
-    CHECK(dev_builds::download(elsewhere, target, &err, nullptr, nullptr));
+    CHECK(dev_builds::download(elsewhere, target, nullptr, nullptr));
     CHECK(s_redirect_headers == github_auth::api_headers(""));
     CHECK(content_of(target) == inner);
 
@@ -398,15 +396,15 @@ static void test_artifact()
     s_redirect_to.clear();
     reset(target);
     s_redirect_error = "HTTP 403";
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr));
-    CHECK(err == "HTTP 403: GitHub refused the download, sign out of GitHub and sign in again");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) ==
+          "HTTP 403: GitHub refused the download, sign out of GitHub and sign in again");
     CHECK(github_auth::token() == "ghu_abc");
     s_redirect_error = "HTTP 401";
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr));
-    CHECK(err == "HTTP 401: GitHub refused the download, sign out of GitHub and sign in again");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) ==
+          "HTTP 401: GitHub refused the download, sign out of GitHub and sign in again");
     CHECK(github_auth::token().empty());
     s_redirect_error = "HTTP 500";
-    CHECK(!dev_builds::download(b, target, &err, nullptr, nullptr) && err == "HTTP 500");
+    CHECK(error_of(dev_builds::download(b, target, nullptr, nullptr)) == "HTTP 500");
     CHECK(s_calls.empty() && clean(target + ".zip") && !exists(target) && !exists(target + ".zip"));
 
     // A zip without playshelf.nro: nothing installed, the zip removed.
@@ -418,7 +416,7 @@ static void test_artifact()
     s_redirect_to = "https://pipelines.example/signed";
     reset(target);
     s_answers = { { empty_zip, "" } };
-    CHECK(!dev_builds::download(no_nro, target, &err, nullptr, nullptr));
+    CHECK(!dev_builds::download(no_nro, target, nullptr, nullptr));
     CHECK(!exists(target) && !exists(target + ".zip") && clean(target + ".zip"));
 }
 

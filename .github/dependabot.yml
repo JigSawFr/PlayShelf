@@ -28,6 +28,9 @@ updates:
   # Aurore is pinned at library/aurore and follows the `main` branch of JigSawFr/Aurore
   # (.gitmodules). Monthly: each bump changes the whole UI, so it wants a look at the
   # desktop-smoke screenshots before merging, not a weekly stream of them.
+  # The same entry moves library/boreale-link and library/boreale-site (what Boréale's
+  # sites share, the website's base): Dependabot takes one entry per ecosystem and
+  # directory, so the submodules share its schedule.
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
