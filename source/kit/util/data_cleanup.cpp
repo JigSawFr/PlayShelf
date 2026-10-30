@@ -6,15 +6,22 @@
 #include <cstdio>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <utility>
 
 namespace data_cleanup
 {
 
 namespace
 {
+std::vector<std::string>& kept_logs()
+{
+    static std::vector<std::string> kept;
+    return kept;
+}
+
 // The files under `dir` and its subfolders, with their sizes. `keep(rel)`
 // leaves out a file by its path from the folder collect() started at
-// ("uploads/upload_….url").
+// ("uploads/upload_….url", "play_timer/block.json").
 template <typename Keep>
 void collect(const std::string& dir, Plan& plan, Keep keep, const std::string& rel = "")
 {
@@ -69,9 +76,15 @@ Plan logs(const std::string& data_dir, const std::string& session)
     Plan plan;
     const std::string current = session.empty() ? std::string() : "sessions/" + session;
     collect(data_dir + "/logs", plan, [&current](const std::string& rel) {
-        return rel.starts_with("uploads/") || (!current.empty() && rel == current);
+        return rel.starts_with("uploads/") || std::ranges::contains(kept_logs(), rel) ||
+               (!current.empty() && rel == current);
     });
     return sorted(plan);
+}
+
+void keep_log(std::string rel)
+{
+    if (!std::ranges::contains(kept_logs(), rel)) kept_logs().push_back(std::move(rel));
 }
 
 Outcome remove(const Plan& plan)

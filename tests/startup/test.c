@@ -50,7 +50,7 @@ static void test_desktop(void)
     CHECK(!strstr(out, "system services"));
     CHECK(!strstr(out, "C++ static initialisation"));
     CHECK(strstr(out, "  data folder: older layouts                    1       1\n"));
-    CHECK(strstr(out, "  preferences (config.json)                     3       8\n"));
+    CHECK(strstr(out, "  preferences                                   3       8\n"));
 }
 
 static void test_missing_steps(void)
@@ -63,7 +63,7 @@ static void test_missing_steps(void)
     at[StartupStep_FirstScreen] = at[StartupStep_Probed] + 50LL * MS;
     char out[2048];
     startup_format(at, out, sizeof(out));
-    CHECK(!strstr(out, "start screen chosen") && !strstr(out, "intro"));
+    CHECK(!strstr(out, "app: settings read") && !strstr(out, "intro"));
     CHECK(strstr(out, "  first screen                                 50    1033\n"));
 
     // Not there yet.

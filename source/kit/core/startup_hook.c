@@ -1,4 +1,4 @@
-// PlayShelf — times Aurore's userAppInit (see util/startup.h): libnx calls
+// startup_hook — times Aurore's userAppInit (see util/startup.h): libnx calls
 // it before main, and it opens the sockets, the romfs and the network,
 // settings and power services, while the screen stays black.
 // Linked with -Wl,--wrap=userAppInit (CMakeLists.txt): libnx's call reaches
