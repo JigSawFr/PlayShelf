@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <expected>
 #include <map>
 #include <optional>
 #include <string>
@@ -74,12 +75,15 @@ struct ServerInfo
     bool        save_backup = false;   // its save backups (not served yet by Ownfoil 2.5)
 };
 
+// A reading: the value, or why it is none.
+template <class T> using Parsed = std::expected<T, std::string>;
+
 constexpr size_t MAX_ITEMS = 100000;
 constexpr int    MAX_DEPTH = 16;
 
 // The API's answer (/api/remote or /api/shop). An "error" it holds, or no
 // "sections", fails with that reason (the server's words, bounded).
-[[nodiscard]] std::optional<Catalog> parse_api(const std::string& body, const std::string& base_url, std::string* why = nullptr);
+[[nodiscard]] Parsed<Catalog> parse_api(const std::string& body, const std::string& base_url);
 
 // Ownfoil's handshake; nothing when it is not one (no "uid", "name").
 std::optional<ServerInfo> parse_handshake(const std::string& body);
@@ -99,7 +103,7 @@ bool add_graphql_apps(Catalog& c, const std::string& body, const std::string& ba
 std::string url_encode(const std::string& s);
 
 // A JSON index. An index without any of its fields fails.
-[[nodiscard]] std::optional<Catalog> parse_index(const std::string& body, const std::string& base_url, std::string* why = nullptr);
+[[nodiscard]] Parsed<Catalog> parse_index(const std::string& body, const std::string& base_url);
 
 // `ref` made absolute against `base` (RFC 3986: an absolute URL, "//host",
 // "/path", or a path relative to the base's folder, with "." and ".."

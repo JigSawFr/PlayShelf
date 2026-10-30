@@ -56,11 +56,10 @@ bool read_indexes(const std::string& url, const std::vector<std::string>& header
             out->skipped++;   // a sub-index that cannot be read: its items are missing
             continue;
         }
-        std::string err;
-        const auto  c = parse_index(a.body, at, &err);
+        const auto c = parse_index(a.body, at);
         if (!c) {
             if (fetched == 1) {
-                *why = err;
+                *why = c.error();
                 return false;
             }
             out->skipped++;
@@ -209,8 +208,8 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
             const bool   sections = i < 2;
             const Answer a = i == 0 ? first : t.get(endpoint + api_paths[i] + (sections ? limit : ""), headers, pin);
             if (a.status == 200) {
-                std::string err;
-                if (auto c = parse_api(a.body, endpoint, &err)) {
+                auto c = parse_api(a.body, endpoint);
+                if (c) {
                     // A frozen account: only its placeholders.
                     if (c->frozen && c->items.empty()) return failed("the account is frozen on this server");
                     f.status = FetchStatus::Ok;
@@ -223,7 +222,7 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
                 // for any other path) is asked below; then, for an explicit
                 // Api, that error is the last word; in Auto, the address
                 // may still be a JSON index, read below.
-                not_api = err;
+                not_api = c.error();
                 break;
             }
             // 404: this path is not served, so try the next one. Any other
