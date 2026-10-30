@@ -271,7 +271,6 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 # With its string and file helpers (core/util.cpp), as it is.
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp library/aurore/library/lib/core/util.cpp tests/i18n_threads/test.cpp
 i18n_threads_FLAGS := -std=c++23 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
-                      -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/aurore/extern include/aurore/extern/nanovg \
                         include/aurore/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
                       -DAURORE_RESOURCES='"./"'
