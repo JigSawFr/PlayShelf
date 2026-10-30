@@ -57,10 +57,10 @@ void start()
 }
 
 void set(const std::string& id, Level level, const std::string& title, const std::string& detail,
-         const std::string& action_label, std::function<void()> action)
+         const std::string& action_label, std::function<void()> action, const std::string& key)
 {
     s_actions[id] = Entry{ {}, action_label, std::move(action) };
-    if (s_store.set(id, level, title, detail)) tell();
+    if (s_store.set(id, level, title, detail, key)) tell();
 }
 
 void clear(const std::string& id)

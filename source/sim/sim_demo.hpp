@@ -4,8 +4,9 @@
 // tools/web_demo.cpp and tools/web_demo_art.py made into dir(); and the
 // other services' answers about its games, so the demo fetches nothing
 // real: Atlas' files (dir()/insights/, at INSIGHTS_BASE: the
-// Switch's in platforms/switch/, action/popular_flow's, and platforms/switch/prices/,
-// action/prices_flow's), Nlib API's details and pictures
+// Switch's in platforms/switch/, action/popular_flow's, platforms/switch/prices/,
+// action/prices_flow's, and changes.json, action/changes_flow's), Nlib API's
+// details and pictures
 // (dir()/nlib/, at NLIB_BASE, titledb/nlib's) and a title database
 // (dir()/titledb/index.json, at TITLEDB_URL, NXMeta's in util/config.hpp);
 // and the console's first games (dir()/console/, put on the simulated

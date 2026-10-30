@@ -192,6 +192,8 @@ library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/libr
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
 library_prices_SRC := source/library/signals.cpp source/library/prices.cpp tests/library_prices/test.cpp
+# What Atlas' last run changed (changes.json): the games out today, the sales started, the new lowest prices.
+library_changes_SRC := source/library/signals.cpp source/library/prices.cpp source/library/changes.cpp tests/library_changes/test.cpp
 # Atlas' index.json, and which of its files to download again.
 library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(K)/util/sha256.cpp tests/library_index/test.cpp
 library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \

@@ -53,6 +53,25 @@ void test_dismiss()
     CHECK(again.set("new_games", Level::Info, "5 new games", "") && again.has("new_games"));
 }
 
+// A key of its own: the words change without telling it again (a sale
+// that "goes on sale" the first day and "is on sale" the next), the key
+// does; and put away, it stays away at the next start by its key.
+void test_own_key()
+{
+    Store s;
+    CHECK(s.set("sale.01", Level::Info, "Ember goes on sale", "-30 %", "13,99"));
+    CHECK(s.dismiss("sale.01") && s.read_keys().back() == read_key("sale.01", "13,99", ""));
+    CHECK(!s.set("sale.01", Level::Info, "Ember is on sale", "-30 % until 12", "13,99") && !s.has("sale.01"));
+    CHECK(s.set("sale.01", Level::Info, "Ember is at its lowest price", "-50 %", "9,99") && s.has("sale.01"));
+    CHECK(s.dismiss("sale.01"));
+    Store next;
+    next.set_read(s.read_keys());
+    CHECK(!next.set("sale.01", Level::Info, "Ember is at its lowest", "-50 % until 12", "9,99") && next.info_count() == 0);
+    // Cleared: its key forgotten.
+    next.clear("sale.01");
+    CHECK(next.read_keys().size() == 1 && next.set("sale.01", Level::Info, "Ember", "", "9,99") && next.has("sale.01"));
+}
+
 void test_keys()
 {
     CHECK(read_key("a", "b", "c") == read_key("a", "b", "c") && read_key("a", "b", "c") != read_key("a", "b", "d"));
@@ -76,6 +95,7 @@ int main()
 {
     test_order();
     test_dismiss();
+    test_own_key();
     test_keys();
     CHECK_DONE("notice_logic");
 }

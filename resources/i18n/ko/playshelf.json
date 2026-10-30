@@ -576,6 +576,11 @@
         "downloads_failed": "다운로드 {}개가 실패했습니다",
         "sale": "{} 할인 중",
         "sale_lowest": "{} 역대 최저가",
+        "sale_started": "{} 할인 시작",
+        "lowest": "{} 역대 최저가",
+        "lowest_now": "현재 {}",
+        "out": "{} 출시",
+        "out_on": "{} 출시",
         "sale_until": "-{0}% · {1} ({2}까지)",
         "day": "{1} {0}일"
     },

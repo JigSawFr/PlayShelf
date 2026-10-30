@@ -11,6 +11,7 @@
 
 #include <aurore.hpp>
 
+#include "action/changes_flow.hpp"
 #include "action/download_flow.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
@@ -410,6 +411,7 @@ void start()
     nlib_flow::listen(soon);
     popular_flow::listen(soon);
     prices_flow::listen(soon);
+    changes_flow::listen(soon);
     wishlist::listen(soon);
     not_interested::listen(soon);
     titledb_flow::listen(soon);

@@ -7,6 +7,7 @@
 
 #include <aurore/cadran/ui/cadran_frame.hpp>
 
+#include "action/changes_flow.hpp"
 #include "action/download_flow.hpp"
 #include "action/not_interested.hpp"
 #include "action/titledb_flow.hpp"
@@ -154,6 +155,7 @@ PreferencesTab::PreferencesTab()
         ui::save_config();
         if (on) popular_flow::refresh();
         prices_flow::start();
+        changes_flow::start();
     });
     // Whose eShop prices: the language's country, one of Atlas', or none.
     prices->registerClickAction([this](aurore::View*) {
