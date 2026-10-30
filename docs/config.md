@@ -12,6 +12,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `effects` | `auto`, `full`, `reduced` | `auto` | *Preferences › Visual effects*: `auto` keeps the lighter effects off the dock |
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
 | `start_tab` | `home`, `library`, `catalogue`, `preferences`, `about` | `home` | *Preferences › Start on* |
+| `look_shared` | `true`, `false` | `true` | the language, the theme, the text size and the visual effects shared with the other Boréale homebrews (`config/boreale/prefs.conf`): taken at start-up, written at each change |
 | `notices_others` | `true`, `false` | `true` | the notification bell lists the other Boréale homebrews' notices and counts those to do or failed |
 | `support_reminder` | `true`, `false` | `true` | "Support PlayShelf" once a month at start-up |
 | `keep_awake` | `true`, `false` | `true` | *Downloads › Stay awake while downloading*: the console does not go to sleep by itself while downloads run |

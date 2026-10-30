@@ -130,6 +130,13 @@ PreferencesTab::PreferencesTab()
         ui::save_config();
         notices::count_others();
     });
+    // The language, theme, text size and effects shared with the other
+    // Boréale homebrews (action/shared_look): turned on, PlayShelf's become
+    // theirs at their next start.
+    look_shared->init("playshelf/prefs/look_shared"_i18n, config::get().look_shared, [](bool on) {
+        config::get().look_shared = on;
+        ui::save_prefs();
+    });
 
     // How PlayShelf updates (checking now is in About, by the version).
     update_daily->init("playshelf/tools/update_daily"_i18n, config::get().update_daily, [](bool on) {
@@ -177,7 +184,7 @@ PreferencesTab::PreferencesTab()
 
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
-    this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_intro", "bolt" },
+    this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
                        { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
@@ -319,6 +326,7 @@ void PreferencesTab::refresh()
     intro->setOn(cfg.intro, false);
     support_reminder->setOn(cfg.support_reminder, false);
     notices_others->setOn(cfg.notices_others, false);
+    look_shared->setOn(cfg.look_shared, false);
     update_daily->setOn(cfg.update_daily, false);
     nlib_api->setOn(cfg.nlib_api, false);
     popular_online->setOn(cfg.popular_online, false);

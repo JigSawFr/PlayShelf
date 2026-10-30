@@ -33,6 +33,7 @@
             <aurore:DetailCell id="pf_start_tab" title="@i18n/playshelf/tiles/start_tab"/>
             <aurore:DetailCell id="pf_palette" title="@i18n/cadran/tools/palette"/>
             <aurore:DetailCell id="pf_effects" title="@i18n/playshelf/prefs/effects"/>
+            <aurore:BooleanCell id="pf_look_shared"/>
             <aurore:BooleanCell id="pf_intro"/>
             <aurore:BooleanCell id="pf_support_reminder"/>
             <aurore:BooleanCell id="pf_notices_others"/>

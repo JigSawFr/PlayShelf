@@ -338,6 +338,7 @@
         "intro": "인트로를 2초 동안 표시",
         "support_reminder": "한 달에 한 번 PlayShelf 후원 알림 표시",
         "notices_others": "다른 Boréale 홈브루의 알림",
+        "look_shared": "다른 Boréale 홈브류와 같은 모양",
         "help": "도움말 및 진단",
         "effects": "시각 효과",
         "effects_values": {

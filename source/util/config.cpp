@@ -194,6 +194,7 @@ static void load_shared()
     read_string(j, "library_view", c.library_view);
     read_bool(j, "support_reminder", c.support_reminder);
     read_bool(j, "notices_others", c.notices_others);
+    read_bool(j, "look_shared", c.look_shared);
     read_bool(j, "keep_awake", c.keep_awake);
     read_int(j, "connections", c.connections);
     read_int(j, "prefetch", c.prefetch);
@@ -251,6 +252,7 @@ bool snapshot(Snapshot& snap)
     j["library_view"] = s_config.library_view;
     j["support_reminder"] = s_config.support_reminder;
     j["notices_others"]   = s_config.notices_others;
+    j["look_shared"]      = s_config.look_shared;
     j["keep_awake"] = s_config.keep_awake;
     j["connections"] = s_config.connections;
     j["prefetch"] = s_config.prefetch;

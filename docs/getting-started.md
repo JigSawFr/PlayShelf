@@ -68,7 +68,7 @@ An icon that none of them has is asked of [Nlib API](https://api.nlib.cc/nx/) ov
 
 ## Preferences
 
-*Preferences* sets the language (the console's, or one of 15), the theme and its palette (PlayShelf's, a preset or [your own](themes.md)), the text size, the tab PlayShelf starts on, the updates and the title database. Every setting is also in [`config.json`](config.md).
+*Preferences* sets the language (the console's, or one of 15), the theme and its palette (PlayShelf's, a preset or [your own](themes.md)), the text size, the tab PlayShelf starts on, the updates and the title database. *Same look as the other Boréale homebrews* (on by default) shares the language, the theme, the text size and the visual effects with them (`config/boreale/prefs.conf`): PlayShelf takes at start-up the ones another homebrew chose, and a change made here reaches the others when they next start. Every setting is also in [`config.json`](config.md).
 
 ![The Preferences](../images/screenshots/preferences.png)
 

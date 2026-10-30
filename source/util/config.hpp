@@ -63,6 +63,7 @@ struct Config
     // "What's new" was handled.
     bool        support_reminder = true;
     bool        notices_others   = true;   // the other Boréale homebrews' notices in the bell, counted on it
+    bool        look_shared      = true;   // the look shared with the other Boréale homebrews (action/shared_look)
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8
     int         prefetch = 0;          // packages fetched ahead while one installs (action/download_flow), 0 to 2
