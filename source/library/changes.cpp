@@ -22,12 +22,20 @@ void ids_of(const nlohmann::json& list, std::unordered_set<uint64_t>& into)
         if (const uint64_t id = base_id_of(v.get<std::string>())) into.insert(id);
     }
 }
+
+// A trend's bounds: popular.json's, -100 to 999.
+bool is_trend(const nlohmann::json& v)
+{
+    return v.is_number_integer() && v.get<int64_t>() >= -100 && v.get<int64_t>() <= 999;
+}
 }   // namespace
 
 bool ChangeBook::from_json(const std::string& text)
 {
     this->out.clear();
     this->sales.clear();
+    this->fresh.clear();
+    this->moved.clear();
     this->day.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
     if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA) return false;
@@ -39,6 +47,23 @@ bool ChangeBook::from_json(const std::string& text)
     const auto sw = platforms->find("switch");
     if (sw == platforms->end() || !sw->is_object()) return true;
     if (const auto o = sw->find("out_today"); o != sw->end()) ids_of(*o, this->out);
+    if (const auto n = sw->find("new"); n != sw->end() && n->is_array()) {
+        std::unordered_set<uint64_t> once;
+        for (const nlohmann::json& v : *n) {
+            if (this->fresh.size() >= MAX_IDS) break;
+            if (!v.is_string()) continue;
+            if (const uint64_t id = base_id_of(v.get<std::string>()); id && once.insert(id).second) this->fresh.push_back(id);
+        }
+    }
+    if (const auto t = sw->find("trends"); t != sw->end() && t->is_array()) {
+        std::unordered_set<uint64_t> once;
+        for (const nlohmann::json& v : *t) {
+            if (this->moved.size() >= MAX_IDS) break;
+            if (!v.is_array() || v.size() < 3 || !v[0].is_string() || !is_trend(v[1]) || !is_trend(v[2])) continue;
+            const uint64_t id = base_id_of(v[0].get<std::string>());
+            if (id && once.insert(id).second) this->moved.push_back({ id, { v[1].get<int>(), v[2].get<int>() } });
+        }
+    }
     const auto by_country = sw->find("sales");
     if (by_country == sw->end() || !by_country->is_object()) return true;
     for (const auto& [country, kinds] : by_country->items()) {
@@ -70,7 +95,7 @@ bool ChangeBook::new_lowest(const std::string& country, uint64_t id) const
 
 size_t ChangeBook::size() const
 {
-    size_t n = this->out.size();
+    size_t n = this->out.size() + this->fresh.size() + this->moved.size();
     for (const auto& [_, s] : this->sales) n += s.started.size() + s.lowest.size();
     return n;
 }

@@ -1,9 +1,10 @@
 // changes — what Atlas' last run changed (https://github.com/JigSawFr/Atlas:
 // changes.json, schema 1), for the Switch: the games out on the day of the
-// run (`out_today`) and, by country, the sales that started and the new
-// lowest prices (`sales`). The other platforms and the other kinds (new
-// games, trends, sales ended) are skipped, as is any field not known here; a
-// file of another schema is none. Plain C++ for the host tests
+// run (`out_today`), the games new on Atlas since its last run (`new`), the
+// trends that moved by 100 points or more (`trends`: `[id, before, now]`)
+// and, by country, the sales that started and the new lowest prices
+// (`sales`). The other platforms and the sales ended are skipped, as is any
+// field not known here; a file of another schema is none. Plain C++ for the host tests
 // (tests/library_changes).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -13,6 +14,8 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace library
 {
@@ -35,6 +38,17 @@ class ChangeBook
     bool sale_started(const std::string& country, uint64_t id) const;
     bool new_lowest(const std::string& country, uint64_t id) const;
 
+    // A trend's move (popular.json's `trend`: how much more the game was
+    // read lately, in percent), before the run and after it.
+    struct Trend
+    {
+        int before = 0, now = 0;
+    };
+    // The games new since Atlas' last run, and the trends that moved, in the
+    // file's order, each game once.
+    const std::vector<uint64_t>&                    new_games() const { return this->fresh; }
+    const std::vector<std::pair<uint64_t, Trend>>&  trends() const { return this->moved; }
+
     // The ids read, in all.
     size_t size() const;
 
@@ -44,6 +58,8 @@ class ChangeBook
         std::unordered_set<uint64_t> started, lowest;
     };
     std::unordered_set<uint64_t>                 out;
+    std::vector<uint64_t>                        fresh;
+    std::vector<std::pair<uint64_t, Trend>>      moved;
     std::unordered_map<std::string, Sales>       sales;
     std::string                                  day;
 };

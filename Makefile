@@ -197,6 +197,9 @@ library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
 library_prices_SRC := source/library/signals.cpp source/library/prices.cpp tests/library_prices/test.cpp
 # What Atlas' last run changed (changes.json): the games out today, the sales started, the new lowest prices.
 library_changes_SRC := source/library/signals.cpp source/library/prices.cpp source/library/changes.cpp tests/library_changes/test.cpp
+# What the bell tells of Atlas' new games and trends, each once (news.json).
+library_news_SRC := source/library/signals.cpp source/library/prices.cpp source/library/changes.cpp source/library/seen.cpp \
+                    source/library/news.cpp tests/library_news/test.cpp
 # Atlas' index.json, and which of its files to download again.
 library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(K)/util/sha256.cpp tests/library_index/test.cpp
 library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \

@@ -207,6 +207,7 @@ void make()
         for (const installed_flow::Game& g : *games) {
             const double weight = library::owned_weight(g.play_s, g.launches, g.last_played, now);
             owned.push_back({ g.game.id, weight, (uint32_t)(g.play_s / 3600) });
+            s.owned.push_back(g.game.id);
             for (const std::string& c : nlib_flow::facts(g.game.id).categories)
                 if (c != "Other") genres[c] += weight;
             if (!g.launches && !g.play_s) s.never_played++;

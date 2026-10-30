@@ -77,8 +77,10 @@ none of a real game's names, characters or pictures. 24 are on the server,
   since four months before (`since`), half the sales at it: for Home's
   **Deals** row, its lowest-price marks and a game page's **eShop price**.
   `insights/changes.json`, what Atlas' last run would have changed: the
-  wishlist's *Moonlit Meadows* out on the day of the build, the wishlist's
-  sales started that day, so the bell says them.
+  wishlist's *Moonlit Meadows* out on the day of the build, *Turbo Kart
+  Rumble* new (of a series the console has a game of), the wishlist's *Sky
+  Kingdom: Echoes Below* read much more lately, the wishlist's sales started
+  that day, so the bell says them.
   And `insights/index.json`, every one of those files with its size and
   short hash, as Atlas publishes it, so PlayShelf downloads again
   only the ones that changed.

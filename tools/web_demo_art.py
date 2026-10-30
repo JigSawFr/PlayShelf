@@ -209,10 +209,17 @@ def prices(games, today):
 
 
 def changes(games, today, by_country):
-    """changes.json: the wishlist's games out today; by country, the
+    """changes.json: the wishlist's games out today; the games of a series
+    the console has a game of, new (not on a server, not wished); the
+    wishlist's games coming soon, their trend risen; by country, the
     wishlist's sales (they started today) and those at their lowest today."""
     wished = [i for i, g in enumerate(games) if g.get("wished")]
     out = [f"{tid(i):016X}" for i in wished if release_of(games[i], today) == today.isoformat()]
+    owned_series = {g["series"] for g in games if g.get("installed") and g.get("series")}
+    new = [f"{tid(i):016X}" for i, g in enumerate(games)
+           if g.get("on_server") is False and not g.get("wished") and g.get("series") in owned_series]
+    trends = [[f"{tid(i):016X}", g["trend"] - 100, g["trend"] + 100] for i, g in enumerate(games)
+              if g.get("wished") and g.get("on_server") is False and g.get("series")]
     day = int(today.strftime("%Y%m%d"))
     sales = {}
     for country, payload in by_country.items():
@@ -221,7 +228,7 @@ def changes(games, today, by_country):
         sales[country] = {"started": [g for g in mine if rows[g][1]], "ended": [],
                           "lowest": [g for g in mine if rows[g][4] == day and rows[g][1]]}
     return {"schema": 1, "generated": today.isoformat(), "source": "PlayShelf's web demo (made up)",
-            "platforms": {"switch": {"new": [], "out_today": sorted(out), "trends": [], "sales": sales}}}
+            "platforms": {"switch": {"new": new, "out_today": sorted(out), "trends": trends, "sales": sales}}}
 
 
 def release_of(game, today):
