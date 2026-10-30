@@ -12,6 +12,7 @@
 #include <aurore/cadran/util/text.hpp>
 #include <aurore/cadran/util/utf8.hpp>
 
+#include "app_id.h"
 #include "util/json_util.hpp"
 #include "util/log_files.hpp"
 #include "util/number.hpp"
@@ -141,8 +142,7 @@ std::vector<Part> atmosphere_crashes(std::time_t now, int days, size_t limit)
         while (const dirent* e = readdir(d)) {
             const std::string name = e->d_name;
             const size_t sep = name.find('_');
-            if (sep == std::string::npos || sep == 0 || sep > 12 || name.size() < 4 ||
-                name.compare(name.size() - 4, 4, ".log") != 0 ||
+            if (sep == std::string::npos || sep == 0 || sep > 12 || !name.ends_with(".log") ||
                 !std::all_of(name.begin(), name.begin() + sep, [](char c) { return c >= '0' && c <= '9'; }))
                 continue;
             const long long t = *number::parse<long long>(std::string_view(name).substr(0, sep));   // digits, checked above
@@ -179,7 +179,7 @@ std::vector<Part> gist_files(const std::vector<Part>& parts, size_t max_bytes, b
         if (text::starts_with(name, "logs/")) name.erase(0, 5);
         std::replace(name.begin(), name.end(), '/', '_');
         const std::string file =
-            std::to_string(i + 1) + "-" + (!name.contains('.') ? std::string("report.txt") : name);
+            std::to_string(i + 1) + "-" + (name.contains('.') ? name : std::string("report.txt"));
         const std::string content = parts[i].content.empty() ? std::string("(empty)\n") : parts[i].content;
         if (total + content.size() <= max_bytes) {
             out.push_back({ file, content });
@@ -258,7 +258,7 @@ std::string issue_url(const std::string& repo_url, const std::string& paste_url,
 std::string gist_body(const std::vector<Part>& files, const std::string& version, const std::string& what)
 {
     nlohmann::json j;
-    j["description"] = "PlayShelf " + version + " " + what;
+    j["description"] = APP_NAME " " + version + " " + what;
     j["public"] = false;
     j["files"] = nlohmann::json::object();
     for (const Part& f : files) j["files"][f.name]["content"] = f.content;
