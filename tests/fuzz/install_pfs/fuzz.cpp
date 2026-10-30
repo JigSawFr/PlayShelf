@@ -9,8 +9,8 @@
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     using namespace install;
-    const auto hs = pfs_header_size(data, size);
-    const auto p = pfs_parse(data, size, size);
+    const auto hs = pfs_header_size({data, size});
+    const auto p = pfs_parse({data, size}, size);
     if (p) {
         FUZZ_ASSERT(hs && hs->size == p->header_size && hs->kind == p->kind);
         FUZZ_ASSERT(p->header_size <= size);
@@ -22,7 +22,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         (void)p->ending_with(".nca");
     }
     // Without the archive's size: only the header bounds the entries.
-    (void)pfs_parse(data, size, 0);
-    if (const auto x = xci_root(data, size, size)) FUZZ_ASSERT(x->offset + x->header_size <= size);
+    (void)pfs_parse({data, size}, 0);
+    if (const auto x = xci_root({data, size}, size)) FUZZ_ASSERT(x->offset + x->header_size <= size);
     return 0;
 }

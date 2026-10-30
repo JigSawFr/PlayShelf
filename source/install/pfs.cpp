@@ -38,10 +38,10 @@ std::vector<const PfsEntry*> Pfs::ending_with(const std::string& suffix) const
     return out;
 }
 
-std::optional<PfsHeaderSize> pfs_header_size(const uint8_t* base, size_t size)
+std::optional<PfsHeaderSize> pfs_header_size(std::span<const uint8_t> base)
 {
-    if (size < PFS_BASE_HEADER) return std::nullopt;
-    const uint32_t magic = le32(base);
+    if (base.size() < PFS_BASE_HEADER) return std::nullopt;
+    const uint32_t magic = le32(base.data());
     PfsKind        kind;
     if (magic == MAGIC_PFS0)
         kind = PfsKind::Pfs0;
@@ -49,29 +49,29 @@ std::optional<PfsHeaderSize> pfs_header_size(const uint8_t* base, size_t size)
         kind = PfsKind::Hfs0;
     else
         return std::nullopt;
-    const uint32_t files = le32(base + 4), strings = le32(base + 8);
+    const uint32_t files = le32(base.data() + 4), strings = le32(base.data() + 8);
     if (files > MAX_ENTRIES) return std::nullopt;
     const uint64_t total = PFS_BASE_HEADER + (uint64_t)files * entry_size(kind) + strings;
     if (total > MAX_HEADER) return std::nullopt;
     return PfsHeaderSize{kind, total};
 }
 
-std::optional<Pfs> pfs_parse(const uint8_t* data, size_t size, uint64_t archive_size, std::string* why)
+std::optional<Pfs> pfs_parse(std::span<const uint8_t> data, uint64_t archive_size, std::string* why)
 {
-    const auto hs = pfs_header_size(data, size);
+    const auto hs = pfs_header_size(data);
     if (!hs) return fail<Pfs>(why, "not a PFS0 or HFS0 header, or one too big");
-    if (size < hs->size) return fail<Pfs>(why, "header cut short");
+    if (data.size() < hs->size) return fail<Pfs>(why, "header cut short");
     if (archive_size && hs->size > archive_size) return fail<Pfs>(why, "header past the archive's end");
 
     Pfs p;
     p.kind = hs->kind;
     p.header_size = hs->size;
-    const uint32_t files = le32(data + 4), strings = le32(data + 8);
+    const uint32_t files = le32(data.data() + 4), strings = le32(data.data() + 8);
     const uint64_t esize = entry_size(p.kind);
-    const uint8_t* table = data + PFS_BASE_HEADER + (uint64_t)files * esize;
+    const uint8_t* table = data.data() + PFS_BASE_HEADER + (uint64_t)files * esize;
     p.entries.reserve(files);
     for (uint32_t i = 0; i < files; i++) {
-        const uint8_t* e = data + PFS_BASE_HEADER + (uint64_t)i * esize;
+        const uint8_t* e = data.data() + PFS_BASE_HEADER + (uint64_t)i * esize;
         PfsEntry       entry;
         const uint64_t data_offset = le64(e), file_size = le64(e + 8);
         const uint32_t name_at = le32(e + 16);
@@ -96,13 +96,13 @@ std::optional<Pfs> pfs_parse(const uint8_t* data, size_t size, uint64_t archive_
     return p;
 }
 
-std::optional<XciRoot> xci_root(const uint8_t* header, size_t size, uint64_t image_size, std::string* why)
+std::optional<XciRoot> xci_root(std::span<const uint8_t> header, uint64_t image_size, std::string* why)
 {
-    if (size < XCI_HEADER) return fail<XciRoot>(why, "game card header cut short");
-    if (le32(header + 0x100) != MAGIC_HEAD) return fail<XciRoot>(why, "not a game card image (no HEAD)");
+    if (header.size() < XCI_HEADER) return fail<XciRoot>(why, "game card header cut short");
+    if (le32(header.data() + 0x100) != MAGIC_HEAD) return fail<XciRoot>(why, "not a game card image (no HEAD)");
     XciRoot r;
-    r.offset = le64(header + 0x130);
-    r.header_size = le64(header + 0x138);
+    r.offset = le64(header.data() + 0x130);
+    r.header_size = le64(header.data() + 0x138);
     if (r.offset < XCI_HEADER) return fail<XciRoot>(why, "root partition inside the card header");
     if (r.header_size < PFS_BASE_HEADER || r.header_size > MAX_HEADER) return fail<XciRoot>(why, "root partition header size out of range");
     uint64_t end;

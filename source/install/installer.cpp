@@ -73,9 +73,9 @@ bool Installer::prepare(std::string* why)
             t.meta_nca = std::move(file);
         }
         std::string err;
-        const auto  bytes = nca_read_cnmt(t.meta_nca.data(), t.meta_nca.size(), keys, &err);
+        const auto  bytes = nca_read_cnmt(t.meta_nca, keys, &err);
         if (!bytes) return fail(why, f->name + ": " + err);
-        auto meta = cnmt_parse(bytes->data(), bytes->size(), &err);
+        auto meta = cnmt_parse(*bytes, &err);
         if (!meta) return fail(why, f->name + ": " + err);
         t.meta = std::move(*meta);
         t.meta_content.id = *id;

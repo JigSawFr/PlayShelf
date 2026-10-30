@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -82,7 +83,7 @@ struct ContentMeta
     std::vector<ContentInfo> installable() const;
 };
 
-[[nodiscard]] std::optional<ContentMeta> cnmt_parse(const uint8_t* data, size_t size, std::string* why = nullptr);
+[[nodiscard]] std::optional<ContentMeta> cnmt_parse(std::span<const uint8_t> data, std::string* why = nullptr);
 
 // The record ncm keeps: NcmContentMetaHeader, the extended header, the
 // content infos (the .cnmt.nca's own first, as `meta_content`, then the

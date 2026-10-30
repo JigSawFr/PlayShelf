@@ -172,7 +172,7 @@ void check_installed(FakeConsole& c, const Title& t)
     const MetaKey key{0x0100000000010000ull, 0, MetaType::Application};
     const auto    rec = c.get_meta(key);
     if (CHECK(rec)) {
-        const auto meta = cnmt_parse(t.cnmt.data(), t.cnmt.size());
+        const auto meta = cnmt_parse(t.cnmt);
         ContentInfo mc = info_of(t.meta_nca, ContentType::Meta, 0x44);
         CHECK(*rec == cnmt_install_record(*meta, mc));
     }

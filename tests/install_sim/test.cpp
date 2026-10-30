@@ -59,7 +59,7 @@ void test_installed()
     CHECK(file(root + "/contents/" + content_id_hex(t.program_info.id) + ".nca") == bytes(t.program));
     CHECK(file(root + "/contents/" + content_id_hex(t.control_info.id) + ".nca") == bytes(t.control));
     CHECK(file(root + "/contents/" + content_id_hex(t.meta_id) + ".nca") == bytes(t.meta_nca));
-    const auto  meta = cnmt_parse(t.cnmt.data(), t.cnmt.size());
+    const auto  meta = cnmt_parse(t.cnmt);
     ContentInfo mc = info_of(t.meta_nca, ContentType::Meta, 0x44);
     CHECK(file(root + "/meta/0100000000010000-0.bin") == bytes(cnmt_install_record(*meta, mc)));
     CHECK(file(root + "/records.log") == "0100000000010000 0100000000010000-0 type=0x80\n");

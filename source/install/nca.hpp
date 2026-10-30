@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <functional>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -97,7 +98,7 @@ std::array<uint8_t, 16> nca_section_iv(const NcaSection& s);
 
 // The content meta inside a whole .cnmt.nca: the bytes of the first file
 // ending in .cnmt of its first section's PFS0.
-std::optional<std::vector<uint8_t>> nca_read_cnmt(const uint8_t* nca, size_t size, const NcaKeys& keys,
+std::optional<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys,
                                                   std::string* why = nullptr);
 
 }   // namespace install

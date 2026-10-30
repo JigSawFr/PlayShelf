@@ -24,7 +24,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         aes128_ecb_decrypt(KAEK, out, 16);
         return true;
     };
-    if (const auto cnmt = nca_read_cnmt(data, size, keys)) FUZZ_ASSERT(cnmt->size() <= size);
+    if (const auto cnmt = nca_read_cnmt({data, size}, keys)) FUZZ_ASSERT(cnmt->size() <= size);
     if (size >= NCA_HEADER) {
         if (const auto h = nca_parse_header(data)) {
             for (const NcaSection& s : h->sections)

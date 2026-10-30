@@ -132,14 +132,14 @@ std::array<uint8_t, 16> nca_section_iv(const NcaSection& s)
     return iv;
 }
 
-std::optional<std::vector<uint8_t>> nca_read_cnmt(const uint8_t* nca, size_t size, const NcaKeys& keys, std::string* why)
+std::optional<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys, std::string* why)
 {
     using Bytes = std::vector<uint8_t>;
-    if (size < NCA_FULL_HEADER) return fail<Bytes>(why, "content meta NCA cut short");
+    if (nca.size() < NCA_FULL_HEADER) return fail<Bytes>(why, "content meta NCA cut short");
     uint8_t head[NCA_HEADER];
-    std::memcpy(head, nca, NCA_HEADER);
+    std::memcpy(head, nca.data(), NCA_HEADER);
     nca_header_crypt(head, keys.header_key.data(), false);
-    const auto h = nca_parse_header(head, size, why);
+    const auto h = nca_parse_header(head, nca.size(), why);
     if (!h) return std::nullopt;
     if (h->content_type != 1) return fail<Bytes>(why, "not a content meta NCA");
     if (h->has_rights_id()) return fail<Bytes>(why, "a content meta NCA with a rights id");
@@ -153,14 +153,14 @@ std::optional<std::vector<uint8_t>> nca_read_cnmt(const uint8_t* nca, size_t siz
     uint64_t       from, to;
     if (!add_ok(s.start, pfs_at, &from) || !add_ok(from, pfs_size, &to) || to > s.end || pfs_size > (64u << 20))
         return fail<Bytes>(why, "the partition out of its section");
-    Bytes pfs(nca + from, nca + to);
+    Bytes pfs(nca.data() + from, nca.data() + to);
     if (s.encryption == NcaEncryption::Ctr) {
         const auto key = nca_ctr_key(*h, keys);
         if (!key) return fail<Bytes>(why, "no key for the section (key generation newer than the console)");
         const auto iv = nca_section_iv(s);
         Aes128Ctr(key->data(), iv.data()).crypt(pfs.data(), pfs.size(), from);
     }
-    const auto p = pfs_parse(pfs.data(), pfs.size(), pfs.size(), why);
+    const auto p = pfs_parse(pfs, pfs.size(), why);
     if (!p) return std::nullopt;
     const auto files = p->ending_with(".cnmt");
     if (files.empty()) return fail<Bytes>(why, "no .cnmt in the partition");

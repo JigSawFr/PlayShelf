@@ -130,11 +130,11 @@ void test_pfs()
     const Bytes nsp = archive(PfsKind::Pfs0, files);
     write_seed("pfs0", nsp);
 
-    const auto hs = pfs_header_size(nsp.data(), nsp.size());
+    const auto hs = pfs_header_size(nsp);
     if (!CHECK(hs)) return;
     CHECK(hs->kind == PfsKind::Pfs0);
     std::string why;
-    const auto  p = pfs_parse(nsp.data(), nsp.size(), nsp.size(), &why);
+    const auto  p = pfs_parse(nsp, nsp.size(), &why);
     if (!CHECK(p)) return;
     CHECK(p->entries.size() == 3);
     CHECK(p->header_size == hs->size);
@@ -148,41 +148,41 @@ void test_pfs()
     CHECK(!p->find("missing.nca"));
 
     // The header alone parses (the data is someone else's to read).
-    CHECK(pfs_parse(nsp.data(), (size_t)hs->size));
+    CHECK(pfs_parse({nsp.data(), (size_t)hs->size}));
     // Cut short; past the archive's size.
-    CHECK(!pfs_parse(nsp.data(), (size_t)hs->size - 1));
-    CHECK(!pfs_parse(nsp.data(), nsp.size(), nsp.size() - 1, &why));
+    CHECK(!pfs_parse({nsp.data(), (size_t)hs->size - 1}));
+    CHECK(!pfs_parse(nsp, nsp.size() - 1, &why));
     // Neither magic; too many entries; a header past MAX_HEADER.
     Bytes bad = nsp;
     bad[0] = 'X';
-    CHECK(!pfs_header_size(bad.data(), bad.size()));
+    CHECK(!pfs_header_size(bad));
     bad = nsp;
     put_le32(bad.data() + 4, MAX_ENTRIES + 1);
-    CHECK(!pfs_header_size(bad.data(), bad.size()));
+    CHECK(!pfs_header_size(bad));
     bad = nsp;
     put_le32(bad.data() + 8, (uint32_t)MAX_HEADER);
-    CHECK(!pfs_header_size(bad.data(), bad.size()));
+    CHECK(!pfs_header_size(bad));
     // A name past the table, a name without its end, an empty name.
     bad = nsp;
     put_le32(bad.data() + PFS_BASE_HEADER + 16, 0x1000);
-    CHECK(!pfs_parse(bad.data(), bad.size()));
+    CHECK(!pfs_parse(bad));
     bad = nsp;
     const size_t table = PFS_BASE_HEADER + 3 * 0x18;
     for (size_t i = table; i < hs->size; i++)
         if (!bad[i]) bad[i] = 'x';
-    CHECK(!pfs_parse(bad.data(), bad.size()));
+    CHECK(!pfs_parse(bad));
     bad = nsp;
     put_le32(bad.data() + PFS_BASE_HEADER + 16, le32(nsp.data() + PFS_BASE_HEADER + 0x18 + 16) - 1);
-    CHECK(!pfs_parse(bad.data(), bad.size()));
+    CHECK(!pfs_parse(bad));
     // An offset that wraps around.
     bad = nsp;
     put_le64(bad.data() + PFS_BASE_HEADER, ~0ull - 4);
-    CHECK(!pfs_parse(bad.data(), bad.size()));
+    CHECK(!pfs_parse(bad));
 
     // HFS0: the hashes kept; a hashed size past the file's refused.
     const Bytes hfs = archive(PfsKind::Hfs0, {{"secure", stream(0x300, "s")}, {"normal", {}}});
     write_seed("hfs0", hfs);
-    const auto h = pfs_parse(hfs.data(), hfs.size(), hfs.size());
+    const auto h = pfs_parse(hfs, hfs.size());
     if (!CHECK(h)) return;
     CHECK(h->kind == PfsKind::Hfs0);
     CHECK(h->entries[0].hashed_size == 0x200);
@@ -192,7 +192,7 @@ void test_pfs()
     CHECK(h->entries[1].size == 0);
     bad = hfs;
     put_le32(bad.data() + PFS_BASE_HEADER + 20, 0x301);
-    CHECK(!pfs_parse(bad.data(), bad.size()));
+    CHECK(!pfs_parse(bad));
 }
 
 void test_xci()
@@ -202,20 +202,20 @@ void test_xci()
     put_le64(card.data() + 0x130, 0xf000);
     put_le64(card.data() + 0x138, 0x200);
     write_seed("xci", card);
-    const auto r = xci_root(card.data(), card.size(), 0x10000);
+    const auto r = xci_root(card, 0x10000);
     if (!CHECK(r)) return;
     CHECK(r->offset == 0xf000 && r->header_size == 0x200);
-    CHECK(!xci_root(card.data(), card.size(), 0xf100));   // past the image
-    CHECK(!xci_root(card.data(), 0x1ff));
+    CHECK(!xci_root(card, 0xf100));   // past the image
+    CHECK(!xci_root({card.data(), 0x1ff}));
     Bytes bad = card;
     bad[0x100] = 0;
-    CHECK(!xci_root(bad.data(), bad.size()));
+    CHECK(!xci_root(bad));
     bad = card;
     put_le64(bad.data() + 0x130, 0x100);
-    CHECK(!xci_root(bad.data(), bad.size()));
+    CHECK(!xci_root(bad));
     bad = card;
     put_le64(bad.data() + 0x130, ~0ull - 0x10);
-    CHECK(!xci_root(bad.data(), bad.size()));
+    CHECK(!xci_root(bad));
 }
 
 // ---------------------------------------------------------------- content meta
@@ -225,7 +225,7 @@ void test_cnmt()
     const Bytes app = packaged_cnmt(MetaType::Application, 0x0100000000010000ull, 0, some_contents());
     write_seed("cnmt_app", app);
     std::string why;
-    const auto  m = cnmt_parse(app.data(), app.size(), &why);
+    const auto  m = cnmt_parse(app, &why);
     if (!CHECK(m)) return;
     CHECK(m->title_id == 0x0100000000010000ull);
     CHECK(m->type == MetaType::Application);
@@ -262,7 +262,7 @@ void test_cnmt()
     const Bytes extra = stream(0x50, "patch data");
     const Bytes patch = packaged_cnmt(MetaType::Patch, 0x0100000000010800ull, 0x10000, some_contents(), extra);
     write_seed("cnmt_patch", patch);
-    const auto pm = cnmt_parse(patch.data(), patch.size());
+    const auto pm = cnmt_parse(patch);
     if (!CHECK(pm)) return;
     CHECK(pm->application_id() == 0x0100000000010000ull);
     CHECK(pm->extended_data == extra);
@@ -271,7 +271,7 @@ void test_cnmt()
 
     // An add-on names its application, requires no system version.
     const Bytes aoc = packaged_cnmt(MetaType::AddOnContent, 0x0100000000011001ull, 0, {some_contents()[1]});
-    const auto  am = cnmt_parse(aoc.data(), aoc.size());
+    const auto  am = cnmt_parse(aoc);
     if (CHECK(am)) {
         CHECK(am->application_id() == 0x0100000000010000ull);
         CHECK(am->required_system_version() == 0);
@@ -279,13 +279,13 @@ void test_cnmt()
 
     // Cut anywhere, it is refused, never read past.
     for (size_t n = 0; n < app.size(); n++)
-        CHECK(!cnmt_parse(app.data(), n));
+        CHECK(!cnmt_parse({app.data(), n}));
     for (size_t n = 0; n < patch.size(); n++)
-        CHECK(!cnmt_parse(patch.data(), n));
+        CHECK(!cnmt_parse({patch.data(), n}));
     // An extended data size past the end.
     Bytes bad = patch;
     put_le32(bad.data() + 0x20 + 12, 0x10000);
-    CHECK(!cnmt_parse(bad.data(), bad.size()));
+    CHECK(!cnmt_parse(bad));
 
     // Content ids as file names.
     ContentId id{};
@@ -325,7 +325,7 @@ void test_nca()
     CHECK(!h->has_rights_id());
     CHECK(!nca_parse_header(head, nca.size() + 0x200));   // its file says another size
 
-    const auto read = nca_read_cnmt(nca.data(), nca.size(), keys, &why);
+    const auto read = nca_read_cnmt(nca, keys, &why);
     if (CHECK(read))
         CHECK(*read == cnmt);
     else
@@ -334,9 +334,9 @@ void test_nca()
     // The wrong header key: no NCA3. A key generation the console lacks.
     NcaKeys wrong = keys;
     wrong.header_key[0] ^= 1;
-    CHECK(!nca_read_cnmt(nca.data(), nca.size(), wrong));
+    CHECK(!nca_read_cnmt(nca, wrong));
     const Bytes newer = cnmt_nca(cnmt, 9);
-    CHECK(!nca_read_cnmt(newer.data(), newer.size(), keys, &why));
+    CHECK(!nca_read_cnmt(newer, keys, &why));
     // A changed fs header no longer matches its hash.
     uint8_t changed[NCA_HEADER];
     std::memcpy(changed, head, NCA_HEADER);
@@ -348,7 +348,7 @@ void test_nca()
     CHECK(!nca_parse_header(changed));
     // Cut anywhere: refused.
     for (size_t n = 0; n < nca.size(); n += 0x100)
-        CHECK(!nca_read_cnmt(nca.data(), n, keys));
+        CHECK(!nca_read_cnmt({nca.data(), n}, keys));
 
     // Game card to download: once, and only for a game card one.
     Bytes card = cnmt_nca(cnmt, 3, 1);

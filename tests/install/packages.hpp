@@ -125,7 +125,7 @@ inline Bytes xci(const Title& t)
     Bytes       img(0xf000);
     put_le32(img.data() + 0x100, 0x44414548);
     put_le64(img.data() + 0x130, img.size());
-    put_le64(img.data() + 0x138, pfs_header_size(root.data(), root.size())->size);
+    put_le64(img.data() + 0x138, pfs_header_size(root)->size);
     img.insert(img.end(), root.begin(), root.end());
     return img;
 }

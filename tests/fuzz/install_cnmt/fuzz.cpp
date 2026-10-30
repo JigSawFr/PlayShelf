@@ -8,7 +8,7 @@
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     using namespace install;
-    const auto m = cnmt_parse(data, size);
+    const auto m = cnmt_parse({data, size});
     if (!m) return 0;
     FUZZ_ASSERT(m->installable().size() <= m->contents.size());
     ContentInfo meta;
