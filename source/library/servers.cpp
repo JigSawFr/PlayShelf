@@ -3,7 +3,9 @@
 
 #include <algorithm>
 #include <array>
+#include <mutex>
 #include <random>
+#include <sys/stat.h>
 
 #include <aurore/extern/nlohmann/json.hpp>
 
@@ -15,6 +17,19 @@ namespace library
 namespace
 {
 using json = nlohmann::json;
+
+// servers.json as last read, with its size and time: the Home tab asks for
+// the servers at every refresh, and a stat costs less than reading and
+// parsing it again. save_servers() forgets it.
+struct Cache
+{
+    std::string         path;
+    off_t               size  = -1;
+    time_t              mtime = 0;
+    std::vector<Server> servers;
+};
+std::mutex s_cache_lock;
+Cache      s_cache;
 
 const char* connection_name(Connection c) { return c == Connection::Lan ? "lan" : c == Connection::Wan ? "wan" : "auto"; }
 const char* format_name(Format f) { return f == Format::Api ? "api" : f == Format::Index ? "index" : "auto"; }
@@ -88,9 +103,19 @@ std::string servers_file() { return paths::data_dir() + "/servers.json"; }
 
 std::vector<Server> load_servers()
 {
+    const std::string file = servers_file();
+    struct stat       st{};
+    if (::stat(file.c_str(), &st) != 0) return {};
+    {
+        std::lock_guard lock(s_cache_lock);
+        if (s_cache.path == file && s_cache.size == st.st_size && s_cache.mtime == st.st_mtime) return s_cache.servers;
+    }
     std::string text;
-    if (!paths::read_file(servers_file(), text)) return {};
-    return servers_from_json(text);
+    if (!paths::read_file(file, text)) return {};
+    std::vector<Server> servers = servers_from_json(text);
+    std::lock_guard     lock(s_cache_lock);
+    s_cache = { file, st.st_size, st.st_mtime, servers };
+    return servers;
 }
 
 bool save_servers(const std::vector<Server>& servers, std::string* why)
@@ -99,7 +124,11 @@ bool save_servers(const std::vector<Server>& servers, std::string* why)
         if (why) *why = "cannot create " + paths::data_dir();
         return false;
     }
-    return paths::atomic_write(servers_file(), servers_to_json(servers), why);
+    const bool written = paths::atomic_write(servers_file(), servers_to_json(servers), why);
+    // After the write, so that a load meanwhile does not keep the old file.
+    std::lock_guard lock(s_cache_lock);
+    s_cache = {};
+    return written;
 }
 
 std::string new_server_id()
