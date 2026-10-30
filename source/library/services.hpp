@@ -51,7 +51,7 @@ struct Session
 
 // The server's web sign-in. False, with why, when it refuses (the username
 // or password, a lock after too many tries) or has none.
-bool sign_in(const Link& link, Transport& t, Session* session, std::string* why);
+[[nodiscard]] bool sign_in(const Link& link, Transport& t, Session* session, std::string* why);
 
 // ---- Cheats
 
@@ -66,9 +66,9 @@ struct Cheat
 // AeroFoil's {"success":true,"cheats":[…]}; its error said.
 std::optional<std::vector<Cheat>> parse_cheats(const std::string& body, const std::string& base_url,
                                                std::string* why = nullptr);
-bool list_cheats(const Link& link, Transport& t, Session& session, std::vector<Cheat>* out, std::string* why);
+[[nodiscard]] bool list_cheats(const Link& link, Transport& t, Session& session, std::vector<Cheat>* out, std::string* why);
 // A cheat's text (MAX_CHEAT_BYTES at most).
-bool fetch_cheat(const Link& link, Transport& t, const Cheat& cheat, std::string* text, std::string* why);
+[[nodiscard]] bool fetch_cheat(const Link& link, Transport& t, const Cheat& cheat, std::string* text, std::string* why);
 
 // A build id as Atmosphère names a cheat file: upper-case hex, 1 to 64
 // digits; "" when it is not one.
@@ -95,7 +95,7 @@ struct SaveBackup
 // {"saves":[…]}: the backups, newest first within a game.
 std::optional<std::vector<SaveBackup>> parse_saves(const std::string& body, const std::string& base_url,
                                                    std::string* why = nullptr);
-bool list_saves(const Link& link, Transport& t, std::vector<SaveBackup>* out, std::string* why);
+[[nodiscard]] bool list_saves(const Link& link, Transport& t, std::vector<SaveBackup>* out, std::string* why);
 // The zip archive `zip_path` sent as a new backup of `title_id`'s save,
 // with `note` (bounded to MAX_NOTE, control characters made spaces).
 bool upload_save(const Link& link, Transport& t, uint64_t title_id, const std::string& zip_path,
@@ -104,7 +104,7 @@ bool upload_save(const Link& link, Transport& t, uint64_t title_id, const std::s
 bool download_save(const Link& link, Transport& t, const SaveBackup& backup, const std::string& zip_path,
                    const std::function<void(uint64_t, uint64_t)>& progress, const std::atomic<bool>* cancel,
                    std::string* why);
-bool delete_save(const Link& link, Transport& t, const SaveBackup& backup, std::string* why);
+[[nodiscard]] bool delete_save(const Link& link, Transport& t, const SaveBackup& backup, std::string* why);
 
 // ---- Requests
 
@@ -115,8 +115,8 @@ struct TitleRequest
     std::string title_name, status;   // "open", "closed" (the game is on the server now), "denied"…
     int64_t     created = 0;          // POSIX time, 0 when unknown
 };
-std::optional<std::vector<TitleRequest>> parse_requests(const std::string& body, std::string* why = nullptr);
-bool list_requests(const Link& link, Transport& t, Session& session, std::vector<TitleRequest>* out, std::string* why);
+[[nodiscard]] std::optional<std::vector<TitleRequest>> parse_requests(const std::string& body, std::string* why = nullptr);
+[[nodiscard]] bool list_requests(const Link& link, Transport& t, Session& session, std::vector<TitleRequest>* out, std::string* why);
 // Asks the server for `title_id` (a base game). *message: what the server
 // answered (a request already open counts as done).
 bool request_title(const Link& link, Transport& t, Session& session, uint64_t title_id, const std::string& name,

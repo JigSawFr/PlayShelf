@@ -39,24 +39,24 @@ bool serves(const std::string& url);
 // theirs (each "simulated: no connection" for an address it does not
 // serve): its server's at PLAYSHELF_SIM_SPEED KB/s (96 unless set; 0: at
 // once), so a download is seen going, the other services' at once.
-bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long timeout_s,
-         const http::Headers& headers, long* status);
+[[nodiscard]] bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long timeout_s,
+                       const http::Headers& headers, long* status);
 bool post(const std::string& url, const std::string& data, const char* content_type, std::string* body,
           std::string* error, long* status, size_t max_bytes, long timeout_s, const http::Headers& headers);
-bool redirect(const std::string& url, std::string* target, std::string* error, const http::Headers& headers,
-              long* status);
-bool download(const std::string& url, const std::string& path, std::string* error, size_t max_bytes, long timeout_s,
-              std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel);
+[[nodiscard]] bool redirect(const std::string& url, std::string* target, std::string* error, const http::Headers& headers,
+                            long* status);
+[[nodiscard]] bool download(const std::string& url, const std::string& path, std::string* error, size_t max_bytes, long timeout_s,
+                            std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel);
 bool range(const std::string& url, uint64_t offset, uint64_t length,
            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const http::Headers& headers,
            const std::atomic<bool>* cancel, const std::string& pinned_key);
-bool resource_size(const std::string& url, uint64_t* size, std::string* error, const http::Headers& headers,
-                   const std::string& pinned_key);
+[[nodiscard]] bool resource_size(const std::string& url, uint64_t* size, std::string* error, const http::Headers& headers,
+                                 const std::string& pinned_key);
 bool request(const std::string& url, const http::Headers& headers, const std::string& pinned_key,
              http::Response* response, std::string* error, size_t max_bytes, long timeout_s);
 bool call(const std::string& url, const http::Call& c, const http::Headers& headers, const std::string& pinned_key,
           http::Response* response, std::string* error, size_t max_bytes, long timeout_s);
-bool peer_certificate(const std::string& url, std::string* pem, std::string* error);
+[[nodiscard]] bool peer_certificate(const std::string& url, std::string* pem, std::string* error);
 
 // At a start, before the servers and the console's games are read, the
 // demo built: on the desktop, its answers in place of the network's

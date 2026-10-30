@@ -79,7 +79,7 @@ constexpr int    MAX_DEPTH = 16;
 
 // The API's answer (/api/remote or /api/shop). An "error" it holds, or no
 // "sections", fails with that reason (the server's words, bounded).
-std::optional<Catalog> parse_api(const std::string& body, const std::string& base_url, std::string* why = nullptr);
+[[nodiscard]] std::optional<Catalog> parse_api(const std::string& body, const std::string& base_url, std::string* why = nullptr);
 
 // Ownfoil's handshake; nothing when it is not one (no "uid", "name").
 std::optional<ServerInfo> parse_handshake(const std::string& body);
@@ -99,7 +99,7 @@ bool add_graphql_apps(Catalog& c, const std::string& body, const std::string& ba
 std::string url_encode(const std::string& s);
 
 // A JSON index. An index without any of its fields fails.
-std::optional<Catalog> parse_index(const std::string& body, const std::string& base_url, std::string* why = nullptr);
+[[nodiscard]] std::optional<Catalog> parse_index(const std::string& body, const std::string& base_url, std::string* why = nullptr);
 
 // `ref` made absolute against `base` (RFC 3986: an absolute URL, "//host",
 // "/path", or a path relative to the base's folder, with "." and ".."

@@ -37,7 +37,7 @@ public:
     // Runs `task` on a thread of its own, after joining the threads whose task
     // is over. False when no thread could be had (*error says why, in
     // English): `task` did not run, the caller runs it elsewhere.
-    bool start(Task task, std::string* error = nullptr);
+    [[nodiscard]] bool start(Task task, std::string* error = nullptr);
     // Tasks not over yet.
     int running();
     // Waits up to `max` for every task to be over, then joins the threads of

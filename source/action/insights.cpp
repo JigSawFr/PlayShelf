@@ -111,7 +111,8 @@ void save_seen()
 {
     auto text = std::make_shared<std::string>(s_seen.to_json());
     ui::in_background("seen", [text]() {
-        if (paths::ensure_dir(paths::data_dir())) paths::atomic_write(seen_file(), *text);
+        // Saved again at the next change: a failed write is not reported.
+        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(seen_file(), *text);
     });
 }
 

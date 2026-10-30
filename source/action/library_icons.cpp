@@ -126,7 +126,8 @@ std::string fetched(const std::string& url, const http::Headers& headers, const 
         aurore::Logger::debug("library: no icon from {} ({} {})", url, r.status, why);
         return "";
     }
-    if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(dir())) paths::atomic_write(file, r.body);
+    // A cache: a copy not written is fetched again.
+    if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(dir())) (void)paths::atomic_write(file, r.body);
     return r.body;
 }
 

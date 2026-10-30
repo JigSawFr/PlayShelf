@@ -34,10 +34,10 @@ class CoreConsole : public Console
     void     delete_content(const ContentId& id) override;
     uint64_t free_space() override;
     std::optional<std::vector<uint8_t>> get_meta(const MetaKey& key) override;
-    bool set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why) override;
-    bool remove_meta(const MetaKey& key, std::string* why) override;
-    bool commit_meta(std::string* why) override;
-    bool push_application_record(uint64_t application_id, const MetaKey& key, std::string* why) override;
+    [[nodiscard]] bool set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why) override;
+    [[nodiscard]] bool remove_meta(const MetaKey& key, std::string* why) override;
+    [[nodiscard]] bool commit_meta(std::string* why) override;
+    [[nodiscard]] bool push_application_record(uint64_t application_id, const MetaKey& key, std::string* why) override;
     bool import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate,
                        std::string* why) override;
     uint32_t system_version() override;
@@ -49,7 +49,7 @@ class CoreConsole : public Console
 
 // The console's NCA keys: its header key, and its key area keys through
 // core_unwrap_key. Nothing when the header key cannot be had.
-std::optional<NcaKeys> core_keys(std::string* why = nullptr);
+[[nodiscard]] std::optional<NcaKeys> core_keys(std::string* why = nullptr);
 
 // "2002-0003 (…)": a Result as the console's error codes read, and what it
 // failed at.

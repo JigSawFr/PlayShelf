@@ -121,7 +121,7 @@ void test_sign_in()
     Link odd = link();
     odd.username = "a b";
     odd.password = "p&q=";
-    sign_in(odd, t, &refused, &why);
+    (void)sign_in(odd, t, &refused, &why);
     CHECK(t.last_call.body == "user=a%20b&password=p%26q%3D");
 }
 

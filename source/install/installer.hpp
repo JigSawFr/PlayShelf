@@ -64,11 +64,11 @@ class Console
     virtual uint64_t free_space() = 0;
     // Its content meta database.
     virtual std::optional<std::vector<uint8_t>> get_meta(const MetaKey& key) = 0;
-    virtual bool set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why) = 0;
-    virtual bool remove_meta(const MetaKey& key, std::string* why) = 0;
-    virtual bool commit_meta(std::string* why) = 0;
+    [[nodiscard]] virtual bool set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why) = 0;
+    [[nodiscard]] virtual bool remove_meta(const MetaKey& key, std::string* why) = 0;
+    [[nodiscard]] virtual bool commit_meta(std::string* why) = 0;
     // ns and es.
-    virtual bool push_application_record(uint64_t application_id, const MetaKey& key, std::string* why) = 0;
+    [[nodiscard]] virtual bool push_application_record(uint64_t application_id, const MetaKey& key, std::string* why) = 0;
     virtual bool import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate,
                                std::string* why) = 0;
     // The firmware's version, as hosversionGet() gives it: major << 16 | minor << 8 | micro.
@@ -133,7 +133,7 @@ class Installer
 
     // Reads the content metas and checks the package can be installed as
     // a whole; nothing is written. False with `why`: nothing to undo.
-    bool prepare(std::string* why);
+    [[nodiscard]] bool prepare(std::string* why);
     // Before run(): goes on from an earlier run of the same package,
     // paused or cut short, as its journal says.
     void resume_from(const Journal& j) { resume = j; }
@@ -143,15 +143,15 @@ class Installer
     // Installs what prepare() planned. False with `why` when it failed or
     // was cancelled (what every run did is undone then), or was paused
     // (paused(): nothing undone, the journal given).
-    bool run(std::string* why);
+    [[nodiscard]] bool run(std::string* why);
     bool paused() const { return was_paused; }
     // The bytes already written by earlier runs, of bytes_to_write().
     uint64_t resumed_bytes() const { return resumed; }
 
   private:
-    bool write_content(const ContentInfo& c, std::string* why);
-    bool write_meta_content(const TitlePlan& t, std::string* why);
-    bool import_tickets(std::string* why);
+    [[nodiscard]] bool write_content(const ContentInfo& c, std::string* why);
+    [[nodiscard]] bool write_meta_content(const TitlePlan& t, std::string* why);
+    [[nodiscard]] bool import_tickets(std::string* why);
     void undo();
     bool cancelled() const { return cb.cancel && cb.cancel->load(); }
     bool pausing() const { return cb.pause && cb.pause->load(); }

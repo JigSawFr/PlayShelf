@@ -20,6 +20,6 @@ bool offline(std::string* error);
 
 // A GET answered by the file `name` of the folder `folder`. No folder,
 // "offline" or no such file: offline().
-bool get(const char* folder, const std::string& name, std::string* body, std::string* error);
+[[nodiscard]] bool get(const char* folder, const std::string& name, std::string* body, std::string* error);
 
 }   // namespace sim_net

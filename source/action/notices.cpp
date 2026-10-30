@@ -36,7 +36,8 @@ void save_read()
 {
     auto text = std::make_shared<std::string>(notice_logic::keys_text(s_store.read_keys()));
     ui::in_background("notices", [text]() {
-        if (paths::ensure_dir(paths::data_dir())) paths::atomic_write(read_file_path(), *text);
+        // Saved again at the next change: a failed write is not reported.
+        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(read_file_path(), *text);
     });
 }
 }   // namespace

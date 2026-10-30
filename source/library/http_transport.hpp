@@ -23,7 +23,7 @@ class HttpTransport : public Transport
     Answer      call(const std::string& url, const http::Call& c, const std::vector<std::string>& headers,
                      const std::string& pin) override;
     bool        reachable(const std::string& url) override;
-    std::string certificate(const std::string& url, std::string* why) override;
+    [[nodiscard]] std::string certificate(const std::string& url, std::string* why) override;
 };
 
 // The servers that answered on this network; `why` set when the broadcast
