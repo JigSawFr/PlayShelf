@@ -338,6 +338,7 @@
         "intro": "イントロを2秒間表示する",
         "support_reminder": "月に一度、PlayShelfの応援についてお知らせする",
         "notices_others": "ほかの Boréale homebrew の通知",
+        "look_shared": "ほかの Boréale のHomebrewと同じ見た目",
         "help": "ヘルプと診断",
         "effects": "視覚効果",
         "effects_values": {

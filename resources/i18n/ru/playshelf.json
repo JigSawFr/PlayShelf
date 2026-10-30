@@ -338,6 +338,7 @@
         "intro": "Показывать заставку 2 секунды",
         "support_reminder": "Раз в месяц напоминать о поддержке PlayShelf",
         "notices_others": "Уведомления других homebrew Boréale",
+        "look_shared": "Тот же вид, что у других хоумбрю Boréale",
         "help": "Помощь и диагностика",
         "effects": "Визуальные эффекты",
         "effects_values": {

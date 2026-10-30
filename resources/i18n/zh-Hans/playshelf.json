@@ -338,6 +338,7 @@
         "intro": "显示开场画面 2 秒",
         "support_reminder": "每月提醒一次支持 PlayShelf",
         "notices_others": "其他 Boréale homebrew 的通知",
+        "look_shared": "与其他 Boréale 自制软件外观相同",
         "help": "帮助与诊断",
         "effects": "视觉效果",
         "effects_values": {

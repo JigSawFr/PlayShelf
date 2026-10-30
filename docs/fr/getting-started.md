@@ -69,7 +69,7 @@ Une icône qu'aucune d'elles n'a est demandée à [Nlib API](https://api.nlib.cc
 
 ## Préférences
 
-Les *Préférences* règlent la langue (celle de la console, ou l'une des 15), le thème et sa palette (celle de PlayShelf, une palette livrée ou [la vôtre](themes.md)), la taille du texte, l'onglet de démarrage, les mises à jour et la base de titres. Chaque réglage est aussi dans [`config.json`](../config.md).
+Les *Préférences* règlent la langue (celle de la console, ou l'une des 15), le thème et sa palette (celle de PlayShelf, une palette livrée ou [la vôtre](themes.md)), la taille du texte, l'onglet de démarrage, les mises à jour et la base de titres. *Même apparence que les autres homebrews Boréale* (activé par défaut) partage avec eux la langue, le thème, la taille du texte et les effets visuels (`config/boreale/prefs.conf`) : PlayShelf reprend au lancement ceux qu'un autre homebrew a choisis, et un changement fait ici gagne les autres à leur prochain lancement. Chaque réglage est aussi dans [`config.json`](../config.md).
 
 ![Les Préférences](../../images/screenshots/preferences.png)
 

@@ -9,6 +9,7 @@
 #include <aurore/cadran/ui/prefs.hpp>
 
 #include "action/frame_stats_flow.hpp"
+#include "action/shared_look.hpp"
 #include "action/upload_flow.hpp"
 #include "activity/main_activity.hpp"
 #include "activity/notices_activity.hpp"
@@ -60,6 +61,61 @@ void mark(NVGcontext* vg, float w, float h)
     nvgStroke(vg);
     nvgLineCap(vg, NVG_BUTT);
 }
+// The look PlayShelf shares with the other Boréale homebrews (config
+// look_shared): its words, as config::sanitize keeps them.
+shared_look::Look look_of(const config::Config& c)
+{
+    return { c.look.language, c.look.theme, c.look.text_size, c.look.effects };
+}
+
+bool look_ok(const std::string& key, const std::string& value)
+{
+    config::Config c = config::get();
+    std::string*   field = key == "language"  ? &c.look.language
+                         : key == "theme"     ? &c.look.theme
+                         : key == "text_size" ? &c.look.text_size
+                         : key == "effects"   ? &c.look.effects
+                                              : nullptr;
+    if (!field) return false;
+    *field = value;
+    config::sanitize(c);
+    return *field == value;
+}
+
+void write_shared(const std::string& text)
+{
+    std::string       error;
+    const std::string file = shared_look::file(paths::sd_root());
+    if (text.empty()) return;
+    if (!paths::ensure_dir(file.substr(0, file.rfind('/'))) || !paths::atomic_write(file, text, &error))
+        aurore::Logger::warning("shared look: {} not written: {}", file, error);
+}
+
+// At start: the shared look's values replace PlayShelf's, before the first
+// screen is drawn.
+void follow_shared_look()
+{
+    config::Config& c = config::get();
+    if (!c.look_shared) return;
+    std::string text;
+    paths::read_file(shared_look::file(paths::sd_root()), text);
+    shared_look::Look look = look_of(c);
+    write_shared(shared_look::follow(text, look, look_ok));
+    c.look.language = look.language;
+    c.look.theme = look.theme;
+    c.look.text_size = look.text_size;
+    c.look.effects = look.effects;
+}
+
+// After a change saved: the others take it at their next start.
+void share_look()
+{
+    const config::Config& c = config::get();
+    if (!c.look_shared) return;
+    std::string text;
+    paths::read_file(shared_look::file(paths::sd_root()), text);
+    write_shared(shared_look::publish(text, look_of(c)));
+}
 }   // namespace
 
 void install_screen_hooks()
@@ -98,13 +154,19 @@ void install_screen_hooks()
     h.tab_title = [](const std::string& screen) {
         return screen.starts_with("tab/") ? aurore::getStr("playshelf/tabs/" + screen.substr(4)) : std::string();
     };
-    // The look's preferences live in config.json; the simulators' flags are
-    // PLAYSHELF_SIM_* (core/sim_env.h).
-    h.save_prefs = []() { return ui::save_config(); };
+    // The look's preferences live in config.json, and in the look the
+    // Boréale homebrews share while Preferences says so (action/shared_look);
+    // the simulators' flags are PLAYSHELF_SIM_* (core/sim_env.h).
+    h.save_prefs = []() {
+        const bool saved = ui::save_config();
+        share_look();
+        return saved;
+    };
     // The user's own theme files, after Aurore's presets in the palette
     // picker (docs/themes.md): sd:/config/playshelf/themes.
     h.themes_dir = []() { return paths::themes_dir(); };
     h.env_flag = [](const char* name) { return sim_env_flag((std::string("PLAYSHELF_SIM_") + name).c_str()); };
+    follow_shared_look();
     ui::use_prefs(config::get().look);
 
     // What the kit's own flows ask (ui/app_hooks.hpp).
