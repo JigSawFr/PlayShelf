@@ -68,7 +68,8 @@
     "tour_download": "Alles installeren: de pakketten gaan naar de downloads en worden na elkaar geïnstalleerd.",
     "tour_downloads": "Downloads: de wachtrij, de tijdlijn van elke game en hoe de pakketten worden opgehaald.",
     "tour_preferences": "Voorkeuren: de taal, het thema en de titeldatabase.",
-    "tour_end": "Jouw beurt: de pijlen bewegen, Enter is A, Esc is B. Het paneel stelt elke toestand in."
+    "tour_end": "Jouw beurt: de pijlen bewegen, Enter is A, Esc is B. Het paneel stelt elke toestand in.",
+    "sites_legal": "Privacy en juridische informatie"
   },
   "groups": {
     "app": "PlayShelf",

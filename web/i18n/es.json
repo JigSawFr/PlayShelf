@@ -68,7 +68,8 @@
     "tour_download": "Instalar todo: sus paquetes van a las descargas y se instalan uno tras otro.",
     "tour_downloads": "Descargas: la cola, la línea de tiempo de cada juego y cómo se obtienen los paquetes.",
     "tour_preferences": "Preferencias: el idioma, el tema y la base de datos de títulos.",
-    "tour_end": "Tu turno: las flechas mueven, Intro es A, Esc es B. El panel ajusta cualquier estado."
+    "tour_end": "Tu turno: las flechas mueven, Intro es A, Esc es B. El panel ajusta cualquier estado.",
+    "sites_legal": "Privacidad y aviso legal"
   },
   "groups": {
     "app": "PlayShelf",
