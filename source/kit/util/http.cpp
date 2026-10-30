@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "app.hpp"
+#include "app_id.h"
 #include "util/http_logic.hpp"
 
 namespace http
@@ -231,7 +232,7 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
     body->clear();
     if (status_out) *status_out = 0;
     if (s_abort) {
-        if (error) *error = "PlayShelf is quitting";
+        if (error) *error = APP_NAME " is quitting";
         return false;
     }
     if (!ready()) {
@@ -252,7 +253,7 @@ bool perform(const std::string& url, const Extra& x, std::string* body, std::str
         sink.cancel = x.call->cancel;
         if (!x.call->file_path.empty()) sink.sent = x.call->progress;
     }
-    const std::string agent = "PlayShelf/" + app::version();
+    const std::string agent = APP_NAME "/" + app::version();
     char message[CURL_ERROR_SIZE] = "";
     struct curl_slist* headers = nullptr;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
