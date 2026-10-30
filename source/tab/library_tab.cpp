@@ -150,6 +150,15 @@ LibraryTab::LibraryTab()
         // A filter or the order that needs the facts: the games again.
         if (needs_facts()) this->show_games(this->shown_games);
     }));
+    // Atlas' games.json came after the list (fetched, or read from the
+    // cache): titledb's names of the games known only by their title id.
+    this->popular_listener = popular_flow::listen(ui::guarded(this->alive, [this]() {
+        if (!this->shown_games) return;
+        std::vector<uint64_t> unnamed;
+        for (const Entry& e : this->entries)
+            if (e.name == title_id::text(e.game->game.id)) unnamed.push_back(e.game->game.id);
+        if (library::names_any(*popular_flow::signals(), unnamed)) this->show_games(this->shown_games);
+    }));
 }
 
 LibraryTab::~LibraryTab()
@@ -157,6 +166,7 @@ LibraryTab::~LibraryTab()
     download_flow::unlisten(this->listener);
     titledb_flow::unlisten(this->titledb_listener);
     nlib_flow::unlisten(this->nlib_listener);
+    popular_flow::unlisten(this->popular_listener);
 }
 
 void LibraryTab::preset(library::Filter::State state)

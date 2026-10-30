@@ -2,6 +2,8 @@
 // rating, similar.json's rows, editions.json's games, what does not hold
 // together left out.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <fstream>
+#include <sstream>
 #include <string>
 
 #include "check.h"
@@ -112,6 +114,31 @@ void test_similar()
     CHECK(other.from_json(R"({"schema":1,"generated":"2026-10-29","by":"traits","games":{"0100000000010000":[["0100000000020000",86,"x"]]}})"));
     CHECK(other.between(A, B) == 86);
 }
+// Whether a list of games known by their title id has one the book names.
+void test_names_any()
+{
+    SignalBook b;
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-10-30","games":{
+        "0100000000010000":{"name":"Ember Vale"},"0100000000020000":{"series":[["Q1","A saga"]]}}})"));
+    CHECK(names_any(b, { B, A }));
+    CHECK(!names_any(b, { B }) && !names_any(b, {}) && !names_any(SignalBook{}, { A }));
+}
+
+// The copy PlayShelf ships with (resources/data/games.json, made by
+// tools/atlas_copies.py): read, and with titledb's names.
+void test_shipped()
+{
+    std::ifstream in("resources/data/games.json", std::ios::binary);
+    if (!CHECK(in)) return;
+    std::stringstream text;
+    text << in.rdbuf();
+    SignalBook b;
+    if (!CHECK(b.from_json(text.str()))) return;
+    // Well known games, named.
+    CHECK(b.size() > 1000);
+    for (uint64_t id : { A, (uint64_t)0x01006A800016E000, (uint64_t)0x0100152000022000 })
+        CHECK(b.find(id) && !b.find(id)->name.empty());
+}
 }   // namespace
 
 int main()
@@ -121,6 +148,8 @@ int main()
     test_igdb();
     test_names();
     test_editions();
+    test_names_any();
+    test_shipped();
     CHECK(base_id_of("0100000000010000") == A && !base_id_of("0100000000010800") && !base_id_of("x"));
     CHECK_DONE("library_signals");
 }

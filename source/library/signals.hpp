@@ -112,6 +112,10 @@ class EditionBook
     std::string                                         day;
 };
 
+// Whether `book` names one of these games, known only by their title id
+// (a list of them to show again once it came).
+bool names_any(const SignalBook& book, const std::vector<uint64_t>& unnamed);
+
 // A base game's title id from 16 hex digits; 0 for anything else.
 uint64_t base_id_of(const std::string& text);
 // Whether a day reads as YYYY-MM-DD.
