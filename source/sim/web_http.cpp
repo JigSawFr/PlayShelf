@@ -34,16 +34,16 @@ Result<void> download(const std::string& url, const std::string& path, size_t ma
     return sim_demo::download(url, path, max_bytes, timeout_s, std::move(progress), resume_from, cancel);
 }
 
-bool range(const std::string& url, uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-           std::string* error, const Headers& headers, const std::atomic<bool>* cancel, const std::string& pinned_key)
+Result<void> range(const std::string& url, uint64_t offset, uint64_t length,
+                   const std::function<bool(const uint8_t*, size_t)>& sink, const Headers& headers,
+                   const std::atomic<bool>* cancel, const std::string& pinned_key)
 {
-    return sim_demo::range(url, offset, length, sink, error, headers, cancel, pinned_key);
+    return sim_demo::range(url, offset, length, sink, headers, cancel, pinned_key);
 }
 
-bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers,
-                   const std::string& pinned_key)
+Result<uint64_t> resource_size(const std::string& url, const Headers& headers, const std::string& pinned_key)
 {
-    return sim_demo::resource_size(url, size, error, headers, pinned_key);
+    return sim_demo::resource_size(url, headers, pinned_key);
 }
 
 bool request(const std::string& url, const Headers& headers, const std::string& pinned_key, Response* response,
@@ -58,9 +58,9 @@ bool call(const std::string& url, const Call& c, const Headers& headers, const s
     return sim_demo::call(url, c, headers, pinned_key, response, error, max_bytes, timeout_s);
 }
 
-bool peer_certificate(const std::string& url, std::string* pem, std::string* error)
+Result<std::string> peer_certificate(const std::string& url)
 {
-    return sim_demo::peer_certificate(url, pem, error);
+    return sim_demo::peer_certificate(url);
 }
 
 void abort_all() {}

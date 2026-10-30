@@ -25,6 +25,9 @@ using namespace test_install;
 
 namespace
 {
+// Why an install step failed; "" when it did not.
+template <class T> std::string error_of(const std::expected<T, std::string>& r) { return r ? "" : r.error(); }
+
 void write_seed(const std::string& name, const Bytes& b)
 {
     const char* dir = std::getenv("PLAYSHELF_WRITE_SEEDS");
@@ -49,44 +52,35 @@ struct FakeConsole : Console
     int         fail_n = 0, calls = 0;
 
     static std::string key(const MetaKey& k) { return std::to_string(k.id) + ":" + std::to_string(k.version); }
-    bool               inject(const char* what, std::string* why)
+    Done               inject(const char* what)
     {
-        if (fail_at == what && ++calls == fail_n) {
-            *why = std::string("injected: ") + what;
-            return true;
-        }
-        return false;
+        if (fail_at == what && ++calls == fail_n) return fail(std::string("injected: ") + what);
+        return {};
     }
     bool has_content(const ContentId& id) override { return contents.count(id) != 0; }
-    bool create_placeholder(const ContentId& id, uint64_t size, std::string* why) override
+    Done create_placeholder(const ContentId& id, uint64_t size) override
     {
-        if (inject("create", why)) return false;
-        if (held.count(id)) {
-            *why = "placeholder exists";
-            return false;
-        }
+        if (const Done r = inject("create"); !r) return r;
+        if (held.count(id)) return fail("placeholder exists");
         held[id].reserve(size);
-        return true;
+        return {};
     }
-    bool write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size, std::string* why) override
+    Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) override
     {
-        if (inject("write", why)) return false;
+        if (const Done r = inject("write"); !r) return r;
         Bytes& p = held.at(id);
         // In order, or again over what was written last (a resumed install
         // goes on from its journal's offset, which may be behind).
-        if (offset > p.size()) {
-            *why = "write out of order";
-            return false;
-        }
+        if (offset > p.size()) return fail("write out of order");
         p.resize(offset);
         p.insert(p.end(), data, data + size);
-        return true;
+        return {};
     }
-    bool register_placeholder(const ContentId& id, std::string* why) override
+    Done register_placeholder(const ContentId& id) override
     {
-        if (inject("register", why)) return false;
+        if (const Done r = inject("register"); !r) return r;
         contents[id] = held.at(id);
-        return true;
+        return {};
     }
     void     delete_placeholder(const ContentId& id) override { held.erase(id); }
     bool     has_placeholder(const ContentId& id) override { return held.count(id) != 0; }
@@ -104,41 +98,41 @@ struct FakeConsole : Console
         if (it == meta.end()) return std::nullopt;
         return it->second;
     }
-    bool set_meta(const MetaKey& k, const Bytes& record, std::string* why) override
+    Done set_meta(const MetaKey& k, const Bytes& record) override
     {
-        if (inject("set_meta", why)) return false;
+        if (const Done r = inject("set_meta"); !r) return r;
         meta_pending[key(k)] = record;
         meta_removed.erase(key(k));
-        return true;
+        return {};
     }
-    bool remove_meta(const MetaKey& k, std::string*) override
+    Done remove_meta(const MetaKey& k) override
     {
         meta_pending.erase(key(k));
         meta_removed.insert(key(k));
-        return true;
+        return {};
     }
-    bool commit_meta(std::string* why) override
+    Done commit_meta() override
     {
-        if (inject("commit", why)) return false;
+        if (const Done r = inject("commit"); !r) return r;
         for (auto& kv : meta_pending)
             meta[kv.first] = kv.second;
         for (const auto& k : meta_removed)
             meta.erase(k);
         meta_pending.clear();
         meta_removed.clear();
-        return true;
+        return {};
     }
-    bool push_application_record(uint64_t app, const MetaKey& k, std::string* why) override
+    Done push_application_record(uint64_t app, const MetaKey& k) override
     {
-        if (inject("record", why)) return false;
+        if (const Done r = inject("record"); !r) return r;
         app_records.push_back({app, k});
-        return true;
+        return {};
     }
-    bool import_ticket(const Bytes& t, const Bytes& c, std::string* why) override
+    Done import_ticket(const Bytes& t, const Bytes& c) override
     {
-        if (inject("ticket", why)) return false;
+        if (const Done r = inject("ticket"); !r) return r;
         tickets.push_back({t, c});
-        return true;
+        return {};
     }
     uint32_t system_version() override { return version; }
 };
@@ -160,8 +154,14 @@ Run install(FakeConsole& console, const Bytes& package, InstallOptions options =
         return r;
     }
     Installer inst(src, *pkg, console, test_keys(), options, std::move(cb));
-    r.prepared = inst.prepare(&r.why);
-    if (r.prepared) r.ok = inst.run(&r.why);
+    const Done prepared = inst.prepare();
+    r.prepared = prepared.has_value();
+    r.why = error_of(prepared);
+    if (r.prepared) {
+        const Done ran = inst.run();
+        r.ok = ran.has_value();
+        r.why = error_of(ran);
+    }
     return r;
 }
 
@@ -354,10 +354,10 @@ void test_pause_resume()
         MemorySource src(pkg, 0x1000);
         auto         opened = package_open(src);
         if (!CHECK(opened)) return;
-        std::string why;
-        Installer   first(src, *opened, c, test_keys(), {SignaturePolicy::Off, false}, cb);
-        CHECK(first.prepare(&why));
-        CHECK(!first.run(&why) && first.paused() && why == "paused");
+        Installer first(src, *opened, c, test_keys(), {SignaturePolicy::Off, false}, cb);
+        CHECK(first.prepare());
+        const Done ran = first.run();
+        CHECK(!ran && first.paused() && error_of(ran) == "paused");
         CHECK(journals >= 2);   // the meta content registered, then the pause
         // What came before the program is registered (the meta content first).
         const auto& reg = journal.registered;
@@ -385,9 +385,9 @@ void test_pause_resume()
         MemorySource src2(pkg, 0x1000);
         Installer    second(src2, *package_open(src2), c, test_keys(), {SignaturePolicy::Off, false}, cb2);
         second.resume_from(journal);
-        CHECK(second.prepare(&why));
-        why.clear();
-        if (!CHECK(second.run(&why))) fprintf(stderr, "  %s\n", why.c_str());
+        CHECK(second.prepare());
+        const Done again = second.run();
+        if (!CHECK(again)) fprintf(stderr, "  %s\n", error_of(again).c_str());
         check_installed(c, t);
         CHECK(last == total);
         CHECK(compressed ? second.resumed_bytes() == 0 : second.resumed_bytes() == journal.at->offset);
@@ -407,14 +407,16 @@ void test_pause_resume()
         };
         MemorySource src3(pkg, 0x1000);
         Installer    third(src3, *package_open(src3), c3, test_keys(), {SignaturePolicy::Off, false}, cb3);
-        CHECK(third.prepare(&why) && !third.run(&why) && third.paused());
+        CHECK(third.prepare() && !third.run() && third.paused());
         InstallCallbacks cancelling;
         cancel3 = true;
         cancelling.cancel = &cancel3;
         MemorySource src4(pkg, 0x1000);
         Installer    fourth(src4, *package_open(src4), c3, test_keys(), {SignaturePolicy::Off, false}, cancelling);
         fourth.resume_from(j3);
-        CHECK(fourth.prepare(&why) && !fourth.run(&why) && !fourth.paused() && why == "cancelled");
+        const Done prepared = fourth.prepare();
+        const Done cancelled = prepared ? fourth.run() : prepared;
+        CHECK(prepared && !cancelled && !fourth.paused() && error_of(cancelled) == "cancelled");
         CHECK(c3.contents.empty() && c3.held.empty() && c3.meta.empty());
     }
 
@@ -426,15 +428,13 @@ void test_pause_resume()
             using MemorySource::MemorySource;
             std::atomic<bool>* pause = nullptr;
             const char*        says = "";
-            bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                        std::string* why) override
+            Done stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) override
             {
                 if (length > 0x3000) {
                     *pause = true;
-                    *why = says;
-                    return false;
+                    return fail(says);
                 }
-                return MemorySource::stream(offset, length, sink, why);
+                return MemorySource::stream(offset, length, sink);
             }
         };
         const Title       t = application();
@@ -446,9 +446,10 @@ void test_pause_resume()
         src.says = says;
         InstallCallbacks cb;
         cb.pause = &pause;
-        Installer   inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false}, cb);
-        std::string why;
-        CHECK(inst.prepare(&why) && !inst.run(&why) && inst.paused() && why == "paused");
+        Installer inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false}, cb);
+        const Done prepared = inst.prepare();
+        const Done ran = prepared ? inst.run() : prepared;
+        CHECK(prepared && !ran && inst.paused() && error_of(ran) == "paused");
         CHECK(!c.contents.empty());   // the meta content stays
     }
 
@@ -463,8 +464,7 @@ void test_pause_resume()
         MemorySource src(nsp(t), 0x1000);
         Installer    inst(src, *package_open(src), c, test_keys(), {SignaturePolicy::Off, false});
         inst.resume_from(j);
-        std::string why;
-        CHECK(inst.prepare(&why) && inst.run(&why));
+        CHECK(inst.prepare() && inst.run());
         check_installed(c, t);
     }
 }

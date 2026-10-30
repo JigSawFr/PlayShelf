@@ -27,27 +27,29 @@ struct Counting : Source
     const std::vector<uint8_t>& body;
     uint64_t                    asked = 0;
     uint64_t size() const override { return body.size(); }
-    bool     read(uint64_t offset, uint8_t* out, size_t n, std::string*) override
+    Done     read(uint64_t offset, uint8_t* out, size_t n) override
     {
         std::copy(body.begin() + (long)offset, body.begin() + (long)(offset + n), out);
-        return true;
+        return {};
     }
-    bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                std::string*) override
+    Done stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) override
     {
         asked += length;
-        return sink(body.data() + offset, (size_t)length);
+        if (!sink(body.data() + offset, (size_t)length)) return fail("stopped");
+        return {};
     }
 };
+
+// Why a step failed; "" when it did not.
+template <class T> std::string error_of(const std::expected<T, std::string>& r) { return r ? "" : r.error(); }
 
 std::vector<uint8_t> all_of(Source& s, uint64_t offset, uint64_t length)
 {
     std::vector<uint8_t> got;
-    std::string          why;
     CHECK(s.stream(offset, length, [&](const uint8_t* d, size_t n) {
         got.insert(got.end(), d, d + n);
         return true;
-    }, &why));
+    }));
     return got;
 }
 }   // namespace
@@ -71,12 +73,11 @@ int main()
         CHECK(rest.asked == 200);
         // Past it, and the whole package.
         CHECK(all_of(s, 0, body.size()) == body);
-        uint8_t     b[16];
-        std::string why;
-        CHECK(s.read(have + 10, b, sizeof b, &why) && std::equal(b, b + 16, body.begin() + (long)have + 10));
+        uint8_t b[16];
+        CHECK(s.read(have + 10, b, sizeof b) && std::equal(b, b + 16, body.begin() + (long)have + 10));
         // The sink refusing: stopped.
-        why.clear();
-        CHECK(!s.stream(0, 4000, [](const uint8_t*, size_t) { return false; }, &why) && why == "stopped");
+        const Done refused = s.stream(0, 4000, [](const uint8_t*, size_t) { return false; });
+        CHECK(!refused && error_of(refused) == "stopped");
     }
     {
         // No file: all from the source.

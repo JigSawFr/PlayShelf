@@ -37,41 +37,39 @@ struct Server
     RangeFetch fetch()
     {
         return [this](uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                      std::string* why, const std::atomic<bool>* stop) {
+                      const std::atomic<bool>* stop) -> Done {
             {
                 const std::lock_guard<std::mutex> g(lock);
                 requests++;
                 most = std::max(most, ++now);
             }
             std::mt19937 rng((unsigned)offset);
-            bool         ok = true;
-            for (uint64_t at = 0; ok && at < length;) {
+            Done         done;
+            for (uint64_t at = 0; done && at < length;) {
                 if (stop && *stop) {
-                    if (why) *why = "cancelled";
-                    ok = false;
+                    done = fail("cancelled");
                     break;
                 }
                 if (offset <= fail_at && fail_at < offset + length && at >= length / 2) {
-                    if (why) *why = "Recv failure: Connection reset by peer";
-                    ok = false;
+                    done = fail("Recv failure: Connection reset by peer");
                     break;
                 }
                 const uint64_t n = std::min<uint64_t>(length - at, 700 + rng() % 3000);
                 std::this_thread::sleep_for(std::chrono::microseconds(rng() % 300));
-                if (!sink(body.data() + offset + at, (size_t)n)) {
-                    if (why) *why = "stopped";
-                    ok = false;
-                }
+                if (!sink(body.data() + offset + at, (size_t)n)) done = fail("stopped");
                 at += n;
             }
             const std::lock_guard<std::mutex> g(lock);
             now--;
-            return ok;
+            return done;
         };
     }
 };
 
 constexpr uint64_t CHUNK = 64 << 10;
+
+// Why a step failed; "" when it did not.
+template <class T> std::string error_of(const std::expected<T, std::string>& r) { return r ? "" : r.error(); }
 
 void test_in_order()
 {
@@ -79,13 +77,12 @@ void test_in_order()
     for (int connections : { 1, 2, 4, 8, 12 }) {
         Server               srv(body);
         std::vector<uint8_t> got;
-        std::string          why;
         // A range not on a chunk's edge, its last piece short.
         const uint64_t from = 1234, length = body.size() - 1234 - 777;
         CHECK(split_stream(from, length, connections, srv.fetch(), [&](const uint8_t* d, size_t n) {
             got.insert(got.end(), d, d + n);
             return true;
-        }, &why, nullptr, CHUNK));
+        }, nullptr, CHUNK));
         CHECK(got == std::vector<uint8_t>(body.begin() + (long)from, body.begin() + (long)(from + length)));
         // Never more requests at once than connections (8 at most).
         CHECK(srv.most <= std::min(connections, MAX_CONNECTIONS));
@@ -103,9 +100,9 @@ void test_small()
     CHECK(split_stream(0, body.size(), 8, srv.fetch(), [&](const uint8_t* d, size_t n) {
         got.insert(got.end(), d, d + n);
         return true;
-    }, nullptr, nullptr, CHUNK));
+    }, nullptr, CHUNK));
     CHECK(got == body && srv.requests == 1);
-    CHECK(split_stream(0, 0, 4, srv.fetch(), [](const uint8_t*, size_t) { return false; }, nullptr));
+    CHECK(split_stream(0, 0, 4, srv.fetch(), [](const uint8_t*, size_t) { return false; }));
 }
 
 void test_failures()
@@ -116,12 +113,12 @@ void test_failures()
         Server srv(body);
         srv.fail_at = 600 << 10;
         std::vector<uint8_t> got;
-        std::string          why;
-        CHECK(!split_stream(0, body.size(), 4, srv.fetch(), [&](const uint8_t* d, size_t n) {
+        const Done           failed = split_stream(0, body.size(), 4, srv.fetch(), [&](const uint8_t* d, size_t n) {
             got.insert(got.end(), d, d + n);
             return true;
-        }, &why, nullptr, CHUNK));
-        CHECK(why == "Recv failure: Connection reset by peer");
+        }, nullptr, CHUNK);
+        CHECK(!failed);
+        CHECK(error_of(failed) == "Recv failure: Connection reset by peer");
         // The failing piece (576 to 640 KiB) may have handed on some of its
         // bytes first, none past it.
         CHECK(got.size() < (640u << 10) && std::equal(got.begin(), got.end(), body.begin()));
@@ -129,27 +126,27 @@ void test_failures()
     }
     // The sink refusing (a pause): "stopped".
     {
-        Server      srv(body);
-        size_t      taken = 0;
-        std::string why;
-        CHECK(!split_stream(0, body.size(), 4, srv.fetch(), [&](const uint8_t*, size_t n) {
+        Server     srv(body);
+        size_t     taken = 0;
+        const Done stopped = split_stream(0, body.size(), 4, srv.fetch(), [&](const uint8_t*, size_t n) {
             taken += n;
             return taken < (300u << 10);
-        }, &why, nullptr, CHUNK));
-        CHECK(why == "stopped" && srv.now == 0);
+        }, nullptr, CHUNK);
+        CHECK(!stopped);
+        CHECK(error_of(stopped) == "stopped" && srv.now == 0);
     }
     // A cancel from outside: "cancelled".
     {
         Server            srv(body);
         std::atomic<bool> cancel{false};
-        std::string       why;
         size_t            taken = 0;
-        CHECK(!split_stream(0, body.size(), 4, srv.fetch(), [&](const uint8_t*, size_t n) {
+        const Done        cancelled = split_stream(0, body.size(), 4, srv.fetch(), [&](const uint8_t*, size_t n) {
             taken += n;
             if (taken > (200u << 10)) cancel = true;
             return true;
-        }, &why, &cancel, CHUNK));
-        CHECK(why == "cancelled" && srv.now == 0);
+        }, &cancel, CHUNK);
+        CHECK(!cancelled);
+        CHECK(error_of(cancelled) == "cancelled" && srv.now == 0);
     }
 }
 }   // namespace

@@ -15,20 +15,20 @@ namespace
 struct Empty : install::Console
 {
     bool has_content(const install::ContentId&) override { return false; }
-    bool create_placeholder(const install::ContentId&, uint64_t, std::string*) override { abort(); }
-    bool write_placeholder(const install::ContentId&, uint64_t, const uint8_t*, size_t, std::string*) override { abort(); }
-    bool register_placeholder(const install::ContentId&, std::string*) override { abort(); }
+    install::Done create_placeholder(const install::ContentId&, uint64_t) override { abort(); }
+    install::Done write_placeholder(const install::ContentId&, uint64_t, const uint8_t*, size_t) override { abort(); }
+    install::Done register_placeholder(const install::ContentId&) override { abort(); }
     void delete_placeholder(const install::ContentId&) override {}
     bool has_placeholder(const install::ContentId&) override { return false; }
     std::vector<install::ContentId> placeholders() override { return {}; }
     void delete_content(const install::ContentId&) override {}
     uint64_t free_space() override { return ~0ull; }
     std::optional<std::vector<uint8_t>> get_meta(const install::MetaKey&) override { return std::nullopt; }
-    bool set_meta(const install::MetaKey&, const std::vector<uint8_t>&, std::string*) override { abort(); }
-    bool remove_meta(const install::MetaKey&, std::string*) override { abort(); }
-    bool commit_meta(std::string*) override { abort(); }
-    bool push_application_record(uint64_t, const install::MetaKey&, std::string*) override { abort(); }
-    bool import_ticket(const std::vector<uint8_t>&, const std::vector<uint8_t>&, std::string*) override { abort(); }
+    install::Done set_meta(const install::MetaKey&, const std::vector<uint8_t>&) override { abort(); }
+    install::Done remove_meta(const install::MetaKey&) override { abort(); }
+    install::Done commit_meta() override { abort(); }
+    install::Done push_application_record(uint64_t, const install::MetaKey&) override { abort(); }
+    install::Done import_ticket(const std::vector<uint8_t>&, const std::vector<uint8_t>&) override { abort(); }
     uint32_t system_version() override { return 0x170001; }
 };
 }   // namespace
@@ -54,8 +54,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     };
     Empty     console;
     Installer inst(src, *pkg, console, keys);
-    std::string why;
-    if (inst.prepare(&why)) {
+    if (inst.prepare()) {
         uint64_t sum = 0;
         for (const TitlePlan& t : inst.plan())
             for (const ContentInfo& c : t.to_write)

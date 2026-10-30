@@ -148,7 +148,10 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
     using namespace install;
     Outcome    out;
     HttpSource src(p.url, p.headers, progress.cancel_flag(), p.pin);
-    if (!src.open(&out.why)) return out;
+    if (const Done opened = src.open(); !opened) {
+        out.why = opened.error();
+        return out;
+    }
     const auto pkg = package_open(src);
     if (!pkg) {
         out.why = pkg.error();
@@ -168,11 +171,16 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
     cb.cancel = progress.cancel_flag();
     cb.progress = [&progress](uint64_t done, uint64_t total, const std::string&) { progress.written(done, total); };
     Installer inst(src, *pkg, console, *keys, InstallOptions{policy, false}, cb);
-    if (!inst.prepare(&out.why)) return out;
+    if (const Done prepared = inst.prepare(); !prepared) {
+        out.why = prepared.error();
+        return out;
+    }
     for (const TitlePlan& t : inst.plan())
         out.titles += (out.titles.empty() ? "" : ", ") + title_id::text(t.meta.title_id);
     progress.written(0, inst.bytes_to_write());
-    out.ok = inst.run(&out.why);
+    const Done ran = inst.run();
+    out.ok = ran.has_value();
+    if (!ran) out.why = ran.error();
     out.unsigned_content = !out.ok && out.why.contains("not signed by Nintendo");
     out.written = inst.bytes_to_write();
     return out;

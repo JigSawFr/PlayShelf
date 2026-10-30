@@ -28,11 +28,10 @@ class Source
     virtual ~Source() = default;
     // The package's size, 0 when the source does not know it.
     virtual uint64_t size() const = 0;
-    virtual bool     read(uint64_t offset, uint8_t* out, size_t n, std::string* why) = 0;
+    virtual Done     read(uint64_t offset, uint8_t* out, size_t n) = 0;
     // [offset, offset + length) to `sink`, in order, in pieces of any size;
-    // false when the source fails or `sink` returns false.
-    virtual bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                        std::string* why) = 0;
+    // why not when the source fails or `sink` returns false ("stopped").
+    virtual Done stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) = 0;
 };
 
 // The source of bytes in memory (the tests, a small download).
@@ -41,9 +40,8 @@ class MemorySource : public Source
   public:
     explicit MemorySource(std::vector<uint8_t> bytes, size_t piece_size = 0x10000) : data(std::move(bytes)), piece(piece_size) {}
     uint64_t size() const override { return data.size(); }
-    bool     read(uint64_t offset, uint8_t* out, size_t n, std::string* why) override;
-    bool     stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                    std::string* why) override;
+    Done     read(uint64_t offset, uint8_t* out, size_t n) override;
+    Done     stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) override;
 
   private:
     std::vector<uint8_t> data;

@@ -40,15 +40,14 @@ struct Shared
 constexpr size_t SLICE = 256u << 10;
 }   // namespace
 
-bool split_stream(uint64_t offset, uint64_t length, int connections, const RangeFetch& fetch,
-                  const std::function<bool(const uint8_t*, size_t)>& sink, std::string* why,
-                  const std::atomic<bool>* cancel, uint64_t chunk)
+Done split_stream(uint64_t offset, uint64_t length, int connections, const RangeFetch& fetch,
+                  const std::function<bool(const uint8_t*, size_t)>& sink, const std::atomic<bool>* cancel, uint64_t chunk)
 {
-    if (!length) return true;
+    if (!length) return {};
     if (!chunk) chunk = SPLIT_CHUNK;
     connections = std::max(1, std::min(connections, MAX_CONNECTIONS));
     const uint64_t pieces = (length + chunk - 1) / chunk;
-    if (connections == 1 || pieces < 2) return fetch(offset, length, sink, why, cancel);
+    if (connections == 1 || pieces < 2) return fetch(offset, length, sink, cancel);
 
     Shared s;
     auto   size_of = [&](uint64_t i) { return (size_t)std::min(chunk, length - i * chunk); };
@@ -65,9 +64,8 @@ bool split_stream(uint64_t offset, uint64_t length, int connections, const Range
                 p = &s.held[i];
                 p->data.resize(size_of(i));
             }
-            size_t      at = 0;
-            std::string w;
-            const bool  ok = fetch(
+            size_t     at = 0;
+            const Done got = fetch(
                 offset + i * chunk, p->data.size(),
                 [&](const uint8_t* data, size_t n) {
                     if (n > p->data.size() - at) return false;
@@ -80,13 +78,13 @@ bool split_stream(uint64_t offset, uint64_t length, int connections, const Range
                     s.moved.notify_all();
                     return !s.stop;
                 },
-                &w, &s.stop);
+                &s.stop);
             {
                 const std::lock_guard<std::mutex> g(s.lock);
-                if (ok && at == p->data.size()) p->done = true;
+                if (got && at == p->data.size()) p->done = true;
                 else if (!s.stop) {
                     s.failed = true;
-                    s.error = !ok && !w.empty() ? w : "the range came out short";
+                    s.error = !got && !got.error().empty() ? got.error() : "the range came out short";
                     s.stop = true;
                 }
             }
@@ -152,8 +150,8 @@ bool split_stream(uint64_t offset, uint64_t length, int connections, const Range
     }
     s.moved.notify_all();
     for (std::thread& t : threads) t.join();
-    if (!ok && why) *why = s.failed ? s.error : mine;
-    return ok;
+    if (!ok) return fail(s.failed ? s.error : mine);
+    return {};
 }
 
 }   // namespace install

@@ -30,7 +30,7 @@ struct Section
 
 struct ContentStream::Impl
 {
-    enum class Phase { Header, Body, SectionsHead, Sections, BodyKind, Zstd, BlockHead, BlockSizes, Blocks, Raw, Done, Failed };
+    enum class Phase { Header, Body, SectionsHead, Sections, BodyKind, Zstd, BlockHead, BlockSizes, Blocks, Raw, Finished, Failed };
 
     std::array<uint8_t, 32>                 header_key{};
     std::optional<std::array<uint8_t, 32>> expected_hash;
@@ -114,7 +114,13 @@ struct ContentStream::Impl
             *why = "the NCA's size differs from what the content meta gives";
             return false;
         }
-        if (on_header && !on_header(*h, nca_check_signature(plain), why)) return false;
+        if (on_header) {
+            const Done taken = on_header(*h, nca_check_signature(plain));
+            if (!taken) {
+                *why = taken.error();
+                return false;
+            }
+        }
         nca = h->size;
         sha.update(buf);   // as published
         if (h->distribution == 1) nca_make_download(buf.data(), header_key.data());
@@ -354,7 +360,7 @@ struct ContentStream::Impl
                 }
                 break;
             }
-            case Phase::Done:
+            case Phase::Finished:
             case Phase::Failed:
                 *why = "data after the end";
                 return false;
@@ -416,7 +422,7 @@ ContentStream::~ContentStream() = default;
 bool ContentStream::feed(std::span<const uint8_t> data)
 {
     if (impl->phase == Impl::Phase::Failed) return false;
-    if (impl->phase == Impl::Phase::Done) {
+    if (impl->phase == Impl::Phase::Finished) {
         err = "data after the end";
         impl->phase = Impl::Phase::Failed;
         return false;
@@ -435,7 +441,7 @@ bool ContentStream::finish()
         impl->phase = Impl::Phase::Failed;
         return false;
     }
-    impl->phase = Impl::Phase::Done;
+    impl->phase = Impl::Phase::Finished;
     return true;
 }
 

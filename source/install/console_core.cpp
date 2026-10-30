@@ -19,11 +19,10 @@ CoreMetaKey core_key(const MetaKey& k)
     return c;
 }
 
-bool check(Result rc, const char* what, std::string* why)
+Done check(Result rc, const char* what)
 {
-    if (R_SUCCEEDED(rc)) return true;
-    if (why) *why = result_text(rc, what);
-    return false;
+    if (R_SUCCEEDED(rc)) return {};
+    return fail(result_text(rc, what));
 }
 }   // namespace
 
@@ -34,7 +33,9 @@ std::string result_text(Result rc, const char* what)
 
 CoreConsole::CoreConsole(CoreStorage storage)
 {
-    opened = check(core_install_open(storage), "the console's install services", &open_error);
+    const Done opening = check(core_install_open(storage), "the console's install services");
+    opened = opening.has_value();
+    if (!opening) open_error = opening.error();
 }
 
 CoreConsole::~CoreConsole()
@@ -48,19 +49,19 @@ bool CoreConsole::has_content(const ContentId& id)
     return R_SUCCEEDED(core_content_has(id.data(), &has)) && has;
 }
 
-bool CoreConsole::create_placeholder(const ContentId& id, uint64_t size, std::string* why)
+Done CoreConsole::create_placeholder(const ContentId& id, uint64_t size)
 {
-    return check(core_placeholder_create(id.data(), size), "creating a placeholder", why);
+    return check(core_placeholder_create(id.data(), size), "creating a placeholder");
 }
 
-bool CoreConsole::write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size, std::string* why)
+Done CoreConsole::write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size)
 {
-    return check(core_placeholder_write(id.data(), offset, data, size), "writing a placeholder", why);
+    return check(core_placeholder_write(id.data(), offset, data, size), "writing a placeholder");
 }
 
-bool CoreConsole::register_placeholder(const ContentId& id, std::string* why)
+Done CoreConsole::register_placeholder(const ContentId& id)
 {
-    return check(core_placeholder_register(id.data()), "registering a content", why);
+    return check(core_placeholder_register(id.data()), "registering a content");
 }
 
 bool CoreConsole::has_placeholder(const ContentId& id)
@@ -105,50 +106,48 @@ std::optional<std::vector<uint8_t>> CoreConsole::get_meta(const MetaKey& key)
     return rec;
 }
 
-bool CoreConsole::set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why)
+Done CoreConsole::set_meta(const MetaKey& key, const std::vector<uint8_t>& record)
 {
     const CoreMetaKey k = core_key(key);
-    return check(core_meta_set(&k, record.data(), record.size()), "setting a content meta record", why);
+    return check(core_meta_set(&k, record.data(), record.size()), "setting a content meta record");
 }
 
-bool CoreConsole::remove_meta(const MetaKey& key, std::string* why)
+Done CoreConsole::remove_meta(const MetaKey& key)
 {
     const CoreMetaKey k = core_key(key);
-    return check(core_meta_remove(&k), "removing a content meta record", why);
+    return check(core_meta_remove(&k), "removing a content meta record");
 }
 
-bool CoreConsole::commit_meta(std::string* why)
+Done CoreConsole::commit_meta()
 {
-    return check(core_meta_commit(), "committing the content meta records", why);
+    return check(core_meta_commit(), "committing the content meta records");
 }
 
-bool CoreConsole::push_application_record(uint64_t application_id, const MetaKey& key, std::string* why)
+Done CoreConsole::push_application_record(uint64_t application_id, const MetaKey& key)
 {
     const CoreMetaKey k = core_key(key);
-    return check(core_push_application_record(application_id, &k), "pushing the application record", why);
+    return check(core_push_application_record(application_id, &k), "pushing the application record");
 }
 
-bool CoreConsole::import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate,
-                                std::string* why)
+Done CoreConsole::import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate)
 {
     return check(core_import_ticket(ticket.data(), ticket.size(), certificate.data(), certificate.size()),
-                 "importing a ticket", why);
+                 "importing a ticket");
 }
 
 uint32_t CoreConsole::system_version() { return core_system_version(); }
 
 Parsed<NcaKeys> core_keys()
 {
-    NcaKeys     k;
-    std::string why;
-    if (!check(core_header_key(k.header_key.data()), "deriving the header key", &why)) return fail(why);
+    NcaKeys k;
+    if (const Done r = check(core_header_key(k.header_key.data()), "deriving the header key"); !r) return fail(r.error());
     k.unwrap = [](uint8_t generation, uint8_t index, const uint8_t in[16], uint8_t out[16]) {
         return R_SUCCEEDED(core_unwrap_key(generation, index, in, out));
     };
     return k;
 }
 
-std::map<uint64_t, uint32_t> installed_versions(std::string* why)
+Parsed<std::map<uint64_t, uint32_t>> installed_versions()
 {
     // A console holds a few thousand at most: games, their updates, their
     // add-ons.
@@ -157,10 +156,7 @@ std::map<uint64_t, uint32_t> installed_versions(std::string* why)
     int                      count = 0;
     std::map<uint64_t, uint32_t> out;
     const Result             rc = core_installed_list(keys.data(), MAX, &count);
-    if (R_FAILED(rc)) {
-        if (why) *why = result_text(rc, "ncm");
-        return out;
-    }
+    if (R_FAILED(rc)) return fail(result_text(rc, "ncm"));
     for (int i = 0; i < count; i++) {
         auto it = out.find(keys[(size_t)i].id);
         if (it == out.end()) out[keys[(size_t)i].id] = keys[(size_t)i].version;

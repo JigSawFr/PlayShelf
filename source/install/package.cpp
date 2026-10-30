@@ -13,43 +13,32 @@ namespace
 // The archive at `offset` of `src`: its base header, then all of it.
 Parsed<Pfs> read_pfs(Source& src, uint64_t offset, uint64_t limit)
 {
-    uint8_t     base[PFS_BASE_HEADER];
-    std::string why;
-    if (!src.read(offset, base, sizeof base, &why)) return fail(why);
+    uint8_t base[PFS_BASE_HEADER];
+    if (const Done r = src.read(offset, base, sizeof base); !r) return fail(r.error());
     const auto hs = pfs_header_size(base);
     if (!hs) return fail("not a PFS0 or HFS0 archive, or a header too big");
     std::vector<uint8_t> header((size_t)hs->size);
-    if (!src.read(offset, header.data(), header.size(), &why)) return fail(why);
+    if (const Done r = src.read(offset, header.data(), header.size()); !r) return fail(r.error());
     return pfs_parse(header, limit);
 }
 }   // namespace
 
-bool MemorySource::read(uint64_t offset, uint8_t* out, size_t n, std::string* why)
+Done MemorySource::read(uint64_t offset, uint8_t* out, size_t n)
 {
-    if (offset > data.size() || n > data.size() - offset) {
-        if (why) *why = "read past the package's end";
-        return false;
-    }
+    if (offset > data.size() || n > data.size() - offset) return fail("read past the package's end");
     std::copy(data.begin() + (long)offset, data.begin() + (long)(offset + n), out);
-    return true;
+    return {};
 }
 
-bool MemorySource::stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                          std::string* why)
+Done MemorySource::stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink)
 {
-    if (offset > data.size() || length > data.size() - offset) {
-        if (why) *why = "read past the package's end";
-        return false;
-    }
+    if (offset > data.size() || length > data.size() - offset) return fail("read past the package's end");
     for (uint64_t at = 0; at < length;) {
         const size_t n = (size_t)std::min<uint64_t>(piece ? piece : length, length - at);
-        if (!sink(data.data() + offset + at, n)) {
-            if (why && why->empty()) *why = "stopped";
-            return false;
-        }
+        if (!sink(data.data() + offset + at, n)) return fail("stopped");
         at += n;
     }
-    return true;
+    return {};
 }
 
 const PackageFile* Package::find(const std::string& name) const
@@ -87,10 +76,9 @@ Parsed<Package> package_open(Source& src)
 {
     const uint64_t size = src.size();
     uint8_t        head[XCI_HEADER];
-    std::string    err;
     const bool     long_enough = !size || size >= XCI_HEADER;
     Package        pkg;
-    if (long_enough && src.read(0, head, sizeof head, &err) && le32(head + 0x100) == 0x44414548) {
+    if (long_enough && src.read(0, head, sizeof head) && le32(head + 0x100) == 0x44414548) {
         // A game card image: the root HFS0, then its secure partition.
         const auto root = xci_root(head, size);
         if (!root) return fail(root.error());

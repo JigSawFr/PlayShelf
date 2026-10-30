@@ -49,7 +49,10 @@ bool install_package(const Bytes& package, std::string* why)
         return false;
     }
     Installer inst(src, *pkg, console, *keys, {SignaturePolicy::Off, false});
-    return inst.prepare(why) && inst.run(why);
+    Done done = inst.prepare();
+    if (done) done = inst.run();
+    if (!done) *why = done.error();
+    return done.has_value();
 }
 
 void test_installed()

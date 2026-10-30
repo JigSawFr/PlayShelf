@@ -78,14 +78,14 @@ template <class T> using Result = std::expected<T, Failure>;
 // `pinned_key` ("sha256//<base64>", library/server.hpp's pin_text): the
 // server must hold that public key, which vouches for it in place of the CA
 // store (a LAN server's own certificate); empty, the CA store does.
-bool range(const std::string& url, uint64_t offset, uint64_t length,
-           const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers = {},
-           const std::atomic<bool>* cancel = nullptr, const std::string& pinned_key = "");
+Result<void> range(const std::string& url, uint64_t offset, uint64_t length,
+                   const std::function<bool(const uint8_t*, size_t)>& sink, const Headers& headers = {},
+                   const std::atomic<bool>* cancel = nullptr, const std::string& pinned_key = "");
 
 // The size of `url`'s resource, from the Content-Range of a request for its
-// first byte: false when the server does not serve ranges.
-[[nodiscard]] bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers = {},
-                                 const std::string& pinned_key = "");
+// first byte: a Failure when the server does not serve ranges.
+[[nodiscard]] Result<uint64_t> resource_size(const std::string& url, const Headers& headers = {},
+                                             const std::string& pinned_key = "");
 
 // A GET as get() does, its pinned key as range()'s, and whether the TLS
 // handshake failed on the server's certificate or key (tls_failed): a LAN
@@ -129,8 +129,8 @@ bool call(const std::string& url, const Call& c, const Headers& headers, const s
 // The certificate `url`'s server presents, as PEM, without checking it and
 // without sending anything but the request line (no header, no
 // credential): what a pin is made from, which the user is asked about
-// before it is trusted. False when the TLS backend cannot give it.
-[[nodiscard]] bool peer_certificate(const std::string& url, std::string* pem, std::string* error);
+// before it is trusted. A Failure when the TLS backend cannot give it.
+[[nodiscard]] Result<std::string> peer_certificate(const std::string& url);
 
 // At exit: a request still running stops at its next progress tick (about a
 // second), and a new one fails at once, so the threads they run on can end

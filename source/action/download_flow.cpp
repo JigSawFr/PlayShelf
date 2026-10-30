@@ -57,28 +57,24 @@ class CutSource : public install::Source
 {
   public:
     CutSource(install::Source& src, Control& ctl, std::string* why) : inner(src), control(ctl), reason(why) {}
-    uint64_t size() const override { return inner.size(); }
-    bool     read(uint64_t offset, uint8_t* out, size_t n, std::string* why) override
+    uint64_t      size() const override { return inner.size(); }
+    install::Done read(uint64_t offset, uint8_t* out, size_t n) override { return watch(inner.read(offset, out, n)); }
+    install::Done stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) override
     {
-        return watch(inner.read(offset, out, n, why), why);
-    }
-    bool stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                std::string* why) override
-    {
-        return watch(inner.stream(offset, length, sink, why), why);
+        return watch(inner.stream(offset, length, sink));
     }
 
   private:
-    bool watch(bool ok, const std::string* why)
+    install::Done watch(install::Done done)
     {
-        if (ok || control.stop || !why) return ok;
-        const download::Cause c = download::cause_of(*why);
+        if (done || control.stop) return done;
+        const download::Cause c = download::cause_of(done.error());
         if (c == download::Cause::Network || c == download::Cause::Server) {
-            *reason = *why;
+            *reason = done.error();
             control.cut = true;
             control.pause = true;
         }
-        return ok;
+        return done;
     }
     install::Source& inner;
     Control&         control;
@@ -194,7 +190,10 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     };
     std::string cut_why;
     HttpSource  http(job.url, headers, &ctl->stop, pin, connections);
-    if (!http.open(&o.why)) return ctl->stop ? stopped() : o;
+    if (const Done opened = http.open(); !opened) {
+        o.why = opened.error();
+        return ctl->stop ? stopped() : o;
+    }
     // What was fetched ahead read from its file, the rest from the server.
     PrefixSource prefixed(ahead_path(job.id), ahead, http);
     CutSource    src(prefixed, *ctl, &cut_why);
@@ -261,9 +260,14 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     Installer  inst(src, *pkg, console, *keys,
                     InstallOptions{unsigned_ok ? SignaturePolicy::Off : SignaturePolicy::Require, false}, cb);
     if (job.journal) inst.resume_from(*job.journal);
-    if (!inst.prepare(&o.why)) return ctl->stop ? stopped() : o;
+    if (const Done prepared = inst.prepare(); !prepared) {
+        o.why = prepared.error();
+        return ctl->stop ? stopped() : o;
+    }
     o.total = inst.bytes_to_write();
-    o.ok = inst.run(&o.why);
+    const Done ran = inst.run();
+    o.ok = ran.has_value();
+    if (!ran) o.why = ran.error();
     // The transfer cut, the user not pausing: a failure to try again, the
     // journal kept.
     if (!o.ok && inst.paused() && ctl->cut && !ctl->stop) {
@@ -378,12 +382,14 @@ void fetch_ahead()
         aurore::Logger::info("downloads: fetching {} ahead", job.name);
         ui::in_background("fetch ahead", [id, url, path, headers, pin, stop, reserve]() {
             std::string why;
-            uint64_t    total = 0;
             uint64_t    have = file_size(path);
-            if (!http::resource_size(url, &total, &why, headers, pin)) {
+            const auto  size = http::resource_size(url, headers, pin);
+            if (!size) {
+                why = size.error().error;
                 aurore::sync([id, have, why]() { ahead_ended(id, have, 0, why); });
                 return;
             }
+            const uint64_t total = *size;
             if (have > total) {   // another package's: started over
                 std::remove(path.c_str());
                 have = 0;
@@ -396,29 +402,29 @@ void fetch_ahead()
             if (have < total && !f) why = "the file could not be written";
             auto last = std::chrono::steady_clock::now();
             if (f) {
-                std::string net;
-                http::range(url, have, total - have,
-                            [&](const uint8_t* data, size_t n) {
-                                if (std::fwrite(data, 1, n, f) != n) {
-                                    why = "the file could not be written";
-                                    return false;
-                                }
-                                have += n;
-                                const auto t = std::chrono::steady_clock::now();
-                                if (t - last >= std::chrono::milliseconds(500)) {
-                                    last = t;
-                                    aurore::sync([id, have, total]() {
-                                        Ahead& now = s_ahead[id];
-                                        now.have = have;
-                                        now.total = total;
-                                        changed();
-                                    });
-                                }
-                                return true;
-                            },
-                            &net, headers, stop.get(), pin);
+                const auto fetched = http::range(
+                    url, have, total - have,
+                    [&](const uint8_t* data, size_t n) {
+                        if (std::fwrite(data, 1, n, f) != n) {
+                            why = "the file could not be written";
+                            return false;
+                        }
+                        have += n;
+                        const auto t = std::chrono::steady_clock::now();
+                        if (t - last >= std::chrono::milliseconds(500)) {
+                            last = t;
+                            aurore::sync([id, have, total]() {
+                                Ahead& now = s_ahead[id];
+                                now.have = have;
+                                now.total = total;
+                                changed();
+                            });
+                        }
+                        return true;
+                    },
+                    headers, stop.get(), pin);
                 std::fclose(f);
-                if (why.empty()) why = net;
+                if (why.empty() && !fetched) why = fetched.error().error;
             }
             have = file_size(path);
             if (have >= total) why.clear();

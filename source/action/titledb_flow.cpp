@@ -131,10 +131,12 @@ bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, 
     uint64_t   got = 0;
     bool       write_failed = false;
     const auto range = [&target_now](uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                                 std::string* w, const std::atomic<bool>* stop) {
-        return http::range(target_now(), offset, length, sink, w, {}, stop);
+                                     const std::atomic<bool>* stop) -> install::Done {
+        const auto r = http::range(target_now(), offset, length, sink, {}, stop);
+        if (!r) return install::fail(r.error().error);
+        return {};
     };
-    bool ok = install::split_stream(
+    const install::Done streamed = install::split_stream(
         from, size - from, connections, range,
         [&](const uint8_t* data, size_t n) {
             if (std::fwrite(data, 1, n, f) != n) return !(write_failed = true);
@@ -142,7 +144,9 @@ bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, 
             progress(got);
             return true;
         },
-        why, &s_stop);
+        &s_stop);
+    bool ok = streamed.has_value();
+    if (!ok && why) *why = streamed.error();
     if (std::fclose(f) != 0 && ok) write_failed = true, ok = false;
     if (write_failed && why) *why = "cannot write the file";
     if (s_stop) {
