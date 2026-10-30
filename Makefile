@@ -131,7 +131,7 @@ calendar_FLAGS := -std=gnu11 -Isource/kit/core
 startup_SRC   := source/kit/util/startup.c tests/startup/test.c
 startup_FLAGS := -std=gnu11 -Isource/kit/util
 crash_dump_SRC   := source/kit/util/crash_dump.c tests/crash_dump/test.c
-crash_dump_FLAGS := -std=c11 -Isource/kit/util
+crash_dump_FLAGS := -std=c11 -Isource/kit/util -Isource
 write_guard_SRC   := source/kit/core/write_guard.c tests/write_guard/test.c
 write_guard_FLAGS := -std=gnu11 -Isource/kit/core
 
@@ -283,7 +283,7 @@ i18n_threads_LIBS  := -pthread
 session_log_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/session_log.cpp $(K)/util/crash_report.cpp tests/session_log/test.cpp
 # A C source a C++ suite links (clang++ refuses to build a .c as C++).
 session_log_CSRC  := $(K)/util/crash_dump.c
-session_log_CFLAGS := -std=c11 -Isource/kit/util
+session_log_CFLAGS := -std=c11 -Isource/kit/util -Isource
 frame_stats_SRC   := $(K)/util/paths.cpp $(K)/util/frame_stats.cpp tests/frame_stats/test.cpp
 # The callbacks a store tells of its changes (header only).
 listeners_SRC := tests/listeners/test.cpp

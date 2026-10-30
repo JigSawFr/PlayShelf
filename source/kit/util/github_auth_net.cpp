@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstring>
 
+#include "app_id.h"
 #ifndef __SWITCH__
 #include "sim/sim_net.hpp"
 #endif
@@ -21,7 +22,7 @@ const http::Headers JSON{ "Accept: application/json" };
 #ifndef __SWITCH__
 const char* sim()
 {
-    return sim_net::value("PLAYSHELF_SIM_GITHUB_LOGIN");
+    return sim_net::value(APP_ENV "_SIM_GITHUB_LOGIN");
 }
 #endif
 }   // namespace

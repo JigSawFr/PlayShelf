@@ -1,4 +1,4 @@
-// json_util — reading the JSON files and answers PlayShelf is given without
+// json_util — reading the JSON files and answers the app is given without
 // an exception: each field read as its type or not at all, a text that is no
 // JSON as a false. Header-only, plain C++ (nlohmann/json, from Aurore).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -78,6 +78,14 @@ inline int64_t integer_or(const nlohmann::json& j, const char* key, int64_t fall
     int64_t v = fallback;
     integer_at(j, key, &v);
     return v;
+}
+
+// The document's "schema" is newer than `known` (a missing one counts as 1):
+// a later version wrote it, so a reader takes it as absent and never writes
+// over it (docs/contributing/formats.md).
+inline bool newer_schema(const nlohmann::json& j, int64_t known)
+{
+    return j.is_object() && integer_or(j, "schema", 1) > known;
 }
 
 }   // namespace json_util

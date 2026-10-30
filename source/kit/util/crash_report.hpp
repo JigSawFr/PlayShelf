@@ -1,7 +1,7 @@
-// crash_report — PlayShelf's own crash files, logs/crashes/crash_<date>.txt
+// crash_report — the app's own crash files, logs/crashes/crash_<date>.txt
 // (util/log_files.hpp), one per crash:
 //
-//   2026-10-15 14:25:30  PlayShelf 1.2.0 (abc1234): cpu exception: data abort ...
+//   2026-10-15 14:25:30  <APP_NAME> 1.2.0 (abc1234): cpu exception: data abort ...
 //   system  : firmware 22.5.0, Atmosphère 1.11.1, sysMMC, over a game
 //   session : logs/sessions/session_20261015_142010.txt, 320 s after the start
 //
@@ -28,7 +28,7 @@ namespace crash_report
 {
 
 // Where the files go and what to say of this run, kept in fixed buffers.
-// `build`: "PlayShelf 1.2.0 (abc1234)"; `system`: the console ("firmware
+// `build`: "<APP_NAME> 1.2.0 (abc1234)"; `system`: the console ("firmware
 // 22.5.0, Atmosphère 1.11.1, sysMMC, over a game"), "" until known;
 // `session`: this run's session file name ("" without one). Called again
 // when one of them becomes known; the time since the first call is the

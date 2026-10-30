@@ -284,7 +284,7 @@ std::string end_reason(const std::string& text)
     const size_t mark = std::strlen(END);
     if (text.compare(start, mark, END) != 0) return "";
     std::string reason = text.substr(start + mark, end - start - mark);
-    if (reason.size() >= 4 && reason.compare(reason.size() - 4, 4, " ===") == 0) reason.resize(reason.size() - 4);
+    if (reason.ends_with(" ===")) reason.resize(reason.size() - 4);
     return reason.empty() ? "?" : reason;
 }
 

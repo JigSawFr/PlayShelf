@@ -3,6 +3,7 @@
 
 #include <format>
 
+#include "app_id.h"
 #include "util/paths.hpp"
 
 namespace frame_stats
@@ -24,7 +25,7 @@ void Second::add(uint64_t wall_us, uint64_t cpu_us, int d, int t)
 
 std::string header()
 {
-    return "# PlayShelf frame statistics: one line per second. time  mode size  screen  frames per second  "
+    return "# " APP_NAME " frame statistics: one line per second. time  mode size  screen  frames per second  "
            "cpu: the UI thread's own running time per frame, mean (max)  frame: time between two frames, "
            "mean (max)  late: frames more than 20 ms after the one before  draws, tris: nanovg's draw calls "
            "and triangles of the last frame (- when the build cannot count them)\n";

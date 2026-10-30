@@ -1,4 +1,4 @@
-// rollback — going back to the build PlayShelf ran before the last one
+// rollback — going back to the build the app ran before the last one
 // installed in place (Install another build, Update in place). Installing
 // keeps the replaced .nro as "<nro>.previous" and its name in
 // previous_build.json; starting a build just installed is checked
@@ -43,14 +43,14 @@ bool write_check(const std::string& json_file, const Check& check);
 // build installed did not reach its first screen. `checked`: boot_check.json
 // was there, `starts_before` read from it (before this start counts);
 // `have_previous`: <nro>.previous is there. It is offered before
-// PlayShelf's own lock screen (which may be what crashes); going back still
+// the app's own lock screen (which may be what crashes); going back still
 // needs the PIN (go_back_allowed).
 bool offer_at_start(bool checked, int starts_before, bool have_previous);
 
 // Whether the start-up may go back once the system's PIN screen (pctlauth,
-// not PlayShelf's code) was shown: the PIN entered, or no PIN set. A start
+// not the app's code) was shown: the PIN entered, or no PIN set. A start
 // that did not finish is easy to cause (the power button), and going back
-// replaces PlayShelf, as Install another build does with the PIN.
+// replaces the app, as Install another build does with the PIN.
 bool go_back_allowed(bool pin_entered, bool no_pin_set);
 
 // Swaps <nro> and <nro>.previous (the build running becomes the previous

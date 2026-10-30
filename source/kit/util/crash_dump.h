@@ -1,9 +1,9 @@
 // crash_dump — what a crash file says of a CPU exception (a bad pointer, an
-// undefined instruction, a stack overflow) PlayShelf caught itself
+// undefined instruction, a stack overflow) the app caught itself
 // (core/crash_handler.c): the kind of fault, the address it touched, where
 // the code was (the program counter and the return addresses up the stack,
-// as offsets into playshelf.nro, which the build's linker map or
-// `aarch64-none-elf-addr2line -e playshelf.elf` turn into functions) and the
+// as offsets into the app's .nro, which the build's linker map or
+// `aarch64-none-elf-addr2line -e <app>.elf` turn into functions) and the
 // registers.
 //
 // Plain C with no libnx and no allocation: it runs in the exception handler,
@@ -28,7 +28,7 @@ typedef struct {
     uint64_t x[29];           // x0..x28
     uint64_t fp, lr, sp, pc;
     uint32_t pstate;
-    uint64_t module_base;     // PlayShelf's code in memory; 0 when unknown
+    uint64_t module_base;     // the app's code in memory; 0 when unknown
     uint64_t module_size;
     size_t   frames;          // return addresses found up the stack (crash_dump_backtrace)
     uint64_t frame[CRASH_DUMP_FRAMES];
@@ -38,12 +38,12 @@ typedef struct {
 // alignment"...: what the syndrome (else libnx's description) says it was.
 const char *crash_dump_kind(uint32_t desc, uint32_t esr);
 
-// "playshelf+0x1a2b3c" when `addr` is in PlayShelf's code, else
+// "<app id>+0x1a2b3c" (APP_ID) when `addr` is in the app's code, else
 // "0x0000008000123456". Always NUL-terminated.
 void crash_dump_where(const CrashDump *d, uint64_t addr, char *out, size_t size);
 
 // The first line's summary: "data abort reading 0x0000000000000010 (a null
-// pointer) at playshelf+0x1a2b3c". Always NUL-terminated.
+// pointer) at <app id>+0x1a2b3c". Always NUL-terminated.
 void crash_dump_summary(const CrashDump *d, char *out, size_t size);
 
 // The whole section: the fault, the program counter, the return address,

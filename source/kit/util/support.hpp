@@ -1,6 +1,6 @@
 // support — what the main screen shows once at start-up, when nothing else
 // does: "What's new" once after each update, else the monthly "Support
-// PlayShelf" reminder (unless turned off in Preferences). Plain C++ so the
+// <the app>" reminder (unless turned off in Preferences). Plain C++ so the
 // host tests can run it; action/support_flow.cpp shows the screens.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
@@ -16,7 +16,7 @@ enum class Show
 {
     Nothing,
     WhatsNew,   // the running version's notes, once after an update
-    Reminder,   // "Support PlayShelf", once a month
+    Reminder,   // "Support <the app>", once a month
 };
 
 struct State

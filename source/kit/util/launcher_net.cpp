@@ -3,6 +3,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstring>
 
+#include "app_id.h"
 #ifndef __SWITCH__
 #include "sim/sim_net.hpp"
 #endif
@@ -17,8 +18,8 @@ namespace
 {
 // The catalogue's copy of the listing's info.json (switch-hbas-repo builds it
 // with spinarak, which publishes it next to the package): a 404 until
-// PlayShelf is listed.
-constexpr const char* STORE_INFO_URL = "https://switch.cdn.fortheusers.org/packages/PlayShelf/info.json";
+// the app is listed.
+constexpr const char* STORE_INFO_URL = "https://switch.cdn.fortheusers.org/packages/" APP_NAME "/info.json";
 }   // namespace
 
 std::string store_version(std::string* error)
@@ -26,8 +27,8 @@ std::string store_version(std::string* error)
     std::string body;
 #ifndef __SWITCH__
     // Desktop simulation: "1.2.0" (the version the catalogue has), "none"
-    // (PlayShelf not listed) or "offline".
-    if (const char* sim = sim_net::value("PLAYSHELF_SIM_STORE")) {
+    // (the app not listed) or "offline".
+    if (const char* sim = sim_net::value(APP_ENV "_SIM_STORE")) {
         if (std::strcmp(sim, "none") == 0) {
             if (error) *error = "not listed";
             return "";

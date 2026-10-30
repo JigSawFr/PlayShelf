@@ -1,6 +1,6 @@
-// The desktop and web simulators' PLAYSHELF_SIM_* variables (CONTRIBUTING.md,
+// The desktop and web simulators' <APP_ENV>_SIM_* variables (app_id.h) (CONTRIBUTING.md,
 // web/README.md): the environment's, unless the web page changed one while
-// PlayShelf runs. Read through these functions, never getenv(): the page's
+// the app runs. Read through these functions, never getenv(): the page's
 // changes do not touch the process environment, which other threads read
 // without a lock. On the console, there is none: every variable is unset.
 //

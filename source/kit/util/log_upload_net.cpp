@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstring>
 
+#include "app_id.h"
 #ifndef __SWITCH__
 #include "sim/sim_net.hpp"
 #endif
@@ -18,7 +19,7 @@ namespace
 bool simulated(Result* r)
 {
 #ifndef __SWITCH__
-    if (const char* sim = sim_net::value("PLAYSHELF_SIM_PASTE")) {
+    if (const char* sim = sim_net::value(APP_ENV "_SIM_PASTE")) {
         if (std::strcmp(sim, "offline") == 0) {
             sim_net::offline(&r->error);
             return true;
@@ -46,7 +47,7 @@ Result upload_gist(const std::vector<Part>& files, const std::string& token, con
     if (!got) {
         const long status = got.error().status;
         // 401: the token was revoked (forgotten: no use keeping it); 403 /
-        // 404: it was given before PlayShelf asked for the gist permission.
+        // 404: it was given before the app asked for the gist permission.
         r.relogin = github_auth::forget_if_revoked(status, token) || status == 403 || status == 404;
         r.error = "GitHub: " + got.error().error;
         return r;

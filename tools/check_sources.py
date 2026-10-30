@@ -36,10 +36,10 @@ def sources(folder):
 
 
 # ------------------------------------------------------------ the kit
-# What the kit may include of the app: its identity (version, modes, links)
+# What the kit may include of the app: its identity (names, version, modes, links)
 # and its settings. Everything else of the app reaches the kit through
 # ui::hooks.
-APP_CONTRACT = {"app.hpp", "util/config.hpp"}
+APP_CONTRACT = {"app.hpp", "app_id.h", "util/config.hpp"}
 kit_files = {rel[len("source/kit/"):] for rel, _ in sources("source/kit")}
 for rel, text in sources("source/kit"):
     here = os.path.dirname(rel[len("source/kit/"):])

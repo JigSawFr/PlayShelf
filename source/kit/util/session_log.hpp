@@ -1,14 +1,14 @@
-// session_log — every line PlayShelf logs (Aurore's Logger, which only
+// session_log — every line the app logs (Aurore's Logger, which only
 // reaches a PC over nxlink) kept on the SD card, one file per run:
 //
 //   logs/sessions/session_20261015_142530.txt
 //
 // It starts with a header (the build, when it started), then one line per
 // message ("14:25:31.042 I start-up: first screen ready after 2913 ms"), and
-// ends with "=== end: clean exit ===" when PlayShelf quits normally, or
+// ends with "=== end: clean exit ===" when the app quits normally, or
 // "=== end: crash, see logs/crashes/crash_<date>.txt ===" when it caught its
 // own crash. A file without an end line is a run that stopped without
-// either (a crash outside PlayShelf's handlers, the console turned off, the
+// either (a crash outside the app's handlers, the console turned off, the
 // software closed from the HOME menu while it hung): the next start says so
 // in a crash file (main.cpp, unfinished()).
 //
