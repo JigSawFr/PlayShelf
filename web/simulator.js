@@ -417,7 +417,7 @@ function saveData() {
 function mountKept(m, config) {
   // Emscripten's IDBFS names the database after the mount point: this
   // deployment's own name in its place.
-  const idbfs = m.FS.filesystems.IDBFS;
+  const idbfs = m.IDBFS;
   const getDB = idbfs.getDB;
   idbfs.getDB = (name, callback) => getDB.call(idbfs, name === DATA ? KEPT_DB : name, callback);
   m.FS.mkdirTree(DATA);
