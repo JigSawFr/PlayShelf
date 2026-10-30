@@ -576,6 +576,11 @@
         "downloads_failed": "{} downloads zijn mislukt",
         "sale": "{} is in de aanbieding",
         "sale_lowest": "{} is zo goedkoop als nooit",
+        "sale_started": "{} is nu in de aanbieding",
+        "lowest": "{} was nog nooit zo goedkoop",
+        "lowest_now": "Nu {}",
+        "out": "{} is uit",
+        "out_on": "Verschenen op {}",
         "sale_until": "-{0}% · {1} tot {2}",
         "day": "{0} {1}"
     },

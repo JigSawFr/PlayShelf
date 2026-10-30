@@ -576,6 +576,11 @@
         "downloads_failed": "{} 个下载失败",
         "sale": "{} 正在促销",
         "sale_lowest": "{} 史低价",
+        "sale_started": "{} 开始促销",
+        "lowest": "{} 降至历史最低价",
+        "lowest_now": "现价 {}",
+        "out": "{} 已发售",
+        "out_on": "{}发售",
         "sale_until": "-{0}% · {1}，至 {2}",
         "day": "{1}{0}日"
     },

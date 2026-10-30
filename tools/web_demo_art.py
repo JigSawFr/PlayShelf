@@ -13,6 +13,10 @@ folder:
 - insights/platforms/switch/prices/<COUNTRY>.json: every game's eShop price in each country
   Atlas has prices for (Atlas' schema 1), a few on sale (the
   wishlist's among them), with the lowest each has had;
+- insights/changes.json: what Atlas' last run would have changed, in its
+  schema 1 (action/changes_flow): the wishlist's games out today, and in
+  each country the wishlist's sales started and those at a new lowest, so
+  the bell says them;
 - insights/index.json: each of the demo's Atlas files (tools/web_demo.cpp's
   and the prices) with its day, size and short hash, as Atlas' index
   (action/insights_index);
@@ -204,6 +208,22 @@ def prices(games, today):
     return out
 
 
+def changes(games, today, by_country):
+    """changes.json: the wishlist's games out today; by country, the
+    wishlist's sales (they started today) and those at their lowest today."""
+    wished = [i for i, g in enumerate(games) if g.get("wished")]
+    out = [f"{tid(i):016X}" for i in wished if release_of(games[i], today) == today.isoformat()]
+    day = int(today.strftime("%Y%m%d"))
+    sales = {}
+    for country, payload in by_country.items():
+        rows = payload["games"]
+        mine = [f"{tid(i):016X}" for i in wished if f"{tid(i):016X}" in rows]
+        sales[country] = {"started": [g for g in mine if rows[g][1]], "ended": [],
+                          "lowest": [g for g in mine if rows[g][4] == day and rows[g][1]]}
+    return {"schema": 1, "generated": today.isoformat(), "source": "PlayShelf's web demo (made up)",
+            "platforms": {"switch": {"new": [], "out_today": sorted(out), "trends": [], "sales": sales}}}
+
+
 def release_of(game, today):
     if "days" in game:
         return (today + datetime.timedelta(days=game["days"])).isoformat()
@@ -250,9 +270,12 @@ def main():
                         "version": 0, "size": (1 + i % 12) * 1_000_000_000}
     render.close()
     os.makedirs(f"{out}/insights/platforms/switch/prices", exist_ok=True)
-    for country, payload in prices(games, today).items():
+    by_country = prices(games, today)
+    for country, payload in by_country.items():
         with open(f"{out}/insights/platforms/switch/prices/{country}.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False)
+    with open(f"{out}/insights/changes.json", "w", encoding="utf-8") as f:
+        json.dump(changes(games, today, by_country), f, ensure_ascii=False)
     write_index(f"{out}/insights", today)
     os.makedirs(f"{out}/titledb", exist_ok=True)
     with open(f"{out}/titledb/index.json", "w", encoding="utf-8") as f:
@@ -263,8 +286,8 @@ def main():
 
 
 def write_index(folder, today):
-    """insights/index.json: every file under it (platforms/switch/popular.json,
-    platforms/switch/prices/FR.json), as Atlas lists them."""
+    """insights/index.json: every file under it (changes.json,
+    platforms/switch/popular.json, platforms/switch/prices/FR.json), as Atlas lists them."""
     files = {}
     for root, _, names in os.walk(folder):
         for name in names:
