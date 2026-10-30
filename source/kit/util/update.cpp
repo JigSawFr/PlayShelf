@@ -74,6 +74,10 @@ uint32_t parse_firmware(const std::string& text)
 bool parse_compat(const std::string& json, Latest* out)
 {
     return json_util::parse_with(json, [out](const nlohmann::json& j) {
+        // Another schema's fields may not mean what this build reads.
+        const auto schema = j.find("schema");
+        if (schema != j.end() && !(schema->is_number_unsigned() && schema->get<uint64_t>() == (uint64_t)COMPAT_SCHEMA))
+            return false;
         // A field missing or not a text reads as "", which neither parse takes.
         Latest l;
         l.version       = json_util::string_at(j, "version");

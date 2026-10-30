@@ -9,11 +9,22 @@ the sources, so they can never disagree with the build:
                      console: a newer release "supports" a firmware only once
                      it was verified there)
 
-Usage: tools/gen_compat.py [repo-root] [output]   (default: . and ./compat.json)
+Its "schema" is SCHEMA (update::COMPAT_SCHEMA in source/kit/util/update.hpp):
+one more when a field changes meaning. Each release publishes it twice:
+compat-<SCHEMA>.json, which the app fetches first, and compat.json, which
+builds from before it did read and which keeps schema 1 forever (the
+schema-1 fields written as they are). A schema 2 would write compat-2.json
+and still compat-1.json and compat.json, so installed builds still see it.
+
+Usage: tools/gen_compat.py [repo-root] [output]   (default: . and ./compat.json;
+compat-<SCHEMA>.json is written next to the output)
 """
 import json
+import os
 import re
 import sys
+
+SCHEMA = 1
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
 OUT = sys.argv[2] if len(sys.argv) > 2 else "compat.json"
@@ -42,12 +53,19 @@ def firmware(macro):
     return ".".join(m.groups())
 
 
+update_hpp = open(f"{ROOT}/source/kit/util/update.hpp", encoding="utf-8").read()
+m = re.search(r"constexpr int COMPAT_SCHEMA = (\d+);", update_hpp)
+if not m or int(m.group(1)) != SCHEMA:
+    fail(f"update::COMPAT_SCHEMA (source/kit/util/update.hpp) is not {SCHEMA}")
+
 compat = {
-    "schema": 1,
+    "schema": SCHEMA,
     "version": ".".join(parts),
     "fw_tested_max": firmware("APP_FW_TESTED_MAX"),
 }
-with open(OUT, "w", encoding="utf-8") as f:
-    json.dump(compat, f, indent=2)
-    f.write("\n")
-print(f"{OUT}: {json.dumps(compat)}")
+versioned = os.path.join(os.path.dirname(OUT), f"compat-{SCHEMA}.json")
+for path in (OUT, versioned):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(compat, f, indent=2)
+        f.write("\n")
+    print(f"{path}: {json.dumps(compat)}")
