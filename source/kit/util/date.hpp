@@ -2,7 +2,7 @@
 // them: reading one (three levels of strictness, each kept by a caller that
 // relies on it), the day number since 1970-01-01, moving by days, the days
 // between two, the weekday, an ISO 8601 UTC stamp as seconds, the days
-// between two such times, and a time written in local time. The arithmetic
+// between two such times, a time written in local time, and "HH:MM". The arithmetic
 // is core/calendar.c's (one implementation for C and C++); this is its
 // string side. Plain C++ so the host tests can run it.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <ctime>
+#include <format>
 #include <string>
 
 namespace date
@@ -64,4 +65,8 @@ inline std::string local_time(std::time_t t, const char* fmt)
     return buf;
 }
 
+// "07:05": an hour and a minute on the 24-hour clock, or minutes since
+// midnight. Inline, as local_time.
+inline std::string hh_mm(int hour, int minute) { return std::format("{:02}:{:02}", hour, minute); }
+inline std::string hh_mm(int minutes) { return hh_mm(minutes / 60, minutes % 60); }
 }   // namespace date

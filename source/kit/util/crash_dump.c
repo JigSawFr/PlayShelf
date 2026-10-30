@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "app_id.h"
+
 // The exception class of the syndrome (ARMv8-A ESR_ELx.EC).
 static unsigned ec(uint32_t esr) { return (unsigned)(esr >> 26) & 0x3F; }
 
@@ -57,7 +59,7 @@ void crash_dump_where(const CrashDump *d, uint64_t addr, char *out, size_t size)
 {
     if (!out || size == 0) return;
     if (d && d->module_base && addr >= d->module_base && addr - d->module_base < d->module_size)
-        snprintf(out, size, "playshelf+0x%llx", (unsigned long long)(addr - d->module_base));
+        snprintf(out, size, APP_ID "+0x%llx", (unsigned long long)(addr - d->module_base));
     else
         snprintf(out, size, "0x%016llx", (unsigned long long)addr);
 }
@@ -125,10 +127,10 @@ size_t crash_dump_format(const CrashDump *d, char *out, size_t size)
     add(&t, "  libnx desc 0x%03x, ESR 0x%08x (class 0x%02x), FAR 0x%016llx, PSTATE 0x%08x\n", (unsigned)d->desc,
         (unsigned)d->esr, ec(d->esr), (unsigned long long)d->far, (unsigned)d->pstate);
     if (d->module_base)
-        add(&t, "  playshelf.nro code at 0x%016llx, 0x%llx bytes (offsets: the linker map, or addr2line on the .elf)\n",
+        add(&t, "  " APP_ID ".nro code at 0x%016llx, 0x%llx bytes (offsets: the linker map, or addr2line on the .elf)\n",
             (unsigned long long)d->module_base, (unsigned long long)d->module_size);
     else
-        add(&t, "  playshelf.nro code: not found (addresses as they are)\n");
+        add(&t, "  " APP_ID ".nro code: not found (addresses as they are)\n");
 
     add(&t, "\nbacktrace (innermost first):\n");
     crash_dump_where(d, d->pc, where, sizeof(where));

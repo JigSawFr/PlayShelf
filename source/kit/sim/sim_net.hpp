@@ -1,5 +1,5 @@
 // sim_net — the desktop build's simulated network, shared by the *_net.cpp
-// files: a PLAYSHELF_SIM_* variable names a folder whose files answer the
+// files: an <APP_ENV>_SIM_* variable names a folder whose files answer the
 // requests, or "offline" (each file says which variable it reads, and what
 // it answers without one). Desktop only: source/sim/ is not built for the
 // console, so it is included under #ifndef __SWITCH__.

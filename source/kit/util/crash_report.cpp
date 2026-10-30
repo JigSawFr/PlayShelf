@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "app_id.h"
+
 #include "util/session_log.hpp"
 
 namespace crash_report
@@ -77,7 +79,7 @@ const char* write(std::time_t now, const char* summary, const char* details, boo
 
     g_len = 0;
     g_text[0] = '\0';
-    add("%s  %s: %s\n", when, g_build[0] ? g_build : "PlayShelf", summary && *summary ? summary : "crash");
+    add("%s  %s: %s\n", when, g_build[0] ? g_build : APP_NAME, summary && *summary ? summary : "crash");
     if (g_system[0]) add("system  : %s\n", g_system);
     const long long after =
         g_has_start ? (long long)std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - g_start).count()

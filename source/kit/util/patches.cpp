@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/patches.hpp"
 
+#include <cstdio>
 #include <string_view>
 #include <sys/stat.h>
 
