@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+#include "install/bytes.hpp"
 #include "install/cnmt.hpp"
 
 namespace install
@@ -72,6 +73,6 @@ struct Package
 
 // Reads the package's headers from `src`: a PFS0 at 0 is an NSP, "HEAD" at
 // 0x100 a game card image (its root HFS0, then its "secure" partition).
-[[nodiscard]] std::optional<Package> package_open(Source& src, std::string* why = nullptr);
+[[nodiscard]] Parsed<Package> package_open(Source& src);
 
 }   // namespace install

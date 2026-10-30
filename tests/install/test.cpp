@@ -133,8 +133,7 @@ void test_pfs()
     const auto hs = pfs_header_size(nsp);
     if (!CHECK(hs)) return;
     CHECK(hs->kind == PfsKind::Pfs0);
-    std::string why;
-    const auto  p = pfs_parse(nsp, nsp.size(), &why);
+    const auto p = pfs_parse(nsp, nsp.size());
     if (!CHECK(p)) return;
     CHECK(p->entries.size() == 3);
     CHECK(p->header_size == hs->size);
@@ -151,7 +150,7 @@ void test_pfs()
     CHECK(pfs_parse({nsp.data(), (size_t)hs->size}));
     // Cut short; past the archive's size.
     CHECK(!pfs_parse({nsp.data(), (size_t)hs->size - 1}));
-    CHECK(!pfs_parse(nsp, nsp.size() - 1, &why));
+    CHECK(pfs_parse(nsp, nsp.size() - 1).error() == "a file past the archive's end");
     // Neither magic; too many entries; a header past MAX_HEADER.
     Bytes bad = nsp;
     bad[0] = 'X';
@@ -224,8 +223,7 @@ void test_cnmt()
 {
     const Bytes app = packaged_cnmt(MetaType::Application, 0x0100000000010000ull, 0, some_contents());
     write_seed("cnmt_app", app);
-    std::string why;
-    const auto  m = cnmt_parse(app, &why);
+    const auto m = cnmt_parse(app);
     if (!CHECK(m)) return;
     CHECK(m->title_id == 0x0100000000010000ull);
     CHECK(m->type == MetaType::Application);
@@ -309,10 +307,9 @@ void test_nca()
     uint8_t head[NCA_HEADER];
     std::memcpy(head, nca.data(), NCA_HEADER);
     nca_header_crypt(head, HEADER_KEY, false);
-    std::string why;
-    const auto  h = nca_parse_header(head, nca.size(), &why);
+    const auto h = nca_parse_header(head, nca.size());
     if (!CHECK(h)) {
-        fprintf(stderr, "  %s\n", why.c_str());
+        fprintf(stderr, "  %s\n", h.error().c_str());
         return;
     }
     CHECK(h->content_type == 1);
@@ -325,23 +322,23 @@ void test_nca()
     CHECK(!h->has_rights_id());
     CHECK(!nca_parse_header(head, nca.size() + 0x200));   // its file says another size
 
-    const auto read = nca_read_cnmt(nca, keys, &why);
+    const auto read = nca_read_cnmt(nca, keys);
     if (CHECK(read))
         CHECK(*read == cnmt);
     else
-        fprintf(stderr, "  %s\n", why.c_str());
+        fprintf(stderr, "  %s\n", read.error().c_str());
 
     // The wrong header key: no NCA3. A key generation the console lacks.
     NcaKeys wrong = keys;
     wrong.header_key[0] ^= 1;
     CHECK(!nca_read_cnmt(nca, wrong));
     const Bytes newer = cnmt_nca(cnmt, 9);
-    CHECK(!nca_read_cnmt(newer, keys, &why));
+    CHECK(nca_read_cnmt(newer, keys).error() == "no key for the section (key generation newer than the console)");
     // A changed fs header no longer matches its hash.
     uint8_t changed[NCA_HEADER];
     std::memcpy(changed, head, NCA_HEADER);
     changed[0x400 + 0x48] ^= 1;
-    CHECK(!nca_parse_header(changed, 0, &why));
+    CHECK(nca_parse_header(changed, 0).error() == "a section's fs header does not match its hash");
     // A section past the content's end.
     std::memcpy(changed, head, NCA_HEADER);
     put_le32(changed + 0x244, (uint32_t)(nca.size() / 0x200 + 1));

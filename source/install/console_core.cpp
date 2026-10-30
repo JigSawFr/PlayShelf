@@ -137,10 +137,11 @@ bool CoreConsole::import_ticket(const std::vector<uint8_t>& ticket, const std::v
 
 uint32_t CoreConsole::system_version() { return core_system_version(); }
 
-std::optional<NcaKeys> core_keys(std::string* why)
+Parsed<NcaKeys> core_keys()
 {
-    NcaKeys k;
-    if (!check(core_header_key(k.header_key.data()), "deriving the header key", why)) return std::nullopt;
+    NcaKeys     k;
+    std::string why;
+    if (!check(core_header_key(k.header_key.data()), "deriving the header key", &why)) return fail(why);
     k.unwrap = [](uint8_t generation, uint8_t index, const uint8_t in[16], uint8_t out[16]) {
         return R_SUCCEEDED(core_unwrap_key(generation, index, in, out));
     };

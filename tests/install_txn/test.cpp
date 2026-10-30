@@ -154,8 +154,11 @@ Run install(FakeConsole& console, const Bytes& package, InstallOptions options =
 {
     Run          r;
     MemorySource src(package, 0x1000);
-    const auto   pkg = package_open(src, &r.why);
-    if (!pkg) return r;
+    const auto   pkg = package_open(src);
+    if (!pkg) {
+        r.why = pkg.error();
+        return r;
+    }
     Installer inst(src, *pkg, console, test_keys(), options, std::move(cb));
     r.prepared = inst.prepare(&r.why);
     if (r.prepared) r.ok = inst.run(&r.why);

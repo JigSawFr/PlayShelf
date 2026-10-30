@@ -9,6 +9,7 @@
 #include <string>
 
 #include "core/install.h"
+#include "install/bytes.hpp"
 #include "install/installer.hpp"
 
 namespace install
@@ -49,7 +50,7 @@ class CoreConsole : public Console
 
 // The console's NCA keys: its header key, and its key area keys through
 // core_unwrap_key. Nothing when the header key cannot be had.
-[[nodiscard]] std::optional<NcaKeys> core_keys(std::string* why = nullptr);
+[[nodiscard]] Parsed<NcaKeys> core_keys();
 
 // "2002-0003 (…)": a Result as the console's error codes read, and what it
 // failed at.

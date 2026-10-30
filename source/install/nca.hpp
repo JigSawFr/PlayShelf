@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 
+#include "install/bytes.hpp"
+
 namespace install
 {
 
@@ -77,7 +79,7 @@ void nca_header_crypt(uint8_t header[NCA_HEADER], const uint8_t header_key[32], 
 // section within it and its fs header matching the hash the header keeps.
 // nca_size, when known (non-zero: the file's size in its archive), must be
 // the header's.
-[[nodiscard]] std::optional<NcaHeader> nca_parse_header(const uint8_t header[NCA_HEADER], uint64_t nca_size = 0, std::string* why = nullptr);
+[[nodiscard]] Parsed<NcaHeader> nca_parse_header(const uint8_t header[NCA_HEADER], uint64_t nca_size = 0);
 
 enum class NcaSignature { Valid, Invalid, UnknownKey };
 // The fixed-key signature of a decrypted header: UnknownKey for a signature
@@ -98,7 +100,6 @@ std::array<uint8_t, 16> nca_section_iv(const NcaSection& s);
 
 // The content meta inside a whole .cnmt.nca: the bytes of the first file
 // ending in .cnmt of its first section's PFS0.
-std::optional<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys,
-                                                  std::string* why = nullptr);
+[[nodiscard]] Parsed<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys);
 
 }   // namespace install

@@ -13,12 +13,6 @@ namespace
 constexpr size_t HEADER = 0x20, PACKAGED_INFO = 0x38, META_INFO = 0x10, DIGEST = 0x20;
 constexpr size_t INSTALL_HEADER = 8, INSTALL_INFO = 0x18;
 
-std::optional<ContentMeta> fail(std::string* why, const char* text)
-{
-    if (why) *why = text;
-    return std::nullopt;
-}
-
 bool has_required_system_version(MetaType t) { return t == MetaType::Application || t == MetaType::Patch; }
 
 // Where a type's extended header says how long its extended data is.
@@ -75,9 +69,9 @@ std::vector<ContentInfo> ContentMeta::installable() const
     return out;
 }
 
-std::optional<ContentMeta> cnmt_parse(std::span<const uint8_t> data, std::string* why)
+Parsed<ContentMeta> cnmt_parse(std::span<const uint8_t> data)
 {
-    if (data.size() < HEADER) return fail(why, "content meta header cut short");
+    if (data.size() < HEADER) return fail("content meta header cut short");
     ContentMeta m;
     m.title_id = le64(data.data());
     m.version = le32(data.data() + 8);
@@ -87,29 +81,29 @@ std::optional<ContentMeta> cnmt_parse(std::span<const uint8_t> data, std::string
     m.required_download_system_version = le32(data.data() + 0x18);
 
     size_t at = HEADER;
-    if (data.size() - at < ext) return fail(why, "extended header cut short");
+    if (data.size() - at < ext) return fail("extended header cut short");
     m.extended_header.assign(data.data() + at, data.data() + at + ext);
     at += ext;
-    if ((data.size() - at) / PACKAGED_INFO < contents) return fail(why, "content infos cut short");
+    if ((data.size() - at) / PACKAGED_INFO < contents) return fail("content infos cut short");
     for (size_t i = 0; i < contents; i++, at += PACKAGED_INFO) {
         const uint8_t* p = data.data() + at;
         ContentInfo    c = get_info(p + 32);
         std::memcpy(c.hash.data(), p, 32);
         m.contents.push_back(c);
     }
-    if ((data.size() - at) / META_INFO < metas) return fail(why, "content meta infos cut short");
+    if ((data.size() - at) / META_INFO < metas) return fail("content meta infos cut short");
     for (size_t i = 0; i < metas; i++, at += META_INFO) {
         const uint8_t* p = data.data() + at;
         m.metas.push_back(MetaInfo{le64(p), le32(p + 8), p[12], p[13]});
     }
     if (const auto ds = extended_data_size_at(m.type)) {
-        if (ext < *ds + 4) return fail(why, "extended header too short for its type");
+        if (ext < *ds + 4) return fail("extended header too short for its type");
         const size_t extended = le32(m.extended_header.data() + *ds);
-        if (data.size() - at < extended) return fail(why, "extended data cut short");
+        if (data.size() - at < extended) return fail("extended data cut short");
         m.extended_data.assign(data.data() + at, data.data() + at + extended);
         at += extended;
     }
-    if (data.size() - at < DIGEST) return fail(why, "digest cut short");
+    if (data.size() - at < DIGEST) return fail("digest cut short");
     return m;
 }
 
