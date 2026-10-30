@@ -25,15 +25,17 @@
 // before this file and tested on its own (tests/web_page/).
 'use strict';
 
-const { LANGUAGES, isOn } = SimLogic;
+const { LANGUAGES, isOn, keptDatabase } = SimLogic;
 
 const THEMES = ['auto', 'light', 'dark'];
 // The languages PlayShelf draws with the CJK font (cjk.otf, next to the page):
 // waited for before it starts; fetched once it runs in the others.
 const CJK = new Set(['ja', 'ko', 'zh-Hans', 'zh-Hant']);
 const CJK_FILE = '/app/resources/font/cjk.otf';
-// The data folder (source/util/paths.cpp), kept in IndexedDB under that name with `keep`.
+// The data folder (source/util/paths.cpp), kept in IndexedDB with `keep`:
+// in a database of this deployment's own (KEPT_DB, SimLogic.keptDatabase).
 const DATA = '/playshelf_data';
+const KEPT_DB = keptDatabase(DATA, location.pathname);
 // config.json's schema (config::SCHEMA in source/util/config.hpp).
 const CONFIG_SCHEMA = 1;
 // Where a report goes without build.json (a local build).
@@ -413,8 +415,13 @@ function saveData() {
 // its first games to the simulated console, itself (source/sim/sim_demo.hpp),
 // unless `no_demo`.
 function mountKept(m, config) {
+  // Emscripten's IDBFS names the database after the mount point: this
+  // deployment's own name in its place.
+  const idbfs = m.FS.filesystems.IDBFS;
+  const getDB = idbfs.getDB;
+  idbfs.getDB = (name, callback) => getDB.call(idbfs, name === DATA ? KEPT_DB : name, callback);
   m.FS.mkdirTree(DATA);
-  m.FS.mount(m.FS.filesystems.IDBFS, {}, DATA);
+  m.FS.mount(idbfs, {}, DATA);
   m.addRunDependency('keep');
   m.FS.syncfs(true, (e) => {
     if (e) log(`keep: ${e}`, true);
@@ -434,7 +441,7 @@ function mountKept(m, config) {
 function forget() {
   forgetting = true;
   const done = () => location.reload();
-  const req = indexedDB.deleteDatabase(DATA);
+  const req = indexedDB.deleteDatabase(KEPT_DB);
   req.onsuccess = req.onerror = req.onblocked = done;
 }
 
