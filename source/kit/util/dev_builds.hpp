@@ -1,18 +1,19 @@
-// dev_builds — install another build of PlayShelf in place, from the
+// dev_builds — install another build of the app in place, from the
 // developer tools: one of the last releases, one of the last commits of main, or
 // the newest build of an open pull request (from this repository: a fork's
 // build is never offered, nobody with write access has reviewed its code).
 //
-// A release is the playshelf.nro of a GitHub release (pre-releases included,
-// marked), readable without an account. The others are the playshelf-<version>-<ref>-<commit>-nro
+// A release is the <app>.nro (APP_ID, app_id.h) of a GitHub release
+// (pre-releases included, marked), readable without an account. The others
+// are the <app>-<version>-<ref>-<commit>-nro
 // artifact the build workflow keeps for every run (.github/workflows/build.yml
 // names each artifact of a run after its build and its component; the
-// recovery sysmodule is the -rescue one): a zip holding playshelf.nro, which
+// recovery sysmodule is the -rescue one): a zip holding <app>.nro, which
 // GitHub only hands to a signed-in user, hence the token of
 // util/github_auth.hpp. Artifacts expire (90 days by default).
 //
 // The download is checked (size and the SHA-256 GitHub records; for an
-// artifact, the zip's, then the CRC-32 of playshelf.nro inside it; the NRO
+// artifact, the zip's, then the CRC-32 of <app>.nro inside it; the NRO
 // header) before it replaces the running .nro, which hbloader loaded whole
 // into memory, so it can be overwritten once romfs:/ lets go of it
 // (platform_romfs_release, dev_build_flow.cpp); then hbloader starts it.
@@ -26,6 +27,7 @@
 #include <functional>
 
 #include <cstdint>
+#include <expected>
 #include <string>
 #include <vector>
 
@@ -34,7 +36,7 @@ namespace dev_builds
 
 enum class Kind
 {
-    Release,       // a release (its playshelf.nro)
+    Release,       // a release (its <app>.nro)
     Main,          // a commit of main
     PullRequest,   // the newest build of an open pull request
     Commit,        // a commit found by Find a build (any branch of this repository)
@@ -52,7 +54,7 @@ enum class Ci
 struct Build
 {
     Kind        kind = Kind::Main;
-    bool        artifact = false;   // url, size and sha256 are those of a zip holding playshelf.nro
+    bool        artifact = false;   // url, size and sha256 are those of a zip holding <app>.nro
     std::string version;   // Release: "1.2.0"
     bool        prerelease = false;   // Release: marked a pre-release on GitHub
     int         pr = 0;    // PullRequest: its number
@@ -106,18 +108,18 @@ struct Run
 // through util/safe_text.hpp first, and a release's version must be one
 // (safe_text::is_version): nothing GitHub sends can hide or reorder text.
 
-// The latest release (GET /repos/…/releases/latest): its playshelf.nro and
+// The latest release (GET /repos/…/releases/latest): its <app>.nro and
 // its notes (at most MAX_NOTES bytes, cut on a line). False for anything
 // else (a pre-release, no such asset, a tag that is not a version, malformed).
 constexpr size_t MAX_NOTES = 16 * 1024;
 bool parse_release(const std::string& json, Build* out);
 // The releases (GET /repos/…/releases), newest first as listed: each one with
-// a playshelf.nro, pre-releases included (Build::prerelease), drafts left
+// an <app>.nro, pre-releases included (Build::prerelease), drafts left
 // out, at most `keep`, one per version. False when the answer is not a list.
 constexpr size_t MAX_RELEASES = 20;
 bool parse_releases(const std::string& json, std::vector<Build>* out, size_t keep = MAX_RELEASES);
-// The artifact holding playshelf.nro: "playshelf-<version>-<ref>-<commit>-nro",
-// or "playshelf_release", the name the runs before that scheme gave it.
+// The artifact holding <app>.nro: "<app>-<version>-<ref>-<commit>-nro",
+// or "<app>_release", the name the runs before that scheme gave it.
 bool is_build_artifact(const std::string& name);
 // The build artifacts (is_build_artifact) that have not expired, newest first
 // as listed. *listed (when given) is how many artifacts the page held, of
@@ -212,21 +214,24 @@ std::string digest_hex(const std::string& digest);
 bool is_nro(const std::string& head);
 
 // Checks a downloaded file against `size` and `sha256`. A file without a
-// digest to check it against is refused (*error = NO_DIGEST): the size and
+// digest to check it against is refused (the error NO_DIGEST): the size and
 // the NRO header say nothing of what it holds. NO_DIGEST is a marker the
 // screens compare against and say as dev_build/no_digest, in the user's
 // language.
 extern const char* const NO_DIGEST;
-[[nodiscard]] bool verify_file(const std::string& path, uint64_t size, const std::string& sha256, std::string* error);
+// Done, else why not (in English).
+using Done = std::expected<void, std::string>;
+
+[[nodiscard]] Done verify_file(const std::string& path, uint64_t size, const std::string& sha256);
 // Checks that `path` is an NRO.
-[[nodiscard]] bool verify_nro(const std::string& path, std::string* error);
+[[nodiscard]] Done verify_nro(const std::string& path);
 
 // Replaces `target` with `fresh` (both on the same file system), through
 // paths::replace_file: target moves aside to "<target>.old", fresh takes
 // its name, then the old one is removed, or kept as `keep_as` when given
 // (util/rollback.hpp: the previous build). When fresh cannot take its place,
 // the old one is put back. A missing target is simply created.
-[[nodiscard]] bool replace(const std::string& target, const std::string& fresh, std::string* error, const std::string& keep_as = "");
+[[nodiscard]] Done replace(const std::string& target, const std::string& fresh, const std::string& keep_as = "");
 
 // The last list fetched, kept on the SD card (cache/dev_builds.json) so the
 // next opening shows it at once while it is fresh.
@@ -265,30 +270,31 @@ using Progress = std::function<void(float done, Step step)>;
 // The builds that can be installed: the last releases, then (with a token)
 // main and the pull requests, with how their runs ended. Blocking (network):
 // run it with aurore::async; `progress` (when set) is called from that thread.
-// *needs_login is set when there is no token, so only the releases are listed.
-// On the desktop build PLAYSHELF_SIM_DEV_BUILDS ("offline", or a folder
+// *needs_login is set when there is no token, so only the releases are listed,
+// whether or not the fetch succeeds.
+// On the desktop build <APP_ENV>_SIM_DEV_BUILDS ("offline", or a folder
 // holding releases.json, artifacts.json and pulls.json; latest.json for
 // fetch_release) replaces the network.
-[[nodiscard]] bool fetch(std::vector<Build>* out, bool* needs_login, std::string* error, Progress progress = nullptr);
+[[nodiscard]] std::expected<std::vector<Build>, std::string> fetch(bool* needs_login, Progress progress = nullptr);
 
 // Find a build: the newest build of pull request `q.pr` (open or closed), or
 // of commit `q.commit`, from a branch of this repository (a fork's is
 // refused). Needs the token. Blocking (network); simulated like fetch() with
 // pull_<n>.json, commit.json, runs.json and run_artifacts.json.
-[[nodiscard]] bool find(const Query& q, Build* out, std::string* error);
+[[nodiscard]] std::expected<Build, std::string> find(const Query& q);
 
 // The latest release alone (no account needed): what Update in place
 // installs. Blocking (network); simulated like fetch().
-[[nodiscard]] bool fetch_release(Build* out, std::string* error);
+[[nodiscard]] std::expected<Build, std::string> fetch_release();
 
-// Downloads `b` to `path` (playshelf.nro itself, out of the zip for an
+// Downloads `b` to `path` (<app>.nro itself, out of the zip for an
 // artifact) and verifies it. Blocking. On the desktop build, with
-// PLAYSHELF_SIM_DEV_BUILDS set, a URL "https://<path>" is a local file.
+// <APP_ENV>_SIM_DEV_BUILDS set, a URL "https://<path>" is a local file.
 // `progress` (when set) gets the bytes received and the total, from the
 // calling thread.
 // `cancel` (when given), set by another thread, stops it within a second
-// (false, *error "cancelled").
-[[nodiscard]] bool download(const Build& b, const std::string& path, std::string* error,
+// (the error "cancelled").
+[[nodiscard]] Done download(const Build& b, const std::string& path,
                             std::function<void(uint64_t done, uint64_t total)> progress = nullptr,
                             const std::atomic<bool>* cancel = nullptr);
 

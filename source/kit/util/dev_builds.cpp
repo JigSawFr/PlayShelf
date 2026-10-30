@@ -12,6 +12,7 @@
 #include <aurore/cadran/util/safe_text.hpp>
 #include <aurore/cadran/util/text.hpp>
 
+#include "app_id.h"
 #include "util/date.hpp"
 #include "util/json_util.hpp"
 #include "util/number.hpp"
@@ -82,7 +83,7 @@ bool github_url(const std::string& url)
 
 namespace
 {
-// A release's playshelf.nro, with its notes. False when it has none (or a
+// A release's <app>.nro, with its notes. False when it has none (or a
 // malformed one), or is a draft; a pre-release only when `prerelease_ok`.
 bool release_build(const json& r, bool prerelease_ok, Build* out)
 {
@@ -93,7 +94,7 @@ bool release_build(const json& r, bool prerelease_ok, Build* out)
     if (!assets) return false;
     const std::string tag = json_util::string_at(r, "tag_name");
     for (const auto& a : *assets) {
-        if (!a.is_object() || json_util::string_at(a, "name") != "playshelf.nro") continue;
+        if (!a.is_object() || json_util::string_at(a, "name") != APP_ID ".nro") continue;
         Build b;
         b.kind = Kind::Release;
         b.prerelease = prerelease;
@@ -140,8 +141,8 @@ bool is_build_artifact(const std::string& name)
     // artifacts expire 90 days later (GitHub's default; the -nro upload sets
     // no retention-days). This line can go in the first release after
     // 2027-01-10, its test with it.
-    if (name == "playshelf_release") return true;
-    const std::string head = "playshelf-", tail = "-nro";
+    if (name == APP_ID "_release") return true;
+    const std::string head = APP_ID "-", tail = "-nro";
     return name.size() > head.size() + tail.size() && text::starts_with(name, head) && text::ends_with(name, tail);
 }
 
@@ -383,7 +384,7 @@ std::vector<Build> combine(const std::vector<Artifact>& artifacts, const std::ve
     for (const Pull& p : by_number) {
         // Only branches of this repository: a fork's build runs code nobody
         // with write access has reviewed yet, and installing it replaces
-        // PlayShelf itself.
+        // the app itself.
         for (const Artifact& a : sorted) {
             if (a.head_repo != a.repo) continue;
             if (a.branch != p.branch || a.head_repo != p.head_repo) continue;
@@ -502,7 +503,9 @@ bool decode_cache(const std::string& text, Cache* out)
 {
     return json_util::parse_with(text, [out](const json& j) {
         const json* builds = json_util::array_at(j, "builds");
-        // "version": the schema's name in the files of earlier builds.
+        // "version": the schema's name in the files of earlier builds. Their
+        // list is fetched again and written with "schema", so this reading
+        // can go once each app has released a build that writes it.
         const int64_t schema = j.is_object() ? json_util::integer_or(j, "schema", json_util::integer_or(j, "version")) : 0;
         if (schema != CACHE_SCHEMA || !builds) return false;
         Cache c;
@@ -570,13 +573,10 @@ bool is_nro(const std::string& head)
 
 const char* const NO_DIGEST = "GitHub gives no SHA-256 for this file: not installed";
 
-bool verify_file(const std::string& path, uint64_t size, const std::string& sha256, std::string* error)
+Done verify_file(const std::string& path, uint64_t size, const std::string& sha256)
 {
     FILE* f = std::fopen(path.c_str(), "rb");
-    if (!f) {
-        if (error) *error = "cannot read the download";
-        return false;
-    }
+    if (!f) return std::unexpected("cannot read the download");
     Sha256 hash;
     uint64_t got = 0;
     char buf[16 * 1024];
@@ -587,41 +587,28 @@ bool verify_file(const std::string& path, uint64_t size, const std::string& sha2
     }
     const bool read_error = std::ferror(f) != 0;
     std::fclose(f);
-    if (read_error) {
-        if (error) *error = "cannot read the download";
-        return false;
-    }
-    if (got != size) {
-        if (error) *error = "size " + std::to_string(got) + " instead of " + std::to_string(size);
-        return false;
-    }
-    if (sha256.empty()) {
-        if (error) *error = NO_DIGEST;
-        return false;
-    }
-    if (hash.hex() != sha256) {
-        if (error) *error = "SHA-256 does not match";
-        return false;
-    }
-    return true;
+    if (read_error) return std::unexpected("cannot read the download");
+    if (got != size) return std::unexpected("size " + std::to_string(got) + " instead of " + std::to_string(size));
+    if (sha256.empty()) return std::unexpected(NO_DIGEST);
+    if (hash.hex() != sha256) return std::unexpected("SHA-256 does not match");
+    return {};
 }
 
-bool verify_nro(const std::string& path, std::string* error)
+Done verify_nro(const std::string& path)
 {
     FILE* f = std::fopen(path.c_str(), "rb");
     char head[0x20] = {};
     const size_t n = f ? std::fread(head, 1, sizeof(head), f) : 0;
     if (f) std::fclose(f);
-    if (!is_nro(std::string(head, n))) {
-        if (error) *error = "not an NRO file";
-        return false;
-    }
-    return true;
+    if (!is_nro(std::string(head, n))) return std::unexpected("not an NRO file");
+    return {};
 }
 
-bool replace(const std::string& target, const std::string& fresh, std::string* error, const std::string& keep_as)
+Done replace(const std::string& target, const std::string& fresh, const std::string& keep_as)
 {
-    return paths::replace_file(target, fresh, keep_as, error);
+    std::string error;
+    if (!paths::replace_file(target, fresh, keep_as, &error)) return std::unexpected(error);
+    return {};
 }
 
 }   // namespace dev_builds

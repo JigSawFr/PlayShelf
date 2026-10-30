@@ -118,10 +118,10 @@ void run_check(std::function<void(const Offer&)> done)
         // The newer release's file and notes, for the update screen and an
         // update in place (shown without its notes when they cannot be read).
         if (newer(o.result)) {
-            std::string err;
-            o.has_release = dev_builds::fetch_release(&o.release, &err) &&
-                            update::compare_versions(o.release.version, o.result.latest.version) == 0;
-            if (!o.has_release && !err.empty()) aurore::Logger::warning("update: no release details ({})", err);
+            const auto release = dev_builds::fetch_release();
+            if (release) o.release = *release;
+            o.has_release = release && update::compare_versions(o.release.version, o.result.latest.version) == 0;
+            if (!release) aurore::Logger::warning("update: no release details ({})", release.error());
         }
         aurore::sync([o]() {
             s_check_running = false;
@@ -165,15 +165,13 @@ void update_in_place()
     s_checking = true;
     ui::notify("playshelf/update/checking"_i18n);
     ui::in_background("update release", []() {
-        dev_builds::Build b;
-        std::string err;
-        const bool ok = dev_builds::fetch_release(&b, &err);
-        aurore::sync([ok, b, err]() {
+        auto release = dev_builds::fetch_release();
+        aurore::sync([release]() {
             s_checking = false;
-            if (!ok) ui::error(aurore::getStr("playshelf/update/failed", err));
-            else if (update::compare_versions(b.version, app::version()) <= 0)
+            if (!release) ui::error(aurore::getStr("playshelf/update/failed", release.error()));
+            else if (update::compare_versions(release->version, app::version()) <= 0)
                 ui::info(aurore::getStr("playshelf/update/up_to_date", app::version()));
-            else install_in_place(b);
+            else install_in_place(*release);
         });
     });
 }
