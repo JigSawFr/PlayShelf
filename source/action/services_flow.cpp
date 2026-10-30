@@ -450,7 +450,7 @@ void games_with_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d)
             if (s.title_id == id) fallback = s.title_name;
         games.emplace_back(game_name(*l, id, fallback), id);
     }
-    std::sort(games.begin(), games.end(), [](const auto& a, const auto& b) { return library::fold(a.first) < library::fold(b.first); });
+    library::sort_folded(games, [](const auto& g) -> const std::string& { return g.first; });
     std::vector<std::string> names, details;
     for (const auto& [name, id] : games) {
         names.push_back(name);
@@ -606,7 +606,7 @@ void cheats(const Loaded& l, uint64_t title_id)
             }
             std::vector<std::pair<std::string, uint64_t>> games;
             for (const auto& [id, builds] : by_game) games.emplace_back(game_name(*l, id, builds.front().title_name), id);
-            std::sort(games.begin(), games.end(), [](const auto& a, const auto& c) { return library::fold(a.first) < library::fold(c.first); });
+            library::sort_folded(games, [](const auto& g) -> const std::string& { return g.first; });
             std::vector<std::string> names, details;
             for (const auto& [name, id] : games) {
                 names.push_back(name);
