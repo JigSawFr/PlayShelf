@@ -6,7 +6,9 @@
 // one call to the next, and a box sealed with it opens.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <string>
+#include <string_view>
 
+#include "app_id.h"
 #include "check.h"
 #include "core/device_key.h"
 #include "temp_dir.hpp"
@@ -17,8 +19,13 @@ namespace
 const secret_box::Key   KEY = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 const std::array<uint8_t, 16> NONCE = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
                                        0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
-// python3: the same scheme with hmac and pyca/cryptography (see the commit).
-const char* WANT = "v1:EBESExQVFhcYGRobHB0eHzn0brSqJ5yDZT1qqcAHWbx15YzOV3BxNLyuym/x/ChxO5CWhbskRkKgfpLreaRBzXZtpw==";
+// python3: the same scheme with hmac and pyca/cryptography (see the commit),
+// for each app (its APP_ID in the keys' purpose).
+const std::string WANT = std::string_view(APP_ID) == "playshelf"
+    ? "v1:EBESExQVFhcYGRobHB0eHzn0brSqJ5yDZT1qqcAHWbx15YzOV3BxNLyuym/x/ChxO5CWhbskRkKgfpLreaRBzXZtpw=="
+    : std::string_view(APP_ID) == "playguard"
+        ? "v1:EBESExQVFhcYGRobHB0eH9NZ5ZSg4/CgfuzIAzQcgdyt62w0Ali7O4KvMtQS+X2Zbc2uoWGnDveFb0Ye6eXA1fvoNA=="
+        : "";
 
 void test_known()
 {

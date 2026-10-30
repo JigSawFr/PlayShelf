@@ -1,5 +1,5 @@
 // Simulated core/device_key.h: a random key made once and kept in the data
-// folder (playshelf_data/device.key), so the desktop build seals its
+// folder (device.key), so the desktop build seals its
 // secrets as the console does, for this PC alone.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstdio>

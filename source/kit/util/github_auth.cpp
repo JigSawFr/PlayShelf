@@ -86,7 +86,9 @@ std::string token()
         const auto opened = secret_box::open(t);
         t = opened ? *opened : "";
     } else if (!t.empty() && token_chars(t) && !text::starts_with(t, "gho_")) {
-        // One an older PlayShelf kept as it is: sealed now, where it lies.
+        // One an older version kept as it is: sealed now, where it lies.
+        // Migration: goes from 2027-05 on, every install having read its
+        // token once since.
         save_token(t, nullptr);
     }
     // The earlier OAuth app's token: refused the artifacts, signed in again.
