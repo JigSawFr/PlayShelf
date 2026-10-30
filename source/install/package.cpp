@@ -21,14 +21,14 @@ std::optional<Pfs> read_pfs(Source& src, uint64_t offset, uint64_t limit, std::s
 {
     uint8_t base[PFS_BASE_HEADER];
     if (!src.read(offset, base, sizeof base, why)) return std::nullopt;
-    const auto hs = pfs_header_size(base, sizeof base);
+    const auto hs = pfs_header_size(base);
     if (!hs) {
         if (why) *why = "not a PFS0 or HFS0 archive, or a header too big";
         return std::nullopt;
     }
     std::vector<uint8_t> header((size_t)hs->size);
     if (!src.read(offset, header.data(), header.size(), why)) return std::nullopt;
-    return pfs_parse(header.data(), header.size(), limit, why);
+    return pfs_parse(header, limit, why);
 }
 }   // namespace
 
@@ -100,7 +100,7 @@ std::optional<Package> package_open(Source& src, std::string* why)
     Package        pkg;
     if (long_enough && src.read(0, head, sizeof head, &err) && le32(head + 0x100) == 0x44414548) {
         // A game card image: the root HFS0, then its secure partition.
-        const auto root = xci_root(head, sizeof head, size, why);
+        const auto root = xci_root(head, size, why);
         if (!root) return std::nullopt;
         const auto rp = read_pfs(src, root->offset, size ? size - root->offset : 0, why);
         if (!rp) return std::nullopt;
