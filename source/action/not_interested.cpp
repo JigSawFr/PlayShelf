@@ -2,7 +2,6 @@
 #include "action/not_interested.hpp"
 
 #include <algorithm>
-#include <map>
 #include <memory>
 
 #include <aurore.hpp>
@@ -10,6 +9,7 @@
 #include "library/catalog.hpp"
 #include "library/seen.hpp"
 #include "ui/ui.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 namespace not_interested
@@ -18,8 +18,7 @@ namespace not_interested
 namespace
 {
 std::vector<uint64_t>                s_games;   // the latest first
-std::map<int, std::function<void()>> s_listeners;
-int                                  s_next = 1;
+Listeners                            s_listeners;
 
 std::string file()
 {
@@ -33,8 +32,7 @@ void keep()
         // Saved again at the next change: a failed write is not reported.
         if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(file(), *text);
     });
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 }   // namespace
 
@@ -70,14 +68,12 @@ std::vector<uint64_t> games()
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace not_interested

@@ -2,7 +2,6 @@
 #include "action/wishlist.hpp"
 
 #include <algorithm>
-#include <map>
 #include <memory>
 
 #include <aurore.hpp>
@@ -10,6 +9,7 @@
 #include "library/catalog.hpp"
 #include "library/seen.hpp"
 #include "ui/ui.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 namespace wishlist
@@ -18,8 +18,7 @@ namespace wishlist
 namespace
 {
 std::vector<uint64_t>                s_games;   // the latest first
-std::map<int, std::function<void()>> s_listeners;
-int                                  s_next = 1;
+Listeners                            s_listeners;
 
 std::string file()
 {
@@ -66,8 +65,7 @@ void toggle(uint64_t title_id, const std::string& name)
         ui::notify(aurore::getStr("playshelf/wishlist/added", name), ui::Toast::Done);
     }
     save();
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 
 std::vector<uint64_t> games()
@@ -77,14 +75,12 @@ std::vector<uint64_t> games()
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace wishlist
