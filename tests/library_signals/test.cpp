@@ -2,6 +2,8 @@
 // rating, similar.json's rows, editions.json's games, what does not hold
 // together left out.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <string>
+
 #include "check.h"
 #include "library/signals.hpp"
 
@@ -48,6 +50,21 @@ void test_igdb()
     // Out of range, not a number, no count: not known.
     for (uint64_t id : { B, C, (uint64_t)0x0100000000040000 })
         if (CHECK(b.find(id))) CHECK(b.find(id)->igdb.rating == 0 && b.find(id)->igdb.count == 0);
+}
+
+// titledb's name, which Atlas' games.json gives each game: kept as told;
+// none, not a string or too long: not known.
+void test_names()
+{
+    SignalBook b;
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-10-30","games":{
+        "0100000000010000":{"name":"Ember Vale™: Deluxe","series":[["Q1","Ember"]]},
+        "0100000000020000":{"name":42},
+        "0100000000030000":{"name":")" + std::string(SignalBook::MAX_NAME + 1, 'x') + R"("},
+        "0100000000040000":{}}})"));
+    if (CHECK(b.find(A))) CHECK(b.find(A)->name == "Ember Vale™: Deluxe" && b.find(A)->series.size() == 1);
+    for (uint64_t id : { B, C, (uint64_t)0x0100000000040000 })
+        if (CHECK(b.find(id))) CHECK(b.find(id)->name.empty());
 }
 
 void test_editions()
@@ -102,6 +119,7 @@ int main()
     test_games();
     test_similar();
     test_igdb();
+    test_names();
     test_editions();
     CHECK(base_id_of("0100000000010000") == A && !base_id_of("0100000000010800") && !base_id_of("x"));
     CHECK_DONE("library_signals");

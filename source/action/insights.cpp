@@ -507,6 +507,8 @@ std::string name_of(uint64_t id, const std::string& console)
             if (g.game.id == id && !g.name.empty()) return g.name;
     const Pick found = found_of(id);
     if (found.data && !found.title().name.empty()) return found.title().name;
+    // Else titledb's, as Atlas tells it.
+    if (std::string atlas = popular_flow::name_of(id); !atlas.empty()) return atlas;
     return title_id::text(id);
 }
 

@@ -138,7 +138,8 @@ int  listen(std::function<void()> changed);
 void unlisten(int id);
 
 // A game's name: the console's (`console`), the title databases', Nlib
-// API's, the console's own games', a catalogue's, else its title id.
+// API's, the console's own games', a catalogue's, Atlas' (games.json),
+// else its title id.
 std::string name_of(uint64_t id, const std::string& console = "");
 // A game's catalogue, the first server's read in this run that has it.
 Pick found_of(uint64_t id);

@@ -9,7 +9,7 @@
 // zlib).
 //
 // With them, what Home reads of Atlas about those games, made up as
-// well (insights/platforms/switch/: popular.json, games.json, similar.json and
+// well (insights/platforms/switch/: popular.json, games.json with each game's name, similar.json and
 // editions.json, in Atlas' schema 1 and its platforms/switch/ folder), which sim_demo_http.cpp answers in place of
 // Atlas' own, and the console's first games (console/meta/: a content
 // meta record for each, empty; console/control/: its name and icon), which
@@ -276,8 +276,8 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
         const Game&       g = table[i];
         const std::string sep = i ? ", " : "", key = json_text(hex_id(id_of_game(i)));
         popular += sep + key + ": [" + std::to_string(g.score) + ", " + std::to_string(g.trend) + ", " + std::to_string(g.critics) + "]";
-        games += sep + key + ": {";
-        bool first = true;
+        games += sep + key + ": {\"name\": " + json_text(g.name);
+        bool first = false;
         for (const auto& [kind, labels] : all[i]) {
             games += std::string(first ? "" : ", ") + json_text(kind) + ": [";
             for (size_t l = 0; l < labels.size(); l++)

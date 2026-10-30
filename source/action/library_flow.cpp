@@ -8,6 +8,7 @@
 #include <map>
 
 #include "action/download_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
@@ -167,7 +168,8 @@ void load(const library::Server& server, const Done& done)
         for (const Done& d : waiting) d(l, why);
     };
     const std::string password = library::password_of(server);
-    ui::in_background("library", [server, password, all]() {
+    const auto        atlas = popular_flow::signals();
+    ui::in_background("library", [server, password, all, atlas]() {
         library::HttpTransport transport;
         auto                   l = std::make_shared<Loaded>();
         l->server = server;
@@ -175,12 +177,14 @@ void load(const library::Server& server, const Done& done)
         if (l->fetch.status == library::FetchStatus::Ok) {
             l->titles = library::group_titles(l->fetch.catalog);
             // A game the server names only by its file: the title
-            // database's name, when it has one.
+            // database's name, when it has one, else titledb's as Atlas
+            // tells it (games.json).
             for (library::Title& t : l->titles) {
                 if (!t.id) continue;
                 const auto known = l->fetch.catalog.titles.find(t.id);
                 if (known != l->fetch.catalog.titles.end() && !known->second.name.empty()) continue;
                 if (const auto local = titledb_flow::title(t.id); local && !local->name.empty()) t.name = local->name;
+                else if (const library::GameSignals* g = atlas->find(t.id); g && !g->name.empty()) t.name = g->name;
             }
         }
         const auto now = read_installed();
