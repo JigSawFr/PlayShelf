@@ -236,28 +236,28 @@ bool save(const std::string& url, const std::string& path, std::string* error, s
 }
 }   // namespace
 
-bool range(const std::string& url, uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-           std::string* error, const http::Headers&, const std::atomic<bool>* cancel, const std::string&)
+http::Result<void> range(const std::string& url, uint64_t offset, uint64_t length,
+                         const std::function<bool(const uint8_t*, size_t)>& sink, const http::Headers&,
+                         const std::atomic<bool>* cancel, const std::string&)
+{
+    std::string path, error;
+    bool        paced = true;
+    uint64_t    size = 0;
+    if (!demo_file(url, &path, &paced)) return offline();
+    if (!size_of(path, &size) || offset + length > size) return std::unexpected(http::Failure{ "HTTP 416", 416 });
+    if (length && !stream(path, offset, length, sink, &error, cancel, paced))
+        return std::unexpected(http::Failure{ std::move(error) });
+    return {};
+}
+
+http::Result<uint64_t> resource_size(const std::string& url, const http::Headers&, const std::string&)
 {
     std::string path;
     bool        paced = true;
     uint64_t    size = 0;
-    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
-    if (!size_of(path, &size) || offset + length > size) {
-        if (error) *error = "HTTP 416";
-        return false;
-    }
-    return !length || stream(path, offset, length, sink, error, cancel, paced);
-}
-
-bool resource_size(const std::string& url, uint64_t* size, std::string* error, const http::Headers&, const std::string&)
-{
-    std::string path;
-    bool        paced = true;
-    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
-    if (size_of(path, size)) return true;
-    if (error) *error = "HTTP 404";
-    return false;
+    if (!demo_file(url, &path, &paced)) return offline();
+    if (!size_of(path, &size)) return std::unexpected(http::Failure{ "HTTP 404", 404 });
+    return size;
 }
 
 bool request(const std::string& url, const http::Headers&, const std::string&, http::Response* response, std::string* error,
@@ -292,9 +292,9 @@ bool call(const std::string& url, const http::Call& c, const http::Headers&, con
     return ok;
 }
 
-bool peer_certificate(const std::string&, std::string*, std::string* error)
+http::Result<std::string> peer_certificate(const std::string&)
 {
-    return sim_net::offline(error);
+    return offline();
 }
 
 }   // namespace sim_demo

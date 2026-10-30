@@ -24,13 +24,12 @@ class HttpSource : public Source
     // MAX_CONNECTIONS.
     HttpSource(std::string url, std::vector<std::string> headers = {}, const std::atomic<bool>* cancel = nullptr,
                std::string pin = "", int connections = 1);
-    // Asks the server for the package's size; false (why set) when it
-    // cannot be had or the server serves no ranges.
-    bool     open(std::string* why);
+    // Asks the server for the package's size; why not when it cannot be
+    // had or the server serves no ranges.
+    [[nodiscard]] Done open();
     uint64_t size() const override { return total; }
-    bool     read(uint64_t offset, uint8_t* out, size_t n, std::string* why) override;
-    bool     stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                    std::string* why) override;
+    Done     read(uint64_t offset, uint8_t* out, size_t n) override;
+    Done     stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) override;
 
   private:
     std::string              url;

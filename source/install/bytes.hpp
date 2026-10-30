@@ -15,6 +15,8 @@ namespace install
 // What a parser gives: the value, else why it refused the bytes (in English).
 template <class T> using Parsed = std::expected<T, std::string>;
 inline std::unexpected<std::string> fail(std::string why) { return std::unexpected(std::move(why)); }
+// What a step gives: done, or why not.
+using Done = std::expected<void, std::string>;
 
 inline uint16_t le16(const uint8_t* p) { return (uint16_t)(p[0] | p[1] << 8); }
 inline uint32_t le32(const uint8_t* p) { return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24; }

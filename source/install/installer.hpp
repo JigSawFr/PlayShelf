@@ -51,10 +51,9 @@ class Console
     // The content storage installed to (the SD card's, or the system's).
     // A placeholder is named after the content it becomes.
     virtual bool     has_content(const ContentId& id) = 0;
-    virtual bool     create_placeholder(const ContentId& id, uint64_t size, std::string* why) = 0;
-    virtual bool     write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size,
-                                       std::string* why) = 0;
-    virtual bool     register_placeholder(const ContentId& id, std::string* why) = 0;
+    [[nodiscard]] virtual Done create_placeholder(const ContentId& id, uint64_t size) = 0;
+    [[nodiscard]] virtual Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) = 0;
+    [[nodiscard]] virtual Done register_placeholder(const ContentId& id) = 0;
     virtual bool     has_placeholder(const ContentId& id) = 0;
     virtual void     delete_placeholder(const ContentId& id) = 0;
     // Every placeholder of the storage (an install's left behind by a
@@ -64,13 +63,12 @@ class Console
     virtual uint64_t free_space() = 0;
     // Its content meta database.
     virtual std::optional<std::vector<uint8_t>> get_meta(const MetaKey& key) = 0;
-    [[nodiscard]] virtual bool set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why) = 0;
-    [[nodiscard]] virtual bool remove_meta(const MetaKey& key, std::string* why) = 0;
-    [[nodiscard]] virtual bool commit_meta(std::string* why) = 0;
+    [[nodiscard]] virtual Done set_meta(const MetaKey& key, const std::vector<uint8_t>& record) = 0;
+    [[nodiscard]] virtual Done remove_meta(const MetaKey& key) = 0;
+    [[nodiscard]] virtual Done commit_meta() = 0;
     // ns and es.
-    [[nodiscard]] virtual bool push_application_record(uint64_t application_id, const MetaKey& key, std::string* why) = 0;
-    virtual bool import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate,
-                               std::string* why) = 0;
+    [[nodiscard]] virtual Done push_application_record(uint64_t application_id, const MetaKey& key) = 0;
+    [[nodiscard]] virtual Done import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate) = 0;
     // The firmware's version, as hosversionGet() gives it: major << 16 | minor << 8 | micro.
     virtual uint32_t system_version() = 0;
 };
@@ -109,7 +107,7 @@ struct InstallCallbacks
     // Set from another thread: the install stops at the next piece and
     // undoes what it did.
     const std::atomic<bool>* cancel = nullptr;
-    // The same, keeping what it did (run() returns false, paused() true).
+    // The same, keeping what it did (run() fails, paused() true).
     const std::atomic<bool>* pause = nullptr;
     // Where the install stands, to keep for a later run (a file the
     // queue writes): every JOURNAL_EVERY bytes, and when it pauses.
@@ -132,26 +130,26 @@ class Installer
               InstallCallbacks callbacks = {});
 
     // Reads the content metas and checks the package can be installed as
-    // a whole; nothing is written. False with `why`: nothing to undo.
-    [[nodiscard]] bool prepare(std::string* why);
+    // a whole; nothing is written. Why not: nothing to undo.
+    [[nodiscard]] Done prepare();
     // Before run(): goes on from an earlier run of the same package,
     // paused or cut short, as its journal says.
     void resume_from(const Journal& j) { resume = j; }
     const std::vector<TitlePlan>& plan() const { return titles; }
     uint64_t                      bytes_to_write() const { return total; }
 
-    // Installs what prepare() planned. False with `why` when it failed or
-    // was cancelled (what every run did is undone then), or was paused
+    // Installs what prepare() planned. Why not when it failed or was
+    // cancelled (what every run did is undone then), or was paused
     // (paused(): nothing undone, the journal given).
-    [[nodiscard]] bool run(std::string* why);
+    [[nodiscard]] Done run();
     bool paused() const { return was_paused; }
     // The bytes already written by earlier runs, of bytes_to_write().
     uint64_t resumed_bytes() const { return resumed; }
 
   private:
-    [[nodiscard]] bool write_content(const ContentInfo& c, std::string* why);
-    [[nodiscard]] bool write_meta_content(const TitlePlan& t, std::string* why);
-    [[nodiscard]] bool import_tickets(std::string* why);
+    [[nodiscard]] Done write_content(const ContentInfo& c);
+    [[nodiscard]] Done write_meta_content(const TitlePlan& t);
+    [[nodiscard]] Done import_tickets();
     void undo();
     bool cancelled() const { return cb.cancel && cb.cancel->load(); }
     bool pausing() const { return cb.pause && cb.pause->load(); }

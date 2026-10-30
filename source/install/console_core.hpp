@@ -25,22 +25,20 @@ class CoreConsole : public Console
     const std::string& error() const { return open_error; }
 
     bool     has_content(const ContentId& id) override;
-    bool     create_placeholder(const ContentId& id, uint64_t size, std::string* why) override;
-    bool     write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size,
-                               std::string* why) override;
-    bool     register_placeholder(const ContentId& id, std::string* why) override;
+    [[nodiscard]] Done create_placeholder(const ContentId& id, uint64_t size) override;
+    [[nodiscard]] Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) override;
+    [[nodiscard]] Done register_placeholder(const ContentId& id) override;
     bool     has_placeholder(const ContentId& id) override;
     std::vector<ContentId> placeholders() override;
     void     delete_placeholder(const ContentId& id) override;
     void     delete_content(const ContentId& id) override;
     uint64_t free_space() override;
     std::optional<std::vector<uint8_t>> get_meta(const MetaKey& key) override;
-    [[nodiscard]] bool set_meta(const MetaKey& key, const std::vector<uint8_t>& record, std::string* why) override;
-    [[nodiscard]] bool remove_meta(const MetaKey& key, std::string* why) override;
-    [[nodiscard]] bool commit_meta(std::string* why) override;
-    [[nodiscard]] bool push_application_record(uint64_t application_id, const MetaKey& key, std::string* why) override;
-    bool import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate,
-                       std::string* why) override;
+    [[nodiscard]] Done set_meta(const MetaKey& key, const std::vector<uint8_t>& record) override;
+    [[nodiscard]] Done remove_meta(const MetaKey& key) override;
+    [[nodiscard]] Done commit_meta() override;
+    [[nodiscard]] Done push_application_record(uint64_t application_id, const MetaKey& key) override;
+    [[nodiscard]] Done import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate) override;
     uint32_t system_version() override;
 
   private:
@@ -57,8 +55,8 @@ class CoreConsole : public Console
 std::string result_text(Result rc, const char* what);
 
 // What the console has installed (core_installed_list): each title id, base
-// game, update or add-on, with its highest version. Empty, `why` set, when
-// it cannot be read.
-std::map<uint64_t, uint32_t> installed_versions(std::string* why = nullptr);
+// game, update or add-on, with its highest version; why not when it cannot
+// be read.
+[[nodiscard]] Parsed<std::map<uint64_t, uint32_t>> installed_versions();
 
 }   // namespace install

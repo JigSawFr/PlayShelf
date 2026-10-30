@@ -15,6 +15,8 @@
 #include <functional>
 #include <string>
 
+#include "install/bytes.hpp"
+
 namespace install
 {
 
@@ -22,16 +24,16 @@ constexpr uint64_t SPLIT_CHUNK = 4u << 20;
 constexpr int      MAX_CONNECTIONS = 8;
 
 // One request: `length` bytes at `offset` given to `sink` as they arrive;
-// false (why set) when it fails or `stop` is set meanwhile.
-using RangeFetch = std::function<bool(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                                      std::string* why, const std::atomic<bool>* stop)>;
+// why not when it fails or `stop` is set meanwhile.
+using RangeFetch = std::function<Done(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
+                                      const std::atomic<bool>* stop)>;
 
 // `length` bytes at `offset`, over `connections` (1 to MAX_CONNECTIONS; a
-// range of less than two chunks takes one), to `sink` in order. False when
+// range of less than two chunks takes one), to `sink` in order. Why not when
 // a request failed (its why), `sink` refused ("stopped") or `cancel` was set
 // ("cancelled"); every request is stopped and waited for first.
-bool split_stream(uint64_t offset, uint64_t length, int connections, const RangeFetch& fetch,
-                  const std::function<bool(const uint8_t*, size_t)>& sink, std::string* why,
-                  const std::atomic<bool>* cancel = nullptr, uint64_t chunk = SPLIT_CHUNK);
+Done split_stream(uint64_t offset, uint64_t length, int connections, const RangeFetch& fetch,
+                  const std::function<bool(const uint8_t*, size_t)>& sink, const std::atomic<bool>* cancel = nullptr,
+                  uint64_t chunk = SPLIT_CHUNK);
 
 }   // namespace install

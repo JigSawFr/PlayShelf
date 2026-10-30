@@ -21,9 +21,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     uint64_t header_size = 0, next = 0;
     ContentStream cs(
         key, std::nullopt, 0,
-        [&](const NcaHeader& h, NcaSignature, std::string*) {
+        [&](const NcaHeader& h, NcaSignature) -> Done {
             header_size = h.size;
-            return h.size <= (64u << 20);   // as a caller would bound its placeholder
+            if (h.size > (64u << 20)) return fail("");   // as a caller would bound its placeholder
+            return {};
         },
         [&](uint64_t offset, const uint8_t*, size_t n) {
             FUZZ_ASSERT(offset == next);

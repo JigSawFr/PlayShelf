@@ -26,14 +26,12 @@ class PrefixSource : public Source
     PrefixSource& operator=(const PrefixSource&) = delete;
 
     uint64_t size() const override { return rest.size(); }
-    bool     read(uint64_t offset, uint8_t* out, size_t n, std::string* why) override;
-    bool     stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                    std::string* why) override;
+    Done     read(uint64_t offset, uint8_t* out, size_t n) override;
+    Done     stream(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink) override;
 
   private:
     // [offset, offset + length), all of it before `have`, from the file.
-    bool from_file(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
-                   std::string* why);
+    Done from_file(uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink);
 
     std::string path;
     uint64_t    have;

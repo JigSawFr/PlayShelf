@@ -48,8 +48,8 @@ class ContentStream
 {
   public:
     // Gets the decrypted header's fields and its fixed-key signature's
-    // check; false refuses the content (the stream stops with that reason).
-    using HeaderFn = std::function<bool(const NcaHeader&, NcaSignature, std::string* why)>;
+    // check; why not refuses the content (the stream stops with that reason).
+    using HeaderFn = std::function<Done(const NcaHeader&, NcaSignature)>;
     // Writes `size` bytes at `offset` of the NCA; false stops the stream.
     using WriteFn = std::function<bool(uint64_t offset, const uint8_t* data, size_t size)>;
 

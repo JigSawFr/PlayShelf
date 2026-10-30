@@ -195,12 +195,12 @@ Result run(const Bytes& file, std::optional<std::array<uint8_t, 32>> hash, uint6
     Result        r;
     ContentStream cs(
         HEADER_KEY, hash, expected_size,
-        [&](const NcaHeader& h, NcaSignature sig, std::string* why) {
+        [&](const NcaHeader& h, NcaSignature sig) -> Done {
             r.signature = sig;
             r.headers++;
             r.out.reserve(h.size);
-            if (refuse) *why = "refused";
-            return !refuse;
+            if (refuse) return fail("refused");
+            return {};
         },
         [&](uint64_t offset, const uint8_t* data, size_t size) {
             if (offset != r.out.size()) return false;

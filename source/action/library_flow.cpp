@@ -32,10 +32,12 @@ std::shared_ptr<const Installed>                     s_installed = std::make_sha
 // On a worker thread: what is installed, read now.
 std::shared_ptr<const Installed> read_installed()
 {
-    std::string why;
-    auto        out = std::make_shared<Installed>(install::installed_versions(&why));
-    if (!why.empty()) aurore::Logger::warning("library: what is installed could not be read: {}", why);
-    return out;
+    auto got = install::installed_versions();
+    if (!got) {
+        aurore::Logger::warning("library: what is installed could not be read: {}", got.error());
+        return std::make_shared<Installed>();
+    }
+    return std::make_shared<Installed>(std::move(*got));
 }
 
 using Done = std::function<void(std::shared_ptr<const Loaded>, std::string)>;

@@ -491,14 +491,14 @@ Result<void> download(const std::string& url, const std::string& path, size_t ma
     return {};
 }
 
-bool range(const std::string& url, uint64_t offset, uint64_t length,
-           const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const Headers& headers,
-           const std::atomic<bool>* cancel, const std::string& pinned_key)
+Result<void> range(const std::string& url, uint64_t offset, uint64_t length,
+                   const std::function<bool(const uint8_t*, size_t)>& sink, const Headers& headers,
+                   const std::atomic<bool>* cancel, const std::string& pinned_key)
 {
 #ifndef __SWITCH__
-    if (const StandIn* s = stand_in(url)) return s->range(url, offset, length, sink, error, headers, cancel, pinned_key);
+    if (const StandIn* s = stand_in(url)) return s->range(url, offset, length, sink, headers, cancel, pinned_key);
 #endif
-    if (!length) return true;
+    if (!length) return {};
     std::string unused;
     Sink        s{ &unused, (size_t)-1 };
     s.chunk = &sink;
@@ -510,19 +510,20 @@ bool range(const std::string& url, uint64_t offset, uint64_t length,
     x.to_file = &s;
     x.range = std::to_string(offset) + "-" + std::to_string(offset + length - 1);
     x.pinned_key = &pinned_key;
-    const bool ok = perform(url, x, &unused, error, (size_t)-1, 0, nullptr);
+    Failure failed;
+    bool    ok = perform(url, x, &unused, &failed.error, (size_t)-1, 0, &failed.status);
     if (cancel && cancel->load()) {
-        if (error) *error = "cancelled";
-        return false;
+        failed.error = "cancelled";
+        ok = false;
     }
-    return ok;
+    if (!ok) return std::unexpected(std::move(failed));
+    return {};
 }
 
-bool resource_size(const std::string& url, uint64_t* size, std::string* error, const Headers& headers,
-                   const std::string& pinned_key)
+Result<uint64_t> resource_size(const std::string& url, const Headers& headers, const std::string& pinned_key)
 {
 #ifndef __SWITCH__
-    if (const StandIn* s = stand_in(url)) return s->resource_size(url, size, error, headers, pinned_key);
+    if (const StandIn* s = stand_in(url)) return s->resource_size(url, headers, pinned_key);
 #endif
     uint64_t           got = 0;
     const std::function<bool(const uint8_t*, size_t)> one = [&](const uint8_t*, size_t n) {
@@ -538,9 +539,9 @@ bool resource_size(const std::string& url, uint64_t* size, std::string* error, c
     x.to_file = &s;
     x.range = "0-0";
     x.pinned_key = &pinned_key;
-    if (!perform(url, x, &unused, error, 16, 30, nullptr)) return false;
-    *size = s.content_range.total;
-    return true;
+    Failure failed;
+    if (!perform(url, x, &unused, &failed.error, 16, 30, &failed.status)) return std::unexpected(std::move(failed));
+    return s.content_range.total;
 }
 
 bool request(const std::string& url, const Headers& headers, const std::string& pinned_key, Response* r,
@@ -611,21 +612,20 @@ bool call(const std::string& url, const Call& c, const Headers& headers, const s
     return ok;
 }
 
-bool peer_certificate(const std::string& url, std::string* pem, std::string* error)
+Result<std::string> peer_certificate(const std::string& url)
 {
 #ifndef __SWITCH__
-    if (const StandIn* s = stand_in(url)) return s->peer_certificate(url, pem, error);
+    if (const StandIn* s = stand_in(url)) return s->peer_certificate(url);
 #endif
-    Extra x;
-    x.peer_pem = pem;
+    std::string pem;
+    Extra       x;
+    x.peer_pem = &pem;
     std::string body;
     // The answer itself does not matter (a 401, a 404): only the handshake.
     perform(url, x, &body, nullptr, 64 * 1024, 15, nullptr);
-    if (pem->find("-----BEGIN CERTIFICATE-----") == std::string::npos) {
-        if (error) *error = "the server's certificate cannot be read";
-        return false;
-    }
-    return true;
+    if (pem.find("-----BEGIN CERTIFICATE-----") == std::string::npos)
+        return std::unexpected(Failure{ "the server's certificate cannot be read" });
+    return pem;
 }
 
 void abort_all()

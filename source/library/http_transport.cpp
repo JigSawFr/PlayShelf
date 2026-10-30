@@ -58,8 +58,12 @@ bool HttpTransport::reachable(const std::string& url)
 
 std::string HttpTransport::certificate(const std::string& url, std::string* why)
 {
-    std::string pem;
-    return http::peer_certificate(url, &pem, why) ? pem : std::string();
+    auto pem = http::peer_certificate(url);
+    if (!pem) {
+        if (why) *why = pem.error().error;
+        return "";
+    }
+    return std::move(*pem);
 }
 
 std::vector<Discovered> discover(const std::atomic<bool>* cancel, std::string* why)
