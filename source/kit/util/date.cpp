@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/date.hpp"
 
-#include <cstdio>
+#include <format>
 
 #include "core/calendar.h"
 
@@ -67,9 +67,7 @@ Ymd civil_from_days(int64_t days)
 std::string format(const Ymd& d)
 {
     if (d.year < 0 || d.year > 9999) return "";
-    char out[16];
-    std::snprintf(out, sizeof(out), "%04d-%02d-%02d", d.year, d.month, d.day);
-    return out;
+    return std::format("{:04}-{:02}-{:02}", d.year, d.month, d.day);
 }
 
 bool day_number(const std::string& s, int64_t* out)

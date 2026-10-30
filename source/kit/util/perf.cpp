@@ -1,8 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/perf.hpp"
 
-#include <cstdio>
 #include <cstring>
+#include <format>
 #include <mutex>
 #include <vector>
 
@@ -45,13 +45,10 @@ std::string report()
     std::lock_guard<std::mutex> lock(s_lock);
     std::string out = "=== timings (ms) ===\n";
     if (s_entries.empty()) return out + "(none yet)\n";
-    char line[160];
-    std::snprintf(line, sizeof(line), "  %-28s %6s %9s %9s %9s\n", "", "runs", "average", "longest", "last");
-    out += line;
+    out += std::format("  {:<28} {:>6} {:>9} {:>9} {:>9}\n", "", "runs", "average", "longest", "last");
     for (const Entry& e : s_entries) {
-        std::snprintf(line, sizeof(line), "  %-28s %6lu %9.1f %9.1f %9.1f\n", e.what, e.count,
-                      e.total_ms / (double)e.count, e.max_ms, e.last_ms);
-        out += line;
+        out += std::format("  {:<28} {:>6} {:9.1f} {:9.1f} {:9.1f}\n", e.what, e.count, e.total_ms / (double)e.count,
+                           e.max_ms, e.last_ms);
     }
     return out;
 }

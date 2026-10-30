@@ -3,8 +3,8 @@
 #include "library/atlas.hpp"
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
+#include <format>
 
 #include <aurore/extern/nlohmann/json.hpp>
 
@@ -123,10 +123,8 @@ std::string price_text(double amount, const std::string& country)
         grouped += digits[i];
     }
     if (m->decimals) {
-        char cents[4];
-        std::snprintf(cents, sizeof cents, "%02lld", minor % 100);
         grouped += m->decimal;
-        grouped += cents;
+        grouped += std::format("{:02}", minor % 100);
     }
     return m->after ? grouped + m->sign : m->sign + grouped;
 }

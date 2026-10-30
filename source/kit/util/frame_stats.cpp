@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/frame_stats.hpp"
 
-#include <cstdio>
+#include <format>
 
 #include "util/paths.hpp"
 
@@ -35,9 +35,7 @@ namespace
 // Microseconds as "3.2" (ms, one decimal).
 std::string ms(uint64_t us)
 {
-    char buf[32];
-    std::snprintf(buf, sizeof(buf), "%llu.%llu", (unsigned long long)(us / 1000), (unsigned long long)((us % 1000) / 100));
-    return buf;
+    return std::format("{}.{}", us / 1000, (us % 1000) / 100);
 }
 
 std::string count(int n) { return n < 0 ? "-" : std::to_string(n); }
