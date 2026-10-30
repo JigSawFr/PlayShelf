@@ -19,6 +19,7 @@ namespace
 notice_logic::Store                          s_store;
 std::map<std::string, Entry>                 s_actions;   // each entry's button, by id
 Listeners                                    s_listeners;
+bool                                         s_newer = false;   // notices_read.txt is a newer build's: never written over
 
 std::string read_file_path()
 {
@@ -33,18 +34,19 @@ void tell()
 // What was put away, written off the UI thread.
 void save_read()
 {
-    auto text = std::make_shared<std::string>(notice_logic::keys_text(s_store.read_keys()));
-    ui::in_background("notices", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(read_file_path(), *text);
-    });
+    if (s_newer) return;
+    ui::save_later("notices", read_file_path(), notice_logic::keys_text(s_store.read_keys()));
 }
 }   // namespace
 
 void start()
 {
     std::string text;
-    if (paths::read_file(read_file_path(), text)) s_store.set_read(notice_logic::keys_of(text));
+    if (paths::read_file(read_file_path(), text)) {
+        s_newer = notice_logic::keys_newer(text);
+        if (s_newer) aurore::Logger::warning("notices: {} is from a newer PlayShelf, left as it is", read_file_path());
+        s_store.set_read(notice_logic::keys_of(text));
+    }
 
     ui::app_hooks::Hooks& a = ui::app_hooks::get();
     a.notice_set = [](const std::string& id, const std::string& title, const std::string& body, const std::string& button,

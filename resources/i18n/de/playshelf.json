@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "Diagnose gespeichert: {}",
         "diag_err": "Diagnose konnte nicht gespeichert werden",
-        "config_err": "Optionen konnten nicht auf der SD-Karte gespeichert werden"
+        "config_err": "Optionen konnten nicht auf der SD-Karte gespeichert werden",
+        "save_err": "Eine Änderung konnte nicht auf der SD-Karte gespeichert werden; sie wird bei der nächsten gespeichert"
     },
     "quick": {
         "hint": "Sprache & Design"

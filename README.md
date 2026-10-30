@@ -14,10 +14,10 @@ PlayShelf is a Nintendo Switch homebrew that browses a library server you run yo
 
 It is built on the same technical base and the same *Cadran* look as [PlayGuard](https://github.com/JigSawFr/PlayGuard).
 
-**[Website](https://shelf.boreale.dev/)** · **[Try it in your browser](https://shelf.boreale.dev/simulator/)** · **[Documentation](docs/getting-started.md)**
+**[Website](https://shelf.boreale.dev/?utm_source=github&utm_medium=readme)** · **[Try it in your browser](https://shelf.boreale.dev/simulator/?utm_source=github&utm_medium=readme)** · **[Documentation](docs/getting-started.md)**
 
 > [!WARNING]
-> **Early development.** Nothing is released yet: the catalogue, the downloads and the title database work in the [web simulator](https://shelf.boreale.dev/simulator/), and are still to be checked on a console.
+> **Early development.** Nothing is released yet: the catalogue, the downloads and the title database work in the [web simulator](https://shelf.boreale.dev/simulator/?utm_source=github&utm_medium=readme), and are still to be checked on a console.
 
 | Catalogue | Downloads |
 |---|---|
@@ -39,6 +39,6 @@ Everything else: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-**GPLv3**, see [`LICENSE`](LICENSE). Maintained by [JigSawFr](https://github.com/JigSawFr), part of [Boréale](https://boreale.dev/) with [PlayGuard](https://github.com/JigSawFr/PlayGuard) and [Aurore](https://github.com/JigSawFr/Aurore).
+**GPLv3**, see [`LICENSE`](LICENSE). Maintained by [JigSawFr](https://github.com/JigSawFr), part of [Boréale](https://boreale.dev/?utm_source=github&utm_medium=readme) with [PlayGuard](https://github.com/JigSawFr/PlayGuard) and [Aurore](https://github.com/JigSawFr/Aurore).
 
 <sub>PlayShelf is not affiliated with or endorsed by Nintendo. Nintendo Switch is a trademark of Nintendo.</sub>

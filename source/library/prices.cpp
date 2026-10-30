@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/prices.hpp"
+#include "library/atlas.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -62,7 +63,7 @@ bool PriceBook::from_json(const std::string& text)
     this->where.clear();
     this->first.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
-    if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("games") || !root["games"].is_object()) return false;
+    if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA || !root.contains("games") || !root["games"].is_object()) return false;
     const auto generated = root.find("generated");
     if (generated == root.end() || !generated->is_string() || !is_day(generated->get<std::string>())) return false;
     const auto country = root.find("country");

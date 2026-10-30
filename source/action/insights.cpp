@@ -3,13 +3,13 @@
 
 #include <algorithm>
 #include <ctime>
+#include <format>
 #include <map>
 #include <set>
 #include <unordered_map>
 #include <utility>
 
 #include <aurore.hpp>
-#include <fmt/format.h>
 
 #include "action/download_flow.hpp"
 #include "action/nlib_flow.hpp"
@@ -67,6 +67,8 @@ std::set<std::string>                s_noted;             // and noted in the se
 std::string                          s_jobs_key;          // the downloads, as last made
 library::SeenBook                    s_seen;
 bool                                 s_seen_read = false;
+// seen.json is a newer build's: the book kept in memory only.
+bool                                 s_seen_newer = false;
 
 std::string seen_file()
 {
@@ -109,11 +111,8 @@ void tell()
 // The seen book written, off the UI thread.
 void save_seen()
 {
-    auto text = std::make_shared<std::string>(s_seen.to_json());
-    ui::in_background("seen", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(seen_file(), *text);
-    });
+    if (s_seen_newer) return;
+    ui::save_later("seen", seen_file(), s_seen.to_json());
 }
 
 // A catalogue read for the first time in this run: its games noted.
@@ -400,7 +399,10 @@ void start()
     s_started = true;
     {
         std::string text;
-        if (paths::read_file(seen_file(), text) && !s_seen.from_json(text))
+        if (paths::read_file(seen_file(), text) && library::SeenBook::newer(text)) {
+            aurore::Logger::warning("insights: {} is from a newer PlayShelf, left as it is", seen_file());
+            s_seen_newer = true;
+        } else if (!text.empty() && !s_seen.from_json(text))
             aurore::Logger::warning("insights: {} not read", seen_file());
         s_seen_read = true;
     }

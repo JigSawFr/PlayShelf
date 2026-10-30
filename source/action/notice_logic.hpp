@@ -77,10 +77,14 @@ class Store
 // next start until its text changes.
 std::string read_key(const std::string& id, const std::string& title, const std::string& detail);
 
-// The read keys as the file holds them (one per line) and read back (the
-// lines that look like one, MAX_READ at most).
+// The read keys as the file holds them (a "schema=N" line,
+// util/text_schema.hpp, then one per line) and read back (the lines that
+// look like one, MAX_READ at most; none from a file of a newer schema,
+// which keys_newer() tells: never written over).
 constexpr size_t         MAX_READ = 200;
+constexpr int            KEYS_SCHEMA = 1;
 std::string              keys_text(const std::vector<std::string>& keys);
 std::vector<std::string> keys_of(const std::string& text);
+bool                     keys_newer(const std::string& text);
 
 }   // namespace notice_logic

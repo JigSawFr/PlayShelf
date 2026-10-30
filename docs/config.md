@@ -1,10 +1,10 @@
 # `config.json`
 
-PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf_data/config.json` for the desktop simulator). Every key is optional: a missing one, or one of the wrong type, keeps its default, and a value out of range goes back to its default, one key at a time. A file that cannot be read at all is kept aside as `config.json.bad` (the previous one as `config.json.bad.1`) and the defaults are used. The file is written whole each time, through `config.json.tmp`.
+PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf_data/config.json` for the desktop simulator). Every key is optional: a missing one, or one of the wrong type, keeps its default, and a value out of range goes back to its default, one key at a time. A file that cannot be read at all is kept aside as `config.json.bad` (the previous one as `config.json.bad.1`) and the defaults are used. The file is written whole each time, through `config.json.tmp`, with the keys this version does not know kept as they were. A file of a newer `schema` (from a newer PlayShelf) is not read: the defaults are used and the file is left as it is.
 
 | Key | Values | Default | What it sets |
 |---|---|---|---|
-| `schema` | `1` | `1` | The layout of this file |
+| `schema` | `1` | `1` | The layout of this file (none counts as `1`) |
 | `language` | `system` or a language code (`en-US`, `fr`, `fr-CA`, `de`, `es`, `es-419`, `it`, `nl`, `pt`, `pt-BR`, `ru`, `ja`, `ko`, `zh-Hans`, `zh-Hant`) | `system` | *Preferences › Language*: the console's own, or one forced |
 | `theme` | `system`, `light`, `dark` | `dark` | *Preferences › Theme* |
 | `theme_file` | `""`, `builtin:<preset>` (`high-contrast-dark`, `high-contrast-light`, `ocean`, `amethyst`, `sand`, a season such as `halloween`, or `seasonal`, which follows the calendar) or the path of a theme file | `""` | *Preferences › Palette*: PlayShelf's own colours (`""`), one of the presets, or a file of the `themes` folder ([Themes](themes.md)). A file that styles only the light or the dark theme also sets that theme; one that cannot be read leaves PlayShelf's own colours |

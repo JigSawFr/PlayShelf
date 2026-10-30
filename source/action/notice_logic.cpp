@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "util/text_schema.hpp"
+
 namespace notice_logic
 {
 
@@ -150,12 +152,15 @@ std::string keys_text(const std::vector<std::string>& keys)
 {
     std::string out;
     for (const std::string& k : keys) out += k + "\n";
-    return out;
+    return text_schema::with(KEYS_SCHEMA, out);
 }
+
+bool keys_newer(const std::string& text) { return text_schema::of(text) > KEYS_SCHEMA; }
 
 std::vector<std::string> keys_of(const std::string& text)
 {
     std::vector<std::string> out;
+    if (keys_newer(text)) return out;
     size_t start = 0;
     while (start < text.size() && out.size() < MAX_READ) {
         size_t end = text.find('\n', start);

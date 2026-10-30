@@ -87,6 +87,13 @@ void test_similar()
     // Whichever names the other, the best.
     CHECK(s.between(A, B) == 86 && s.between(B, A) == 86 && s.between(C, B) == 100 && s.between(C, A) == 40);
     CHECK(s.between(A, 0x0100000000040000) == 0);
+    // Another schema, or none, refused; a field it does not know skipped.
+    SimilarBook other;
+    CHECK(!other.from_json(R"({"schema":2,"generated":"2026-10-29","games":{"0100000000010000":[["0100000000020000",86]]}})"));
+    CHECK(!other.from_json(R"({"generated":"2026-10-29","games":{"0100000000010000":[["0100000000020000",86]]}})"));
+    CHECK(other.size() == 0);
+    CHECK(other.from_json(R"({"schema":1,"generated":"2026-10-29","by":"traits","games":{"0100000000010000":[["0100000000020000",86,"x"]]}})"));
+    CHECK(other.between(A, B) == 86);
 }
 }   // namespace
 

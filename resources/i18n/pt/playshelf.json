@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "Diagnóstico guardado: {}",
         "diag_err": "Não foi possível guardar o diagnóstico",
-        "config_err": "Não foi possível guardar as preferências no cartão SD"
+        "config_err": "Não foi possível guardar as preferências no cartão SD",
+        "save_err": "Não foi possível guardar uma alteração no cartão SD; será guardada na próxima"
     },
     "quick": {
         "hint": "Idioma e tema"

@@ -3,9 +3,8 @@
 
 #include <algorithm>
 #include <ctime>
+#include <format>
 #include <utility>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_list.hpp>
@@ -146,7 +145,7 @@ std::string date_text(uint32_t ymd)
     if (!ymd) return "";
     const unsigned y = ymd / 10000, m = ymd / 100 % 100, d = ymd % 100;
     if (m < 1 || m > 12) return std::to_string(y);
-    return aurore::getStr("playshelf/game/date", d, aurore::getStr(fmt::format("cadran/months/{}", m)), y, m);
+    return aurore::getStr("playshelf/game/date", d, aurore::getStr(std::format("cadran/months/{}", m)), y, m);
 }
 
 // Its eShop page: ec.nintendo.com sends a phone to the shop of the country
@@ -162,7 +161,7 @@ std::string eshop_url(uint64_t nsu_id)
     const char*       country = "US";
     for (const auto& [l, c] : COUNTRIES)
         if (locale == l) country = c;
-    return fmt::format("https://ec.nintendo.com/apps/{}/{}", nsu_id, country);
+    return std::format("https://ec.nintendo.com/apps/{}/{}", nsu_id, country);
 }
 
 // One screenshot on the whole screen, black around it: ◀ ▶ the others, B
@@ -221,7 +220,7 @@ class ShotActivity : public aurore::Activity
 
     void load()
     {
-        this->counter->setText(fmt::format("{} / {}", this->at, this->count));
+        this->counter->setText(std::format("{} / {}", this->at, this->count));
         const int wanted = this->at;
         ui::Weak  weak(this->alive);
         library_icons::picture(titledb::nlib_screen_url(this->base, wanted), FULL_W, FULL_H,

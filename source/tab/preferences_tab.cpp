@@ -2,9 +2,8 @@
 #include "tab/preferences_tab.hpp"
 
 #include <algorithm>
+#include <format>
 #include <vector>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_frame.hpp>
 
@@ -245,7 +244,7 @@ void PreferencesTab::sources_sheet()
     std::vector<Choice> lines;
     for (size_t i = 0; i < sources.size(); i++)
         lines.emplace_back(source_name(sources[i]), ui::guarded(this->alive, [this, i]() { this->source_sheet(i); }), "server",
-                           fmt::format("{}", i + 1));
+                           std::format("{}", i + 1));
     if (sources.size() < config::MAX_TITLE_SOURCES)
         lines.emplace_back("playshelf/titledb/add"_i18n, ui::guarded(this->alive, [this]() {
             if (ui::refuse_read_only()) return;

@@ -87,7 +87,9 @@ struct Config
     std::string crash_seen;
 };
 
-constexpr int    SCHEMA             = 1;    // "schema" in config.json
+// "schema" in config.json (none counts as 1): one more when a key changes
+// meaning. The keys this build does not know are written back as they were.
+constexpr int    SCHEMA             = 1;
 // The languages PlayShelf is translated into, after "system" (the console's
 // own): Aurore's Cadran's (ui::LANGUAGES), each with
 // resources/i18n/<code>/playshelf.json here. tools/check_resources.py
@@ -112,7 +114,10 @@ constexpr int LOGS_KEEP_MB[]   = { 0, 1, 5, 20 };
 // aside as config.json.bad (paths::put_aside: the previous .bad is kept as
 // .bad.1), and the defaults are used. When it cannot be moved, snapshot()
 // refuses to write for the rest of the session rather than replace it.
-enum class Loaded { Missing, Read, PutAside, Stuck };
+// Newer: a file of a newer schema than SCHEMA (a newer PlayShelf's, before
+// going back to this one): the defaults are used and snapshot() refuses to
+// write, so the file stays as that build left it.
+enum class Loaded { Missing, Read, PutAside, Stuck, Newer };
 
 Config& get();
 void    load();          // never throws; missing / broken file => defaults, per field

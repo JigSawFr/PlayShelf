@@ -5,7 +5,7 @@
 #include "core/local_time.h"
 
 #include <ctime>
-#include <fmt/format.h>
+#include <format>
 #include <mutex>
 #include <thread>
 
@@ -83,19 +83,19 @@ int today_weekday()
 std::string today_date()
 {
     const LocalTime l = local_now();
-    return fmt::format("{:04d}-{:02d}-{:02d}", (int)l.year, (int)l.month, (int)l.day);
+    return std::format("{:04d}-{:02d}-{:02d}", (int)l.year, (int)l.month, (int)l.day);
 }
 
 std::string now_hms()
 {
     const LocalTime l = local_now();
-    return fmt::format("{:02d}:{:02d}:{:02d}", (int)l.hour, (int)l.minute, (int)l.second);
+    return std::format("{:02d}:{:02d}:{:02d}", (int)l.hour, (int)l.minute, (int)l.second);
 }
 
 std::string now_stamp()
 {
     const LocalTime l = local_now();
-    return fmt::format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}", (int)l.year, (int)l.month, (int)l.day, (int)l.hour, (int)l.minute);
+    return std::format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}", (int)l.year, (int)l.month, (int)l.day, (int)l.hour, (int)l.minute);
 }
 
 std::string time_text(uint64_t posix)

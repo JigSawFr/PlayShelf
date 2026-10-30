@@ -1,8 +1,8 @@
 // download/queue.cpp: the queue's file written and read back (every field,
 // a journal and its checkpoint), a running job back as paused, what a
-// hand-edited file cannot hold dropped; the next job, what is pending, a
-// package queued twice; the placeholders no job keeps; the speed and the
-// time left.
+// hand-edited file cannot hold dropped, its schema and a newer journal's;
+// the next job, what is pending, a package queued twice; the placeholders
+// no job keeps; the speed and the time left.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "download/queue.hpp"
@@ -84,6 +84,54 @@ void test_file()
         CHECK(odd[0].journal->writing == cid(3) && !odd[0].journal->at);   // a checkpoint that does not read
         CHECK(odd[0].state == State::Waiting);
     }
+}
+
+// The schema: none counts as 1; a newer file is read as an empty queue and
+// never written over; a job whose journal is newer is not taken up, its
+// journal kept; keys this build does not know written back.
+void test_schema()
+{
+    TempDir tmp("download_queue_schema", TempDir::Enter);
+    const std::string old = R"({"jobs": [{"id": "c3", "url": "https://shelf.example/files/c.nsp", "state": "waiting"}]})";
+    CHECK(queue_from_json(old).size() == 1);
+
+    fs::write(queue_file(), R"({"schema": 1, "lane": "fast", "jobs": [
+        {"id": "d4", "url": "https://shelf.example/files/d.nsp", "state": "paused", "mirror": "https://m.example/d.nsp",
+         "journal": {"registered": [], "writing": "03030303030303030303030303030303", "chunk": 7}},
+        {"id": "e5", "url": "https://shelf.example/files/e.nsp", "state": "paused",
+         "journal": {"schema": 2, "parts": ["03030303030303030303030303030303"]}}]})");
+    std::vector<Job> jobs = load_queue();
+    if (!CHECK(jobs.size() == 2)) return;
+    CHECK(jobs[0].state == State::Paused && jobs[0].journal && jobs[0].journal->writing == cid(3));
+    CHECK(jobs[1].state == State::Failed && jobs[1].error == NEWER_JOURNAL && !jobs[1].journal);
+    // The first job done, its journal gone; the rest written back.
+    jobs[0].state = State::Done;
+    jobs[0].journal.reset();
+    std::string why;
+    CHECK(save_queue(jobs, &why));
+    const std::string text = fs::read(queue_file());
+    CHECK(text.find("\"lane\": \"fast\"") != std::string::npos && text.find("m.example/d.nsp") != std::string::npos);
+    CHECK(text.find("\"chunk\"") == std::string::npos);   // its journal, finished
+    CHECK(text.find("\"parts\"") != std::string::npos && text.find("\"schema\": 2") != std::string::npos);
+    // A journal of its own replaces the newer one; a journal's unknown key
+    // stays while it is written again.
+    jobs = load_queue();
+    if (!CHECK(jobs.size() == 2)) return;
+    install::Journal jn;
+    jn.writing = cid(4);
+    jobs[1].journal = jn;
+    CHECK(queue_to_json(jobs).find("\"parts\"") == std::string::npos);
+    const auto again = queue_from_json(R"({"jobs": [{"id": "f6", "url": "https://shelf.example/files/f.nsp",
+        "journal": {"schema": 1, "writing": "03030303030303030303030303030303", "chunk": 7}}]})");
+    if (CHECK(again.size() == 1 && again[0].journal)) CHECK(queue_to_json(again).find("\"chunk\": 7") != std::string::npos);
+
+    // A newer file: nothing read, the save refused, the file as it was.
+    const std::string newer = R"({"schema": 2, "jobs": [{"id": "g7", "url": "https://shelf.example/files/g.nsp"}]})";
+    fs::write(queue_file(), newer);
+    CHECK(queue_newer(newer) && !queue_newer(old));
+    CHECK(load_queue().empty());
+    CHECK(!save_queue({job("00000000000000h8", State::Waiting)}, &why) && !why.empty());
+    CHECK(fs::read(queue_file()) == newer);
 }
 
 void test_queue()
@@ -191,6 +239,7 @@ int main()
 {
     test_ahead();
     test_file();
+    test_schema();
     test_queue();
     test_groups();
     test_rate();

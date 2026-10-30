@@ -68,7 +68,8 @@
     "tour_download": "Installa tutto: i suoi pacchetti vanno nei download e si installano uno dopo l'altro.",
     "tour_downloads": "Download: la coda, la linea temporale di ogni gioco e come vengono scaricati i pacchetti.",
     "tour_preferences": "Preferenze: la lingua, il tema e il database dei titoli.",
-    "tour_end": "Tocca a te: le frecce si muovono, Invio è A, Esc è B. Il pannello imposta qualsiasi stato."
+    "tour_end": "Tocca a te: le frecce si muovono, Invio è A, Esc è B. Il pannello imposta qualsiasi stato.",
+    "sites_legal": "Privacy e note legali"
   },
   "groups": {
     "app": "PlayShelf",

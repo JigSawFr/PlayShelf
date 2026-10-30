@@ -2,6 +2,7 @@
 #include "action/nlib_flow.hpp"
 
 #include <algorithm>
+#include <format>
 #include <aurore.hpp>
 #include <aurore/cadran/ui/live_prefs.hpp>
 #include <ctime>
@@ -9,8 +10,6 @@
 #include <mutex>
 #include <set>
 #include <sys/stat.h>
-
-#include <fmt/format.h>
 
 #include "action/titledb_flow.hpp"
 #include "library/catalog.hpp"
@@ -36,6 +35,7 @@ std::string        s_language;          // its language (s_lock)
 // On the UI thread.
 library::FactsBook                    s_book;
 bool                                  s_dirty = false;   // facts not written yet
+bool                                  s_newer = false;   // facts.json is a newer build's: never written over
 size_t                                s_untold = 0;      // facts the listeners were not told of
 Listeners                            s_listeners;
 
@@ -53,7 +53,7 @@ std::string book_file()
 // the facts are kept).
 std::string file_of(uint64_t base, const std::string& language)
 {
-    return fmt::format("{}/nlib/{:016X}-{}-2.json", paths::cache_dir(), base, language);
+    return std::format("{}/nlib/{:016X}-{}-2.json", paths::cache_dir(), base, language);
 }
 
 bool fresh(const std::string& file)
@@ -91,8 +91,7 @@ std::shared_ptr<const titledb::Details> fetch(uint64_t base, const std::string& 
         }
         return nullptr;
     }
-    // A cache: a copy not written is fetched again.
-    if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(paths::cache_dir() + "/nlib")) (void)paths::atomic_write(file, r.body);
+    ui::keep_copy("nlib", file, r.body);
     return d;
 }
 
@@ -105,12 +104,12 @@ void tell()
 // The facts written, off the UI thread.
 void save()
 {
-    if (!s_dirty) return;
+    if (!s_dirty || s_newer) return;
     s_dirty = false;
     auto text = std::make_shared<std::string>(s_book.to_json());
     ui::in_background("nlib facts", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(dir())) (void)paths::atomic_write(book_file(), *text);
+        // Facts fetched again when lost: logged, not said.
+        ui::keep_copy("nlib facts", book_file(), *text);
     });
 }
 
@@ -172,8 +171,11 @@ void start()
     ui::in_background("nlib facts", []() {
         auto        book = std::make_shared<library::FactsBook>();
         std::string text;
-        if (paths::read_file(book_file(), text) && !book->from_json(text)) aurore::Logger::warning("nlib: {} not read", book_file());
-        aurore::sync([book]() {
+        const bool  newer = paths::read_file(book_file(), text) && library::FactsBook::newer(text);
+        if (newer) aurore::Logger::warning("nlib: {} is from a newer PlayShelf, left as it is", book_file());
+        else if (!text.empty() && !book->from_json(text)) aurore::Logger::warning("nlib: {} not read", book_file());
+        aurore::sync([book, newer]() {
+            s_newer = newer;
             // Facts that came meanwhile stay: they are newer.
             s_book.add_missing(*book);
             tell();

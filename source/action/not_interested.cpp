@@ -18,6 +18,7 @@ namespace not_interested
 namespace
 {
 std::vector<uint64_t>                s_games;   // the latest first
+bool                                 s_newer = false;   // the file is a newer build's: never written over
 Listeners                            s_listeners;
 
 std::string file()
@@ -27,19 +28,19 @@ std::string file()
 
 void keep()
 {
-    auto text = std::make_shared<std::string>(library::ids_text(s_games));
-    ui::in_background("not_interested", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(file(), *text);
-    });
     s_listeners.notify();
+    if (s_newer) return;
+    ui::save_later("not_interested", file(), library::ids_text(s_games));
 }
 }   // namespace
 
 void start()
 {
     std::string text;
-    if (paths::read_file(file(), text)) s_games = library::ids_of(text, MAX_GAMES);
+    if (!paths::read_file(file(), text)) return;
+    s_newer = library::ids_newer(text);
+    if (s_newer) aurore::Logger::warning("not_interested: {} is from a newer PlayShelf, left as it is", file());
+    s_games = library::ids_of(text, MAX_GAMES);
 }
 
 void add(uint64_t title_id, const std::string& name)

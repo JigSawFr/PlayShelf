@@ -63,6 +63,12 @@ void test_keys()
     std::string many;
     for (int i = 0; i < 300; i++) many += read_key("k" + std::to_string(i), "", "") + "\n";
     CHECK(keys_of(many).size() == MAX_READ);
+    // The file's schema line: written, read past; none (an older file) is 1;
+    // a newer one gives nothing, and keys_newer() keeps it from being saved over.
+    CHECK(keys_text({ "ok_one:0123abcd" }) == "schema=1\nok_one:0123abcd\n");
+    CHECK(keys_of(keys_text({ "ok_one:0123abcd" })).size() == 1 && !keys_newer(keys_text({})) && !keys_newer("ok_one:0123abcd\n"));
+    CHECK(keys_newer("schema=2\nok_one:0123abcd\n") && keys_of("schema=2\nok_one:0123abcd\n").empty());
+    CHECK(keys_newer("schema=x\n") && !keys_newer("schema=1\r\nok_one:0123abcd"));
 }
 }   // namespace
 

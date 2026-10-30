@@ -2,6 +2,7 @@
 #include "download/queue.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <random>
 #include <utility>
@@ -66,18 +67,41 @@ bool unhex(const std::string& s, uint8_t* out, size_t n)
     return true;
 }
 
-json journal_to_json(const install::Journal& jn)
+// The schema of a JSON object: 1 when it has none (files from before it was
+// read), 0 when it is not a number.
+int64_t schema_of(const json& j)
 {
-    json j;
+    const auto it = j.find("schema");
+    if (it == j.end()) return 1;
+    if (it->is_number_unsigned()) return it->get<uint64_t>() > INT32_MAX ? INT32_MAX : (int64_t)it->get<uint64_t>();
+    return it->is_number_integer() ? it->get<int64_t>() : 0;
+}
+
+json object_of(const std::string& text)
+{
+    json j = text.empty() ? json::object() : json::parse(text, nullptr, false);
+    return j.is_object() ? j : json::object();
+}
+
+// `key` set to `value` when `has`, else taken out (one the job had before).
+template <typename T> void put(json& j, const char* key, bool has, const T& value)
+{
+    if (has) j[key] = value;
+    else j.erase(key);
+}
+
+// `j`: the journal as the file held it, whose other keys are kept.
+json journal_to_json(const install::Journal& jn, json j)
+{
+    if (!j.is_object() || schema_of(j) != JOURNAL_SCHEMA) j = json::object();
+    j["schema"] = JOURNAL_SCHEMA;
     json reg = json::array();
     for (const auto& id : jn.registered) reg.push_back(install::content_id_hex(id));
     j["registered"] = reg;
-    if (jn.writing) j["writing"] = install::content_id_hex(*jn.writing);
-    if (jn.at) {
-        j["offset"] = jn.at->offset;
-        j["nca_size"] = jn.at->nca_size;
-        j["sha"] = hex(jn.at->sha.data(), jn.at->sha.size());
-    }
+    put(j, "writing", jn.writing.has_value(), jn.writing ? install::content_id_hex(*jn.writing) : "");
+    put(j, "offset", jn.at.has_value(), jn.at ? jn.at->offset : 0);
+    put(j, "nca_size", jn.at.has_value(), jn.at ? jn.at->nca_size : 0);
+    put(j, "sha", jn.at.has_value(), jn.at ? hex(jn.at->sha.data(), jn.at->sha.size()) : "");
     return j;
 }
 
@@ -104,33 +128,39 @@ std::optional<install::Journal> journal_from_json(const json& j)
 }
 }   // namespace
 
-std::string queue_to_json(const std::vector<Job>& jobs)
+const char* const NEWER_JOURNAL = "started by a newer PlayShelf";
+
+std::string queue_to_json(const std::vector<Job>& jobs, const std::string& previous)
 {
     json list = json::array();
     for (const Job& job : jobs) {
-        json j;
+        json j = object_of(job.kept);   // the keys this build does not know, kept
         j["id"] = job.id;
         j["name"] = job.name;
-        if (!job.game.empty()) j["game"] = job.game;
-        if (!job.label.empty()) j["label"] = job.label;
-        if (job.game_id) j["game_id"] = job.game_id;
-        if (!job.icon_url.empty()) j["icon"] = job.icon_url;
+        put(j, "game", !job.game.empty(), job.game);
+        put(j, "label", !job.label.empty(), job.label);
+        put(j, "game_id", job.game_id != 0, job.game_id);
+        put(j, "icon", !job.icon_url.empty(), job.icon_url);
         j["url"] = job.url;
         j["server"] = job.server_id;
         j["title_id"] = job.title_id;
-        if (job.version) j["version"] = *job.version;
+        put(j, "version", job.version.has_value(), job.version.value_or(0));
         j["size"] = job.size;
         j["state"] = STATES[std::to_underlying(job.state)];
-        if (!job.error.empty()) j["error"] = job.error;
-        if (job.unsigned_content) j["unsigned"] = true;
-        if (job.accept_unsigned) j["accept_unsigned"] = true;
+        put(j, "error", !job.error.empty(), job.error);
+        put(j, "unsigned", job.unsigned_content, true);
+        put(j, "accept_unsigned", job.accept_unsigned, true);
         j["done"] = job.done;
         j["total"] = job.total;
-        if (job.journal) j["journal"] = journal_to_json(*job.journal);
+        // A newer build's journal stays until this one writes its own.
+        const auto old = j.find("journal");
+        const bool newer = old != j.end() && old->is_object() && schema_of(*old) > JOURNAL_SCHEMA;
+        if (job.journal) j["journal"] = journal_to_json(*job.journal, old != j.end() ? *old : json());
+        else if (!newer) j.erase("journal");
         list.push_back(j);
     }
-    json root;
-    root["schema"] = 1;
+    json root = object_of(previous);
+    root["schema"] = QUEUE_SCHEMA;
     root["jobs"] = list;
     return root.dump(2) + "\n";
 }
@@ -139,7 +169,7 @@ std::vector<Job> queue_from_json(const std::string& text)
 {
     std::vector<Job> out;
     const json       root = json::parse(text, nullptr, false);
-    if (root.is_discarded() || !root.is_object()) return out;
+    if (root.is_discarded() || !root.is_object() || schema_of(root) != QUEUE_SCHEMA) return out;
     const auto list = root.find("jobs");
     if (list == root.end() || !list->is_array()) return out;
     for (const json& j : *list) {
@@ -169,7 +199,15 @@ std::vector<Job> queue_from_json(const std::string& text)
         job.done = u64(j, "done");
         job.total = u64(j, "total");
         const auto jn = j.find("journal");
-        if (jn != j.end()) job.journal = journal_from_json(*jn);
+        if (jn != j.end() && jn->is_object() && schema_of(*jn) > JOURNAL_SCHEMA) {
+            // Another build's install, which this one cannot take up.
+            if (job.state != State::Done) {
+                job.state = State::Failed;
+                job.error = NEWER_JOURNAL;
+            }
+        } else if (jn != j.end())
+            job.journal = journal_from_json(*jn);
+        job.kept = j.dump();
         // Only an https address is ever fetched (a file edited by hand).
         if (job.id.empty() || !job.url.starts_with("https://")) continue;
         out.push_back(std::move(job));
@@ -186,13 +224,25 @@ std::vector<Job> load_queue()
     return queue_from_json(text);
 }
 
+bool queue_newer(const std::string& text)
+{
+    const json root = json::parse(text, nullptr, false);
+    return root.is_object() && schema_of(root) > QUEUE_SCHEMA;
+}
+
 bool save_queue(const std::vector<Job>& jobs, std::string* why)
 {
+    // A newer build's file is left as it is: this one would lose its jobs.
+    std::string old;
+    if (paths::read_file(queue_file(), old) && queue_newer(old)) {
+        if (why) *why = "queue.json is from a newer PlayShelf";
+        return false;
+    }
     if (!paths::ensure_dir(paths::data_dir())) {
         if (why) *why = "cannot create " + paths::data_dir();
         return false;
     }
-    return paths::atomic_write(queue_file(), queue_to_json(jobs), why);
+    return paths::atomic_write(queue_file(), queue_to_json(jobs, old), why);
 }
 
 std::string new_job_id()

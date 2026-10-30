@@ -205,6 +205,8 @@ jobs:
           python3 tools/check_site_links.py out "$SITE_URL"
           cp -r build-web/simulator out/simulator
           cp -r build-web/shots out/simulator/shots
+          # Its visits counted as the site's (not a preview's): Umami's tracker.
+          python3 tools/simulator_audience.py out/simulator
           # What the simulator's header says it was built from.
           python3 - <<'EOF'
           import json, os

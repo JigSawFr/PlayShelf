@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "tab/downloads_tab.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <aurore/cadran/ui/cadran_list.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
@@ -384,7 +384,7 @@ void DownloadsTab::open_game(const std::vector<std::string>& ids)
         switch (j->state) {
         case download::State::Waiting: state = "playshelf/downloads/state_waiting"_i18n; break;
         case download::State::Running:
-            state = live.total ? fmt::format("{} %", (int)std::min<uint64_t>(100, live.done * 100 / live.total))
+            state = live.total ? std::format("{} %", (int)std::min<uint64_t>(100, live.done * 100 / live.total))
                                : "playshelf/downloads/state_starting"_i18n;
             tone = Choice::Tone::ON;
             break;

@@ -1,7 +1,9 @@
 // titledb/store.cpp: a source brought to its manifest's version over a
 // scripted network (its packs fetched, a cut part resumed, a pack whose
-// SHA-256 differs refused and the one in use kept), the icons pack the same
-// from one version to the next not fetched again, the old packs removed;
+// SHA-256 differs refused and the one in use kept, an icons pack that is
+// none refused before the state names it), the icons pack the same from one
+// version to the next not fetched again, the old packs removed; the state's
+// schema;
 // a title list made a pack, written once per version of it; sources by
 // priority, the first that names a title winning.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -136,6 +138,27 @@ void test_update()
     CHECK(update("https://db.test/none.json", dir, s.net(), nullptr, &why) == Outcome::Failed);
     s.files[URL] = R"({"version":"5","titles":{"url":"http://db.test/t.pack","size":3,"sha256":")" + std::string(64, 'a') + "\"}}";
     CHECK(update(URL, dir, s.net(), nullptr, &why) == Outcome::Failed && why.find("HTTPS") != std::string::npos);
+
+    // An icons pack that is not one (its SHA-256 the manifest's): refused
+    // before the state names it, the icons in use kept.
+    const std::string t6 = titles_pack({ { COMET, "Comet 6", "", 0 } }), junk(64, 'j');
+    s.files[URL] = manifest("6", t6, junk);
+    s.files["https://db.test/titles.pack"] = t6;
+    s.files["https://cdn.test/icons.pack"] = junk;
+    CHECK(read_state(dir, &st) && st.version == "3");
+    const std::string icons_before = st.icons;
+    CHECK(update(URL, dir, s.net(), nullptr, &why) == Outcome::Failed && why.find("icons pack") != std::string::npos);
+    CHECK(read_state(dir, &st) && st.version == "3" && st.icons == icons_before && paths::file_exists(dir + "/" + st.icons));
+    s.files["https://cdn.test/icons.pack"] = icons;
+
+    // state.json's schema: written; none is 1; a newer one is read as no
+    // state (the source fetched again).
+    std::string state;
+    CHECK(paths::read_file(dir + "/state.json", state) && state.find("\"schema\": 1") != std::string::npos);
+    CHECK(paths::atomic_write(dir + "/state.json", R"({"url":"u","version":"3","titles":")" + st.titles + R"("})"));
+    CHECK(read_state(dir, &st) && st.titles.size() > 0);
+    CHECK(paths::atomic_write(dir + "/state.json", R"({"schema":2,"url":"u","version":"3","titles":")" + st.titles + R"("})"));
+    CHECK(!read_state(dir, &st));
 
     // Removed with its source.
     CHECK(remove_source(dir) && !paths::file_exists(dir + "/state.json"));

@@ -594,6 +594,9 @@ html:not(.game) .fs-exit { display: none; }
 }
 .sites a:hover, .sites a:focus-visible { color: #e8eef7; background: rgb(232 238 247 / 0.06); }
 .sites a[aria-current] { background: rgb(0 255 204 / 0.08); box-shadow: inset 2px 0 0 #00ffcc; }
+.sites .sites-legal { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #22324f; }
+.sites .sites-legal a { display: block; min-height: 0; padding: 8px 10px; color: #a9b6cc; font-size: 14px; }
+.sites .sites-legal a:hover, .sites .sites-legal a:focus-visible { color: #e8eef7; }
 .sites img { display: block; width: 36px; height: 36px; }
 .sites strong { display: block; color: #e8eef7; font: 600 16px/1.3 var(--display); letter-spacing: -0.01em; }
 .sites small { display: block; color: #a9b6cc; font-size: 14px; line-height: 1.35; }

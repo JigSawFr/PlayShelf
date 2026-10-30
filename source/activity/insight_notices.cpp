@@ -1,12 +1,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "activity/insight_notices.hpp"
 
+#include <format>
 #include <set>
 #include <string>
 #include <vector>
 
 #include <aurore.hpp>
-#include <fmt/format.h>
 
 #include "action/download_flow.hpp"
 #include "action/game_page.hpp"
@@ -46,7 +46,7 @@ std::string day_text(uint32_t date)
 {
     const unsigned d = date % 100, m = date / 100 % 100;
     if (m < 1 || m > 12) return "";
-    return aurore::getStr("playshelf/notices/day", d, aurore::getStr(fmt::format("cadran/months/{}", m)));
+    return aurore::getStr("playshelf/notices/day", d, aurore::getStr(std::format("cadran/months/{}", m)));
 }
 
 // `one` for 1, else `many` with the count.
@@ -98,7 +98,7 @@ void publish(const insights::Snapshot& s)
     std::set<std::string> wished;
     for (const insights::Wished& w : s.wished) {
         if (!w.found.data || w.installed) continue;
-        const std::string id = fmt::format("wish.{:016x}", w.id);
+        const std::string id = std::format("wish.{:016x}", w.id);
         wished.insert(id);
         const auto   data = w.found.data;
         const size_t index = w.found.index;
@@ -117,7 +117,7 @@ void publish(const insights::Snapshot& s)
     for (const insights::Wished& w : s.wished) {
         const library::Price* price = prices_flow::of(w.id);
         if (w.installed || !price || !price->on_sale()) continue;
-        const std::string id = fmt::format("sale.{:016x}.{}", w.id, price->until);
+        const std::string id = std::format("sale.{:016x}.{}", w.id, price->until);
         sales.insert(id);
         const std::string sale = library::price_text(price->sale, country);
         const std::string until = price->until ? day_text(price->until) : "";

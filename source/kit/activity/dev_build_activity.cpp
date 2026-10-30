@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "activity/dev_build_activity.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
@@ -94,7 +94,7 @@ void DevBuildActivity::onContentAvailable()
     if (!age.empty()) built += " · " + age;
     add_fact("playshelf/dev_build/fact_built"_i18n, built, "cadran/text");
     add_fact("playshelf/dev_build/fact_size"_i18n,
-             aurore::getStr("playshelf/dev_build/size_mb", fmt::format("{:.1f}", (double)b.size / (1024.0 * 1024.0))),
+             aurore::getStr("playshelf/dev_build/size_mb", std::format("{:.1f}", (double)b.size / (1024.0 * 1024.0))),
              "cadran/text");
     if (!b.commit.empty()) add_fact("playshelf/dev_build/fact_commit"_i18n, b.commit, "cadran/text");
     if (b.kind == dev_builds::Kind::Commit && !b.branch.empty())

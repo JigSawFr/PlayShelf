@@ -249,9 +249,7 @@ dev_builds_LIBS  := -lz
 dev_builds_net_SRC   := $(filter-out tests/%,$(dev_builds_SRC)) $(K)/util/http_logic.cpp $(K)/util/zip_write.cpp $(K)/sim/sim_net.cpp $(K)/sim/sim_env.cpp $(K)/util/dev_builds_net.cpp tests/dev_builds_net/test.cpp
 dev_builds_net_LIBS  := -lz
 perf_SRC   := $(K)/util/perf.cpp tests/perf/test.cpp
-# fmt header-only: the report's lines are formatted with it.
 diagnostics_logic_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp $(K)/util/diagnostics_logic.cpp tests/diagnostics_logic/test.cpp
-diagnostics_logic_FLAGS := $(TEST_CXXFLAGS) -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY
 # Aurore's own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
@@ -273,7 +271,6 @@ $(I18N_COPY)/i18n.cpp: $(I18N_STAMP) | $(TESTOUT)
 # With its string and file helpers (core/util.cpp), as it is.
 i18n_threads_SRC   := $(I18N_COPY)/i18n.cpp library/aurore/library/lib/core/util.cpp tests/i18n_threads/test.cpp
 i18n_threads_FLAGS := -std=c++23 -isystem $(I18N_COPY)/library/include -isystem library/aurore/library/include \
-                      -isystem library/aurore/library/lib/extern/fmt/include -DFMT_HEADER_ONLY \
                       $(addprefix -isystem library/aurore/library/,include/aurore/extern include/aurore/extern/nanovg \
                         include/aurore/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
                       -DAURORE_RESOURCES='"./"'
