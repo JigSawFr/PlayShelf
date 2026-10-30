@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <exception>
+#include <format>
 #include <typeinfo>
 #ifndef __SWITCH__
 #include <fcntl.h>
@@ -79,7 +80,7 @@ std::string backtrace_here()
     for (size_t i = 0; i < d.frames; i++) {
         char where[40];
         crash_dump_where(&d, d.frame[i], where, sizeof(where));
-        out += fmt::format("  #{:<3} {}\n", i, where);
+        out += std::format("  #{:<3} {}\n", i, where);
     }
     return out;
 }
@@ -115,9 +116,8 @@ std::string backtrace_here()
 // "PlayShelf 1.2.0 (abc1234)" for the session and crash files.
 std::string build_name()
 {
-    return fmt::format("PlayShelf {} ({})", app::version(), app::commit().empty() ? "?" : app::commit());
+    return std::format("PlayShelf {} ({})", app::version(), app::commit().empty() ? "?" : app::commit());
 }
-
 
 // Every line logged, also in this run's session file (util/session_log.hpp).
 void keep_log_lines()
@@ -139,7 +139,7 @@ void start_session()
     std::tm tmv{};
     char when[32] = "?";
     if (localtime_r(&now, &tmv)) std::strftime(when, sizeof(when), "%Y-%m-%d %H:%M:%S", &tmv);
-    const std::string header = fmt::format("=== PlayShelf session ===\nstarted : {}\nbuild   : {}\n\n", when, build_name());
+    const std::string header = std::format("=== PlayShelf session ===\nstarted : {}\nbuild   : {}\n\n", when, build_name());
     const std::string name = session_log::start(paths::sessions_dir(), now, header);
     crash_report::prepare(paths::crashes_dir(), build_name(), "", name);
     if (name.empty()) aurore::Logger::warning("logs: no session file in {}", paths::sessions_dir());
@@ -163,8 +163,8 @@ std::string system_line(const SysInfo& si)
 {
     const std::string fw = ui::hos_text(si.hos_version);
     const char* storage = diagnostic::storage_name(sysinfo_storage(&si));
-    return fmt::format("firmware {}, Atmosphère {}, {}, {}", fw,
-                       si.ams_valid ? fmt::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro) : "unknown",
+    return std::format("firmware {}, Atmosphère {}, {}, {}", fw,
+                       si.ams_valid ? std::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro) : "unknown",
                        storage ? storage : "storage unknown",
                        si.applet_mode ? "from the Album (applet)" : "over a game");
 }
@@ -323,7 +323,6 @@ bool run_frame()
     return true;
 }
 }   // namespace
-
 
 int main(int argc, char* argv[])
 {

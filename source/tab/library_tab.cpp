@@ -2,10 +2,9 @@
 #include "tab/library_tab.hpp"
 
 #include <algorithm>
+#include <format>
 #include <numeric>
 #include <utility>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_list.hpp>
@@ -456,7 +455,7 @@ void LibraryTab::open(size_t i)
     } else {
         // In no catalogue read: what the console has of it.
         const library::InstalledGame& g = e.game->game;
-        page.lines.facts = fmt::format("{:016X} · {}", g.id, version_text(*e.game));
+        page.lines.facts = std::format("{:016X} · {}", g.id, version_text(*e.game));
         if (g.dlcs.size() == 1) page.lines.facts += " · " + "playshelf/library/dlc_count_one"_i18n;
         else if (!g.dlcs.empty()) page.lines.facts += " · " + aurore::getStr("playshelf/library/dlc_count", g.dlcs.size());
         page.lines.installed = true;

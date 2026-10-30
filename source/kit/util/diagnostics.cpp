@@ -2,7 +2,7 @@
 #include "util/diagnostics.hpp"
 
 #include <ctime>
-#include <fmt/format.h>
+#include <format>
 #include <sys/statvfs.h>
 #include <utility>
 #include <vector>
@@ -29,7 +29,7 @@ std::string logs_section()
 {
     std::string out = "=== logs ===\n";
     const std::string current = session_log::current_name();
-    out += fmt::format("session     : {}, {} s since the start\n",
+    out += std::format("session     : {}, {} s since the start\n",
                        current.empty() ? std::string("no session file") : "logs/sessions/" + current,
                        session_log::uptime_s());
 
@@ -50,18 +50,18 @@ std::string logs_section()
 
     uint64_t used = 0, total = 0;
     out += "memory      : " +
-           (platform_memory(&used, &total) ? fmt::format("{} allocated, of {} for the process", bytes(used), bytes(total)) : std::string("unknown")) +
+           (platform_memory(&used, &total) ? std::format("{} allocated, of {} for the process", bytes(used), bytes(total)) : std::string("unknown")) +
            "\n";
     struct statvfs fs;
     if (statvfs(paths::sd_root().c_str(), &fs) == 0 && fs.f_blocks > 0)
-        out += fmt::format("sd card     : {} free of {}\n", bytes((uint64_t)fs.f_bavail * fs.f_frsize),
+        out += std::format("sd card     : {} free of {}\n", bytes((uint64_t)fs.f_bavail * fs.f_frsize),
                            bytes((uint64_t)fs.f_blocks * fs.f_frsize));
     else
         out += "sd card     : unknown\n";
 
     // The newest crash files, with their first line (what happened).
     const std::vector<std::string> crashes = log_files::list(paths::crashes_dir(), log_files::CRASH);
-    out += fmt::format("crash files : {}{}\n", crashes.size(), crashes.empty() ? "" : " (newest first)");
+    out += std::format("crash files : {}{}\n", crashes.size(), crashes.empty() ? "" : " (newest first)");
     for (size_t i = 0; i < crashes.size() && i < 5; i++) {
         std::string text;
         paths::read_file(paths::crashes_dir() + "/" + crashes[i], text);
@@ -86,7 +86,7 @@ std::string current_report()
     // The serial number itself is never written: reports are attached to
     // public bug reports.
     const char* storage = storage_name(sysinfo_storage(&si));
-    std::string out = fmt::format(
+    std::string out = std::format(
         "=== PlayShelf diagnostic ===\n"
         "app version : {}{}\n"
         "modes       : read_only={} dev={} platform={}\n"
@@ -104,7 +104,7 @@ std::string current_report()
         "desktop-simulation",
 #endif
         fw,
-        si.ams_valid ? fmt::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro) : std::string("unknown"),
+        si.ams_valid ? std::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro) : std::string("unknown"),
         si.is_atmosphere ? "detected" : "not detected",
         si.applet_mode ? "applet (album)" : "application (over a game)",
         storage ? storage : "unknown",

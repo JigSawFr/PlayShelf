@@ -5,12 +5,11 @@
 #include <atomic>
 #include <cctype>
 #include <cstdlib>
+#include <format>
 #include <aurore.hpp>
 #include <cstdio>
 #include <map>
 #include <set>
-
-#include <fmt/format.h>
 
 #include "action/titledb_flow.hpp"
 #include "core/saves.h"
@@ -84,7 +83,7 @@ void show_progress(const std::shared_ptr<Busy>& b, uint64_t done, uint64_t total
     aurore::sync([b, pct, done, total]() {
         if (*b->cancel || pct == b->shown) return;
         b->shown = pct;
-        b->line->setText(fmt::format("{} %  ·  {} / {}", pct, library_flow::size_text(done), library_flow::size_text(total)));
+        b->line->setText(std::format("{} %  ·  {} / {}", pct, library_flow::size_text(done), library_flow::size_text(total)));
     });
 }
 

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <format>
 #include <aurore.hpp>
 #include <chrono>
 #include <cstdio>
@@ -10,8 +11,6 @@
 #include <ctime>
 #include <memory>
 #include <vector>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
@@ -89,7 +88,7 @@ std::string file_path(const std::string& sd)
 // "4,7" (MB, one decimal, the language's decimal mark).
 std::string mb_text(uint64_t bytes)
 {
-    std::string text = fmt::format("{:.1f}", (double)bytes / (1024.0 * 1024.0));
+    std::string text = std::format("{:.1f}", (double)bytes / (1024.0 * 1024.0));
     const size_t dot = text.find('.');
     if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
     return text;

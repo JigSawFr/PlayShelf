@@ -1,9 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "activity/dev_builds_activity.hpp"
 
+#include <format>
 #include <utility>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/view/cadran_icon.hpp>
 

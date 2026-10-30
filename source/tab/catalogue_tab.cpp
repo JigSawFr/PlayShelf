@@ -2,11 +2,10 @@
 #include "tab/catalogue_tab.hpp"
 
 #include <algorithm>
+#include <format>
 #include <iterator>
 #include <map>
 #include <utility>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_frame.hpp>
 #include <aurore/cadran/ui/cadran_kit.hpp>
@@ -286,7 +285,7 @@ void CatalogueTab::build_grid(bool force)
 {
     const auto* data = this->shown_data.get();
     const library::Filter& f = s_filter;
-    const std::string      key = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
+    const std::string      key = std::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
                                              f.language, f.players, std::to_underlying(f.state), f.hide_demos);
     // Its sections: a choice only when the server has several.
     const bool sections = data && data->fetch.catalog.sections.size() > 1;
