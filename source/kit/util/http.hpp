@@ -75,7 +75,7 @@ template <class T> using Result = std::expected<T, Failure>;
 // another range fails before any byte reaches `sink`. Fails when `sink`
 // returns false ("stopped"), when nothing arrives for 30 s, or when the
 // range comes out short; no overall timeout. `cancel` as for download().
-// `pinned_key` ("sha256//<base64>", library/server.hpp's pin_text): the
+// `pinned_key` ("sha256//<base64>", as CURLOPT_PINNEDPUBLICKEY takes it): the
 // server must hold that public key, which vouches for it in place of the CA
 // store (a LAN server's own certificate); empty, the CA store does.
 Result<void> range(const std::string& url, uint64_t offset, uint64_t length,
@@ -143,7 +143,7 @@ void cleanup();
 
 #ifndef __SWITCH__
 // Not the console (the simulator): what answers some addresses in place of
-// the network, without libcurl (the app's demo, source/sim/sim_demo.hpp).
+// the network, without libcurl (a demo the app plays, when it has one).
 // `serves` says which; each of the others answers as the function of its
 // name above. Set once, before the first request; nullptr: the network.
 struct StandIn
