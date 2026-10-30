@@ -232,7 +232,7 @@ date_SRC    := $(K)/util/date.cpp tests/date/test.cpp
 # The header-only helpers: utf8, emoji, text, json_util.
 text_util_SRC   := tests/text_util/test.cpp
 patches_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp tests/patches/test.cpp
-changelog_SRC   := $(K)/util/changelog.cpp tests/changelog/test.cpp
+changelog_SRC   := $(K)/util/date.cpp $(K)/util/changelog.cpp $(K)/util/update.cpp tests/changelog/test.cpp
 support_SRC   := $(K)/util/date.cpp $(K)/util/support.cpp tests/support/test.cpp
 write_queue_logic_SRC   := $(K)/action/write_queue_logic.cpp tests/write_queue_logic/test.cpp
 write_queue_logic_LIBS  := -pthread
@@ -355,6 +355,7 @@ FUZZ_CFLAGS  := -Wall -Wextra -Wshadow -Werror -D_GLIBCXX_ASSERTIONS $(FUZZ_SAN)
 zip_read_FUZZ      := source/kit/util/zip_read.cpp tests/fuzz/zip_read/fuzz.cpp
 zip_read_FUZZ_LIBS := -lz
 changelog_FUZZ     := $(filter-out tests/%,$(changelog_SRC)) tests/fuzz/changelog/fuzz.cpp
+changelog_FUZZ_CSRC := $(CALENDAR_C)
 config_FUZZ        := $(filter-out tests/%,$(config_SRC)) tests/fuzz/config/fuzz.cpp
 config_FUZZ_CSRC   := $(CALENDAR_C)
 install_pfs_FUZZ  := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_pfs/fuzz.cpp

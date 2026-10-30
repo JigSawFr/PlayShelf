@@ -52,6 +52,11 @@ static void test_compat()
     CHECK(update::parse_compat(R"({"version": "2.0.0", "fw_tested_max": "25.1.0", "notes": [1, 2]})", &l));
     CHECK(l.version == "2.0.0" && l.fw_tested_max == fw(25, 1, 0));
 
+    // The schema: missing is 1; a newer one is not read (the release's
+    // compat.json, in schema 1, is fetched instead).
+    CHECK(update::parse_compat(R"({"schema": 1, "version": "1.2.0", "fw_tested_max": "24.0.0"})", &l));
+    CHECK(update::COMPAT_SCHEMA == 1);
+
     update::Latest untouched;
     untouched.version = "kept";
     const char* bad[] = {
@@ -65,10 +70,7 @@ static void test_compat()
         R"({"version": "1.1.0", "fw_tested_max": "24"})",
         R"({"version": "1.1.0", "fw_tested_max": 24})",
         "<html>404</html>",
-        // Another schema: its fields may not mean these (a newer build reads
-        // compat-2.json; compat.json stays at 1).
-        R"({"schema": 2, "version": "1.1.0", "fw_tested_max": "24.0.0"})",
-        R"({"schema": "1", "version": "1.1.0", "fw_tested_max": "24.0.0"})",
+        R"({"schema": 2, "version": "3.0.0", "fw_tested_max": "26.0.0"})",
     };
     for (const char* text : bad) {
         CHECK(!update::parse_compat(text, &untouched));
