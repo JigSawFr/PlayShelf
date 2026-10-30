@@ -1,11 +1,12 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/patches.hpp"
 
-#include <cstdio>
+#include <string_view>
 #include <sys/stat.h>
 
 #include <aurore/cadran/util/text.hpp>
 
+#include "util/number.hpp"
 #include "util/paths.hpp"
 
 namespace patches
@@ -21,10 +22,13 @@ bool has_ips(const std::string& dir)
 // "23.0.1" as one number; false when it is not three dotted numbers.
 bool parse_version(const std::string& text, unsigned long* out)
 {
-    unsigned a = 0, b = 0, c = 0;
-    char end = 0;
-    if (std::sscanf(text.c_str(), "%u.%u.%u%c", &a, &b, &c, &end) != 3) return false;
-    *out = (unsigned long)a << 16 | (b & 0xFF) << 8 | (c & 0xFF);
+    const std::string_view t = text;
+    const size_t           one = t.find('.'), two = one == t.npos ? t.npos : t.find('.', one + 1);
+    if (two == t.npos) return false;
+    const auto a = number::parse<unsigned>(t.substr(0, one)), b = number::parse<unsigned>(t.substr(one + 1, two - one - 1)),
+               c = number::parse<unsigned>(t.substr(two + 1));
+    if (!a || !b || !c) return false;
+    *out = (unsigned long)*a << 16 | (*b & 0xFF) << 8 | (*c & 0xFF);
     return true;
 }
 

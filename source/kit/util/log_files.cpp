@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <charconv>
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
@@ -34,7 +35,9 @@ bool is_stamp(const std::string& s, size_t from)
 unsigned suffix_n(const std::string& name, size_t stamp_end)
 {
     if (name[stamp_end] != '_') return 0;
-    return (unsigned)std::strtoul(name.c_str() + stamp_end + 1, nullptr, 10);
+    unsigned n = 0;   // the digits before ".log"; 0 without any
+    std::from_chars(name.data() + stamp_end + 1, name.data() + name.size(), n);
+    return n;
 }
 
 }   // namespace

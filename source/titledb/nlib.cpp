@@ -7,6 +7,7 @@
 #include <aurore/extern/nlohmann/json.hpp>
 
 #include "titledb/pack.hpp"
+#include "util/number.hpp"
 #include "util/title_id.hpp"
 
 namespace titledb
@@ -147,7 +148,7 @@ bool parse_nlib_details(const std::string& json, uint64_t base_id, Details* out)
     if (nsu != j.end() && nsu->is_number_unsigned()) d.nsu_id = nsu->get<uint64_t>();
     else if (nsu != j.end() && nsu->is_string()) {
         const std::string& s = nsu->get_ref<const std::string&>();
-        if (!s.empty() && s.size() <= 19 && s.find_first_not_of("0123456789") == std::string::npos) d.nsu_id = std::stoull(s);
+        if (const auto n = number::parse<uint64_t>(s)) d.nsu_id = *n;
     }
     d.intro = lines_of(j, "intro", 1024);
     d.description = lines_of(j, "description", 8192);

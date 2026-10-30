@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/facts.hpp"
+#include "util/number.hpp"
 #include "util/title_id.hpp"
 
 #include <algorithm>
@@ -112,7 +113,7 @@ bool FactsBook::from_json(const std::string& text)
         const auto demo = j.find("demo");
         f.demo = demo != j.end() && demo->is_boolean() && demo->get<bool>();
         f.nsu_id = number_of<uint64_t>(j, "nsu", UINT64_MAX);
-        this->put(std::stoull(key, nullptr, 16), std::move(f));
+        this->put(*number::parse<uint64_t>(key, 16), std::move(f));   // 16 hex digits, checked above
     }
     return true;
 }

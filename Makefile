@@ -285,6 +285,8 @@ session_log_CFLAGS := -std=c11 -Isource/kit/util
 frame_stats_SRC   := $(K)/util/paths.cpp $(K)/util/frame_stats.cpp tests/frame_stats/test.cpp
 # The callbacks a store tells of its changes (header only).
 listeners_SRC := tests/listeners/test.cpp
+# A whole text read as a number (header only).
+number_SRC := tests/number/test.cpp
 log_files_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp tests/log_files/test.cpp
 migrations_SRC   := $(K)/util/paths.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(K)/util/migrations.cpp tests/migrations/test.cpp
 

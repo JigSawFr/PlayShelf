@@ -8,6 +8,8 @@
 
 #include <aurore/extern/nlohmann/json.hpp>
 
+#include "util/number.hpp"
+
 namespace library
 {
 namespace
@@ -108,11 +110,8 @@ bool version_at(const json& j, uint32_t* out)
         }
         const auto it = j.find(key);
         if (it != j.end() && it->is_string()) {
-            const std::string s = it->get<std::string>();
-            char*             end = nullptr;
-            const unsigned long long n = std::strtoull(s.c_str(), &end, 10);
-            if (!s.empty() && end && *end == '\0' && n <= 0xffffffffu) {
-                *out = (uint32_t)n;
+            if (const auto n = number::parse<uint32_t>(it->get_ref<const std::string&>())) {
+                *out = *n;
                 return true;
             }
         }
@@ -130,8 +129,8 @@ uint32_t date_at(const json& j)
         for (char c : s)
             if (std::isdigit((unsigned char)c)) digits += c;
         if (digits.size() >= 8) {
-            const unsigned long v = std::strtoul(digits.substr(0, 8).c_str(), nullptr, 10);
-            if (v >= 19000101 && v <= 29991231) return (uint32_t)v;
+            const uint32_t v = *number::parse<uint32_t>(std::string_view(digits).substr(0, 8));   // digits only
+            if (v >= 19000101 && v <= 29991231) return v;
         }
     }
     return 0;
@@ -174,7 +173,7 @@ std::string file_name(const std::string& url)
     std::string out;
     for (size_t i = 0; i < s.size(); i++) {
         if (s[i] == '%' && i + 2 < s.size() && std::isxdigit((unsigned char)s[i + 1]) && std::isxdigit((unsigned char)s[i + 2])) {
-            out += (char)std::strtol(s.substr(i + 1, 2).c_str(), nullptr, 16);
+            out += (char)*number::parse<int>(std::string_view(s).substr(i + 1, 2), 16);   // two hex digits, checked above
             i += 2;
         } else {
             out += s[i] == '+' ? ' ' : s[i];
@@ -387,9 +386,8 @@ bool parse_name_tags(const std::string& name, uint64_t* title_id, uint32_t* vers
             found = true;
         } else if (tag.size() >= 2 && (tag[0] == 'v' || tag[0] == 'V') &&
                    std::all_of(tag.begin() + 1, tag.end(), [](unsigned char c) { return std::isdigit(c); }) && tag.size() <= 11) {
-            const unsigned long long n = std::strtoull(tag.c_str() + 1, nullptr, 10);
-            if (n <= 0xffffffffu) {
-                *version = (uint32_t)n;
+            if (const auto n = number::parse<uint32_t>(std::string_view(tag).substr(1))) {
+                *version = *n;
                 *has_version = true;
             }
         }
