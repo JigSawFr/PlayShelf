@@ -4,7 +4,7 @@
 PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et en installe vos propres sauvegardes et homebrews : le jeu de base, ses mises à jour et ses contenus additionnels, en NSP, NSZ, XCI ou XCZ, en HTTPS. Cette page va de la carte SD au premier jeu installé.
 
 > [!WARNING]
-> **Développement en cours.** Aucune version n'est encore publiée. Le [simulateur web](https://shelf.boreale.dev/simulator/) montre où en est PlayShelf, face à un serveur de démonstration aux jeux inventés.
+> **Développement en cours.** Aucune version n'est encore publiée. Le [simulateur web](https://shelf.boreale.dev/simulator/?utm_source=github&utm_medium=docs) montre où en est PlayShelf, face à un serveur de démonstration aux jeux inventés.
 
 ## Ce qu'il faut
 
