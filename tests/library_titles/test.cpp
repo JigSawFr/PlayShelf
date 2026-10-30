@@ -91,6 +91,13 @@ void test_names()
     CHECK(clean_name("Game (EU) [v0].XCI") == "Game (EU)");
     CHECK(clean_name("archive.tar") == "archive.tar");
     CHECK(clean_name("[only tags]") == "[only tags]");
+    // Sorted by folded name, each name folded once; equal names keep their order.
+    std::vector<std::pair<std::string, int>> games = {
+        { "Étoile", 1 }, { "aster", 2 }, { "etoile", 3 }, { "Comet", 4 }, { "ASTER", 5 } };
+    sort_folded(games, [](const auto& g) -> const std::string& { return g.first; });
+    std::vector<int> order;
+    for (const auto& g : games) order.push_back(g.second);
+    CHECK(order == std::vector<int>({ 2, 5, 4, 1, 3 }));
 }
 
 void test_select()

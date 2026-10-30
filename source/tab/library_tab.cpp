@@ -2,6 +2,7 @@
 #include "tab/library_tab.hpp"
 
 #include <algorithm>
+#include <numeric>
 
 #include <fmt/format.h>
 
@@ -224,27 +225,51 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
                !(s_filter.state == library::Filter::State::NeverPlayed && (e.game->launches || e.game->play_s));
     };
     std::erase_if(this->entries, [&](const Entry& e) { return !kept(e); });
-    // In the order chosen, by name after it.
-    std::stable_sort(this->entries.begin(), this->entries.end(), [](const Entry& a, const Entry& b) {
+    // In the order chosen, by name after it. The keys are worked out once
+    // per game: fold() allocates and facts() copies, which the comparisons
+    // would do n·log n times.
+    struct Key
+    {
+        bool        to_get  = false;
+        uint32_t    release = 0;
+        std::string publisher, name;
+    };
+    std::vector<Key> keys(this->entries.size());
+    for (size_t i = 0; i < this->entries.size(); i++) {
+        const Entry& e = this->entries[i];
+        Key&         k = keys[i];
+        k.name = library::fold(e.name);
+        if (s_order == Order::ToGetFirst) k.to_get = something_to_get(state_in(e.data, e.title));
+        if (s_order == Order::Publisher || s_order == Order::Newest) {
+            const library::Facts f = nlib_flow::facts(e.game->game.id);
+            k.publisher = library::fold(f.publisher);
+            k.release = f.release_date;
+        }
+    }
+    std::vector<size_t> order(this->entries.size());
+    std::iota(order.begin(), order.end(), size_t{ 0 });
+    std::stable_sort(order.begin(), order.end(), [&](size_t i, size_t j) {
+        const Entry &a = this->entries[i], &b = this->entries[j];
+        const Key &  ka = keys[i], &kb = keys[j];
         if (s_order == Order::ToGetFirst) {
             // Something to get first, the most played of them first.
-            const bool x = something_to_get(state_in(a.data, a.title)), y = something_to_get(state_in(b.data, b.title));
-            if (x != y) return x;
-            if (x && a.game->play_s != b.game->play_s) return a.game->play_s > b.game->play_s;
+            if (ka.to_get != kb.to_get) return ka.to_get;
+            if (ka.to_get && a.game->play_s != b.game->play_s) return a.game->play_s > b.game->play_s;
         } else if (s_order == Order::MostPlayed) {
             if (a.game->play_s != b.game->play_s) return a.game->play_s > b.game->play_s;
         } else if (s_order == Order::RecentlyPlayed) {
             if (a.game->last_played != b.game->last_played) return a.game->last_played > b.game->last_played;
         } else if (s_order == Order::Publisher) {
-            const std::string x = library::fold(nlib_flow::facts(a.game->game.id).publisher);
-            const std::string y = library::fold(nlib_flow::facts(b.game->game.id).publisher);
-            if (x != y) return y.empty() || (!x.empty() && x < y);
+            if (ka.publisher != kb.publisher) return kb.publisher.empty() || (!ka.publisher.empty() && ka.publisher < kb.publisher);
         } else if (s_order == Order::Newest) {
-            const uint32_t x = nlib_flow::facts(a.game->game.id).release_date, y = nlib_flow::facts(b.game->game.id).release_date;
-            if (x != y) return x > y;
+            if (ka.release != kb.release) return ka.release > kb.release;
         }
-        return library::fold(a.name) < library::fold(b.name);
+        return ka.name < kb.name;
     });
+    std::vector<Entry> sorted;
+    sorted.reserve(this->entries.size());
+    for (size_t i : order) sorted.push_back(std::move(this->entries[i]));
+    this->entries = std::move(sorted);
     // The games' facts a filter or the order needs, asked meanwhile.
     if (needs_facts()) {
         std::vector<uint64_t> waiting;

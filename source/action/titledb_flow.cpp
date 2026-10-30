@@ -211,7 +211,7 @@ std::vector<std::pair<uint64_t, std::string>> search(const std::string& query, s
         });
     }
     for (auto& [id, name] : found) out.emplace_back(id, name);
-    std::sort(out.begin(), out.end(), [](const auto& a, const auto& b) { return library::fold(a.second) < library::fold(b.second); });
+    library::sort_folded(out, [](const auto& r) -> const std::string& { return r.second; });
     if (out.size() > max) out.resize(max);
     return out;
 }

@@ -24,10 +24,6 @@ std::string hex16(uint64_t id)
     return text;
 }
 
-bool name_less(const std::string& a, const std::string& b)
-{
-    return fold(a) < fold(b);
-}
 }   // namespace
 
 std::string fold(const std::string& text)
@@ -118,7 +114,7 @@ std::vector<Title> group_titles(const Catalog& catalog)
     for (Title& t : titles) {
         std::sort(t.updates.begin(), t.updates.end(),
                   [&](size_t a, size_t b) { return items[a].version > items[b].version; });
-        std::sort(t.dlcs.begin(), t.dlcs.end(), [&](size_t a, size_t b) { return name_less(items[a].name, items[b].name); });
+        sort_folded(t.dlcs, [&](size_t i) -> const std::string& { return items[i].name; });
         // Its name: the titledb's, else the base game's, else its first
         // item's, without the file's tags.
         const auto known = t.id ? catalog.titles.find(t.id) : catalog.titles.end();
