@@ -27,7 +27,7 @@ using dev_builds::Kind;
 static std::string sha(const std::string& s)
 {
     Sha256 h;
-    h.update(s.data(), s.size());
+    h.update(s);
     return h.hex();
 }
 
@@ -43,7 +43,7 @@ static void test_sha256()
     size_t left = 1000000;
     while (left > 0) {
         const size_t n = std::min(left, chunk.size());
-        h.update(chunk.data(), n);
+        h.update(std::string_view(chunk).substr(0, n));
         left -= n;
     }
     CHECK(h.hex() == "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0");
@@ -64,17 +64,19 @@ static std::string hex_of(const std::array<uint8_t, 32>& d)
     return out;
 }
 
+static std::span<const uint8_t> bytes(const std::string& s) { return {(const uint8_t*)s.data(), s.size()}; }
+
 // RFC 4231's test cases 1, 2 and 6 (a key longer than a block).
 static void test_hmac_sha256()
 {
     const std::string k1(20, '\x0b'), m1 = "Hi There";
-    CHECK(hex_of(hmac_sha256(k1.data(), k1.size(), m1.data(), m1.size())) ==
+    CHECK(hex_of(hmac_sha256(bytes(k1), m1)) ==
           "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7");
     const std::string k2 = "Jefe", m2 = "what do ya want for nothing?";
-    CHECK(hex_of(hmac_sha256(k2.data(), k2.size(), m2.data(), m2.size())) ==
+    CHECK(hex_of(hmac_sha256(bytes(k2), m2)) ==
           "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843");
     const std::string k6(131, '\xaa'), m6 = "Test Using Larger Than Block-Size Key - Hash Key First";
-    CHECK(hex_of(hmac_sha256(k6.data(), k6.size(), m6.data(), m6.size())) ==
+    CHECK(hex_of(hmac_sha256(bytes(k6), m6)) ==
           "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54");
     Sha256 h;
     CHECK(hex_of(h.digest()) == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");

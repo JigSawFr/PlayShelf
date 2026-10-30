@@ -33,7 +33,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         });
     bool ok = true;
     for (size_t at = 0; ok && at < size; at += piece)
-        ok = cs.feed(data + at, std::min(piece, size - at));
+        ok = cs.feed({data + at, std::min(piece, size - at)});
     if (ok && cs.finish()) FUZZ_ASSERT(next == header_size);
     FUZZ_ASSERT(cs.written() == next);
     return 0;

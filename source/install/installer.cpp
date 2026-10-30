@@ -68,7 +68,7 @@ bool Installer::prepare(std::string* why)
                     t.meta_nca.insert(t.meta_nca.end(), data, data + size);
                     return true;
                 });
-            if (!cs.feed(file.data(), file.size()) || !cs.finish()) return fail(why, f->name + ": " + cs.error());
+            if (!cs.feed(file) || !cs.finish()) return fail(why, f->name + ": " + cs.error());
         } else {
             t.meta_nca = std::move(file);
         }
@@ -82,7 +82,7 @@ bool Installer::prepare(std::string* why)
         t.meta_content.size = t.meta_nca.size();
         t.meta_content.type = ContentType::Meta;
         Sha256 sha;
-        sha.update(t.meta_nca.data(), t.meta_nca.size());
+        sha.update(t.meta_nca);
         t.meta_content.hash = sha.digest();
 
         const uint32_t required = as_hos_version(t.meta.required_system_version());
@@ -196,7 +196,7 @@ bool Installer::write_content(const ContentInfo& c, std::string* why)
                                              where = "paused";
                                              return false;
                                          }
-                                         if (!cs.feed(data, size)) return false;
+                                         if (!cs.feed({data, size})) return false;
                                          if (done - journaled >= JOURNAL_EVERY && cs.checkpoint()) {
                                              state.at = cs.checkpoint();
                                              save_journal();

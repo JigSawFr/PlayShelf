@@ -78,7 +78,7 @@ class ContentStream
 
     // The next bytes of the file (.nca or .ncz). False once the stream has
     // stopped: error() says why.
-    bool feed(const uint8_t* data, size_t size);
+    bool feed(std::span<const uint8_t> data);
     // The file's end: true when the NCA came out whole and matches its hash.
     bool finish();
 

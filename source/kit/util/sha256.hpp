@@ -9,13 +9,16 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
+#include <string_view>
 
 class Sha256
 {
   public:
     Sha256();
-    void update(const void* data, size_t size);
+    void update(std::span<const uint8_t> bytes);
+    void update(std::string_view text);
     // 64 lower-case hex digits. The object is spent afterwards.
     std::string hex();
     // The 32 bytes. The object is spent afterwards.
@@ -26,7 +29,7 @@ class Sha256
     // back; false, the object unchanged, for bytes that are not a state.
     static constexpr size_t STATE_SIZE = 32 + 64 + 8 + 8;
     std::array<uint8_t, STATE_SIZE> save() const;
-    bool                            restore(const uint8_t* state, size_t size);
+    bool                            restore(std::span<const uint8_t> state);
 
   private:
     void block(const uint8_t* p);
@@ -38,4 +41,5 @@ class Sha256
 };
 
 // HMAC-SHA256 of `msg` keyed with `key`.
-std::array<uint8_t, 32> hmac_sha256(const void* key, size_t key_size, const void* msg, size_t msg_size);
+std::array<uint8_t, 32> hmac_sha256(std::span<const uint8_t> key, std::span<const uint8_t> msg);
+std::array<uint8_t, 32> hmac_sha256(std::span<const uint8_t> key, std::string_view msg);

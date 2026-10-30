@@ -49,7 +49,7 @@ bool NcaHeader::has_rights_id() const
 
 void nca_header_crypt(uint8_t header[NCA_HEADER], const uint8_t header_key[32], bool encrypt)
 {
-    aes128_xts_nintendo(header_key, header, NCA_HEADER, 0, 0x200, encrypt);
+    aes128_xts_nintendo(header_key, {header, NCA_HEADER}, 0, 0x200, encrypt);
 }
 
 std::optional<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size, std::string* why)
@@ -82,7 +82,7 @@ std::optional<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size, s
             return fail<NcaHeader>(why, "a section out of the content's bounds");
         std::memcpy(s.fs_header.data(), d + 0x400 + 0x200 * i, 0x200);
         Sha256 sha;
-        sha.update(s.fs_header.data(), 0x200);
+        sha.update(s.fs_header);
         if (std::memcmp(sha.digest().data(), d + 0x280 + 0x20 * i, 32) != 0)
             return fail<NcaHeader>(why, "a section's fs header does not match its hash");
         s.fs_type = s.fs_header[2];
@@ -95,7 +95,7 @@ std::optional<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size, s
 
 bool nca_signature_valid_with(const uint8_t header[NCA_HEADER], const uint8_t modulus[256])
 {
-    return rsa2048_pss_sha256_verify(header + 0x200, 0x200, header, modulus);
+    return rsa2048_pss_sha256_verify({header + 0x200, 0x200}, header, modulus);
 }
 
 NcaSignature nca_check_signature(const uint8_t header[NCA_HEADER])
@@ -158,7 +158,7 @@ std::optional<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, 
         const auto key = nca_ctr_key(*h, keys);
         if (!key) return fail<Bytes>(why, "no key for the section (key generation newer than the console)");
         const auto iv = nca_section_iv(s);
-        Aes128Ctr(key->data(), iv.data()).crypt(pfs.data(), pfs.size(), from);
+        Aes128Ctr(key->data(), iv.data()).crypt(pfs, from);
     }
     const auto p = pfs_parse(pfs, pfs.size(), why);
     if (!p) return std::nullopt;

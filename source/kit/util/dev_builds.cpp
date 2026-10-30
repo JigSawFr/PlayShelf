@@ -582,7 +582,7 @@ bool verify_file(const std::string& path, uint64_t size, const std::string& sha2
     char buf[16 * 1024];
     size_t n;
     while ((n = std::fread(buf, 1, sizeof(buf), f)) > 0) {
-        hash.update(buf, n);
+        hash.update(std::string_view(buf, n));
         got += n;
     }
     const bool read_error = std::ferror(f) != 0;

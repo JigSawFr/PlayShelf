@@ -9,11 +9,11 @@
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (const auto s = library::parse_discovery((const char*)data, size, "192.168.1.20")) {
+    if (const auto s = library::parse_discovery({(const char*)data, size}, "192.168.1.20")) {
         FUZZ_ASSERT(s->uid.size() == 36 && s->port > 0 && s->name.size() <= 48);
         FUZZ_ASSERT(s->remote.empty() || s->remote.compare(0, 8, "https://") == 0);
     }
-    (void)library::spki_sha256(data, size);
-    if (const auto der = library::pem_to_der(std::string((const char*)data, size))) (void)library::spki_sha256(der->data(), der->size());
+    (void)library::spki_sha256({data, size});
+    if (const auto der = library::pem_to_der(std::string((const char*)data, size))) (void)library::spki_sha256(*der);
     return 0;
 }

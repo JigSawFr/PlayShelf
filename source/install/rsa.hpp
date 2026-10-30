@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 namespace install
 {
@@ -14,6 +15,6 @@ namespace install
 // Whether `signature` is a valid signature of `msg` under the public key
 // whose modulus is `modulus` (both 256 bytes, big-endian). A signature not
 // below the modulus is not valid.
-bool rsa2048_pss_sha256_verify(const void* msg, size_t size, const uint8_t signature[256], const uint8_t modulus[256]);
+bool rsa2048_pss_sha256_verify(std::span<const uint8_t> msg, const uint8_t signature[256], const uint8_t modulus[256]);
 
 }   // namespace install

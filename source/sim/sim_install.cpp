@@ -244,7 +244,7 @@ Result core_unwrap_key(u8, u8 index, const u8 in[16], u8 out[16])
     static const u8 KAEK[16] = {0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf};
     if (index != 0) return FAIL;
     std::memcpy(out, in, 16);
-    install::aes128_ecb_decrypt(KAEK, out, 16);
+    install::aes128_ecb_decrypt(KAEK, {out, 16});
     return 0;
 }
 

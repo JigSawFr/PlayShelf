@@ -19,9 +19,9 @@ const char PREFIX[] = "v1:";
 // to authenticate.
 void derive(const Key& key, Key* enc, std::array<uint8_t, 32>* mac)
 {
-    const auto e = hmac_sha256(key.data(), key.size(), "playshelf secret box: encrypt", 29);
+    const auto e = hmac_sha256(key, "playshelf secret box: encrypt");
     std::memcpy(enc->data(), e.data(), 16);
-    *mac = hmac_sha256(key.data(), key.size(), "playshelf secret box: authenticate", 34);
+    *mac = hmac_sha256(key, "playshelf secret box: authenticate");
 }
 
 std::string b64(const std::vector<uint8_t>& d)
@@ -77,7 +77,7 @@ std::array<uint8_t, 32> tag_of(const std::array<uint8_t, 32>& mac, const uint8_t
     std::vector<uint8_t> m(PREFIX, PREFIX + 2);
     m.insert(m.end(), nonce, nonce + 16);
     m.insert(m.end(), data, data + size);
-    return hmac_sha256(mac.data(), mac.size(), m.data(), m.size());
+    return hmac_sha256(mac, m);
 }
 
 std::optional<Key> console_key()
@@ -97,7 +97,7 @@ std::string seal(const std::string& secret, const Key& key, const std::array<uin
     derive(key, &enc, &mac);
     std::vector<uint8_t> body(nonce.begin(), nonce.end());
     body.insert(body.end(), secret.begin(), secret.end());
-    aes::Aes128Ctr(enc.data(), nonce.data()).crypt(body.data() + 16, secret.size(), 0);
+    aes::Aes128Ctr(enc.data(), nonce.data()).crypt(std::span(body).subspan(16), 0);
     const auto tag = tag_of(mac, nonce.data(), body.data() + 16, secret.size());
     body.insert(body.end(), tag.begin(), tag.end());
     return PREFIX + b64(body);
@@ -119,7 +119,7 @@ std::optional<std::string> open(const std::string& box, const Key& key)
         diff |= (uint8_t)(tag[i] ^ (*body)[16 + n + i]);
     if (diff) return std::nullopt;
     std::string out(body->begin() + 16, body->begin() + 16 + (long)n);
-    aes::Aes128Ctr(enc.data(), body->data()).crypt((uint8_t*)out.data(), out.size(), 0);
+    aes::Aes128Ctr(enc.data(), body->data()).crypt({(uint8_t*)out.data(), out.size()}, 0);
     return out;
 }
 
