@@ -168,8 +168,8 @@ builds `build-web/simulator/`; `make web-serve` serves it at
 - `tools/web_demo.cpp`, built and run on the host first: the demo server's
   files in `build-web/demo/`.
 - `CMakeLists.txt`, under `emcmake` (`PLAYSHELF_WEB`): the desktop build on
-  Aurore's SDL2 platform with OpenGL ES 3, which Emscripten maps to WebGL 2;
-  SDL2 and zlib from Emscripten's ports; zstd's decompressor from its
+  Aurore's SDL3 platform with OpenGL ES 3, which Emscripten maps to WebGL 2;
+  SDL3 and zlib from Emscripten's ports; zstd's decompressor from its
   release's sources (`FetchContent`, its hash pinned: Emscripten has no port
   of it); no libcurl (`source/sim/web_http.cpp` instead); the resources
   packaged at `/app/resources` and the demo server at `/app/samples/demo`
