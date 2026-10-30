@@ -65,6 +65,8 @@ void test_worth()
     CHECK(news[3].kind == NewsKind::Trend && news[3].id == WISHED && news[3].why == News::Why::Wished && news[3].now == 200);
     CHECK(news[4].id == 0x0100000000090000 && news[4].why == News::Why::Series && news[4].series == "Saga" &&
           news[4].before == 20);
+    for (const News& n : news)
+        CHECK(n.id != LITTLE && (n.kind == NewsKind::Trend || n.id != OTHER) && n.id != DELUXE && n.id != OWNED);
     // At most `max` of each kind.
     const auto one = news_of(b.changes, b.signals, b.similar, b.editions, { OWNED }, { WISHED }, told, 1);
     CHECK(one.size() == 2 && one[0].id == IN_Q1 && one[1].id == WISHED);
