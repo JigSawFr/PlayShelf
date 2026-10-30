@@ -46,6 +46,12 @@ std::vector<Line> parse(const std::string& md, int max_releases);
 // build). `date`, if given, receives the heading's date ("2026-10-10").
 std::vector<Line> release_notes(const std::string& md, const std::string& version, std::string* date = nullptr);
 
+// Every release newer than `installed` (update::compare_versions), each as
+// its Release line then its own, most recent first as in the file: what
+// changed since then. Headings that are not a version ("Upstream history")
+// are left out.
+std::vector<Line> newer_than(const std::string& md, const std::string& installed);
+
 // Where the summary written for a release (its "### 🌟 Highlights" and the
 // like) ends in its notes: at the first of release-please's own sections
 // ("Features", "Bug Fixes", … as in release-please-config.json), else at the

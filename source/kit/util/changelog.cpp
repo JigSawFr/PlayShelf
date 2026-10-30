@@ -8,6 +8,7 @@
 #include <aurore/cadran/util/emoji.hpp>
 #include <aurore/cadran/util/text.hpp>
 
+#include "util/update.hpp"
 
 namespace changelog
 {
@@ -151,7 +152,12 @@ std::vector<Line> parse(const std::string& md, int max_releases)
             lines.push_back({ Line::Text, clean(t) });
             in_item = false;
         }
-        if (!lines.empty() && lines.back().text.empty() && lines.back().title.empty()) lines.pop_back();
+        // Nothing left once cleaned (a bullet of bare "**"): not a line, and
+        // no item for an indented line after it to continue.
+        if (!lines.empty() && lines.back().text.empty() && lines.back().title.empty()) {
+            lines.pop_back();
+            in_item = false;
+        }
     };
 
     // HTML comments, invisible on GitHub: skipped, except the console's own
@@ -172,6 +178,21 @@ std::vector<Line> parse(const std::string& md, int max_releases)
             continue;
         }
         line(raw, t);
+    }
+    return lines;
+}
+
+std::vector<Line> newer_than(const std::string& md, const std::string& installed)
+{
+    std::vector<Line> lines;
+    bool inside = false;
+    for (Line& l : parse(md, 0)) {
+        if (l.kind == Line::Release) {
+            const std::string v = l.text.substr(0, l.text.find(" · "));
+            int numbers[3];
+            inside = update::parse_version(v, numbers) && update::compare_versions(v, installed) > 0;
+        }
+        if (inside) lines.push_back(std::move(l));
     }
     return lines;
 }

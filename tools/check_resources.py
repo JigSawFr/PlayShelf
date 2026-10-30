@@ -509,6 +509,8 @@ tests_page = read(f"{ROOT}/{TESTS_PAGE}")
 sim_read = set()
 for path, text in code_text.items():
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv|sim_net::value)\(\s*"(PLAYSHELF_SIM_\w+)"', text))
+    # The shared code (app_id.h) names them APP_ENV "_SIM_<name>".
+    sim_read |= {"PLAYSHELF_SIM_" + v for v in re.findall(r'(?:sim_env(?:_flag|_int)?|sim_net::value)\(\s*APP_ENV\s*"_SIM_(\w+)"', text)}
 for path in glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv)\(\s*"(PLAYSHELF_SIM_\w+)"', read(path)))
 # Aurore's Cadran reads its flags through ui::env_flag("NAME"), which

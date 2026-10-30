@@ -71,6 +71,14 @@ int main()
     CHECK(changelog::release_notes(MD, "1.1", nullptr).empty());
     CHECK(changelog::release_notes(MD, "", nullptr).empty());
 
+    // What changed since a version: the newer releases, headings included.
+    const auto since = changelog::newer_than(MD, "1.0.0");
+    CHECK(since.size() == 7 && since[0].kind == Line::Release && since[0].text == "1.1.0 · 2026-10-10" &&
+          since.back().text == "uses romfs and borealis");
+    const auto older = changelog::newer_than(MD, "0.9.0");
+    CHECK(older.size() == 9 && older[7].text == "1.0.0 · 2026-09-01" && older[8].text == "First release.");
+    CHECK(changelog::newer_than(MD, "1.1.0").empty() && changelog::newer_than(MD, "2.0.0").empty());
+
     // A release's hand-written summary (.github/release-notes/<version>.md):
     // the highlights About shows, without a "## " heading of its own.
     const auto summary = changelog::parse("### \xF0\x9F\x8C\x9F Highlights\n"   // 🌟
@@ -185,6 +193,13 @@ int main()
     // An unclosed hide block hides the rest; an unclosed comment too.
     CHECK(changelog::parse("<!-- console:hide -->\n* gone\n", 0).empty());
     CHECK(changelog::parse("<!-- open\n* gone\n", 0).empty());
+
+    // A bullet with nothing left once cleaned is dropped, and an indented line
+    // after it continues nothing (the fuzzer's find: it read past an empty list).
+    const auto empty_item = changelog::parse("* **\n  continued\n", 0);
+    CHECK(empty_item.size() == 1 && empty_item[0].kind == Line::Text && empty_item[0].text == "continued");
+    const auto after_item = changelog::parse("* one\n* **\n  two\n", 0);
+    CHECK(after_item.size() == 2 && after_item[0].text == "one" && after_item[1].kind == Line::Text);
 
     CHECK(changelog::parse("", 0).empty());
     CHECK(changelog::parse("# Changelog\n", 0).empty());
