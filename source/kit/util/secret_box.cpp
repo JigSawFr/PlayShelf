@@ -5,6 +5,7 @@
 #include <random>
 #include <vector>
 
+#include "app_id.h"
 #include "core/device_key.h"
 #include "util/aes.hpp"
 #include "util/sha256.hpp"
@@ -15,13 +16,13 @@ namespace
 {
 const char PREFIX[] = "v1:";
 
-// Each key the HMAC of the console's with its purpose: one to encrypt, one
-// to authenticate.
+// Each key the HMAC of the console's with the app and its purpose
+// ("playshelf secret box: encrypt"): one to encrypt, one to authenticate.
 void derive(const Key& key, Key* enc, std::array<uint8_t, 32>* mac)
 {
-    const auto e = hmac_sha256(key, "playshelf secret box: encrypt");
+    const auto e = hmac_sha256(key, APP_ID " secret box: encrypt");
     std::memcpy(enc->data(), e.data(), 16);
-    *mac = hmac_sha256(key, "playshelf secret box: authenticate");
+    *mac = hmac_sha256(key, APP_ID " secret box: authenticate");
 }
 
 std::string b64(const std::vector<uint8_t>& d)
@@ -69,6 +70,9 @@ std::optional<std::vector<uint8_t>> unb64(const std::string& s)
             out.push_back((uint8_t)(acc >> bits));
         }
     }
+    // The bits left over pad the last byte: zeros, so that one box has one
+    // spelling and a changed character never opens as the same bytes.
+    if (acc & ((1u << bits) - 1)) return std::nullopt;
     return out;
 }
 
