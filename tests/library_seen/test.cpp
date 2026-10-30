@@ -56,9 +56,14 @@ void test_days()
 
 void test_ids()
 {
-    CHECK(ids_text({ A, C }) == "0100000000010000\n0100000000030000\n");
+    CHECK(ids_text({ A, C }) == "schema=1\n0100000000010000\n0100000000030000\n");
     const auto ids = ids_of("0100000000010000\r\nbad\n0100000000010000\n0100000000030000\n0100000000020000", 2);
     CHECK(ids.size() == 2 && ids[0] == A && ids[1] == C);
+    // The file's schema line: written, read past; none (an older file) is 1;
+    // a newer one gives nothing, and ids_newer() keeps it from being saved over.
+    CHECK(ids_text({ A }) == "schema=1\n0100000000010000\n" && ids_of(ids_text({ A, C }), 10).size() == 2);
+    CHECK(!ids_newer(ids_text({})) && !ids_newer("0100000000010000\n") && !ids_newer(""));
+    CHECK(ids_newer("schema=2\n0100000000010000\n") && ids_of("schema=2\n0100000000010000\n", 10).empty());
 }
 }   // namespace
 

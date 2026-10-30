@@ -53,9 +53,14 @@ class SeenBook
 // The days between two YYYYMMDD dates (b - a), by the calendar.
 long days_between(uint32_t a, uint32_t b);
 
-// Title ids as a file holds them, one per line in hex, and read back (the
-// lines that are one, `max` at most, each once, in order).
+// Title ids as a file holds them (the wishlist, the games put away): a
+// "schema=N" line (util/text_schema.hpp), then one per line in hex; and
+// read back (the lines that are one, `max` at most, each once, in order;
+// none from a file of a newer schema, which ids_newer() tells: never
+// written over).
+constexpr int         IDS_SCHEMA = 1;
 std::string           ids_text(const std::vector<uint64_t>& ids);
 std::vector<uint64_t> ids_of(const std::string& text, size_t max);
+bool                  ids_newer(const std::string& text);
 
 }   // namespace library

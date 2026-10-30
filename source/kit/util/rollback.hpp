@@ -15,6 +15,12 @@
 namespace rollback
 {
 
+// previous_build.json, boot_check.json and went_back.json's "schema". They
+// are read by the build gone back to, older by design: a key is only ever
+// added (one changing meaning would be a new key), and their readers take
+// any schema, skipping what they do not know.
+constexpr int SCHEMA = 1;
+
 // "<nro>.previous": the build that ran before.
 std::string previous_file(const std::string& nro);
 

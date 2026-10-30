@@ -31,6 +31,8 @@
 #include <aurore/extern/nlohmann/json.hpp>
 
 #include "install/packages.hpp"
+#include "library/seen.hpp"
+#include "util/text_schema.hpp"
 
 using namespace install;
 using namespace test_install;
@@ -385,7 +387,7 @@ int main(int argc, char** argv)
         write(out + meta, "");
         write(out + control, games[k].name + "\n");
     }
-    write(out + "/console/data/wishlist.txt", wished);
+    write(out + "/console/data/wishlist.txt", text_schema::with(library::IDS_SCHEMA, wished));
     std::printf("web_demo: %d games on the server, %zu in all, %u contents, in %s\n", served, games.size(),
                 (unsigned)(s_next_id - 0x10), out.c_str());
     return 0;

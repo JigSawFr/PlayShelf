@@ -61,6 +61,15 @@ static void test_files()
     CHECK(rollback::read_check(check, &back) && back.starts == 0 && back.label.empty());
     fs::write(check, "[]");
     CHECK(!rollback::read_check(check, &back));
+
+    // Their schema is written; the build gone back to is older by design,
+    // so every schema is read, an unknown key skipped, none counting as 1.
+    CHECK(rollback::write_check(check, c) && fs::read(check).find("\"schema\":1") != std::string::npos);
+    CHECK(rollback::write_label(label, "1.2.0") && fs::read(label).find("\"schema\":1") != std::string::npos);
+    fs::write(label, R"({"schema": 2, "label": "1.3.0", "channel": "beta"})");
+    CHECK(rollback::read_label(label, &l) && l == "1.3.0");
+    fs::write(check, R"({"schema": 2, "label": "PR #40", "starts": 2, "pid": 7})");
+    CHECK(rollback::read_check(check, &back) && back.label == "PR #40" && back.starts == 2);
 }
 
 static void test_swap()

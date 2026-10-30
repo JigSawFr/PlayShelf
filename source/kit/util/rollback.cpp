@@ -44,7 +44,7 @@ bool read_label(const std::string& json_file, std::string* label)
 bool write_label(const std::string& json_file, const std::string& label)
 {
     std::string err;
-    return paths::atomic_write(json_file, json{ { "label", label } }.dump() + "\n", &err);
+    return paths::atomic_write(json_file, json{ { "schema", SCHEMA }, { "label", label } }.dump() + "\n", &err);
 }
 
 bool read_check(const std::string& json_file, Check* out)
@@ -62,7 +62,7 @@ bool read_check(const std::string& json_file, Check* out)
 bool write_check(const std::string& json_file, const Check& check)
 {
     std::string err;
-    return paths::atomic_write(json_file, json{ { "label", check.label }, { "starts", check.starts } }.dump() + "\n", &err);
+    return paths::atomic_write(json_file, json{ { "schema", SCHEMA }, { "label", check.label }, { "starts", check.starts } }.dump() + "\n", &err);
 }
 
 bool offer_at_start(bool checked, int starts_before, bool have_previous)

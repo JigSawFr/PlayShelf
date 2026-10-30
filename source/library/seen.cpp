@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/seen.hpp"
+#include "util/text_schema.hpp"
 #include "util/title_id.hpp"
 
 #include <ctime>
@@ -154,12 +155,15 @@ std::string ids_text(const std::vector<uint64_t>& ids)
 {
     std::string out;
     for (uint64_t id : ids) out += title_id::text(id) + "\n";
-    return out;
+    return text_schema::with(IDS_SCHEMA, out);
 }
+
+bool ids_newer(const std::string& text) { return text_schema::of(text) > IDS_SCHEMA; }
 
 std::vector<uint64_t> ids_of(const std::string& text, size_t max)
 {
     std::vector<uint64_t> out;
+    if (ids_newer(text)) return out;
     std::set<uint64_t>    once;
     size_t                start = 0;
     while (start < text.size() && out.size() < max) {
