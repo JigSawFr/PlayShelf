@@ -251,11 +251,12 @@ void install(const dev_builds::Build& b)
                                                        aurore::getStr("playshelf/dev_build/replacing", rollback_flow::running_label()));
     // Not behind the play log or the game icons (ui::in_background).
     ui::in_background("dev build download", [b, target, progress]() {
-        std::string err;
         const std::string fresh = target + ".new";
-        bool ok = dev_builds::download(b, fresh, &err, [progress](uint64_t done, uint64_t total) {
+        const auto        got = dev_builds::download(b, fresh, [progress](uint64_t done, uint64_t total) {
             progress->received(done, total);
         }, progress->cancel_flag());
+        const bool        ok = got.has_value();
+        const std::string err = ok ? "" : got.error();
         aurore::sync([b, ok, err, target, fresh, progress]() mutable {
             // Cancelled: nothing replaced, even when the download had just
             // ended; said with a toast (the dialog is already gone).
@@ -284,12 +285,11 @@ void install(const dev_builds::Build& b)
                 // resources), and the SD card will not rename an open file:
                 // released for the two renames, here on the UI thread so that
                 // nothing reads romfs:/ meanwhile, then mounted again.
-                std::string replace_err;
                 platform_romfs_release();
-                const bool replaced = dev_builds::replace(target, fresh, &replace_err, rollback::previous_file(target));
+                const auto replaced = dev_builds::replace(target, fresh, rollback::previous_file(target));
                 platform_romfs_mount();
                 if (!replaced) std::remove(fresh.c_str());
-                end(replaced, replace_err);
+                end(replaced.has_value(), replaced ? "" : replaced.error());
             });
         });
     });
@@ -442,14 +442,12 @@ void find()
         // A few requests, a few seconds: the bar fills at a steady pace meanwhile.
         DevBuildsActivity::loading(aurore::getStr("playshelf/dev_build/finding", what), 0.0f, true);
         ui::in_background("dev build find", [q]() {
-            dev_builds::Build b;
-            std::string err;
-            const bool ok = dev_builds::find(q, &b, &err);
-            aurore::sync([ok, b, err]() {
+            auto found = dev_builds::find(q);
+            aurore::sync([found]() {
                 s_busy = false;
                 DevBuildsActivity::loaded();
-                if (ok) choose(b);
-                else ui::error(aurore::getStr("playshelf/dev_build/find_failed", err));
+                if (found) choose(*found);
+                else ui::error(aurore::getStr("playshelf/dev_build/find_failed", found.error()));
             });
         });
     });
@@ -487,8 +485,7 @@ void open(bool force)
     // Not behind the play log or the game icons (ui::in_background).
     ui::in_background("dev build list", []() {
         dev_builds::Cache fresh;
-        std::string err;
-        const bool ok = dev_builds::fetch(&fresh.builds, &fresh.needs_login, &err, [](float done, dev_builds::Step step) {
+        auto listed = dev_builds::fetch(&fresh.needs_login, [](float done, dev_builds::Step step) {
             aurore::sync([done, step]() {
                 const char* key = step == dev_builds::Step::Releases    ? "playshelf/dev_build/step_releases"
                                   : step == dev_builds::Step::Artifacts ? "playshelf/dev_build/step_artifacts"
@@ -497,6 +494,9 @@ void open(bool force)
                 DevBuildsActivity::loading(aurore::getStr(key), done);
             });
         });
+        const bool        ok = listed.has_value();
+        const std::string err = ok ? "" : listed.error();
+        if (ok) fresh.builds = std::move(*listed);
         fresh.fetched_at = now();
         aurore::sync([ok, fresh, err]() {
             s_busy = false;
