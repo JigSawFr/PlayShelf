@@ -240,8 +240,11 @@ struct Cache
 // A list older than this is fetched again before it is shown.
 constexpr int64_t CACHE_MAX_AGE_S = 10 * 60;
 
+// cache/dev_builds.json's "schema" (named "version" before: still read).
+constexpr int CACHE_SCHEMA = 1;
+
 std::string encode_cache(const Cache& cache);
-// False for anything else (damaged, another layout); a build that does not
+// False for anything else (damaged, another schema: fetched again); a build that does not
 // look like one (a URL not on https://github.com/ or https://api.github.com/,
 // a malformed commit, a digest missing or malformed) is left out.
 bool decode_cache(const std::string& json, Cache* out);

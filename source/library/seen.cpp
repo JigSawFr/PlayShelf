@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/seen.hpp"
+#include "util/text_schema.hpp"
 #include "util/title_id.hpp"
 
 #include <ctime>
@@ -142,16 +143,27 @@ bool SeenBook::from_json(const std::string& text)
     return true;
 }
 
+bool SeenBook::newer(const std::string& text)
+{
+    const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
+    if (!root.is_object()) return false;
+    const auto schema = root.find("schema");   // a newer one is above 0: JSON's unsigned
+    return schema != root.end() && schema->is_number_unsigned() && schema->get<uint64_t>() > (uint64_t)SCHEMA;
+}
+
 std::string ids_text(const std::vector<uint64_t>& ids)
 {
     std::string out;
     for (uint64_t id : ids) out += title_id::text(id) + "\n";
-    return out;
+    return text_schema::with(IDS_SCHEMA, out);
 }
+
+bool ids_newer(const std::string& text) { return text_schema::of(text) > IDS_SCHEMA; }
 
 std::vector<uint64_t> ids_of(const std::string& text, size_t max)
 {
     std::vector<uint64_t> out;
+    if (ids_newer(text)) return out;
     std::set<uint64_t>    once;
     size_t                start = 0;
     while (start < text.size() && out.size() < max) {

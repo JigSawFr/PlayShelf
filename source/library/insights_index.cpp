@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/insights_index.hpp"
+#include "library/atlas.hpp"
 
 #include <aurore/extern/nlohmann/json.hpp>
 
@@ -36,7 +37,7 @@ bool InsightsIndex::from_json(const std::string& text)
 {
     this->files.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
-    if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("files") || !root["files"].is_object()) return false;
+    if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA || !root.contains("files") || !root["files"].is_object()) return false;
     for (const auto& [name, value] : root["files"].items()) {
         if (this->files.size() >= MAX_FILES) break;
         if (!is_name(name) || !value.is_object()) continue;

@@ -42,7 +42,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-from urllib.parse import urlparse, urlsplit
+from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit, urlunsplit
 
 import markdown
 
@@ -130,8 +130,53 @@ def link_out(tag: str, url: str) -> str:
     return tag[:-1] + extra + ">"
 
 
+# Where a visit to another of Boréale's sites came from, for Umami (workbench's
+# "Mesure d'audience"): a link from this site to another *.boreale.dev site
+# carries utm_source='shelf' and a utm_medium telling where on the page it
+# is: "nav" (the header, its sites menu), "footer", or "link" (the page's
+# text). A link to this site itself carries none: tags a page's text came with
+# (a documentation page written for GitHub, utm_source=github) are taken off.
+UTM_SOURCE = "shelf"
+
+
+def utm(url: str, medium: str) -> str:
+    """`url` (as written in the page's HTML) tagged for its medium, or as it is
+    when it leads out of Boréale's sites."""
+    u = urlsplit(html.unescape(url))
+    host = (u.hostname or "").lower()
+    if u.scheme != "https" or not (host == "boreale.dev" or host.endswith(".boreale.dev")):
+        return url
+    query = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not k.startswith("utm_")]
+    if host != (urlsplit(SITE_URL).hostname or ""):
+        query += [("utm_source", UTM_SOURCE), ("utm_medium", medium)]
+    tagged = urlunsplit(u._replace(query=urlencode(query)))
+    return url if tagged == html.unescape(url) else html.escape(tagged, quote=True)
+
+
+SELF_LINK = re.compile(r"https://" + re.escape(urlsplit(SITE_URL).hostname or "") + r"/[^\s)<>\]\"']*")
+
+
+def untagged(text: str) -> str:
+    """Markdown or text the site serves (a documentation page, llms.txt) with
+    its links to the site itself free of the UTM tags it was written with for
+    GitHub."""
+    def one(m):
+        u = urlsplit(m.group(0))
+        query = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not k.startswith("utm_")]
+        return urlunsplit(u._replace(query=urlencode(query))) if len(query) != len(parse_qsl(u.query, keep_blank_values=True)) else m.group(0)
+    return SELF_LINK.sub(one, text)
+
 def links_out(text: str) -> str:
-    return LINK_OUT.sub(lambda m: link_out(m.group(0), m.group(1)), text)
+    main, footer = text.find("<main"), text.find("<footer")
+
+    def one(m):
+        at = m.start()
+        medium = "footer" if 0 <= footer <= at else "nav" if main < 0 or at < main else "link"
+        url = utm(m.group(1), medium)
+        tag = m.group(0).replace(f'href="{m.group(1)}"', f'href="{url}"', 1)
+        return link_out(tag, url)
+
+    return LINK_OUT.sub(one, text)
 
 
 def flag(lang):
@@ -410,7 +455,10 @@ def rewrite_links(body, source, lang, to_root, assets):
     def target(url):
         parts = urlsplit(url)
         if url.startswith(SIMULATOR_URL) and not parts.fragment:
-            query = "&".join(q for q in [parts.query, f"lang={lang}"] if q)
+            # The tags a page was written with for GitHub (utm_source=github)
+            # stay there: on the site, the link is to the site itself.
+            kept = urlencode([(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not k.startswith("utm_")])
+            query = "&".join(q for q in [kept, f"lang={lang}"] if q)
             return f"{to_root}simulator/?{query}"
         if parts.scheme or url.startswith(("#", "mailto:")):
             return url
@@ -450,13 +498,32 @@ SITES = [(None, [("boreale", "Boréale", "https://boreale.dev/")]),
          ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")])]
 
 
+# versions.json's schema this build reads ({"schema": 1, "projects": {...}});
+# the flat {project: "vX"} of before it had one is read too.
+VERSIONS_SCHEMA = 1
+
+
+def versions_of(data):
+    """The projects' versions in versions.json's `data`, as {project: "vX"}:
+    the flat shape of before, or {"schema": 1, "projects": {...}}. Another
+    schema or shape is none (the menu shows no versions), never an error."""
+    if not isinstance(data, dict):
+        return {}
+    if "schema" in data:
+        projects = data.get("projects")
+        if type(data["schema"]) is not int or data["schema"] != VERSIONS_SCHEMA or not isinstance(projects, dict):
+            return {}
+        data = projects
+    return {k: v for k, v in data.items() if isinstance(k, str) and isinstance(v, str)}
+
+
 def boreale_versions():
     """The projects' latest releases as boreale.dev publishes them
-    (versions.json), for the menu; none when it cannot be read (offline, a
-    local build), and the menu shows no versions."""
+    (versions.json, versions_of()), for the menu; none when it cannot be read
+    (offline, a local build), and the menu shows no versions."""
     try:
         with urllib.request.urlopen("https://boreale.dev/versions.json", timeout=10) as r:
-            return {k: v for k, v in json.load(r).items() if isinstance(v, str)}
+            return versions_of(json.load(r))
     except (OSError, ValueError):
         return {}
 
@@ -1400,6 +1467,8 @@ def write(out, rel, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if rel.endswith(".html"):
         text = links_out(text)
+    elif rel.endswith((".md", ".txt")):
+        text = untagged(text)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 

@@ -80,6 +80,7 @@ bool fetch(const char* kind, const PackFile& p, const std::string& dir, const Ne
 bool write_state(const std::string& dir, const State& st, std::string* why)
 {
     nlohmann::json j;
+    j["schema"] = STATE_SCHEMA;
     j["url"] = st.url;
     j["version"] = st.version;
     j["titles"] = st.titles;
@@ -127,6 +128,7 @@ bool read_state(const std::string& dir, State* out)
     if (!paths::read_file(dir + "/state.json", text)) return false;
     nlohmann::json j;
     if (!json_util::parse(text, &j) || !j.is_object()) return false;
+    if (json_util::integer_or(j, "schema", 1) != STATE_SCHEMA) return false;
     *out = {};
     out->url = json_util::string_at(j, "url");
     out->version = json_util::string_at(j, "version");
@@ -224,6 +226,13 @@ Outcome update(const std::string& url, const std::string& dir, const Net& net,
         return Outcome::Failed;
     }
     next.count = t.count();
+    // The icons pack too, before the state names it and the old one goes.
+    IconPack icons;
+    if (!next.icons.empty() && !icons.open(dir + "/" + next.icons, &w)) {
+        if (why) *why = "icons pack: " + w;
+        std::remove((dir + "/" + next.icons).c_str());
+        return Outcome::Failed;
+    }
     if (!write_state(dir, next, &w)) {
         if (why) *why = "state: " + w;
         return Outcome::Failed;

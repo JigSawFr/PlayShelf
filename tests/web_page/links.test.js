@@ -43,3 +43,17 @@ test('the page sends no referrer, but the origin to our own sites', () => {
     }
   }
 });
+
+test('a link to another of our sites says it comes from shelf.boreale.dev, no other has UTM tags', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../../web/index.html'), 'utf8');
+  for (const [, raw] of page.matchAll(/<a\b[^>]*\bhref="(https?:\/\/[^"]*)"/g)) {
+    const u = new URL(raw.replace(/&amp;/g, '&'));
+    const ours = u.hostname === 'boreale.dev' || u.hostname.endsWith('.boreale.dev');
+    if (ours && u.hostname !== 'shelf.boreale.dev') {
+      assert.equal(u.searchParams.get('utm_source'), 'shelf', raw);
+      assert.equal(u.searchParams.get('utm_medium'), 'nav', raw);
+    } else {
+      assert.ok(![...u.searchParams.keys()].some((k) => k.startsWith('utm_')), raw);
+    }
+  }
+});

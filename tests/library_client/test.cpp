@@ -4,7 +4,8 @@
 // server's own certificate (pin on first use offered, then used; a key
 // that changed refused); a WAN one no authority vouches for; refusals. And
 // the servers' file: written and read back, the password sealed, what a
-// hand-edited file cannot hold dropped.
+// hand-edited file cannot hold dropped; its schema and the keys it does
+// not know.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <algorithm>
 #include <map>
@@ -319,15 +320,28 @@ void test_store()
     CHECK(load_servers().empty());
     CHECK(save_servers({s}, &why) && load_servers().size() == 1);
     CHECK(set_password(s, "") && s.password_box.empty() && password_of(s).empty());
-    // What a hand-edited file cannot hold: http addresses, a plain password,
-    // a pin of another kind, a server with no address or no id.
+    // What a hand-edited file cannot hold: http addresses, a server with no
+    // address or no id. A plain password and a pin of another kind are not
+    // used, and written back as they were.
     const auto edited = servers_from_json(R"({"servers":[
         {"id":"a1","lan_url":"http://192.168.1.5","wan_url":"https://w","password":"plain","pin":"md5//x"},
         {"id":"a2","lan_url":"http://x"},
         {"lan_url":"https://y"},
         "junk"]})");
     CHECK(edited.size() == 1 && edited[0].lan_url.empty() && edited[0].wan_url == "https://w");
-    CHECK(edited[0].password_box.empty() && edited[0].pin.empty());
+    CHECK(edited[0].password_box.empty() && edited[0].pin.empty() && password_of(edited[0]).empty());
+    {
+        const auto again = servers_from_json(servers_to_json(edited));
+        CHECK(again.size() == 1 && again[0].kept == edited[0].kept);
+        const std::string text = servers_to_json(edited);
+        CHECK(text.find("\"plain\"") != std::string::npos && text.find("md5//x") != std::string::npos);
+        // A password set or cleared, a pin trusted, replace them.
+        Server e = edited[0];
+        CHECK(set_password(e, ""));
+        e.pin = CERT_EC_PIN;
+        const std::string now = servers_to_json({e});
+        CHECK(now.find("\"plain\"") == std::string::npos && now.find("md5//x") == std::string::npos);
+    }
     CHECK(servers_from_json("not json").empty());
     CHECK(new_server_id().size() == 16 && new_server_id() != new_server_id());
     // The editor's checks.
@@ -339,6 +353,35 @@ void test_store()
     CHECK(check_server(e).empty());
 }
 }   // namespace
+
+// The file's schema: none counts as 1; a newer one is read as no servers
+// and never written over; keys this build does not know (the file's and a
+// server's) are written back, a newer build's password with them.
+void test_schema()
+{
+    TempDir tmp("library_client_schema", TempDir::Enter);
+    const std::string server = R"({"id":"b2","name":"Den","wan_url":"https://den.example.org","pin":"")";
+    fs::write(servers_file(), R"({"servers":[)" + server + "}]}");
+    CHECK(load_servers().size() == 1);
+    fs::write(servers_file(), R"({"schema":1,"mirror":{"on":true},"servers":[)" + server +
+                                  R"(,"password":"v9:sealed-elsewhere","shelf":"top"}]})");
+    auto list = load_servers();
+    if (!CHECK(list.size() == 1)) return;
+    CHECK(list[0].password_box.empty() && password_of(list[0]).empty());
+    list[0].name = "Attic";
+    std::string why;
+    CHECK(save_servers(list, &why));
+    const std::string text = fs::read(servers_file());
+    CHECK(text.find("\"Attic\"") != std::string::npos && text.find("v9:sealed-elsewhere") != std::string::npos);
+    CHECK(text.find("\"shelf\": \"top\"") != std::string::npos && text.find("\"mirror\"") != std::string::npos);
+    // A newer file: nothing read, the save refused, the file as it was.
+    const std::string newer = R"({"schema":2,"servers":[)" + server + "}]}";
+    fs::write(servers_file(), newer);
+    CHECK(servers_newer(newer) && !servers_newer(text));
+    CHECK(load_servers().empty());
+    CHECK(!save_servers(list, &why) && !why.empty());
+    CHECK(fs::read(servers_file()) == newer);
+}
 
 void test_same_origin()
 {
@@ -361,5 +404,6 @@ int main()
     test_ownfoil();
     test_aerofoil();
     test_store();
+    test_schema();
     CHECK_DONE("library client: endpoints, credentials, API and index, pins on first use, the servers' file passed");
 }

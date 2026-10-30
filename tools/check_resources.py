@@ -3,6 +3,7 @@
 
 - every i18n JSON file parses, and every language (resources/i18n/<code>/
   playshelf.json) defines exactly the keys of en-US, with as many "{}";
+- web/simulator.js's CONFIG_SCHEMA is config::SCHEMA (config.json's);
 - config::LANGUAGES (source/util/config.hpp) lists exactly those languages,
   and each has a name under playshelf/tools/languages/;
 - every "playshelf/..." key referenced from C++ or XML exists in en-US,
@@ -489,6 +490,13 @@ for k in sorted(code_written - code_read - {"schema"}):
     warnings.append(f"source/util/config.cpp writes `{k}` but never reads it back")
 for k in sorted(code_read - code_written):
     warnings.append(f"source/util/config.cpp reads `{k}` but never writes it (lost at the next save)")
+
+# The web simulator writes config.json's schema too: the same number.
+config_hpp = read(f"{ROOT}/source/util/config.hpp")
+schema_hpp = re.search(r"constexpr int\s+SCHEMA\s*=\s*(\d+);", config_hpp)
+schema_js = re.search(r"const CONFIG_SCHEMA = (\d+);", read(f"{ROOT}/web/simulator.js"))
+if not schema_hpp or not schema_js or schema_hpp.group(1) != schema_js.group(1):
+    errors.append("web/simulator.js's CONFIG_SCHEMA is not config::SCHEMA (source/util/config.hpp)")
 
 # The contributor pages against the code: the simulator's PLAYSHELF_SIM_*
 # variables (read with sim_env, sim_env_flag, sim_env_int, getenv or

@@ -68,7 +68,8 @@
     "tour_download": "全部安装：其数据包进入下载，逐个安装。",
     "tour_downloads": "下载：队列、每个游戏的时间线，以及数据包的获取方式。",
     "tour_preferences": "偏好设置：语言、主题和游戏信息数据库。",
-    "tour_end": "轮到你了：方向键移动，Enter 为 A，Esc 为 B。面板可设置任何状态。"
+    "tour_end": "轮到你了：方向键移动，Enter 为 A，Esc 为 B。面板可设置任何状态。",
+    "sites_legal": "隐私与法律声明"
   },
   "groups": {
     "app": "PlayShelf",

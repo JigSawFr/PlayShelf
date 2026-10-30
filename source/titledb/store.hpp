@@ -33,6 +33,9 @@ struct State
     size_t      count = 0;       // the titles pack's entries
     bool        list = false;    // made from a title list (titledb/list), not fetched as a pack
 };
+// state.json's "schema" (none counts as 1): a newer one's state is read as
+// none, and the source fetched again.
+constexpr int STATE_SCHEMA = 1;
 bool read_state(const std::string& dir, State* out);
 
 // The folder of the source at `url`, under `root`.

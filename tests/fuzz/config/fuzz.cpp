@@ -2,7 +2,8 @@
 // card, editable by hand), in a temporary folder (paths::data_dir() is
 // ./playshelf_data on the host). Beyond the sanitizers: whatever was read,
 // what config::snapshot() writes reads back to the same settings
-// (sanitize() keeps nothing a second read would change).
+// (sanitize() keeps nothing a second read would change), and a newer
+// schema's file is never written over.
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -50,6 +51,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     clear();
     FUZZ_ASSERT(paths::atomic_write(paths::config_file(), text));
     config::load();
-    if (config::loaded() != config::Loaded::Stuck) round_trip();
+    // A newer schema's file: nothing written over it.
+    if (config::loaded() == config::Loaded::Newer) {
+        config::Snapshot none;
+        FUZZ_ASSERT(!config::snapshot(none));
+        std::string kept;
+        FUZZ_ASSERT(paths::read_file(paths::config_file(), kept) && kept == text);
+    } else if (config::loaded() != config::Loaded::Stuck) {
+        round_trip();
+    }
     return 0;
 }

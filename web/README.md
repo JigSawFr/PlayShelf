@@ -129,7 +129,9 @@ simulated console as it starts, and fetches the title database
 - **Keep the state** (`keep=1`): PlayShelf's data folder (`playshelf_data`:
   its settings, servers, downloads, and what the simulated console has
   installed) is kept in the browser's IndexedDB, written every 3 s and when
-  the page is left. The console settings of the panel then count for a
+  the page is left: in a database of each deployment's own, by the page's
+  folder (a release's, main's, a pull request's), so that one never reads
+  another's files. The console settings of the panel then count for a
   first start only; **Forget the kept state** starts over.
 - **Controls**: the arrows, Enter (Ⓐ) and Esc (Ⓑ) reach SDL directly; the
   page presses the other buttons by what the key says: X, Y, L, R, Shift+L
@@ -214,6 +216,15 @@ builds `build-web/simulator/`; `make web-serve` serves it at
 - **A Content-Security-Policy** (`index.html`'s `<meta>`): only the page's
   own files, no inline script or style; `'wasm-unsafe-eval'` compiles
   PlayShelf and `blob:` workers are Emscripten's threads.
+- **The audience**: the published page (on the site, not a pull request's
+  preview) gets Umami's tracker, the website's own copy
+  (`../assets/umami.js`, `tools/simulator_audience.py` in CI's `web`
+  workflow), which counts each visit on the site's address alone, without
+  cookie; its policy then lets the page send to `gateway.umami.is`. The
+  sites menu links to the privacy and legal notice (boreale.dev's).
+  Its links to our other sites carry `utm_source=shelf&utm_medium=nav`
+  (`SITE_TAGS`), for Umami's *UTM* report; a visit's own tags stay out of
+  the links the page makes (`toQuery()`), so a shared link does not carry them.
 - **The smoke test** (`tools/web_smoke.py`, CI's `web` workflow): the build
   in headless Chromium (Playwright, WebGL 2 from SwiftShader) must reach its
   first screen in each kind of start, go through every tab, install a game
