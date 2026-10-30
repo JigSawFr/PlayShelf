@@ -175,13 +175,20 @@ else ()
                               ${CMAKE_CURRENT_SOURCE_DIR}/source/kit/core/write_guard.c)
 endif ()
 
+# What the Boréale homebrews share (JigSawFr/boreale-link, a submodule in
+# library/boreale-link): the registry of the homebrews installed and the
+# shared bell's files, the flat files and the JSON they are written in.
+set(BOREALE_LINK ${CMAKE_CURRENT_SOURCE_DIR}/library/boreale-link/source)
+list(APPEND PLAYSHELF_SRC ${BOREALE_LINK}/bl_kv.c ${BOREALE_LINK}/bl_app.c ${BOREALE_LINK}/bl_json.c
+                          ${BOREALE_LINK}/bl_jread.c ${BOREALE_LINK}/bl_notices.c)
+
 # QR codes (sign-in with GitHub, funding links in About) (MIT, vendored: extern/qrcodegen).
 list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp)
 
 program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 
-target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen ${PLAYSHELF_INCLUDES})
+target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen library/boreale-link/source ${PLAYSHELF_INCLUDES})
 # -ffunction-sections / -fdata-sections come from Aurore (PUBLIC) and
 # --gc-sections from libnx's switch.specs.
 # Warnings on PlayShelf's own sources (not Aurore, not the vendored

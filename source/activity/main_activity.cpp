@@ -20,6 +20,7 @@
 #include "activity/insight_notices.hpp"
 #include "activity/notices_activity.hpp"
 #include "activity/tabs.hpp"
+#include "app.hpp"
 #include "tab/tab_base.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -102,18 +103,28 @@ void MainActivity::onContentAvailable()
     });
 #endif
 
-    // Preferences › Start on: that tab rather than the library.
-    int start = 0;
-    for (const char* t : config::START_TABS) {
-        if (config::get().start_tab == t) break;
-        start++;
+    // Preferences › Start on: that tab rather than the library; the one
+    // another Boréale homebrew's bell opened PlayShelf at, if any.
+    int position = -1;
+    if (!app::open_route().empty()) {
+        position = tabs::position_of("tab/" + app::open_route());
+    } else {
+        int start = 0;
+        for (const char* t : config::START_TABS) {
+            if (config::get().start_tab == t) break;
+            start++;
+        }
+        if (start > 0 && start < (int)(sizeof(config::START_TABS) / sizeof(config::START_TABS[0]))) position = tabs::of(start);
     }
-    if (start > 0 && start < (int)(sizeof(config::START_TABS) / sizeof(config::START_TABS[0]))) {
-        aurore::sync([this, start]() {
+    if (position > 0) {
+        aurore::sync([this, position]() {
             auto* frame = dynamic_cast<aurore::TabFrame*>(this->getView("main_tabs"));
-            if (frame && ui::on_top(this)) frame->focusTab(tabs::of(start));
+            if (frame && ui::on_top(this)) frame->focusTab(position);
         });
     }
+    // What the other Boréale homebrews read of PlayShelf: its entry in their
+    // registry and its bell, once per start (then at each change of the bell).
+    notices::publish();
 
     // A newer version (daily when opted in, and while one is known and not
     // installed: its screen); a build gone back from; then, with nothing

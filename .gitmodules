@@ -2,3 +2,7 @@
 	path = library/aurore
 	url = https://github.com/JigSawFr/Aurore.git
 	branch = main
+[submodule "library/boreale-link"]
+	path = library/boreale-link
+	url = https://github.com/JigSawFr/boreale-link.git
+	branch = main

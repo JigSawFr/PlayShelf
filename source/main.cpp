@@ -330,6 +330,7 @@ int main(int argc, char* argv[])
     keep_log_lines();
     std::set_terminate(on_terminate);
     app::set_self_path(argc > 0 ? argv[0] : nullptr);
+    app::set_open_route(argc, argv);
 
     // No earlier layout of the data folder yet: nothing to move
     // (util/migrations.hpp), the build recorded.
