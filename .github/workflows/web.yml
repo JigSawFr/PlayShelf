@@ -48,6 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Aurore and boreale-link for the simulator, boreale-site for the
+          # website (library/boreale-site, what Boréale's sites share).
           submodules: true
           # The history, without old files' contents: the website's
           # documentation of the latest release comes out of its tag.
@@ -201,7 +203,8 @@ jobs:
           export SITE_SCREENSHOTS=shots SITE_SIMULATOR=build-web/simulator
           python3 tools/build_site.py out .
           # Every link of the site to the site, and every #anchor (a heading
-          # renamed, a translation's anchors), must lead somewhere.
+          # renamed, a translation's anchors), must lead somewhere; and
+          # boreale-site's checks (links out, CSP, the catalogs).
           python3 tools/check_site_links.py out "$SITE_URL"
           cp -r build-web/simulator out/simulator
           cp -r build-web/shots out/simulator/shots

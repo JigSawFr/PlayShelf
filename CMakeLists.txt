@@ -383,6 +383,9 @@ endif ()
 # web/, PlayShelf and its packaged resources, in <build>/simulator/.
 if (PLAYSHELF_WEB)
     set(PLAYSHELF_SITE ${CMAKE_BINARY_DIR}/simulator)
+    # Sora, the flags and the marks of Boréale's sites: boreale-site's, the
+    # website's too (library/boreale-site).
+    set(BOREALE_SITE_ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/library/boreale-site/assets)
     add_custom_target(${PROJECT_NAME}_simulator ALL DEPENDS ${PROJECT_NAME}
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${PLAYSHELF_SITE}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLAYSHELF_SITE}
@@ -398,10 +401,10 @@ if (PLAYSHELF_WEB)
                 ${PLAYSHELF_SITE}
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/branding/icon.svg ${PLAYSHELF_SITE}/icon.svg
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/branding/mark.svg ${PLAYSHELF_SITE}/mark.svg
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/marks ${PLAYSHELF_SITE}/marks
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/sora.woff2 ${PLAYSHELF_SITE}/sora.woff2
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/twemoji-flags.woff2
-                ${CMAKE_CURRENT_SOURCE_DIR}/site/assets/fonts/LICENSE-twemoji-flags.txt ${PLAYSHELF_SITE}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${BOREALE_SITE_ASSETS}/marks ${PLAYSHELF_SITE}/marks
+        COMMAND ${CMAKE_COMMAND} -E copy ${BOREALE_SITE_ASSETS}/fonts/sora.woff2 ${PLAYSHELF_SITE}/sora.woff2
+        COMMAND ${CMAKE_COMMAND} -E copy ${BOREALE_SITE_ASSETS}/fonts/twemoji-flags.woff2
+                ${BOREALE_SITE_ASSETS}/fonts/LICENSE-twemoji-flags.txt ${PLAYSHELF_SITE}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/web/i18n ${PLAYSHELF_SITE}/i18n
         ${PLAYSHELF_SITE_CJK}
         COMMENT "Assembling the web simulator's site in ${PLAYSHELF_SITE}")

@@ -24,13 +24,12 @@ def main() -> None:
     page = Path(sys.argv[1]) / "index.html"
     html = page.read_text(encoding="utf-8")
     csp = "connect-src 'self';"
-    tag = (f'  <script src="../assets/umami.js" defer data-website-id="{build_site.UMAMI_WEBSITE}" '
-           f'data-domains="{build_site.UMAMI_DOMAIN}"></script>\n</head>')
+    tag = f"  {build_site.SITE.audience('../')}\n</head>"
     if html.count(csp) != 1 or html.count("</head>") != 1:
         sys.exit(f"simulator_audience: {page} has not the one connect-src and </head> expected")
-    html = html.replace(csp, "connect-src 'self' https://gateway.umami.is;").replace("</head>", tag)
+    html = html.replace(csp, f"connect-src 'self' {build_site.boreale.UMAMI_GATEWAY};").replace("</head>", tag)
     page.write_text(html, encoding="utf-8")
-    print(f"simulator_audience: {page}, counted on {build_site.UMAMI_DOMAIN}")
+    print(f"simulator_audience: {page}, counted on {build_site.SITE.host}")
 
 
 if __name__ == "__main__":
