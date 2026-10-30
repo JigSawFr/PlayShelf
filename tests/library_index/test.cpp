@@ -1,4 +1,4 @@
-// library/insights_index: PlayInsights' index.json read (schema 1, limits,
+// library/insights_index: Atlas' index.json read (schema 1, limits,
 // bad entries skipped), the short hash, and what to fetch again.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"

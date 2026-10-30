@@ -49,7 +49,7 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
             return std::ranges::contains(f.categories, genre);
         });
     };
-    // A game of PlayInsights' on any server read, as one of the page's rows.
+    // A game of Atlas' on any server read, as one of the page's rows.
     auto other_of = [](uint64_t other, std::vector<GameActivity::Other>& out) {
         const insights::Pick p = insights::found_of(other);
         if (!p.data) return;
@@ -64,7 +64,7 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
                         },
                         [found, i]() { open(found, i); } });
     };
-    // Its other editions (PlayInsights), the game first when this is one.
+    // Its other editions (Atlas), the game first when this is one.
     page.editions = [id = t.id, other_of]() {
         std::vector<GameActivity::Other> out;
         const auto     editions = popular_flow::editions();
@@ -74,7 +74,7 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
             if (e != id) other_of(e, out);
         return out;
     };
-    // The games most like it (PlayInsights), on any server read, the most
+    // The games most like it (Atlas), on any server read, the most
     // alike first; its own editions are in the row above.
     page.similar = [id = t.id, other_of]() {
         std::vector<GameActivity::Other> out;

@@ -8,10 +8,10 @@
 // and run on the host by `make web` and `make desktop` (it needs libzstd and
 // zlib).
 //
-// With them, what Home reads of PlayInsights about those games, made up as
+// With them, what Home reads of Atlas about those games, made up as
 // well (insights/switch/: popular.json, games.json, similar.json and
-// editions.json, in PlayInsights' schema 1 and its switch/ folder), which sim_demo_http.cpp answers in place of
-// PlayInsights' own, and the console's first games (console/meta/: a content
+// editions.json, in Atlas' schema 1 and its switch/ folder), which sim_demo_http.cpp answers in place of
+// Atlas' own, and the console's first games (console/meta/: a content
 // meta record for each, empty; console/control/: its name and icon), which
 // PlayShelf puts on the simulated console at a first start with the demo
 // (source/sim/sim_demo_seed.cpp): so Home shows its rows, the recommendations
@@ -48,7 +48,7 @@ struct Game
     bool        on_server = true;     // false: only the title database knows it
     bool        installed = false;    // on the console at a first start
     bool        wished = false;       // on its wishlist at a first start
-    // What PlayInsights would say of it: its series ("" for none), its
+    // What Atlas would say of it: its series ("" for none), its
     // studio, its genres, how well known it is, how fast that grows and the
     // critics' score (popular.json), its Steam reviews (0 and 0: not on Steam),
     // its IGDB players' rating (0 and 0: none) and the game it is an edition
@@ -170,7 +170,7 @@ void write(const std::string& path, const std::string& bytes)
 {
     std::ofstream(path, std::ios::binary) << bytes;
 }
-// ------------------------------------------------------ PlayInsights' files
+// ------------------------------------------------------ Atlas' files
 
 // A game's traits of each kind: [id, label] pairs. The ids are made up too
 // (Q and a number from 9 000 000), one for each label of a kind.
@@ -199,14 +199,14 @@ std::string trait_id(const std::string& kind, const std::string& label)
     return "Q" + std::to_string(it->second);
 }
 
-// How much sharing a trait of a kind counts, as PlayInsights weighs it
+// How much sharing a trait of a kind counts, as Atlas weighs it
 // (its tools/features.py): a series most, a mode least.
 double kind_weight(const std::string& kind)
 {
     return kind == "series" ? 4.0 : kind == "developers" ? 2.0 : kind == "genres" ? 1.0 : 0.5;
 }
 
-// Each game's most similar ones, 1..100, as PlayInsights finds them: a
+// Each game's most similar ones, 1..100, as Atlas finds them: a
 // cosine over the traits, each weighed by its kind and how rare it is.
 std::vector<std::vector<std::pair<size_t, int>>> similar_of(const std::vector<Traits>& all)
 {
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
         return 2;
     }
     const std::string out = argv[1];
-    // The day of the build: PlayInsights' files made on it (newer than the
+    // The day of the build: Atlas' files made on it (newer than the
     // ones PlayShelf ships), the table's `days` counted from it.
     const std::time_t now = std::time(nullptr);
     char              day[16];
@@ -366,7 +366,7 @@ int main(int argc, char** argv)
     write(out + "/index.json", "{\n  \"success\": \"Welcome to PlayShelf's demo shelf: made-up games, installed on a simulated console.\",\n"
                                "  \"files\": [" + items + "\n  ]\n}\n");
 
-    // PlayInsights' files of every game, and the console's first ones: their
+    // Atlas' files of every game, and the console's first ones: their
     // content meta records and names (web_demo_art.py adds their icons), and
     // the wishlist.
     mkdir((out + "/insights").c_str(), 0755);

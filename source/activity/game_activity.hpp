@@ -59,10 +59,10 @@ class GameActivity : public aurore::Activity
         // the caller's, nullptr for none.
         std::function<std::vector<Other>(const std::string& publisher)> by_publisher;
         std::function<std::vector<Other>(const std::string& genre)>     by_genre;
-        // The games most like it the servers have (PlayInsights' similar.json).
+        // The games most like it the servers have (Atlas' similar.json).
         std::function<std::vector<Other>()> similar;
         // Its other editions the servers have, the game itself among them
-        // when this is an edition (PlayInsights' editions.json).
+        // when this is an edition (Atlas' editions.json).
         std::function<std::vector<Other>()> editions;
     };
     static void show(Page page);

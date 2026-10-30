@@ -19,14 +19,14 @@ namespace popular_flow
 
 namespace
 {
-// The Switch's files, in PlayInsights' switch/ folder.
-constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/";
+// The Switch's files, in Atlas' switch/ folder.
+constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/";
 constexpr const char* FOLDER = "switch/";
 constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;   // fetched again a day after
 
-// One of PlayInsights' files: the book read from it, the newest kept. Its
-// name is the one shipped and cached; in PlayInsights it is in FOLDER.
+// One of Atlas' files: the book read from it, the newest kept. Its
+// name is the one shipped and cached; in Atlas it is in FOLDER.
 template <typename Book>
 struct File
 {

@@ -178,7 +178,7 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
-# How well known the games are, their trend and critics (popular.json, PlayInsights).
+# How well known the games are, their trend and critics (popular.json, Atlas).
 library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 # When each game was first seen on a server; the wishlist's ids.
 library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
@@ -188,11 +188,11 @@ save_archive_LIBS := -lz
 # AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
 library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(K)/util/paths.cpp \
                         tests/library_services/test.cpp
-# What PlayInsights knows of each game beyond its popularity (games.json,
+# What Atlas knows of each game beyond its popularity (games.json,
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
 library_prices_SRC := source/library/signals.cpp source/library/prices.cpp tests/library_prices/test.cpp
-# PlayInsights' index.json, and which of its files to download again.
+# Atlas' index.json, and which of its files to download again.
 library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(K)/util/sha256.cpp tests/library_index/test.cpp
 library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \
                          source/library/recommend.cpp tests/library_recommend/test.cpp

@@ -17,9 +17,9 @@ namespace prices_flow
 
 namespace
 {
-// The Switch's prices, in PlayInsights' switch/prices/ folder.
+// The Switch's prices, in Atlas' switch/prices/ folder.
 constexpr const char* FOLDER = "switch/prices/";
-constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/";
+constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/";
 constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;       // fetched again a day after
 constexpr long        STALE = 4 * 24 * 3600;  // a cached file older is not shown
