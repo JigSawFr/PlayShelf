@@ -27,9 +27,6 @@ struct Offer
     dev_builds::Build release;
 };
 
-// The values of About › Update with, in the order listed ("" is none chosen).
-extern const std::vector<std::string> METHODS;
-
 // Checks in the background, then shows the update screen when there is a
 // newer version, else says what it found.
 void check_now();

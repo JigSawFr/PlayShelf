@@ -1,6 +1,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/update_flow.hpp"
 
+#include <iterator>
+#include <string_view>
+
 #include "action/dev_build_flow.hpp"
 #include "activity/update_activity.hpp"
 #include "app.hpp"
@@ -15,10 +18,11 @@ using namespace aurore::literals;
 namespace update_flow
 {
 
-const std::vector<std::string> METHODS = { "inplace", "auto", "sphaira", "appstore", "manual" };
-
 namespace
 {
+// The values of About › Update with, in the order listed ("" is none chosen).
+constexpr std::string_view METHODS[] = { "inplace", "auto", "sphaira", "appstore", "manual" };
+
 // The start-up screen waits for what is in front of the main screen (first
 // steps, What's new, a question) to close: tried every 2 s, for a minute.
 constexpr long WAIT_STEP_MS = 2000;
@@ -269,15 +273,15 @@ void choose_method(std::function<void()> then, bool first)
 {
     // Installed by the App Store: updated where it came from, so the store's
     // record follows (sphaira, else the App Store: both read its catalogue).
-    const std::string recommended = launcher::installed_by_store() ? "auto" : METHODS[0];
+    const std::string_view recommended = launcher::installed_by_store() ? "auto" : METHODS[0];
     std::vector<std::string> labels;
-    for (const std::string& m : METHODS) {
-        std::string label = aurore::getStr("playshelf/tools/update_via_values/" + m);
+    for (const std::string_view m : METHODS) {
+        std::string label = aurore::getStr("playshelf/tools/update_via_values/" + std::string(m));
         if (first && m == recommended) label = aurore::getStr("playshelf/update/recommended", label);
         labels.push_back(label);
     }
     int selected = 0;
-    for (size_t i = 0; i < METHODS.size(); i++)
+    for (size_t i = 0; i < std::size(METHODS); i++)
         if (METHODS[i] == (config::get().update_via.empty() ? recommended : config::get().update_via)) selected = (int)i;
     ui::pick(first ? "playshelf/update/method_title"_i18n : "playshelf/tools/update_via"_i18n, labels, selected,
              [then](int i) {
