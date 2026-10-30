@@ -80,6 +80,9 @@
         v = '1';
       }
       if (v === '' || v == null) continue;
+      // A visit's UTM tags (it came from another of our sites) stay out of the
+      // links the page makes: the first change of the URL drops them.
+      if (name.startsWith('utm_')) continue;
       q.set(name, v);
     }
     const s = q.toString();

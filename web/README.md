@@ -220,6 +220,9 @@ builds `build-web/simulator/`; `make web-serve` serves it at
   workflow), which counts each visit on the site's address alone, without
   cookie; its policy then lets the page send to `gateway.umami.is`. The
   sites menu links to the privacy and legal notice (boreale.dev's).
+  Its links to our other sites carry `utm_source=shelf&utm_medium=nav`
+  (`SITE_TAGS`), for Umami's *UTM* report; a visit's own tags stay out of
+  the links the page makes (`toQuery()`), so a shared link does not carry them.
 - **The smoke test** (`tools/web_smoke.py`, CI's `web` workflow): the build
   in headless Chromium (Playwright, WebGL 2 from SwiftShader) must reach its
   first screen in each kind of start, go through every tab, install a game
