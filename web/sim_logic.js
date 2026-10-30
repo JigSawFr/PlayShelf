@@ -17,7 +17,7 @@
     ['ko', '한국어'], ['zh-Hans', '简体中文'], ['zh-Hant', '繁體中文'],
   ];
   // Each language's flag in the header's menu, as on the website
-  // (tools/build_site.py's FLAGS; twemoji-flags.woff2 draws them the same
+  // (boreale-site's FLAGS; twemoji-flags.woff2 draws them the same
   // everywhere, Windows included): the country of the console's language,
   // Mexico for Latin America's Spanish, Taiwan for Traditional Chinese.
   const FLAGS = {

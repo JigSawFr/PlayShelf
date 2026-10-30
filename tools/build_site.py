@@ -41,25 +41,28 @@ import struct
 import subprocess
 import sys
 import tempfile
-import urllib.request
-from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit, urlunsplit
+from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 import markdown
 
+# What Boréale's sites share (library/boreale-site, a submodule): the
+# languages, the header's menus, the links out and their UTM tags, the
+# audience (Umami), the common texts and assets.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "library", "boreale-site"))
+import boreale_site as boreale  # noqa: E402
+from boreale_site import OG_LOCALES, folder as lang_dir  # noqa: E402
+
 REPO_URL = "https://github.com/JigSawFr/PlayShelf"
-# The site's address, for the links that must be absolute (the canonical
-# page, the other languages, the preview image, the sitemap, llms.txt).
-SITE_URL = os.environ.get("SITE_URL", "https://shelf.boreale.dev/").rstrip("/") + "/"
+# The site, by its entry in boreale-site's sites.json; its address (SITE_URL,
+# https://shelf.boreale.dev/ by default) for the links that must be absolute
+# (the canonical page, the other languages, the preview image, the sitemap,
+# llms.txt).
+SITE = boreale.Site("playshelf", os.environ.get("SITE_URL"))
+SITE_URL = SITE.url
 VERSIONS = {}  # the projects' latest releases, for the menu of Boréale's sites (main())
 # A pull request's preview: not for search engines (main's site is the one).
 NOINDEX = os.environ.get("SITE_NOINDEX") == "1"
-# The audience, counted by Umami Cloud (site/README.md): its tracker, served
-# from assets/, sends each page seen to gateway.umami.is, without cookie, and
-# only from the site's own address; a pull request's preview has none. The
-# site in Umami is Boréale's, shared by its projects' sites: Umami tells them
-# apart by their address (its "Hostname" filter).
-UMAMI_WEBSITE = "6410ffdd-ae2e-4ddb-8e18-0a77e9fa374e"
-UMAMI_DOMAIN = urlsplit(SITE_URL).hostname
 # The screenshots of tools/site_screenshots.mjs: <folder>/<language>/<screen>.webp.
 SCREENSHOT_DIR = os.environ.get("SITE_SCREENSHOTS", "")
 # The built simulator (CI's build-web/simulator), to say on its buttons how
@@ -68,127 +71,12 @@ SIMULATOR_DIR = os.environ.get("SITE_SIMULATOR", "")
 # The documentation's "Try it in the simulator" links (main's simulator, as
 # GitHub shows them): the site's own simulator on the site, in its language.
 SIMULATOR_URL = "https://shelf.boreale.dev/simulator/"
-# The console's languages: config.json's code, the site's folder ('' for the
-# root), the name in its own words, the html lang. The site is built in those
+# The console's languages (boreale-site's): the site is built in those
 # site/i18n/ has a catalog for (main()).
-LANGUAGES = [
-    ("en-US", "", "English", "en"),
-    ("fr", "fr", "Français", "fr"),
-    ("fr-CA", "fr-ca", "Français (Canada)", "fr-CA"),
-    ("de", "de", "Deutsch", "de"),
-    ("es", "es", "Español", "es"),
-    ("es-419", "es-419", "Español (Latinoamérica)", "es-419"),
-    ("it", "it", "Italiano", "it"),
-    ("nl", "nl", "Nederlands", "nl"),
-    ("pt", "pt", "Português", "pt-PT"),
-    ("pt-BR", "pt-br", "Português (Brasil)", "pt-BR"),
-    ("ru", "ru", "Русский", "ru"),
-    ("ja", "ja", "日本語", "ja"),
-    ("ko", "ko", "한국어", "ko"),
-    ("zh-Hans", "zh-hans", "简体中文", "zh-Hans"),
-    ("zh-Hant", "zh-hant", "繁體中文", "zh-Hant"),
-]
-# Each language's flag in the language menu (fonts/twemoji-flags.woff2 draws
-# them the same everywhere, Windows included): the country of the console's
-# language, Mexico for Latin America's Spanish, Taiwan for Traditional Chinese.
-FLAGS = {"en-US": "US", "fr": "FR", "fr-CA": "CA", "de": "DE", "es": "ES", "es-419": "MX", "it": "IT", "nl": "NL",
-         "pt": "PT", "pt-BR": "BR", "ru": "RU", "ja": "JP", "ko": "KR", "zh-Hans": "CN", "zh-Hant": "TW"}
-
-
-
-# Links out say nothing of the visit (workbench rule "liens sortants
-# anonymes"): the page sends no referrer (template.html's meta), a link to a
-# third party carries rel="noreferrer"; a link to *.boreale.dev or to
-# github.com/JigSawFr keeps the origin alone (referrerpolicy="strict-origin"),
-# so GitHub's traffic insights still see our sites.
-LINK_OUT = re.compile(r'<a\b[^<>]*?\bhref="(https?://[^"]*)"[^<>]*>')
-
-
-def own_site(url: str) -> bool:
-    """boreale.dev, its subdomains, and the repositories of github.com/JigSawFr/
-    (that account's alone: another owner, a gist or GitHub's own pages are
-    third parties)."""
-    u = urlparse(url)
-    host = (u.hostname or "").lower()
-    return u.scheme == "https" and (host == "boreale.dev" or host.endswith(".boreale.dev") or
-                                    (host == "github.com" and u.path.lower().startswith("/jigsawfr/")))
-
-
-def link_out(tag: str, url: str) -> str:
-    tag = re.sub(r'\sreferrerpolicy="[^"]*"', "", tag)
-    rel = re.search(r'\srel="([^"]*)"', tag)
-    words = [w for w in (rel.group(1).split() if rel else []) if w != "noreferrer"]
-    if rel:
-        tag = tag[:rel.start()] + tag[rel.end():]
-    if own_site(url):
-        extra = ' referrerpolicy="strict-origin"'
-    else:
-        words.append("noreferrer")
-        extra = ""
-    if words:
-        extra = f' rel="{" ".join(words)}"' + extra
-    return tag[:-1] + extra + ">"
-
-
-# Where a visit to another of Boréale's sites came from, for Umami (workbench's
-# "Mesure d'audience"): a link from this site to another *.boreale.dev site
-# carries utm_source='shelf' and a utm_medium telling where on the page it
-# is: "nav" (the header, its sites menu), "footer", or "link" (the page's
-# text). A link to this site itself carries none: tags a page's text came with
-# (a documentation page written for GitHub, utm_source=github) are taken off.
-UTM_SOURCE = "shelf"
-
-
-def utm(url: str, medium: str) -> str:
-    """`url` (as written in the page's HTML) tagged for its medium, or as it is
-    when it leads out of Boréale's sites."""
-    u = urlsplit(html.unescape(url))
-    host = (u.hostname or "").lower()
-    if u.scheme != "https" or not (host == "boreale.dev" or host.endswith(".boreale.dev")):
-        return url
-    query = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not k.startswith("utm_")]
-    if host != (urlsplit(SITE_URL).hostname or ""):
-        query += [("utm_source", UTM_SOURCE), ("utm_medium", medium)]
-    tagged = urlunsplit(u._replace(query=urlencode(query)))
-    return url if tagged == html.unescape(url) else html.escape(tagged, quote=True)
-
-
-SELF_LINK = re.compile(r"https://" + re.escape(urlsplit(SITE_URL).hostname or "") + r"/[^\s)<>\]\"']*")
-
-
-def untagged(text: str) -> str:
-    """Markdown or text the site serves (a documentation page, llms.txt) with
-    its links to the site itself free of the UTM tags it was written with for
-    GitHub."""
-    def one(m):
-        u = urlsplit(m.group(0))
-        query = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not k.startswith("utm_")]
-        return urlunsplit(u._replace(query=urlencode(query))) if len(query) != len(parse_qsl(u.query, keep_blank_values=True)) else m.group(0)
-    return SELF_LINK.sub(one, text)
-
-def links_out(text: str) -> str:
-    main, footer = text.find("<main"), text.find("<footer")
-
-    def one(m):
-        at = m.start()
-        medium = "footer" if 0 <= footer <= at else "nav" if main < 0 or at < main else "link"
-        url = utm(m.group(1), medium)
-        tag = m.group(0).replace(f'href="{m.group(1)}"', f'href="{url}"', 1)
-        return link_out(tag, url)
-
-    return LINK_OUT.sub(one, text)
-
-
-def flag(lang):
-    """`lang`'s flag, two regional indicator letters, for the eyes only."""
-    emoji = "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in FLAGS[lang])
-    return f'<span class="flag" aria-hidden="true">{emoji}</span>'
-
-
-# Open Graph's name of each language.
-OG_LOCALES = {"en-US": "en_US", "fr": "fr_FR", "fr-CA": "fr_CA", "de": "de_DE", "es": "es_ES", "es-419": "es_LA",
-              "it": "it_IT", "nl": "nl_NL", "pt": "pt_PT", "pt-BR": "pt_BR", "ru": "ru_RU", "ja": "ja_JP",
-              "ko": "ko_KR", "zh-Hans": "zh_CN", "zh-Hant": "zh_TW"}
+LANGUAGES = list(boreale.LANGUAGES)
+# The texts every one of Boréale's sites has (the menu of Boréale's sites,
+# the language button), boreale-site's i18n/: not in site/i18n/.
+COMMON_TEXTS = boreale.common_catalogs()
 # The documentation, in the sidebar's order.
 DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide"), ("themes", "guide"),
         ("troubleshooting", "guide"),
@@ -197,9 +85,9 @@ DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide
 DOC_FOLDERS = {"fr-CA": "fr"}
 # The pages' Content-Security-Policy (GitHub Pages sends no headers): only the
 # site's own files, no inline script, nothing from elsewhere.
-# connect-src: also Umami's, which counts the audience (UMAMI_WEBSITE).
+# connect-src: also Umami's, which counts the audience (boreale-site's UMAMI_GATEWAY).
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; "
-       "font-src 'self'; connect-src 'self' https://gateway.umami.is; object-src 'none'; base-uri 'none'; "
+       f"font-src 'self'; connect-src 'self' {boreale.UMAMI_GATEWAY}; object-src 'none'; base-uri 'none'; "
        "form-action 'none'")
 # The gallery's screens (tools/site_screenshots.py), the first one the home page's.
 SCREENSHOTS = ["catalogue", "game_sheet", "downloads", "library", "preferences"]
@@ -283,13 +171,19 @@ def app_text(lang, key):
 
 
 class Texts:
-    """The home page's texts in one language, English underneath."""
+    """The home page's texts in one language, English underneath: the site's
+    own (site/i18n/) and boreale-site's common ones. A text lives in one
+    place: a site's catalog that has a common key stops the build."""
 
     def __init__(self, lang, version):
         self.lang, self.version = lang, version
-        self.english = read_json("site", "i18n", "en-US.json")
         path = os.path.join(ROOT, "site", "i18n", f"{lang}.json")
-        self.own = read_json("site", "i18n", f"{lang}.json") if os.path.exists(path) else {}
+        own = read_json("site", "i18n", f"{lang}.json") if os.path.exists(path) else {}
+        twice = sorted(set(own) & set(COMMON_TEXTS.get(lang, {})))
+        if twice:
+            raise SystemExit(f"site: site/i18n/{lang}.json has {', '.join(twice)}, boreale-site's (i18n/)")
+        self.english = {**read_json("site", "i18n", "en-US.json"), **COMMON_TEXTS["en-US"]}
+        self.own = {**own, **COMMON_TEXTS.get(lang, {})}
 
     def __call__(self, key, escape=True):
         value = self.own.get(key, self.english.get(key))
@@ -298,6 +192,10 @@ class Texts:
         value = value.replace("{{version}}", self.version)
         value = re.sub(r"\{\{app:([^}]+)\}\}", lambda m: app_text(self.lang, m.group(1)), value)
         return html.escape(value) if escape else value
+
+    def common(self):
+        """boreale-site's texts, as the header's menus take them (escaped)."""
+        return {key: self(key) for key in COMMON_TEXTS["en-US"]}
 
 
 # ---- The documentation's versions ----------------------------------------
@@ -489,82 +387,6 @@ def rewrite_links(body, source, lang, to_root, assets):
     return body
 
 
-# Boréale's sites, in the header's menu (switcher()): the same in each of
-# Boréale's sites (boreale/tools/build_site.py's the reference). boreale.dev
-# first, then the homebrew, the libraries, and the open data and protocols,
-# each group under its title.
-SITES = [(None, [("boreale", "Boréale", "https://boreale.dev/")]),
-         ("sites_homebrew", [("playguard", "PlayGuard", "https://guard.boreale.dev/"),
-                             ("playshelf", "PlayShelf", "https://shelf.boreale.dev/")]),
-         ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")]),
-         ("sites_open", [("atlas", "Atlas", "https://atlas.boreale.dev/"),
-                         ("lantern", "Lantern", "https://lantern.boreale.dev/")])]
-
-
-# versions.json's schema this build reads ({"schema": 1, "projects": {...}});
-# the flat {project: "vX"} of before it had one is read too.
-VERSIONS_SCHEMA = 1
-
-
-def versions_of(data):
-    """The projects' versions in versions.json's `data`, as {project: "vX"}:
-    the flat shape of before, or {"schema": 1, "projects": {...}}. Another
-    schema or shape is none (the menu shows no versions), never an error."""
-    if not isinstance(data, dict):
-        return {}
-    if "schema" in data:
-        projects = data.get("projects")
-        if type(data["schema"]) is not int or data["schema"] != VERSIONS_SCHEMA or not isinstance(projects, dict):
-            return {}
-        data = projects
-    return {k: v for k, v in data.items() if isinstance(k, str) and isinstance(v, str)}
-
-
-def boreale_versions():
-    """The projects' latest releases as boreale.dev publishes them
-    (versions.json, versions_of()), for the menu; none when it cannot be read
-    (offline, a local build), and the menu shows no versions."""
-    try:
-        with urllib.request.urlopen("https://boreale.dev/versions.json", timeout=10) as r:
-            return versions_of(json.load(r))
-    except (OSError, ValueError):
-        return {}
-
-
-def switcher(t, lang, to_root, home, here, name, versions):
-    """The header's name (`name`), a button that opens the menu of Boréale's
-    sites, `here` marked and leading to `home`, each in the page's language
-    (Boréale's sites share the same 15 folders), with its latest release
-    (`versions`). A
-    popover: the browser closes it on Esc or a click elsewhere; site.css's
-    and site.js's "site switcher" blocks."""
-    label = t("sites_label")
-    groups = []
-    for title, sites in SITES:
-        items = []
-        for key, site, url in sites:
-            href = home if key == here else url + lang_dir(lang)
-            soon = f'<em class="soon">{t("sites_soon")}</em>' if key == "playshelf" else ""
-            version = f' <span class="sites-version">{html.escape(versions[key])}</span>' if key in versions else ""
-            current = ' aria-current="true"' if key == here else ""
-            items.append(f'<li><a href="{href}"{current}>'
-                         f'<img src="{to_root}assets/marks/{key}.svg" alt="" width="36" height="36">'
-                         f'<span><strong>{site}{version}</strong><small>{t(f"sites_{key}")}</small></span>{soon}</a></li>')
-        heading = f'<p class="sites-title">{t(title)}</p>' if title else ""
-        groups.append(f'        {heading}<ul>\n          ' + "\n          ".join(items) + '\n        </ul>')
-    title = next(site for _, sites in SITES for key, site, _ in sites if key == here)
-    return (f'<div class="switcher">\n'
-            f'      <button class="brand switch" type="button" popovertarget="sites" aria-label="{title} · {label}">'
-            f'{name}<svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>\n'
-            f'      <div id="sites" class="sites" popover aria-label="{label}">\n'
-            + "\n".join(groups) + '\n      </div>\n    </div>')
-
-
-def lang_dir(lang):
-    folder = next(d for code, d, _, _ in LANGUAGES if code == lang)
-    return f"{folder}/" if folder else ""
-
-
 def screenshot(lang, name):
     """The screenshot `name` under assets/: the console's in `lang` when
     SITE_SCREENSHOTS has it, in its dark theme as the site is (its light one
@@ -696,14 +518,6 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
         head.append(f'  <link rel="alternate" type="text/markdown" href="{markdown_url}">')
     if NOINDEX or not indexed:
         head.append('  <meta name="robots" content="noindex">')
-    # The languages, a menu under the header's button (a popover, as the
-    # menu of Boréale's sites): this page in each.
-    current = ' aria-current="true"'
-    options = "\n".join(
-        f'        <li><a href="{to_root}{f"{d}/" if d else ""}{path}" data-lang="{c}" lang="{hl}" hreflang="{hl}"'
-        f'{current if c == lang else ""}>{flag(c)}{html.escape(n)}</a></li>'
-        for c, d, n, hl in LANGUAGES)
-    language_name = next(n for c, _, n, _ in LANGUAGES if c == lang)
     home = f"{to_root}{lang_dir(lang)}"
     # A page of the documentation: once the header is scrolled away, a slim
     # bar at the top with the way home, the page's name, the search and the
@@ -719,8 +533,10 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
                    f'{reading_toggle(t)}</div></div>\n')
     full_title = full_title or ("PlayShelf" if not title else f"{title} · PlayShelf")
     head_extra = "\n".join(head)
-    umami = "" if NOINDEX else (f'  <script src="{to_root}assets/umami.js" defer data-website-id="{UMAMI_WEBSITE}" '
-                               f'data-domains="{UMAMI_DOMAIN}"></script>\n')
+    # The audience, counted by Umami Cloud (site/README.md), only from the
+    # site's own address; a pull request's preview has none.
+    umami = "" if NOINDEX else f"  {SITE.audience(to_root)}\n"
+    common = t.common()
     return f"""<!doctype html>
 <html lang="{html_lang}" data-lang="{code}">
 <head>
@@ -754,6 +570,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <script src="{to_root}assets/reading.js"></script>
   <link rel="preload" href="{to_root}assets/fonts/sora.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{to_root}assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{to_root}assets/boreale.css">
   <link rel="stylesheet" href="{to_root}assets/site.css">
 {umami}</head>
 <body class="{body_class}">
@@ -761,7 +578,8 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
 {doc_bar}  <div class="sky{' sky-home' if hero else ''}">
   {'<canvas id="sky" aria-hidden="true"></canvas>' if hero else ''}
   <header class="top">
-    {switcher(t, lang, to_root, home, "playshelf", f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>', VERSIONS)}
+    {SITE.switcher(lang, common, to_root, VERSIONS, home=home,
+                   brand=f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>')}
     <nav class="nav" aria-label="PlayShelf">
       <a href="{home}#features">{t('nav_features')}</a>
       <a href="{home}#install">{t('nav_install')}</a>
@@ -769,16 +587,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
       <a href="{to_root}simulator/?lang={code}" class="nav-try">{t('nav_simulator')}</a>
       <a href="{REPO_URL}" class="nav-gh">GitHub</a>
     </nav>
-    <div class="settings">
-      <button class="lang-button" type="button" popovertarget="languages" aria-label="{t('language')} · {html.escape(language_name)}">
-        {flag(lang)}
-        <span class="lang-name">{html.escape(language_name)}</span><span class="lang-code">{code.split("-")[0].upper()}</span>
-        <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <ul id="languages" class="langs" popover aria-label="{t('language')}">
-{options}
-      </ul>
-    </div>
+    {SITE.languages(lang, common, to_root, path)}
   </header>
 {hero}  </div>
   <main id="main">
@@ -826,6 +635,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
     <button type="button" class="lightbox-next" aria-label="{t('next')}"></button>
   </dialog>
   <a class="to-top" href="#main" aria-label="{t('back_to_top')}" hidden></a>
+  <script src="{to_root}assets/boreale.js"></script>
   <script src="{to_root}assets/site.js"></script>
 </body>
 </html>
@@ -1470,9 +1280,9 @@ def write(out, rel, text):
     path = os.path.join(out, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if rel.endswith(".html"):
-        text = links_out(text)
+        text = SITE.links_out(text)
     elif rel.endswith((".md", ".txt")):
-        text = untagged(text)
+        text = SITE.untagged(text)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
@@ -1490,7 +1300,7 @@ def main():
     version = "v" + read_json(".release-please-manifest.json")["."]
     # PlayShelf's own once it has a release (its menu line says "Coming soon" until then).
     global VERSIONS
-    VERSIONS = {**boreale_versions(), **({"playshelf": version[1:]} if changelog_releases() else {})}
+    VERSIONS = {**boreale.latest_versions(), **({"playshelf": version[1:]} if changelog_releases() else {})}
     # The documentation in two versions: main's, and the latest release's
     # out of its tag, with what main has since (git's history: none in a
     # tarball or a shallow clone, and the site has main's alone).
@@ -1585,7 +1395,7 @@ def main():
     blocks = []
     for lang, folder, _, html_lang in LANGUAGES:
         tl = Texts(lang, version)
-        blocks.append(f'      <div class="not-found" data-lang="{lang}" lang="{html_lang}"{" hidden" if lang != "en-US" else ""}>'
+        blocks.append(f'      <div class="not-found" data-lang="{folder or lang}" lang="{html_lang}"{" hidden" if lang != "en-US" else ""}>'
                       f'<h1>{tl("not_found_title")}</h1><p>{tl("not_found_text")}</p>'
                       f'<p><a class="button primary" href="{base_url}{f"{folder}/" if folder else ""}">{tl("home")}</a></p></div>')
     # Under the sky, as the home page's hero.
@@ -1594,8 +1404,11 @@ def main():
                                 body_class="not-found-page", indexed=False))
     # The site's own files, then what the pages use from the repository and
     # the screenshots of tools/site_screenshots.mjs.
-    os.makedirs(os.path.join(out, "assets"), exist_ok=True)
+    # Afresh: boreale-site's assets would be found twice in a site built before.
+    shutil.rmtree(os.path.join(out, "assets"), ignore_errors=True)
     shutil.copytree(os.path.join(ROOT, "site", "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
+    # boreale-site's: the fonts, the marks, Umami's tracker, boreale.css and boreale.js.
+    boreale.copy_assets(Path(out))
     for name in ("icon.svg", "mark.svg"):
         shutil.copy(os.path.join(ROOT, "branding", name), os.path.join(out, "assets", name))
     # An iPhone's home screen takes a PNG, not the SVG (tools/render_branding.mjs).

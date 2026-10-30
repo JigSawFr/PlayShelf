@@ -7,15 +7,18 @@ change, try a state or show a screen without a build on the console.
 In the website's look: its colours, its header in Boréale's night whatever
 the theme (the name opening the menu of Boréale's sites, the website's
 language menu, the theme's menu, a short face of them on a phone) and Sora
-for the name (`site/assets/fonts/sora.woff2`, with `branding/mark.svg` and the
-sites' marks of `site/assets/marks/`, copied by CMake). The language menu is
-the website's (`tools/build_site.py`, `site/assets/site.js`): a button with
+for the name (boreale-site's `assets/fonts/sora.woff2`, with `branding/mark.svg`
+and the sites' marks of boreale-site's `assets/marks/`, copied by CMake from
+the submodule `library/boreale-site`). Its CSS and script are its own
+(`simulator.css` has a light theme, `boreale.css` a dark look alone), in the
+look of boreale-site's `boreale.css` and `boreale.js`. The language menu is
+the website's (boreale-site's `Site.languages()`, `site/assets/site.js`): a button with
 the page's flag and language (its flag and code on a phone, its flag alone
 under 380px), and under it the 15 languages in a popover, each with its
 flag, the page's marked (Esc or a click elsewhere closes it, the focus back
 on the button; ↓ on the button opens it at the language in use, the arrows,
-Home and End move through it). The flags are the website's
-`site/assets/fonts/twemoji-flags.woff2` (Twemoji's 15, CC-BY 4.0), copied by
+Home and End move through it). The flags are the website's,
+boreale-site's `assets/fonts/twemoji-flags.woff2` (Twemoji's 15, CC-BY 4.0), copied by
 CMake next to the page with `LICENSE-twemoji-flags.txt`, so Windows shows
 them too.
 
@@ -216,8 +219,8 @@ builds `build-web/simulator/`; `make web-serve` serves it at
   own files, no inline script or style; `'wasm-unsafe-eval'` compiles
   PlayShelf and `blob:` workers are Emscripten's threads.
 - **The audience**: the published page (on the site, not a pull request's
-  preview) gets Umami's tracker, the website's own copy
-  (`../assets/umami.js`, `tools/simulator_audience.py` in CI's `web`
+  preview) gets Umami's tracker, the website's (boreale-site's,
+  `../assets/umami.js`, `tools/simulator_audience.py` in CI's `web`
   workflow), which counts each visit on the site's address alone, without
   cookie; its policy then lets the page send to `gateway.umami.is`. The
   sites menu links to the privacy and legal notice (boreale.dev's).

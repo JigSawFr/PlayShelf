@@ -1,112 +1,82 @@
 #!/usr/bin/env python3
-"""Checks the links of the built website (site/README.md): every link and
-image of its pages that stays on the site must reach a file of it, and every
-#anchor an id of the page it points to. Links to the simulator (built apart,
-web/README.md) and to other sites are not followed.
+"""Checks the built website (site/README.md).
 
-Links out follow the rule "liens sortants anonymes": every page sends no
-referrer (<meta name="referrer" content="no-referrer">), a link to a third
-party has rel="noreferrer", one to boreale.dev, *.boreale.dev or a repository
-of github.com/JigSawFr/ has referrerpolicy="strict-origin" (the origin alone,
-for GitHub's traffic insights) and no noreferrer. A link to another of our
-sites carries utm_source=shelf and a utm_medium (workbench's "Mesure
-d'audience"); no other link has utm_ parameters.
+boreale-site's checks, those every one of Boréale's sites passes
+(boreale_site.check.pages()): every link and image of its pages that stays
+on the site reaches a file of it, and every #anchor an id of the page; links
+out by the rule "liens sortants anonymes" (no referrer sent, rel="noreferrer"
+to a third party, referrerpolicy="strict-origin" to *.boreale.dev and
+github.com/JigSawFr) and their UTM tags (utm_source=shelf and a utm_medium to
+another of our sites, none to anyone else); the Content-Security-Policy, no
+inline script or style; Umami's tracker; no real e-mail address. And its
+catalogs (boreale_site.check_catalogs()): site/i18n/ and boreale-site's i18n/,
+none repeating a common text.
+
+Left out of them, as PlayShelf's site is made:
+- the links to the simulator (simulator/), built apart (web/README.md);
+- 404.html's links: served at any address, they start from the site's path
+  (SITE_BASE), not from where the file is;
+- a page that sends its visitor on at once (docs/: a <meta> refresh): no
+  policy, no tracker, nothing of it is seen;
+- the tracker of a pull request's preview (SITE_NOINDEX=1), which has none.
+
+PlayShelf's own: the links to the site's own address (site-url: the canonical
+page, the other languages), as the files they lead to.
 
 Usage: tools/check_site_links.py <site-dir> [site-url]
 (site-url: the site's own address, whose absolute links are checked too)
 """
 import os
-import re
 import sys
 from html.parser import HTMLParser
-from urllib.parse import parse_qsl, unquote, urlparse, urlsplit
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "library" / "boreale-site"))
+import boreale_site as boreale  # noqa: E402
+from boreale_site import check  # noqa: E402
 
-
-
-# No real e-mail address on the site, ours or anyone's: contact goes through
-# the repository's issues, a security flaw through a private advisory.
-EMAIL = re.compile(r"[\w.+-]+@(?:[\w-]+\.)+[a-z]{2,}", re.IGNORECASE)
-RESERVED = re.compile(r"@(?:[\w-]+\.)*(?:example\.(?:org|com|net)|[\w-]+\.example)$", re.IGNORECASE)
-
-
-def emails(text: str) -> list:
-    return [f"an e-mail address ({m.group(0)}), contact goes through GitHub"
-            for m in EMAIL.finditer(text) if not RESERVED.search(m.group(0))]
-
-
-def own_site(url: str) -> bool:
-    """boreale.dev, its subdomains, and the repositories of github.com/JigSawFr/
-    (that account's alone: another owner, a gist or GitHub's own pages are
-    third parties)."""
-    u = urlparse(url)
-    host = (u.hostname or "").lower()
-    return u.scheme == "https" and (host == "boreale.dev" or host.endswith(".boreale.dev") or
-                                    (host == "github.com" and u.path.lower().startswith("/jigsawfr/")))
-
-
-def check_own_site() -> None:
-    """own_site() against look-alikes, at each run (the site has no unit tests)."""
-    for url in ("https://boreale.dev/", "https://shelf.boreale.dev/fr/", "https://github.com/JigSawFr/PlayShelf",
-                "https://github.com/jigsawfr/boreale/releases"):
-        assert own_site(url), url
-    for url in ("https://store.example.com/app/1", "https://github.com/JigSawFr", "https://github.com/jigsawfrx/x",
-                "https://github.com/someone/JigSawFr", "https://gist.github.com/JigSawFr/1",
-                "https://boreale.dev.example.com/", "https://notboreale.dev/", "http://boreale.dev/"):
-        assert not own_site(url), url
-
-
-# This site's address (build_site.py's SITE_URL) and its name in the UTM tags
-# of its links to our other sites.
-SITE_HOST = (urlparse(os.environ.get("SITE_URL", "https://shelf.boreale.dev/")).hostname or "").lower()
-UTM_SOURCE = "shelf"
-
-
-def link_problem(attrs: dict) -> str:
-    """What a link out does wrong by the rule "liens sortants anonymes": a
-    third party gets rel="noreferrer"; *.boreale.dev and github.com/JigSawFr
-    keep the origin alone (referrerpolicy="strict-origin", no noreferrer)."""
-    href = attrs.get("href") or ""
-    if urlparse(href).scheme not in ("http", "https"):
-        return ""
-    rel = (attrs.get("rel") or "").split()
-    if own_site(href):
-        if "noreferrer" in rel or attrs.get("referrerpolicy") != "strict-origin":
-            return f'link to {href} needs referrerpolicy="strict-origin" and no noreferrer'
-    elif "noreferrer" not in rel:
-        return f'link to {href} without rel="noreferrer"'
-    # UTM tags (workbench's "Mesure d'audience"): a link to another of our
-    # sites (*.boreale.dev) says where it comes from, utm_source='shelf' and
-    # a utm_medium; one to this site itself or to anyone else carries none.
-    u = urlparse(href)
-    host = (u.hostname or "").lower()
-    query = dict(parse_qsl(u.query))
-    if u.scheme == "https" and (host == "boreale.dev" or host.endswith(".boreale.dev")) and host != SITE_HOST:
-        if query.get("utm_source") != UTM_SOURCE or not query.get("utm_medium"):
-            return f"link to {href} without utm_source={UTM_SOURCE} and a utm_medium"
-    elif any(k.startswith("utm_") for k in query):
-        return f"link to {href} with utm_ parameters: only a link to another of our sites has them"
-    return ""
+# A site's catalog may leave a text out: the English one is shown
+# (build_site.py's Texts). None does today.
+OPTIONAL = {}
 
 
 class Page(HTMLParser):
     def __init__(self):
         super().__init__()
-        self.links, self.ids, self.problems = [], set(), []
-        self.no_referrer = False
+        self.links, self.ids = [], set()
+        self.redirect = False
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if "id" in a:
             self.ids.add(a["id"])
-        if tag == "meta" and a.get("name") == "referrer" and a.get("content") == "no-referrer":
-            self.no_referrer = True
-        if tag == "a" and link_problem(a):
-            self.problems.append(link_problem(a))
-        for key in ("href", "src", "poster"):
+        if tag == "meta" and (a.get("http-equiv") or "").lower() == "refresh":
+            self.redirect = True
+        for key in ("href", "src"):
             # <link rel="alternate|canonical|sitemap"> name pages by address: checked as links too.
             if a.get(key):
                 self.links.append(a[key])
+
+
+def common_errors(root: str, site: boreale.Site, pages: dict) -> list:
+    """boreale-site's checks, but for what PlayShelf's site does otherwise
+    (the docstring)."""
+    redirects = {os.path.relpath(p, root).replace(os.sep, "/") for p, page in pages.items() if page.redirect}
+    preview = os.environ.get("SITE_NOINDEX") == "1"
+    errors, _ = check.pages(Path(root), site, skip=("assets", "simulator"))
+    kept = []
+    for error in errors:
+        name, _, problem = error.partition(": ")
+        if problem.endswith(" leads nowhere") and (name == "404.html" or "simulator/" in problem):
+            continue
+        if name in redirects and problem in ("no Content-Security-Policy", "no Umami tracker (assets/umami.js)"):
+            continue
+        if preview and problem == "no Umami tracker (assets/umami.js)":
+            continue
+        kept.append(error)
+    return kept
 
 
 def main():
@@ -114,20 +84,17 @@ def main():
         print(__doc__)
         return 2
     root = os.path.abspath(sys.argv[1])
-    site = sys.argv[2].rstrip("/") + "/" if len(sys.argv) > 2 else None
-    if site:
-        global SITE_HOST
-        SITE_HOST = (urlparse(site).hostname or "").lower()
+    site_url = sys.argv[2].rstrip("/") + "/" if len(sys.argv) > 2 else None
+    site = boreale.Site("playshelf", site_url or os.environ.get("SITE_URL"))
     pages = {}
-    for folder, _, files in os.walk(root):
+    for folder, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if os.path.relpath(os.path.join(folder, d), root) != "simulator"]
         for name in files:
             if name.endswith(".html"):
                 path = os.path.join(folder, name)
                 page = Page()
                 with open(path, encoding="utf-8") as f:
-                    html = f.read()
-                page.feed(html)
-                page.problems += emails(html)
+                    page.feed(f.read())
                 pages[path] = page
 
     def target(path):
@@ -135,18 +102,18 @@ def main():
             path = os.path.join(path, "index.html")
         return path
 
-    errors = 0
-    check_own_site()
+    problems = common_errors(root, site, pages)
+    problems += boreale.check_catalogs(ROOT / "site" / "i18n", OPTIONAL)
     for path, page in sorted(pages.items()):
-        for problem in page.problems + ([] if page.no_referrer else ['no <meta name="referrer" content="no-referrer">']):
-            print(f"{os.path.relpath(path, root)}: {problem}")
-            errors += 1
         if os.path.basename(path) == "404.html":
             continue   # served at any path: its links start from the site's root, elsewhere
         for link in page.links:
-            if site and link.startswith(site):
-                link = os.path.relpath(os.path.join(root, link[len(site):]), os.path.dirname(path)) + \
-                       ("/" if link.endswith("/") else "")
+            # The site's own address (absolute: canonical, other languages):
+            # boreale-site's checks follow the others.
+            if not site_url or not link.startswith(site_url):
+                continue
+            link = os.path.relpath(os.path.join(root, link[len(site_url):]), os.path.dirname(path)) + \
+                ("/" if link.endswith("/") else "")
             parts = urlsplit(link)
             if parts.scheme or link.startswith(("mailto:", "data:", "//")):
                 continue
@@ -156,15 +123,15 @@ def main():
             if rel.split(os.sep)[0] == "simulator" or rel.startswith(".."):
                 continue
             if not os.path.exists(file):
-                print(f"{os.path.relpath(path, root)}: {link}: no {rel}")
-                errors += 1
+                problems.append(f"{os.path.relpath(path, root)}: {link}: no {rel}")
             elif parts.fragment and file.endswith(".html"):
                 ids = pages[file].ids if file in pages else set()
                 if unquote(parts.fragment) not in ids:
-                    print(f"{os.path.relpath(path, root)}: {link}: no #{unquote(parts.fragment)} in {rel}")
-                    errors += 1
-    print(f"site links: {len(pages)} pages, {errors} problem(s)")
-    return 1 if errors else 0
+                    problems.append(f"{os.path.relpath(path, root)}: {link}: no #{unquote(parts.fragment)} in {rel}")
+    for problem in problems:
+        print(problem)
+    print(f"site links: {len(pages)} pages, {len(problems)} problem(s)")
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
