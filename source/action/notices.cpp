@@ -35,11 +35,7 @@ void tell()
 void save_read()
 {
     if (s_newer) return;
-    auto text = std::make_shared<std::string>(notice_logic::keys_text(s_store.read_keys()));
-    ui::in_background("notices", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(read_file_path(), *text);
-    });
+    ui::save_later("notices", read_file_path(), notice_logic::keys_text(s_store.read_keys()));
 }
 }   // namespace
 

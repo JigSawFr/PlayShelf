@@ -92,8 +92,7 @@ std::shared_ptr<const titledb::Details> fetch(uint64_t base, const std::string& 
         }
         return nullptr;
     }
-    // A cache: a copy not written is fetched again.
-    if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(paths::cache_dir() + "/nlib")) (void)paths::atomic_write(file, r.body);
+    ui::keep_copy("nlib", file, r.body);
     return d;
 }
 
@@ -110,8 +109,8 @@ void save()
     s_dirty = false;
     auto text = std::make_shared<std::string>(s_book.to_json());
     ui::in_background("nlib facts", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(dir())) (void)paths::atomic_write(book_file(), *text);
+        // Facts fetched again when lost: logged, not said.
+        ui::keep_copy("nlib facts", book_file(), *text);
     });
 }
 

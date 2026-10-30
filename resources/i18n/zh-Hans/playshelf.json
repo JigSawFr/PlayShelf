@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "已保存诊断报告：{}",
         "diag_err": "无法保存诊断报告",
-        "config_err": "无法将偏好设置保存到SD卡"
+        "config_err": "无法将偏好设置保存到SD卡",
+        "save_err": "无法将更改保存到SD卡；将在下次更改时保存"
     },
     "quick": {
         "hint": "语言和主题"

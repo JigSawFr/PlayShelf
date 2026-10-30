@@ -102,8 +102,7 @@ void start()
             aurore::Logger::warning("prices: the fetched {} is not one", country);
             return;
         }
-        // A cache: a copy not written is fetched again.
-        if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(file, r.body);
+        ui::keep_copy("prices", file, r.body);
         aurore::Logger::info("prices: {}, {} games, made {}", country, book->size(), book->generated());
         aurore::sync([run, book]() { offer(run, book); });
     });

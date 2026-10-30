@@ -30,11 +30,7 @@ void keep()
 {
     s_listeners.notify();
     if (s_newer) return;
-    auto text = std::make_shared<std::string>(library::ids_text(s_games));
-    ui::in_background("not_interested", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(file(), *text);
-    });
+    ui::save_later("not_interested", file(), library::ids_text(s_games));
 }
 }   // namespace
 

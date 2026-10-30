@@ -29,11 +29,7 @@ std::string file()
 void save()
 {
     if (s_newer) return;
-    auto text = std::make_shared<std::string>(library::ids_text(s_games));
-    ui::in_background("wishlist", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(file(), *text);
-    });
+    ui::save_later("wishlist", file(), library::ids_text(s_games));
 }
 }   // namespace
 

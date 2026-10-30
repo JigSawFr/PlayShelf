@@ -57,6 +57,16 @@ bool claim_start_screen(const char* what);
 // waiting is dropped for the newer one. `job` reports its own result (ui::
 // notify, ui::error). finish_background runs what is still queued at exit.
 void write_later(const char* what, std::function<void()> job, const std::string& key = "");
+// `text` written whole to `path` by write_later (`path` its key), its folder
+// made first: a file of the user's own (the wishlist, what was seen). When the
+// SD card refuses it, the log says why and a toast says the change was not
+// saved; the file is written again at the next change. Called on the UI
+// thread. `what` names it in the log.
+void save_later(const char* what, const std::string& path, std::string text);
+// A copy kept to spare a download (a cache): `text` written to `path` now,
+// on the calling thread (a worker's), its folders made. A refusal is only
+// logged: the copy is fetched again next time.
+void keep_copy(const char* what, const std::string& path, const std::string& text);
 // The same for a file added to (a log): `key`
 // names it, and none of its writes is dropped.
 void append_later(const char* what, const std::string& key, std::function<void()> job);

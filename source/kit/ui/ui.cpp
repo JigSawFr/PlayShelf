@@ -12,6 +12,7 @@
 #include "action/write_queue_logic.hpp"
 #include "ui/app_hooks.hpp"
 #include "util/config.hpp"
+#include "util/paths.hpp"
 #include "util/worker_threads.hpp"
 
 #include <atomic>
@@ -122,6 +123,26 @@ static uint64_t push_write(const char* what, std::function<void()> job, const st
 void write_later(const char* what, std::function<void()> job, const std::string& key)
 {
     push_write(what, std::move(job), key);
+}
+
+void save_later(const char* what, const std::string& path, std::string text)
+{
+    // The toast's text read here, on the UI thread (see refuse below).
+    const std::string failed = "playshelf/toast/save_err"_i18n;
+    push_write(what, [what, path, text = std::move(text), failed]() {
+        std::string why = "cannot make its folder";
+        const size_t slash = path.rfind('/');
+        if ((slash == std::string::npos || paths::ensure_dir(path.substr(0, slash))) && paths::atomic_write(path, text, &why))
+            return;
+        aurore::Logger::error("{}: {} not saved: {}", what, path, why);
+        notify(failed, Toast::Refused);
+    }, path);
+}
+
+void keep_copy(const char* what, const std::string& path, const std::string& text)
+{
+    std::string why;
+    if (!paths::atomic_write(path, text, &why)) aurore::Logger::warning("{}: {} not kept: {}", what, path, why);
 }
 
 void append_later(const char* what, const std::string& key, std::function<void()> job)
