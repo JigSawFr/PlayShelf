@@ -79,11 +79,13 @@ int main()
     CHECK(launcher::launch_nro("/switch/playshelf/playshelf.nro") && g_next == "sdmc:/switch/playshelf/playshelf.nro");
     const int nro_calls = g_calls;
     CHECK(!launcher::launch_nro("") && !launcher::launch_nro("switch/playshelf.nro") && g_calls == nro_calls);
-    // Another homebrew at one of its screens: the path and its arguments as given.
-    CHECK(launcher::launch_nro_args("sdmc:/switch/PlayGuard/PlayGuard.nro", "sdmc:/switch/PlayGuard/PlayGuard.nro --open=security"));
+    // Another Boréale homebrew at the screen its notice names (--open), the
+    // path quoted when it has a space; a route that is not one never reaches the loader.
+    CHECK(launcher::launch_nro("/switch/PlayGuard/PlayGuard.nro", "security"));
     CHECK(g_next == "sdmc:/switch/PlayGuard/PlayGuard.nro" && g_args == "sdmc:/switch/PlayGuard/PlayGuard.nro --open=security");
-    const int args_calls = g_calls;
-    CHECK(!launcher::launch_nro_args("/switch/x.nro", "x") && !launcher::launch_nro_args("sdmc:/x.nro", "") && g_calls == args_calls);
+    CHECK(launcher::launch_nro("/switch/My Apps/x.nro", "home") && g_args == "\"sdmc:/switch/My Apps/x.nro\" --open=home");
+    const int route_calls = g_calls;
+    CHECK(!launcher::launch_nro("/switch/x.nro", "../etc") && g_calls == route_calls);
 
     // The App Store's record of PlayShelf (libget's): its manifest, not its info.json alone.
     const std::string record = "/switch/appstore/.get/packages/PlayShelf/";

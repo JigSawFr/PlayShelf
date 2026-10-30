@@ -7,7 +7,6 @@
 
 #include <aurore/cadran/ui/cadran_list.hpp>
 
-#include "bl_notices.h"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/launcher.hpp"
@@ -127,10 +126,7 @@ aurore::DetailCell* NoticesActivity::other_cell(const shared_bell_logic::Other& 
     cell->setDetailText(aurore::getStr("playshelf/notices/open_in", o.name) + "  ›");
     const std::string name = o.name, nro = o.nro, route = n.route, id = o.module + "/" + n.id;
     cell->registerClickAction([this, name, nro, route, id](aurore::View*) {
-        char path[BL_APP_PATH_MAX + 8], args[BL_APP_PATH_MAX + BL_NOTICE_ROUTE_MAX + 16];
-        if (launcher::can_launch() && !nro.empty() &&
-            bl_open_args(nro.c_str(), route.c_str(), path, sizeof(path), args, sizeof(args)) &&
-            launcher::launch_nro_args(path, args)) {
+        if (launcher::can_launch() && !nro.empty() && launcher::launch_nro(nro, route)) {
             aurore::Logger::info("notices: {} opens {} at '{}'", id, nro, route);
             this->closing = true;
             aurore::Application::quit();   // hbloader starts it as soon as PlayShelf exits
