@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- About › Boréale homebrews: what the family is, then each Boréale
+     homebrew installed on the console (tab/boreale_tab), PlayShelf first,
+     each with its version; Ⓐ on another one starts it. -->
+
+<aurore:Box
+    width="auto"
+    height="auto">
+
+    <ScrollView
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <aurore:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/aurore/tab_frame/content_padding_sides"
+            paddingRight="@style/aurore/tab_frame/content_padding_sides"
+            paddingTop="@style/aurore/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/aurore/tab_frame/content_padding_top_bottom">
+
+            <aurore:Label id="bo_intro" text="@i18n/playshelf/boreale/intro" fontSize="20" marginBottom="16" textColor="@theme/cadran/text3"/>
+            <aurore:Box id="bo_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
+
+        </aurore:Box>
+
+    </ScrollView>
+
+</aurore:Box>

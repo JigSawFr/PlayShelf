@@ -330,7 +330,8 @@
         "whats_new_close": "계속",
         "changelog_hint": "변경 사항",
         "credit_base": "기반",
-        "version_newer": "{} ({} 사용 가능)"
+        "version_newer": "{} ({} 사용 가능)",
+        "boreale": "Boréale 홈브류"
     },
     "prefs": {
         "section_app": "앱",
@@ -977,5 +978,10 @@
             "AU": "호주",
             "JP": "일본"
         }
+    },
+    "boreale": {
+        "intro": "이 콘솔에 설치된 Boréale 패밀리의 홈브류입니다. 각각 시작할 때 여기에 추가됩니다. A를 누르면 열립니다.",
+        "this_app": "이 앱",
+        "open_manual": "홈브류 메뉴에서 {}을(를) 여세요."
     }
 }

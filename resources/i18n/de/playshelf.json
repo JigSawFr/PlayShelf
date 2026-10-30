@@ -330,7 +330,8 @@
         "whats_new_close": "Weiter",
         "changelog_hint": "Änderungen",
         "credit_base": "Basiert auf",
-        "version_newer": "{} ({} verfügbar)"
+        "version_newer": "{} ({} verfügbar)",
+        "boreale": "Boréale-Homebrews"
     },
     "prefs": {
         "section_app": "App",
@@ -977,5 +978,10 @@
             "AU": "Australien",
             "JP": "Japan"
         }
+    },
+    "boreale": {
+        "intro": "Die Homebrews der Boréale-Familie auf dieser Konsole: Jedes trägt sich beim Start hier ein. Mit A auf einem öffnen Sie es.",
+        "this_app": "Diese App",
+        "open_manual": "Öffnen Sie {} über das Homebrew-Menü."
     }
 }

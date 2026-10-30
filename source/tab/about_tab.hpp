@@ -31,6 +31,7 @@ class AboutTab : public TabBase
     AURORE_BIND(aurore::DetailCell,  version,          "ab_version");
     AURORE_BIND(aurore::DetailCell,  update_cell,      "ab_update");
     AURORE_BIND(aurore::DetailCell,  help,             "ab_help");
+    AURORE_BIND(aurore::DetailCell,  boreale,          "ab_boreale");
     AURORE_BIND(aurore::DetailCell,  credits,          "ab_credits");
     AURORE_BIND(aurore::Label,       support_note,     "ab_support_note");
     AURORE_BIND(aurore::Box,         funding,          "ab_funding");

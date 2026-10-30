@@ -330,7 +330,8 @@
         "whats_new_close": "Doorgaan",
         "changelog_hint": "Wijzigingen",
         "credit_base": "Gebouwd op",
-        "version_newer": "{} ({} beschikbaar)"
+        "version_newer": "{} ({} beschikbaar)",
+        "boreale": "Boréale-homebrews"
     },
     "prefs": {
         "section_app": "App",
@@ -977,5 +978,10 @@
             "AU": "Australië",
             "JP": "Japan"
         }
+    },
+    "boreale": {
+        "intro": "De homebrews van de Boréale-familie op deze console: elk voegt zich hier toe bij het starten. A op een ervan opent het.",
+        "this_app": "Deze app",
+        "open_manual": "Open {} via het homebrewmenu."
     }
 }
