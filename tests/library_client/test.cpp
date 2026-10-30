@@ -312,6 +312,12 @@ void test_store()
     CHECK(back[0].id == s.id && back[0].name == "Shelf" && back[0].lan_url == s.lan_url && back[0].wan_url == s.wan_url);
     CHECK(back[0].connection == Connection::Lan && back[0].format == Format::Index && back[0].pin == CERT_EC_PIN);
     CHECK(password_of(back[0]) == "hunter2");
+    // Read again from the cache, then the file changed by another hand: its
+    // new size is seen at the next load.
+    CHECK(load_servers().size() == 1);
+    fs::write(servers_file(), R"({"servers":[]})");
+    CHECK(load_servers().empty());
+    CHECK(save_servers({s}, &why) && load_servers().size() == 1);
     CHECK(set_password(s, "") && s.password_box.empty() && password_of(s).empty());
     // What a hand-edited file cannot hold: http addresses, a plain password,
     // a pin of another kind, a server with no address or no id.
