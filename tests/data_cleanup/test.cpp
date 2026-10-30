@@ -1,6 +1,7 @@
 // Host tests for source/util/data_cleanup.cpp: what "Clear the cache" and
 // "Delete the log files" remove (every file of cache/ and its subfolders;
-// every file of logs/ and its subfolders but uploads/), that folders and the rest of the data folder stay, the removal's
+// every file of logs/ and its subfolders but uploads/ and the files the app
+// keeps there, keep_log()), that folders and the rest of the data folder stay, the removal's
 // count (a file gone since the plan is neither removed nor failed, one that
 // cannot be removed is failed), and the size shown.
 #include "check.h"
@@ -35,7 +36,7 @@ bool there(const std::string& rel)
     return fs::exists(g_root + "/" + rel);
 }
 
-// A data folder as PlayShelf leaves it, in `root`.
+// A data folder as an app leaves it, in `root`.
 void make_tree(const TempDir& root)
 {
     g_root = root.path();
@@ -68,6 +69,11 @@ void make_tree(const TempDir& root)
     dir("logs/reports");
     write("logs/reports/report_20261009_141203.txt", 3000);
     write("logs/reports/report_20261009_141203_1.txt", 3100);
+    dir("logs/play_timer");
+    write("logs/play_timer/log.csv", 9000);
+    write("logs/play_timer/log.old.csv", 8000);
+    write("logs/play_timer/block.json", 1000);
+    write("logs/play_timer/block.json.tmp", 1100);
     dir("logs/uploads");
     write("logs/uploads/upload_20261009_150000.url", 150);
     write("logs/uploads/upload_20261009_150000_1.url.tmp", 160);
@@ -113,17 +119,25 @@ static void test_logs_plan()
     dir("logs/old/uploads");
     write("logs/old/uploads/upload_20261009_150000.url", 10);
     write("logs/block.json", 20);
+    // Until the app keeps them, its files under logs/ go with the rest.
+    CHECK(dc::logs(g_root).files.size() == 9);
+    dc::keep_log("play_timer/block.json");
+    dc::keep_log("play_timer/block.json.tmp");
+    dc::keep_log("play_timer/block.json");   // once is enough
     const dc::Plan p = dc::logs(g_root);
-    CHECK(p.files.size() == 5);
-    CHECK(p.bytes == 200 + 3000 + 3100 + 10 + 20);
+    CHECK(p.files.size() == 7);
+    CHECK(p.bytes == 200 + 3000 + 3100 + 9000 + 8000 + 10 + 20);
     const dc::Outcome out = dc::remove(p);
-    CHECK(out.removed == 5 && out.failed == 0);
-    CHECK(!there("logs/crashes/crash_20261009_141000.txt") && !there("logs/reports/report_20261009_141203.txt"));
+    CHECK(out.removed == 7 && out.failed == 0);
+    CHECK(!there("logs/crashes/crash_20261009_141000.txt") && !there("logs/reports/report_20261009_141203.txt") &&
+          !there("logs/play_timer/log.csv") && !there("logs/play_timer/log.old.csv"));
     CHECK(!there("logs/old/uploads/upload_20261009_150000.url") && !there("logs/block.json"));
     // The folders stay.
-    CHECK(there("logs/crashes") && there("logs/reports"));
-    // Not logs: the removal links of reports sent online.
-    CHECK(there("logs/uploads/upload_20261009_150000.url") && there("logs/uploads/upload_20261009_150000_1.url.tmp"));
+    CHECK(there("logs/crashes") && there("logs/reports") && there("logs/play_timer"));
+    // Not logs: the removal links of reports sent online, the files the app keeps.
+    CHECK(there("logs/uploads/upload_20261009_150000.url") && there("logs/uploads/upload_20261009_150000_1.url.tmp") &&
+          there("logs/play_timer/block.json") &&
+          there("logs/play_timer/block.json.tmp"));
     CHECK(there("cache/activity_all.bin"));
 }
 
