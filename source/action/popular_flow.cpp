@@ -19,11 +19,14 @@ namespace popular_flow
 
 namespace
 {
+// The Switch's files, in PlayInsights' switch/ folder.
 constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/";
+constexpr const char* FOLDER = "switch/";
 constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;   // fetched again a day after
 
-// One of PlayInsights' files: the book read from it, the newest kept.
+// One of PlayInsights' files: the book read from it, the newest kept. Its
+// name is the one shipped and cached; in PlayInsights it is in FOLDER.
 template <typename Book>
 struct File
 {
@@ -31,6 +34,7 @@ struct File
     std::shared_ptr<const Book> book = std::make_shared<Book>();
 
     std::string cached() const { return paths::cache_dir() + "/" + name; }
+    std::string published() const { return std::string(FOLDER) + name; }
 };
 
 File<library::PopularBook> s_popular{ "popular.json" };
@@ -86,21 +90,21 @@ void load(File<Book>& file)
 template <typename Book>
 bool fetch(File<Book>& file)
 {
-    if (insights_index::unchanged(file.name, file.cached())) return true;
+    if (insights_index::unchanged(file.published(), file.cached())) return true;
     http::Response r;
     std::string    why;
-    if (!http::request(std::string(BASE) + file.name, {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
-        aurore::Logger::debug("insights data: {} not fetched ({} {})", file.name, r.status, why);
+    if (!http::request(std::string(BASE) + file.published(), {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
+        aurore::Logger::debug("insights data: {} not fetched ({} {})", file.published(), r.status, why);
         return false;
     }
     std::shared_ptr<const Book> book = parse<Book>(r.body);
     if (!book) {
-        aurore::Logger::warning("insights data: the fetched {} is not one", file.name);
+        aurore::Logger::warning("insights data: the fetched {} is not one", file.published());
         return false;
     }
     // A cache: a copy not written is fetched again.
     if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(file.cached(), r.body);
-    aurore::Logger::info("insights data: {}, {} games, made {}", file.name, book->size(), book->generated());
+    aurore::Logger::info("insights data: {}, {} games, made {}", file.published(), book->size(), book->generated());
     aurore::sync([&file, book]() {
         if (offer(file, book)) tell();
     });

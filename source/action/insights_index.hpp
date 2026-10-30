@@ -13,7 +13,7 @@ namespace insights_index
 {
 
 // On a worker: whether the cached copy at `path` of PlayInsights' `name`
-// (popular.json, prices/FR.json) is still the one published. When it is,
+// (switch/popular.json, switch/prices/FR.json) is still the one published. When it is,
 // it is marked checked.
 bool unchanged(const std::string& name, const std::string& path);
 // The age in seconds of the cached copy at `path`, from when it was last

@@ -17,7 +17,9 @@ namespace prices_flow
 
 namespace
 {
-constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/prices/";
+// The Switch's prices, in PlayInsights' switch/prices/ folder.
+constexpr const char* FOLDER = "switch/prices/";
+constexpr const char* BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/";
 constexpr size_t      MAX_BYTES = 4 * 1024 * 1024;
 constexpr long        KEEP = 24 * 3600;       // fetched again a day after
 constexpr long        STALE = 4 * 24 * 3600;  // a cached file older is not shown
@@ -82,7 +84,7 @@ void start()
         }
         if (!online || (age >= 0 && age < KEEP)) return;
         // Unchanged since (the index says): kept, and shown when it was too old to be.
-        if (insights_index::unchanged("prices/" + country + ".json", file)) {
+        if (insights_index::unchanged(std::string(FOLDER) + country + ".json", file)) {
             if (!shown && paths::read_file(file, text)) {
                 auto book = parse(text, country);
                 aurore::sync([run, book]() { offer(run, book); });
@@ -91,7 +93,7 @@ void start()
         }
         http::Response r;
         std::string    why;
-        if (!http::request(std::string(BASE) + country + ".json", {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
+        if (!http::request(std::string(BASE) + FOLDER + country + ".json", {}, "", &r, &why, MAX_BYTES, 30) || r.status != 200) {
             aurore::Logger::debug("prices: {} not fetched ({} {})", country, r.status, why);
             return;
         }

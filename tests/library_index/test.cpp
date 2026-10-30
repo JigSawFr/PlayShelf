@@ -12,8 +12,8 @@ void test_read()
 {
     InsightsIndex index;
     CHECK(index.from_json(R"({"schema":1,"files":{
-        "popular.json":{"generated":"2026-10-29","bytes":70123,"sha256":"0123456789abcdef"},
-        "prices/FR.json":{"generated":"2026-10-29","bytes":512,"sha256":"fedcba9876543210"},
+        "switch/popular.json":{"generated":"2026-10-29","bytes":70123,"sha256":"0123456789abcdef"},
+        "switch/prices/FR.json":{"generated":"2026-10-29","bytes":512,"sha256":"fedcba9876543210"},
         "../secret":{"generated":"2026-10-29","bytes":1,"sha256":"0123456789abcdef"},
         "/abs.json":{"generated":"2026-10-29","bytes":1,"sha256":"0123456789abcdef"},
         "upper.json":{"generated":"2026-10-29","bytes":1,"sha256":"0123456789ABCDEF"},
@@ -23,10 +23,11 @@ void test_read()
         "huge.json":{"generated":"2026-10-29","bytes":999999999999,"sha256":"0123456789abcdef"},
         "odd.json":[1,2,3]}})"));
     CHECK(index.size() == 2);
-    const IndexEntry* p = index.find("popular.json");
+    const IndexEntry* p = index.find("switch/popular.json");
     if (CHECK(p != nullptr)) CHECK(p->generated == "2026-10-29" && p->bytes == 70123 && p->sha256 == "0123456789abcdef");
-    CHECK(index.find("prices/FR.json") != nullptr);
-    CHECK(index.find("games.json") == nullptr);
+    CHECK(index.find("switch/prices/FR.json") != nullptr);
+    CHECK(index.find("popular.json") == nullptr);
+    CHECK(index.find("switch/games.json") == nullptr);
     // Not one: another schema, no files, not JSON.
     InsightsIndex other;
     CHECK(!other.from_json(R"({"schema":2,"files":{}})"));
@@ -48,18 +49,18 @@ void test_must_fetch()
     const std::string cached = "abc";
     InsightsIndex     index;
     CHECK(index.from_json(R"({"schema":1,"files":{
-        "popular.json":{"generated":"2026-10-29","bytes":3,"sha256":"ba7816bf8f01cfea"},
-        "games.json":{"generated":"2026-10-29","bytes":3,"sha256":"0000000000000000"},
-        "similar.json":{"generated":"2026-10-29","bytes":4,"sha256":"ba7816bf8f01cfea"}}})"));
+        "switch/popular.json":{"generated":"2026-10-29","bytes":3,"sha256":"ba7816bf8f01cfea"},
+        "switch/games.json":{"generated":"2026-10-29","bytes":3,"sha256":"0000000000000000"},
+        "switch/similar.json":{"generated":"2026-10-29","bytes":4,"sha256":"ba7816bf8f01cfea"}}})"));
     // The same bytes: kept.
-    CHECK(!must_fetch(&index, "popular.json", cached));
+    CHECK(!must_fetch(&index, "switch/popular.json", cached));
     // Changed, or another size: fetched.
-    CHECK(must_fetch(&index, "games.json", cached));
-    CHECK(must_fetch(&index, "similar.json", cached));
+    CHECK(must_fetch(&index, "switch/games.json", cached));
+    CHECK(must_fetch(&index, "switch/similar.json", cached));
     // No cached copy, a file not listed, no index: fetched, as before the index.
-    CHECK(must_fetch(&index, "popular.json", ""));
-    CHECK(must_fetch(&index, "upcoming.json", cached));
-    CHECK(must_fetch(nullptr, "popular.json", cached));
+    CHECK(must_fetch(&index, "switch/popular.json", ""));
+    CHECK(must_fetch(&index, "switch/upcoming.json", cached));
+    CHECK(must_fetch(nullptr, "switch/popular.json", cached));
 }
 }   // namespace
 
