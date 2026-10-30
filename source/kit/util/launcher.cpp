@@ -65,4 +65,10 @@ bool launch_nro(const std::string& path)
     return platform_set_next_load(("sdmc:" + path).c_str());
 }
 
+bool launch_nro_args(const std::string& path, const std::string& args)
+{
+    if (path.rfind("sdmc:/", 0) != 0 || args.empty()) return false;
+    return platform_set_next_load_args(path.c_str(), args.c_str());
+}
+
 }   // namespace launcher

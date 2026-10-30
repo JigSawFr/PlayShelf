@@ -52,5 +52,8 @@ bool launch(const Target& target);
 // The same for any .nro, from the SD card root ("/switch/playshelf/playshelf.nro"):
 // PlayShelf itself after it was replaced (dev_build_flow).
 bool launch_nro(const std::string& path);
+// A .nro with its arguments as hbloader passes them (`path` "sdmc:/…", and
+// `args` beginning with it): another homebrew at one of its screens.
+bool launch_nro_args(const std::string& path, const std::string& args);
 
 }   // namespace launcher

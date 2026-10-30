@@ -336,6 +336,7 @@
         "section_app": "App",
         "intro": "De intro 2 seconden tonen",
         "support_reminder": "Herinner me één keer per maand om PlayShelf te steunen",
+        "notices_others": "Meldingen van de andere Boréale-homebrews",
         "help": "Hulp en diagnose",
         "effects": "Visuele effecten",
         "effects_values": {
@@ -582,7 +583,9 @@
         "out": "{} is uit",
         "out_on": "Verschenen op {}",
         "sale_until": "-{0}% · {1} tot {2}",
-        "day": "{0} {1}"
+        "day": "{0} {1}",
+        "open_in": "Openen in {}",
+        "open_manual": "Open {} via het homebrewmenu om dit af te handelen."
     },
     "cadran": {
         "about": {

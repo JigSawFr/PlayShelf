@@ -45,6 +45,19 @@ os.makedirs(OUT, exist_ok=True)
 run_dir = os.path.join(OUT, "run")
 shutil.rmtree(run_dir, ignore_errors=True)   # a first start: no settings, no logs
 os.makedirs(run_dir, exist_ok=True)
+# Another Boréale homebrew on the SD card, with something to say (for
+# information, so the bell's number stays PlayShelf's own): a fictional one,
+# its .nro, its registry entry and its bell.
+other_sd = os.path.join(run_dir, "playshelf_data", "sd")
+for rel, text in (
+    ("switch/Lantern/Lantern.nro", "NRO0"),
+    ("config/boreale/apps/lantern.conf", "schema=1\nname=Lantern\nversion=0.3.0\n"),
+    ("config/boreale/notices/lantern.json",
+     '{"schema":1,"module":"lantern","nro":"switch/Lantern/Lantern.nro","notices":[{"id":"dl","level":"progress",'
+     '"title":"Downloading Star Kart Racers","detail":"2 of 3 files","lang":"en-US","progress":40,"route":"downloads"}]}'),
+):
+    os.makedirs(os.path.dirname(os.path.join(other_sd, rel)), exist_ok=True)
+    open(os.path.join(other_sd, rel), "w").write(text)
 
 env = dict(os.environ, LIBGL_ALWAYS_SOFTWARE="1")
 # ImageMagick 7 keeps the version 6 commands (import, convert, montage) as
@@ -368,6 +381,18 @@ time.sleep(1)
 shot("10_dev_report")
 if not logged("main screen opened"):
     fail("the main screen was never opened")
+# The bell's list (Y on About), the other homebrew's section at its end.
+key("Escape")
+key("Escape")
+key("Left")
+key("y")
+time.sleep(1)
+if not logged("1 other homebrews"):
+    fail("the bell's list does not read the other homebrew's notices")
+key("Down", 20)
+time.sleep(1)
+shot("13_notices_others")
+key("Escape")
 # What the other Boréale homebrews read of PlayShelf: its registry entry and
 # its bell (boreale-link), written once the main screen opened.
 sd = os.path.join(run_dir, "playshelf_data", "sd", "config", "boreale")

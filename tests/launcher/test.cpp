@@ -16,16 +16,19 @@
 
 static bool        g_hbloader = false;
 static std::string g_next;
+static std::string g_args;
 static int         g_calls = 0;
 
 extern "C" bool platform_can_launch(void) { return g_hbloader; }
-extern "C" bool platform_set_next_load(const char* path)
+extern "C" bool platform_set_next_load_args(const char* path, const char* args)
 {
     g_calls++;
     if (!g_hbloader) return false;
     g_next = path;
+    g_args = args;
     return true;
 }
+extern "C" bool platform_set_next_load(const char* path) { return platform_set_next_load_args(path, path); }
 
 static void install(const std::string& sd_path)
 {
@@ -76,6 +79,11 @@ int main()
     CHECK(launcher::launch_nro("/switch/playshelf/playshelf.nro") && g_next == "sdmc:/switch/playshelf/playshelf.nro");
     const int nro_calls = g_calls;
     CHECK(!launcher::launch_nro("") && !launcher::launch_nro("switch/playshelf.nro") && g_calls == nro_calls);
+    // Another homebrew at one of its screens: the path and its arguments as given.
+    CHECK(launcher::launch_nro_args("sdmc:/switch/PlayGuard/PlayGuard.nro", "sdmc:/switch/PlayGuard/PlayGuard.nro --open=security"));
+    CHECK(g_next == "sdmc:/switch/PlayGuard/PlayGuard.nro" && g_args == "sdmc:/switch/PlayGuard/PlayGuard.nro --open=security");
+    const int args_calls = g_calls;
+    CHECK(!launcher::launch_nro_args("/switch/x.nro", "x") && !launcher::launch_nro_args("sdmc:/x.nro", "") && g_calls == args_calls);
 
     // The App Store's record of PlayShelf (libget's): its manifest, not its info.json alone.
     const std::string record = "/switch/appstore/.get/packages/PlayShelf/";

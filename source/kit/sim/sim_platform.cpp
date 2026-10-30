@@ -31,8 +31,13 @@ bool platform_can_launch(void)
 
 bool platform_set_next_load(const char* path)
 {
-    if (!path || !platform_can_launch()) return false;
-    std::printf("next load: %s\n", path);
+    return platform_set_next_load_args(path, path);
+}
+
+bool platform_set_next_load_args(const char* path, const char* args)
+{
+    if (!path || !args || !platform_can_launch()) return false;
+    std::printf("next load: %s\n", args);
     std::fflush(stdout);
     return true;
 }

@@ -336,6 +336,7 @@
         "section_app": "應用程式",
         "intro": "顯示開場畫面 2 秒",
         "support_reminder": "每月提醒一次支持 PlayShelf",
+        "notices_others": "其他 Boréale homebrew 的通知",
         "help": "說明與診斷",
         "effects": "視覺效果",
         "effects_values": {
@@ -582,7 +583,9 @@
         "out": "{} 已發售",
         "out_on": "{}發售",
         "sale_until": "-{0}% · {1}，至 {2}",
-        "day": "{1}{0}日"
+        "day": "{1}{0}日",
+        "open_in": "在 {} 中開啟",
+        "open_manual": "從 homebrew 選單開啟 {} 進行處理。"
     },
     "cadran": {
         "about": {

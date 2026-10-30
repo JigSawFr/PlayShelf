@@ -47,7 +47,13 @@ void dismiss(const std::string& id);
 void dismiss_all();
 
 std::vector<Entry> list();
-int action_count();   // the bell's number
+int action_count();   // the bell's number, with others_count()
+// The other Boréale homebrews' notices to do or failed (none when
+// Preferences › The other Boréale homebrews' notifications is off), as last
+// read: at start-up (publish), every minute while PlayShelf is in focus, and
+// when that preference changes (count_others).
+int others_count();
+void count_others();
 int info_count();     // the entries for information: the bell's dot
 
 // Called (UI thread) after every change of what the bell shows.

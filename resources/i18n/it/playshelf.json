@@ -336,6 +336,7 @@
         "section_app": "Applicazione",
         "intro": "Mostra l'intro per 2 secondi",
         "support_reminder": "Ricordami una volta al mese di sostenere PlayShelf",
+        "notices_others": "Le notifiche degli altri homebrew Boréale",
         "help": "Aiuto e diagnostica",
         "effects": "Effetti visivi",
         "effects_values": {
@@ -582,7 +583,9 @@
         "out": "{} è uscito",
         "out_on": "Uscito il {}",
         "sale_until": "-{0}% · {1} fino al {2}",
-        "day": "{0} {1}"
+        "day": "{0} {1}",
+        "open_in": "Apri in {}",
+        "open_manual": "Apri {} dal menu degli homebrew per occupartene."
     },
     "cadran": {
         "about": {

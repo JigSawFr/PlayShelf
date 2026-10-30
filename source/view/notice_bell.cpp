@@ -49,7 +49,7 @@ aurore::View* NoticeBell::hitTest(aurore::Point point)
 
 void NoticeBell::update()
 {
-    const int to_do = notices::action_count();
+    const int to_do = notices::action_count() + notices::others_count();
     const int said  = notices::info_count();
     // Something new to do rings the bell once; a number that changed pops
     // (not the first reading: the bell is drawn as it is).

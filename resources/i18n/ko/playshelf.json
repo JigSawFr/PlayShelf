@@ -336,6 +336,7 @@
         "section_app": "앱",
         "intro": "인트로를 2초 동안 표시",
         "support_reminder": "한 달에 한 번 PlayShelf 후원 알림 표시",
+        "notices_others": "다른 Boréale 홈브루의 알림",
         "help": "도움말 및 진단",
         "effects": "시각 효과",
         "effects_values": {
@@ -582,7 +583,9 @@
         "out": "{} 출시",
         "out_on": "{} 출시",
         "sale_until": "-{0}% · {1} ({2}까지)",
-        "day": "{1} {0}일"
+        "day": "{1} {0}일",
+        "open_in": "{}에서 열기",
+        "open_manual": "홈브루 메뉴에서 {}을(를) 열어 처리하세요."
     },
     "cadran": {
         "about": {

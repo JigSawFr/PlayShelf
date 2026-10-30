@@ -40,6 +40,7 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::DetailCell,  effects,       "pf_effects");
     AURORE_BIND(aurore::BooleanCell, intro,         "pf_intro");
     AURORE_BIND(aurore::BooleanCell, support_reminder, "pf_support_reminder");
+    AURORE_BIND(aurore::BooleanCell, notices_others, "pf_notices_others");
     AURORE_BIND(aurore::BooleanCell, update_daily,   "pf_update_daily");
     AURORE_BIND(aurore::DetailCell,  update_via,     "pf_update_via");
     AURORE_BIND(aurore::DetailCell,  titledb,        "pf_titledb");
