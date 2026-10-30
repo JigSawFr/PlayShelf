@@ -16,10 +16,23 @@ Usage: tools/check_site_links.py <site-dir> [site-url]
 (site-url: the site's own address, whose absolute links are checked too)
 """
 import os
+import re
 import sys
 from html.parser import HTMLParser
 from urllib.parse import parse_qsl, unquote, urlparse, urlsplit
 
+
+
+
+# No real e-mail address on the site, ours or anyone's: contact goes through
+# the repository's issues, a security flaw through a private advisory.
+EMAIL = re.compile(r"[\w.+-]+@(?:[\w-]+\.)+[a-z]{2,}", re.IGNORECASE)
+RESERVED = re.compile(r"@(?:[\w-]+\.)*(?:example\.(?:org|com|net)|[\w-]+\.example)$", re.IGNORECASE)
+
+
+def emails(text: str) -> list:
+    return [f"an e-mail address ({m.group(0)}), contact goes through GitHub"
+            for m in EMAIL.finditer(text) if not RESERVED.search(m.group(0))]
 
 
 def own_site(url: str) -> bool:
@@ -112,7 +125,9 @@ def main():
                 path = os.path.join(folder, name)
                 page = Page()
                 with open(path, encoding="utf-8") as f:
-                    page.feed(f.read())
+                    html = f.read()
+                page.feed(html)
+                page.problems += emails(html)
                 pages[path] = page
 
     def target(path):

@@ -809,8 +809,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
             <li><a href="https://aurore.boreale.dev/{lang_dir(code)}">Aurore</a></li>
             <li><a href="https://atlas.boreale.dev/{lang_dir(code)}">Atlas</a></li>
             <li><a href="https://lantern.boreale.dev/{lang_dir(code)}">Lantern</a></li>
-            <li><a href="https://boreale.dev/{lang_dir(code)}legal/">{t('sites_legal')}</a></li>
-            <li><a href="mailto:contact@boreale.dev">contact@boreale.dev</a></li></ul>
+            <li><a href="https://boreale.dev/{lang_dir(code)}legal/">{t('sites_legal')}</a></li></ul>
         </div>
         <div>
           <h2>{t('support')}</h2>
