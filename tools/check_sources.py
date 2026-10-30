@@ -3,8 +3,9 @@
 
 Errors:
 - the kit (source/kit) including the app: a file of the kit includes only
-  the kit, the standard library, Aurore and the vendored libraries, plus
-  the app's identity and settings (APP_CONTRACT below); it asks the app's
+  the kit, the standard library, Aurore, boreale-link and the vendored
+  libraries, plus the app's identity and settings (APP_CONTRACT below); it
+  asks the app's
   screens through ui::app_hooks (ui/app_hooks.hpp) or Aurore's ui::hooks. The kit is what PlayShelf shares
   with PlayGuard: it must stay ready to become a library of its own;
 - an include going up the layers: ui/, view/ and util/ (the kit's and the
@@ -41,10 +42,13 @@ def sources(folder):
 # ui::hooks.
 APP_CONTRACT = {"app.hpp", "app_id.h", "util/config.hpp"}
 kit_files = {rel[len("source/kit/"):] for rel, _ in sources("source/kit")}
+# boreale-link (library/boreale-link), the C layer the kit stands on, as on Aurore.
+link_files = set(os.listdir(os.path.join(ROOT, "library/boreale-link/source"))) \
+    if os.path.isdir(os.path.join(ROOT, "library/boreale-link/source")) else set()
 for rel, text in sources("source/kit"):
     here = os.path.dirname(rel[len("source/kit/"):])
     for inc in INCLUDE.findall(text):
-        if inc in APP_CONTRACT or inc in kit_files:
+        if inc in APP_CONTRACT or inc in kit_files or inc in link_files:
             continue
         # A relative include ("../core/x.h", "sim_state.h") inside the kit.
         if os.path.normpath(os.path.join(here, inc)) in kit_files:

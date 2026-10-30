@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/launcher.hpp"
 
+#include "app_id.h"
+#include "bl_notices.h"
 #include "core/platform.h"
 #include "util/paths.hpp"
 
@@ -13,10 +15,10 @@ namespace
 // first two (sphaira/source/app.cpp); hb-appstore unzips to /switch/appstore/.
 const char* const SPHAIRA[]  = { "/switch/sphaira/sphaira.nro", "/switch/sphaira.nro" };
 const char* const APPSTORE[] = { "/switch/appstore/appstore.nro" };
-// libget's folder for PlayShelf: hb-appstore runs from /switch/appstore/
+// libget's folder for the app (its name in the store): hb-appstore runs from /switch/appstore/
 // with its records in ./.get/packages/; sphaira's App Store writes the same
 // one for the official catalogue (sphaira's ui/menus/appstore.cpp).
-const char* const STORE_RECORD = "/switch/appstore/.get/packages/PlayShelf/";
+const char* const STORE_RECORD = "/switch/appstore/.get/packages/" APP_NAME "/";
 
 bool exists(const std::string& sd_path)
 {
@@ -59,16 +61,13 @@ bool launch(const Target& target)
     return launch_nro(target.path);
 }
 
-bool launch_nro(const std::string& path)
+bool launch_nro(const std::string& path, const std::string& route)
 {
     if (path.empty() || path[0] != '/') return false;
-    return platform_set_next_load(("sdmc:" + path).c_str());
-}
-
-bool launch_nro_args(const std::string& path, const std::string& args)
-{
-    if (path.rfind("sdmc:/", 0) != 0 || args.empty()) return false;
-    return platform_set_next_load_args(path.c_str(), args.c_str());
+    if (route.empty()) return platform_set_next_load(("sdmc:" + path).c_str());
+    char sd_path[BL_APP_PATH_MAX + 8], args[BL_APP_PATH_MAX + BL_NOTICE_ROUTE_MAX + 16];
+    if (!bl_open_args(path.c_str(), route.c_str(), sd_path, sizeof(sd_path), args, sizeof(args))) return false;
+    return platform_set_next_load_args(sd_path, args);
 }
 
 }   // namespace launcher
