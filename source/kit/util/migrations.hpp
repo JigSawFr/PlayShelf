@@ -17,7 +17,7 @@
 // - one that reads this file and finds a level above its own latest() (a
 //   later build's) lowers it to its own, and runs nothing;
 // - one from before this file cannot: going back to an earlier build from
-//   PlayShelf (the previous build, an install that is not a newer release)
+//   the app (the previous build, an install that is not a newer release)
 //   calls earlier_build_next() first, which sets the level to 0. A .nro
 //   copied over by hand is not seen.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).

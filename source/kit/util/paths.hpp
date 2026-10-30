@@ -8,8 +8,9 @@
 namespace paths
 {
 
-// sd:/config/playshelf on the console (the .nro stays in sd:/switch/playshelf);
-// ./playshelf_data on desktop.
+// sd:/config/<app> (APP_ID, app_id.h) on the console (the .nro stays in
+// sd:/switch/<app>); ./<app>_data on desktop. The folders only one app
+// has are declared by the app, in this namespace, beside these.
 std::string data_dir();
 std::string logs_dir();
 // Inside logs_dir() (util/log_files.hpp): the saved diagnostic reports, one
@@ -20,8 +21,9 @@ std::string crashes_dir();
 std::string sessions_dir();
 std::string uploads_dir();
 std::string config_file();
-// The user's theme files (*.theme), listed by the palette picker: none
-// unless the user made the folder.
+// The user's theme files (*.theme) and theme folders (<id>/theme.theme with
+// its pictures), listed by the palette picker (Aurore's Theme::listThemes):
+// none unless the user made the folder; the app never writes there.
 std::string themes_dir();
 // The last migration done and the build that last started (util/migrations.hpp).
 std::string migrations_file();
@@ -31,7 +33,7 @@ std::string migrations_file();
 std::string cache_dir();
 std::string nand_cache_dir();
 
-// The folder of the system PlayShelf runs on (util/nand.hpp):
+// The folder of the system the app runs on (util/nand.hpp):
 // data_dir()/nand/<key>. set_nand() once at start-up, before config::load();
 // "unknown" until then.
 void        set_nand(const std::string& key);
@@ -39,7 +41,7 @@ std::string nand_key();
 std::string nand_dir();
 std::string history_file();   // the change history (util/history.hpp), in nand_dir()
 
-// Root of the SD card: "/" on the console; ./playshelf_data/sd on desktop,
+// Root of the SD card: "/" on the console; ./<app>_data/sd on desktop,
 // so the simulated build can be given fake Atmosphère / sys-patch files.
 std::string sd_root();
 

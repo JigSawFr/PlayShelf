@@ -5,6 +5,7 @@
 
 #include <aurore/extern/nlohmann/json.hpp>
 
+#include "app_id.h"
 #include "util/json_util.hpp"
 #include "util/paths.hpp"
 #include "util/update.hpp"
@@ -46,7 +47,7 @@ Found read_state(const std::string& file, State* out)
 
 std::string build_name(const std::string& version)
 {
-    return "PlayShelf " + (version.empty() ? std::string("?") : version);
+    return APP_NAME " " + (version.empty() ? std::string("?") : version);
 }
 
 // "steps 1 to 3", "step 3": the levels of `steps` (in ascending order).

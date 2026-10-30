@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "util/paths.hpp"
 
+#include "app_id.h"
+
 #include <algorithm>
 #include <cerrno>
 #include <cstdio>
@@ -18,9 +20,9 @@ namespace paths
 std::string data_dir()
 {
 #ifdef __SWITCH__
-    return "/config/playshelf";
+    return "/config/" APP_ID;
 #else
-    return "./playshelf_data";
+    return "./" APP_ID "_data";
 #endif
 }
 
@@ -49,7 +51,7 @@ std::string sd_root()
 #ifdef __SWITCH__
     return "/";
 #else
-    return "./playshelf_data/sd";
+    return "./" APP_ID "_data/sd";
 #endif
 }
 
@@ -270,7 +272,7 @@ std::vector<std::string> list_files(const std::string& dir, const std::string& s
     if (!d) return names;
     while (dirent* e = readdir(d)) {
         std::string n = e->d_name;
-        if (n.size() > suffix.size() && n.compare(n.size() - suffix.size(), suffix.size(), suffix) == 0)
+        if (n.size() > suffix.size() && n.ends_with(suffix))
             names.push_back(n);
     }
     closedir(d);
