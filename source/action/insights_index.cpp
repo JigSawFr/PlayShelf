@@ -18,7 +18,7 @@ namespace insights_index
 
 namespace
 {
-constexpr const char* URL = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/index.json";
+constexpr const char* URL = "https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/index.json";
 constexpr size_t      MAX_BYTES = 64 * 1024;
 constexpr long        KEEP = 24 * 3600;   // asked again a day after
 constexpr long        RETRY = 3600;       // after a failure, not asked again before

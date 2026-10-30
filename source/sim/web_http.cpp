@@ -1,7 +1,7 @@
 // The web simulator's http (web/README.md): no libcurl in a browser, and a
 // page cannot reach most servers without their CORS headers, so every
 // request is answered as a console without a connection, but those the demo
-// answers (sim/sim_demo.hpp: its library server, PlayInsights, Nlib API, a
+// answers (sim/sim_demo.hpp: its library server, Atlas, Nlib API, a
 // title database). The PLAYSHELF_SIM_* folders the *_net.cpp files read
 // still answer first.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).

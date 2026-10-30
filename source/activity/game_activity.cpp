@@ -607,7 +607,7 @@ void GameActivity::fill_details_tab()
     std::string rating;
     for (const std::string& r : f.rating) rating += (rating.empty() ? "" : ", ") + r;
     fact(card, "playshelf/game/rating"_i18n, rating);
-    // Its series and its Steam audience (PlayInsights, from Wikidata and SteamSpy).
+    // Its series and its Steam audience (Atlas, from Wikidata and SteamSpy).
     if (const library::GameSignals* sig = popular_flow::signals()->find(this->page.title_id)) {
         std::string series;
         for (const library::Trait& t : sig->series)
@@ -645,7 +645,7 @@ void GameActivity::fill_details_tab()
                  aurore::getStr("playshelf/game/lowest_value", library::price_text(price->lowest, country), date_text(price->lowest_day)));
         }
     }
-    // What critics gave it (PlayInsights, from Wikidata: OpenCritic's mostly).
+    // What critics gave it (Atlas, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)
         fact(card, "playshelf/game/critics"_i18n, aurore::getStr("playshelf/game/critics_score", critics));
     if (f.demo) fact(card, "playshelf/game/demo"_i18n, "playshelf/game/yes"_i18n);

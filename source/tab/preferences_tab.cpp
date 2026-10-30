@@ -156,7 +156,7 @@ PreferencesTab::PreferencesTab()
         if (on) popular_flow::refresh();
         prices_flow::start();
     });
-    // Whose eShop prices: the language's country, one of PlayInsights', or none.
+    // Whose eShop prices: the language's country, one of Atlas', or none.
     prices->registerClickAction([this](aurore::View*) {
         std::vector<std::string> labels{ "playshelf/prices/auto"_i18n }, values{ "" };
         for (const char* c : library::PRICE_COUNTRIES) {

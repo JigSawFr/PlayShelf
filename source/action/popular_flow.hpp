@@ -1,10 +1,10 @@
-// popular_flow — what PlayInsights (https://github.com/JigSawFr/PlayInsights)
+// popular_flow — what Atlas (https://github.com/JigSawFr/Atlas)
 // knows of the games, for Home and a game's page: how well known each is
 // (popular.json: library/popular), its traits, Steam audience and IGDB
 // players' rating (games.json), the games most like it (similar.json) and
 // the game an edition is one of (editions.json: library/signals).
 // Each as PlayShelf came with it and, once a day when config popular_online
-// allows it, the newest from PlayInsights' data branch (its switch/ folder) through jsDelivr
+// allows it, the newest from Atlas' data branch (its switch/ folder) through jsDelivr
 // (kept in cache_dir()), whichever was made last. Read off the UI thread at
 // start-up; the books are the UI thread's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).

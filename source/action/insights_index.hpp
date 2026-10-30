@@ -1,4 +1,4 @@
-// insights_index — PlayInsights' index.json, so popular_flow and prices_flow
+// insights_index — Atlas' index.json, so popular_flow and prices_flow
 // download only the files that changed: fetched at most once a day (kept in
 // cache_dir()), each file's cached copy compared with it by size and hash
 // (library/insights_index). A copy found unchanged is marked checked, and
@@ -12,7 +12,7 @@
 namespace insights_index
 {
 
-// On a worker: whether the cached copy at `path` of PlayInsights' `name`
+// On a worker: whether the cached copy at `path` of Atlas' `name`
 // (switch/popular.json, switch/prices/FR.json) is still the one published. When it is,
 // it is marked checked.
 bool unchanged(const std::string& name, const std::string& path);

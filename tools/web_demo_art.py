@@ -11,10 +11,10 @@ folder:
 - nlib/<id>/details.en.json and details.fr.json: its details, in Nlib API's
   shape (titledb/nlib.cpp reads them);
 - insights/switch/prices/<COUNTRY>.json: every game's eShop price in each country
-  PlayInsights has prices for (PlayInsights' schema 1), a few on sale (the
+  Atlas has prices for (Atlas' schema 1), a few on sale (the
   wishlist's among them), with the lowest each has had;
-- insights/index.json: each of the demo's PlayInsights files (tools/web_demo.cpp's
-  and the prices) with its day, size and short hash, as PlayInsights' index
+- insights/index.json: each of the demo's Atlas files (tools/web_demo.cpp's
+  and the prices) with its day, size and short hash, as Atlas' index
   (action/insights_index);
 - titledb/index.json: every game of the table, as NXMeta's Tinfoil index
   (titledb/list.cpp): names, studios, releases, the coming ones among them.
@@ -149,7 +149,7 @@ def save(img, path, size):
     img.save(path, "JPEG", quality=QUALITY, optimize=True, progressive=True)
 
 
-# Each country of PlayInsights' prices: its currency, and how much its price
+# Each country of Atlas' prices: its currency, and how much its price
 # is of a US dollar one (rounded as its eShop would).
 COUNTRIES = {
     "US": ("USD", 1.0), "CA": ("CAD", 1.35), "MX": ("MXN", 18.0), "BR": ("BRL", 5.5), "GB": ("GBP", 0.85),
@@ -264,7 +264,7 @@ def main():
 
 def write_index(folder, today):
     """insights/index.json: every file under it (switch/popular.json,
-    switch/prices/FR.json), as PlayInsights lists them."""
+    switch/prices/FR.json), as Atlas lists them."""
     files = {}
     for root, _, names in os.walk(folder):
         for name in names:

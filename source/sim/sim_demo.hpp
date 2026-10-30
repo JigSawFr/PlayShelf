@@ -3,7 +3,7 @@
 // DEMO_ORIGIN, which source/sim/sim_demo_http.cpp answers from the files
 // tools/web_demo.cpp and tools/web_demo_art.py made into dir(); and the
 // other services' answers about its games, so the demo fetches nothing
-// real: PlayInsights' files (dir()/insights/, at INSIGHTS_BASE: the
+// real: Atlas' files (dir()/insights/, at INSIGHTS_BASE: the
 // Switch's in switch/, action/popular_flow's, and switch/prices/,
 // action/prices_flow's), Nlib API's details and pictures
 // (dir()/nlib/, at NLIB_BASE, titledb/nlib's) and a title database
@@ -24,7 +24,7 @@ namespace sim_demo
 {
 
 constexpr const char* DEMO_ORIGIN = "https://demo.playshelf.example";
-constexpr const char* INSIGHTS_BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/PlayInsights@data/";
+constexpr const char* INSIGHTS_BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/";
 constexpr const char* NLIB_BASE = "https://api.nlib.cc/nx/";
 constexpr const char* TITLEDB_URL = "https://nx-meta.nlib.cc/index.json";
 

@@ -1,5 +1,5 @@
 // prices_flow — what the games cost on the eShop of the player's country,
-// for Home's deals and a game's page: PlayInsights' switch/prices/<COUNTRY>.json
+// for Home's deals and a game's page: Atlas' switch/prices/<COUNTRY>.json
 // (library/prices), fetched once a day through jsDelivr while config
 // popular_online allows it, kept in cache_dir(). The country is config
 // prices_country, else that of PlayShelf's language; none, no prices. Not
