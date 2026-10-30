@@ -576,11 +576,6 @@
         "downloads_done": "ダウンロードを {} 件インストールしました",
         "downloads_failed_one": "ダウンロードが 1 件失敗しました",
         "downloads_failed": "ダウンロードが {} 件失敗しました",
-        "sale": "{} がセール中",
-        "sale_lowest": "{} が過去最安値",
-        "sale_started": "{} のセールが始まりました",
-        "lowest": "{} が過去最安値に",
-        "lowest_now": "現在 {}",
         "out": "{} が発売されました",
         "out_on": "{}に発売",
         "atlas_new": "Switchの新作：{}",
@@ -589,7 +584,6 @@
         "trend": "{}が話題です",
         "trend_detail": "Wikipediaで普段より{}%多く読まれています",
         "trend_series": "{0}シリーズ · Wikipediaで普段より{1}%多く読まれています",
-        "sale_until": "-{0}% · {1}（{2}まで）",
         "day": "{1}{0}日",
         "open_in": "{}で開く",
         "open_manual": "homebrewメニューから{}を開いて対応してください。"
@@ -797,14 +791,7 @@
         "similar": "似ているゲーム",
         "series": "シリーズ",
         "steam": "Steam のレビュー",
-        "steam_value": "好評 {}% · {} 件",
-        "price": "eShop 価格",
-        "free": "無料",
-        "price_sale": "{0} → {1}（{2}%オフ）",
-        "price_sale_until": "{0} → {1}（{2}%オフ、{3}まで）",
-        "price_lowest_now": "過去最安値",
-        "lowest": "{} 以降の最安値",
-        "lowest_value": "{0}（{1}）"
+        "steam_value": "好評 {}% · {} 件"
     },
     "genres": {
         "action": "アクション",
@@ -928,10 +915,7 @@
         "because_series": "シリーズ: {}",
         "because_developer": "{} 開発",
         "because_popular": "人気",
-        "because_played": "{1}時間：{0}",
-        "deals": "セール中",
-        "deals_line": "eShop でセール中",
-        "deal": "{0}%オフ · {1}"
+        "because_played": "{1}時間：{0}"
     },
     "wishlist": {
         "add": "ほしいものリストに追加",
@@ -962,28 +946,6 @@
         "about": "ホームが提案するゲームで X を押すとここに入ります。もう提案されず、よく似たゲームも出にくくなります。",
         "clear": "すべて再び提案する",
         "none": "なし"
-    },
-    "prices": {
-        "row": "eShop の価格",
-        "auto": "言語に合わせる",
-        "auto_value": "{}（言語）",
-        "none": "表示しない",
-        "none_for_language": "この言語にはありません",
-        "countries": {
-            "US": "アメリカ",
-            "CA": "カナダ",
-            "MX": "メキシコ",
-            "BR": "ブラジル",
-            "GB": "イギリス",
-            "FR": "フランス",
-            "DE": "ドイツ",
-            "ES": "スペイン",
-            "IT": "イタリア",
-            "NL": "オランダ",
-            "PT": "ポルトガル",
-            "AU": "オーストラリア",
-            "JP": "日本"
-        }
     },
     "boreale": {
         "intro": "このコンソールにインストールされている Boréale ファミリーのHomebrew です。それぞれ起動時にここに追加されます。A で開きます。",

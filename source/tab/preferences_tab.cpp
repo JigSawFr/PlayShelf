@@ -13,7 +13,6 @@
 #include "action/notices.hpp"
 #include "action/titledb_flow.hpp"
 #include "action/popular_flow.hpp"
-#include "action/prices_flow.hpp"
 #include "action/update_flow.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -161,28 +160,7 @@ PreferencesTab::PreferencesTab()
         config::get().popular_online = on;
         ui::save_config();
         if (on) popular_flow::refresh();
-        prices_flow::start();
         changes_flow::start();
-    });
-    // Whose eShop prices: the language's country, one of Atlas', or none.
-    prices->registerClickAction([this](aurore::View*) {
-        std::vector<std::string> labels{ "playshelf/prices/auto"_i18n }, values{ "" };
-        for (const char* c : library::PRICE_COUNTRIES) {
-            labels.push_back(aurore::getStr(std::string("playshelf/prices/countries/") + c));
-            values.push_back(c);
-        }
-        labels.push_back("playshelf/prices/none"_i18n);
-        values.push_back("none");
-        int selected = 0;
-        for (size_t i = 0; i < values.size(); i++)
-            if (values[i] == config::get().prices_country) selected = (int)i;
-        ui::pick("playshelf/prices/row"_i18n, labels, selected, [this, values](int i) {
-            config::get().prices_country = values[(size_t)i];
-            ui::save_config();
-            prices_flow::start();
-            this->refresh();
-        });
-        return true;
     });
     // Home's suggestions put away (X on one): all of them suggested again.
     not_interested->registerClickAction([this](aurore::View*) {
@@ -203,7 +181,7 @@ PreferencesTab::PreferencesTab()
                        { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
-                       { "pf_popular_online", "bolt" }, { "pf_prices", "tag" }, { "pf_not_interested", "eye" } });
+                       { "pf_popular_online", "bolt" }, { "pf_not_interested", "eye" } });
 }
 
 PreferencesTab::~PreferencesTab()
@@ -344,12 +322,6 @@ void PreferencesTab::refresh()
     update_daily->setOn(cfg.update_daily, false);
     nlib_api->setOn(cfg.nlib_api, false);
     popular_online->setOn(cfg.popular_online, false);
-    const std::string shown = prices_flow::country();
-    const std::string chosen = cfg.prices_country;
-    prices->setDetailText(chosen == "none" ? "playshelf/prices/none"_i18n
-                          : shown.empty() ? "playshelf/prices/none_for_language"_i18n
-                          : chosen.empty() ? aurore::getStr("playshelf/prices/auto_value", aurore::getStr("playshelf/prices/countries/" + shown))
-                                           : aurore::getStr("playshelf/prices/countries/" + shown));
     const size_t put_away = not_interested::games().size();
     not_interested->setDetailText(!put_away      ? "playshelf/not_interested/none"_i18n
                                   : put_away == 1 ? "playshelf/installed/count_one"_i18n

@@ -1,7 +1,6 @@
 // library/changes: Atlas' changes.json read for the Switch (the games out
-// today, the games new, the trends moved, the sales started and the new
-// lowest prices by country), the
-// schema rule (absent or another: none; unknown fields skipped), bad
+// today, the games new, the trends moved; the sales skipped), the schema
+// rule (absent or another: none; unknown fields skipped), bad
 // entries skipped.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstdio>
@@ -14,7 +13,7 @@ using namespace library;
 
 namespace
 {
-constexpr uint64_t OUT = 0x0100000000010000, SALE = 0x0100000000020000, LOW = 0x0100000000030000;
+constexpr uint64_t OUT = 0x0100000000010000, SALE = 0x0100000000020000;
 
 void test_read()
 {
@@ -31,15 +30,12 @@ void test_read()
     CHECK(book.out_today(OUT) && !book.out_today(SALE));
     // An update's id, no id, no string: skipped.
     CHECK(!book.out_today(0x0100000000010800));
-    CHECK(book.sale_started("FR", SALE) && !book.sale_started("FR", LOW) && !book.sale_started("US", SALE));
-    CHECK(book.new_lowest("FR", LOW) && !book.new_lowest("FR", SALE));
-    // Not a country of Atlas' prices.
-    CHECK(!book.sale_started("XX", OUT));
     // New and trends, in the file's order.
     CHECK(book.new_games().size() == 1 && book.new_games()[0] == 0x0100000000040000);
     CHECK(book.trends().size() == 1 && book.trends()[0].first == OUT && book.trends()[0].second.before == 10 &&
           book.trends()[0].second.now == 210);
-    CHECK(book.size() == 5);
+    // The sales: not read.
+    CHECK(book.size() == 3);
 }
 
 void test_new_and_trends()

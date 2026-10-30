@@ -9,8 +9,7 @@
 // lately, the games with something to get (the most played first) as wide
 // banners, games for the console's player (library/recommend: like the games
 // played most, in their series, by their studios, in their genres; each
-// with its reason) and the next ones in the console's series, the games on
-// sale on the eShop (action/prices_flow), the wishlist,
+// with its reason) and the next ones in the console's series, the wishlist,
 // the games new on the servers, the servers' best known and most read lately
 // games (action/popular_flow), the month's releases (else the newest) and
 // the games coming out soon. A on a game: its page (action/game_page); X on

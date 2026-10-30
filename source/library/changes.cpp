@@ -4,7 +4,6 @@
 
 #include <aurore/extern/nlohmann/json.hpp>
 
-#include "library/prices.hpp"
 #include "library/signals.hpp"
 
 namespace library
@@ -33,7 +32,6 @@ bool is_trend(const nlohmann::json& v)
 bool ChangeBook::from_json(const std::string& text)
 {
     this->out.clear();
-    this->sales.clear();
     this->fresh.clear();
     this->moved.clear();
     this->day.clear();
@@ -64,14 +62,6 @@ bool ChangeBook::from_json(const std::string& text)
             if (id && once.insert(id).second) this->moved.push_back({ id, { v[1].get<int>(), v[2].get<int>() } });
         }
     }
-    const auto by_country = sw->find("sales");
-    if (by_country == sw->end() || !by_country->is_object()) return true;
-    for (const auto& [country, kinds] : by_country->items()) {
-        if (!is_price_country(country) || !kinds.is_object()) continue;
-        Sales& s = this->sales[country];
-        if (const auto k = kinds.find("started"); k != kinds.end()) ids_of(*k, s.started);
-        if (const auto k = kinds.find("lowest"); k != kinds.end()) ids_of(*k, s.lowest);
-    }
     return true;
 }
 
@@ -81,23 +71,9 @@ uint32_t ChangeBook::day_number() const
     return (uint32_t)std::stoul(this->day.substr(0, 4) + this->day.substr(5, 2) + this->day.substr(8, 2));
 }
 
-bool ChangeBook::sale_started(const std::string& country, uint64_t id) const
-{
-    const auto it = this->sales.find(country);
-    return it != this->sales.end() && it->second.started.contains(id);
-}
-
-bool ChangeBook::new_lowest(const std::string& country, uint64_t id) const
-{
-    const auto it = this->sales.find(country);
-    return it != this->sales.end() && it->second.lowest.contains(id);
-}
-
 size_t ChangeBook::size() const
 {
-    size_t n = this->out.size() + this->fresh.size() + this->moved.size();
-    for (const auto& [_, s] : this->sales) n += s.started.size() + s.lowest.size();
-    return n;
+    return this->out.size() + this->fresh.size() + this->moved.size();
 }
 
 }   // namespace library

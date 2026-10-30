@@ -15,11 +15,9 @@
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
-#include "action/prices_flow.hpp"
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
-#include "util/number.hpp"
 #include "util/title_id.hpp"
 #include "view/cover_placeholder.hpp"
 #include "view/game_tile.hpp"
@@ -620,29 +618,6 @@ void GameActivity::fill_details_tab()
         if (sig->igdb.count >= PLAYERS_TRUSTED)
             fact(card, "playshelf/game/players_rating"_i18n,
                  aurore::getStr("playshelf/game/players_rating_value", (int)sig->igdb.rating, sig->igdb.count));
-    }
-    // Its eShop price in the player's country (action/prices_flow); on sale,
-    // the regular price, the sale's and its last day, and whether it is the
-    // lowest yet; then the lowest it has had, when lower than today's.
-    if (const library::Price* price = prices_flow::of(this->page.title_id)) {
-        const std::string country = prices_flow::country();
-        const std::string regular = library::price_text(price->regular, country);
-        std::string       line;
-        if (!price->on_sale()) line = price->regular > 0 ? regular : "playshelf/game/free"_i18n;
-        else if (price->until)
-            line = aurore::getStr("playshelf/game/price_sale_until", regular, library::price_text(price->sale, country),
-                                  price->discount(), date_text(price->until));
-        else
-            line = aurore::getStr("playshelf/game/price_sale", regular, library::price_text(price->sale, country), price->discount());
-        if (price->on_sale() && price->at_lowest()) line += " · " + "playshelf/game/price_lowest_now"_i18n;
-        fact(card, "playshelf/game/price"_i18n, line);
-        const std::string since = prices_flow::book() ? prices_flow::book()->since() : "";
-        const auto  first = since.size() == 10 ? number::parse<uint32_t>(since.substr(0, 4) + since.substr(5, 2) + since.substr(8, 2))
-                                               : std::nullopt;
-        if (price->lowest > 0 && price->lowest < price->now() - 0.004 && price->lowest_day && first) {
-            fact(card, aurore::getStr("playshelf/game/lowest", date_text(*first)),
-                 aurore::getStr("playshelf/game/lowest_value", library::price_text(price->lowest, country), date_text(price->lowest_day)));
-        }
     }
     // What critics gave it (Atlas, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)

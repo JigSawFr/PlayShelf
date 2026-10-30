@@ -52,11 +52,10 @@ const Store::Slot* Store::find(const std::string& id) const
 
 std::string Store::read_key_of(const Slot& s)
 {
-    return s.key.empty() ? read_key(s.item.id, s.item.title, s.item.detail) : read_key(s.item.id, s.key, "");
+    return read_key(s.item.id, s.item.title, s.item.detail);
 }
 
-bool Store::set(const std::string& id, Level level, const std::string& title, const std::string& detail,
-                const std::string& key)
+bool Store::set(const std::string& id, Level level, const std::string& title, const std::string& detail)
 {
     Slot*      s = this->find(id);
     const bool was_shown = s && !s->dismissed;
@@ -65,14 +64,13 @@ bool Store::set(const std::string& id, Level level, const std::string& title, co
         s = &this->slots.back();
         s->item.id = id;
         s->item.order = this->next_order++;
-    } else if (s->item.level == level && s->item.title == title && s->item.detail == detail && s->key == key) {
+    } else if (s->item.level == level && s->item.title == title && s->item.detail == detail) {
         return false;
     }
     s->item.level = level;
     s->item.title = title;
     s->item.detail = detail;
-    s->key = key;
-    // New words (or a new key): told again, even when the old ones were put away.
+    // New words: told again, even when the old ones were put away.
     s->dismissed = level == Level::Info && std::ranges::contains(this->read, read_key_of(*s));
     return was_shown || !s->dismissed;
 }
