@@ -17,7 +17,7 @@
 
 #include <atomic>
 #include <chrono>
-#include <fmt/format.h>
+#include <format>
 
 using namespace aurore::literals;
 
@@ -37,7 +37,7 @@ std::string rc_text(Result rc, bool next_step)
         if (hint[0] >= 'a' && hint[0] <= 'z') hint[0] = (char)(hint[0] - 'a' + 'A');
         return hint;
     }
-    std::string code = fmt::format("0x{:08X}", (unsigned)rc);
+    std::string code = std::format("0x{:08X}", (unsigned)rc);
     std::string text = hint.empty() ? aurore::getStr("playshelf/error/code", code)
                                     : aurore::getStr("playshelf/error/code_hint", code, hint);
     // A system code alone leaves the parent stuck: say what to do next. App

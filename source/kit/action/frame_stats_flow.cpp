@@ -2,11 +2,11 @@
 #include "action/frame_stats_flow.hpp"
 
 #include <atomic>
+#include <format>
 #include <aurore.hpp>
 #include <chrono>
 #include <cstdio>
 #include <fcntl.h>
-#include <fmt/format.h>
 #include <unistd.h>
 
 #ifdef __SWITCH__
@@ -93,7 +93,7 @@ std::string stamp()
     u64 posix = 0;
     LocalTime l {};
     if (!time_local_now(&posix, &l)) return "?";
-    return fmt::format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", (int)l.year, (int)l.month, (int)l.day,
+    return std::format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", (int)l.year, (int)l.month, (int)l.day,
                        (int)l.hour, (int)l.minute, (int)l.second);
 }
 
@@ -125,7 +125,7 @@ void write(const std::string& text, bool fresh)
 
 void flush()
 {
-    const std::string size = fmt::format("{}x{}", aurore::Application::windowWidth, aurore::Application::windowHeight);
+    const std::string size = std::format("{}x{}", aurore::Application::windowWidth, aurore::Application::windowHeight);
     const std::string l    = frame_stats::line(stamp(), mode(), size, s_screen, s_second);
     s_last = l.substr(0, l.size() - 1);
     write(l, false);
@@ -135,7 +135,7 @@ void start()
 {
     if (s_running) return;
     // Begun afresh: the file holds this run alone.
-    write(frame_stats::header() + fmt::format("# PlayShelf {}\n", app::version()), true);
+    write(frame_stats::header() + std::format("# PlayShelf {}\n", app::version()), true);
     s_running      = true;
     s_last_wall_us = 0;
     s_last.clear();

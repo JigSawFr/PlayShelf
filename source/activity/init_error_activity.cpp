@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "activity/init_error_activity.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "app.hpp"
 #include "ui/ui.hpp"
@@ -16,7 +16,7 @@ void InitErrorActivity::onContentAvailable()
     SysInfo si;
     sysinfo_get(&si);
     const std::string fw = ui::hos_text(si.hos_version);
-    std::string ams = si.ams_valid ? fmt::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro)
+    std::string ams = si.ams_valid ? std::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro)
                                    : "playshelf/common/unavailable"_i18n;
     this->error_fw->setText(aurore::getStr("playshelf/init_error/firmware", fw, ams, ui::storage_short(si)));
 

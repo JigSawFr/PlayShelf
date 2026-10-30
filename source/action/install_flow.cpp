@@ -3,10 +3,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <format>
 #include <aurore.hpp>
 #include <memory>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
@@ -27,7 +26,7 @@ std::string s_last_url = "https://";
 
 std::string mb_text(uint64_t bytes)
 {
-    std::string text = fmt::format("{:.1f}", (double)bytes / (1024.0 * 1024.0));
+    std::string text = std::format("{:.1f}", (double)bytes / (1024.0 * 1024.0));
     const size_t dot = text.find('.');
     if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
     return text;

@@ -2,6 +2,7 @@
 #include "action/nlib_flow.hpp"
 
 #include <algorithm>
+#include <format>
 #include <aurore.hpp>
 #include <aurore/cadran/ui/live_prefs.hpp>
 #include <ctime>
@@ -9,8 +10,6 @@
 #include <mutex>
 #include <set>
 #include <sys/stat.h>
-
-#include <fmt/format.h>
 
 #include "action/titledb_flow.hpp"
 #include "library/catalog.hpp"
@@ -54,7 +53,7 @@ std::string book_file()
 // the facts are kept).
 std::string file_of(uint64_t base, const std::string& language)
 {
-    return fmt::format("{}/nlib/{:016X}-{}-2.json", paths::cache_dir(), base, language);
+    return std::format("{}/nlib/{:016X}-{}-2.json", paths::cache_dir(), base, language);
 }
 
 bool fresh(const std::string& file)

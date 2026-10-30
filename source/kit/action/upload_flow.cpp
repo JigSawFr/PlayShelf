@@ -3,7 +3,7 @@
 
 #include <aurore.hpp>
 #include <ctime>
-#include <fmt/format.h>
+#include <format>
 #include <memory>
 #include <vector>
 
@@ -69,7 +69,7 @@ void show_link(const log_upload::Result& r, bool report)
     log_upload::IssueFields fields;
     fields.version = app::version();
     fields.firmware = fw;
-    if (si.ams_valid) fields.atmosphere = fmt::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro);
+    if (si.ams_valid) fields.atmosphere = std::format("{}.{}.{}", si.ams_major, si.ams_minor, si.ams_micro);
     // The menu it was started from is not known: the reporter adds it.
     fields.launcher = si.applet_mode ? "from the Album (applet)" : "over a game (title override)";
     const SysStorage storage = sysinfo_storage(&si);

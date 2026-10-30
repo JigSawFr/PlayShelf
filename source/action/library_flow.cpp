@@ -3,10 +3,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <format>
 #include <aurore.hpp>
 #include <map>
-
-#include <fmt/format.h>
 
 #include "action/download_flow.hpp"
 #include "action/titledb_flow.hpp"
@@ -127,7 +126,7 @@ std::string size_text(uint64_t bytes)
 {
     const double mb = (double)bytes / (1024.0 * 1024.0);
     // A decimal while the figure is small: "0,1 MB", "4,2 GB", "734 MB".
-    std::string text = mb >= 1024.0 ? fmt::format("{:.1f}", mb / 1024.0) : mb < 10.0 ? fmt::format("{:.1f}", mb) : fmt::format("{:.0f}", mb);
+    std::string text = mb >= 1024.0 ? std::format("{:.1f}", mb / 1024.0) : mb < 10.0 ? std::format("{:.1f}", mb) : std::format("{:.0f}", mb);
     const size_t dot = text.find('.');
     if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
     return aurore::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
@@ -402,7 +401,7 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     out.more = more;
     out.installed = st.base;
     out.installed_version = st.base ? st.version : 0;
-    out.facts = t.id ? fmt::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
+    out.facts = t.id ? std::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
     if (st.base) out.facts += " · " + aurore::getStr("playshelf/library/installed_version", st.version);
     return out;
 }

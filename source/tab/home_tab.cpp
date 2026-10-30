@@ -3,10 +3,9 @@
 
 #include <algorithm>
 #include <ctime>
+#include <format>
 #include <map>
 #include <utility>
-
-#include <fmt/format.h>
 
 #include <aurore/cadran/ui/cadran_frame.hpp>
 #include <aurore/cadran/ui/cadran_kit.hpp>
@@ -87,7 +86,7 @@ std::string day_text(uint32_t date)
 {
     const unsigned d = date % 100, m = date / 100 % 100, y = date / 10000;
     if (m < 1 || m > 12) return std::to_string(y);
-    return aurore::getStr("playshelf/game/date", d, aurore::getStr(fmt::format("cadran/months/{}", m)), y, m);
+    return aurore::getStr("playshelf/game/date", d, aurore::getStr(std::format("cadran/months/{}", m)), y, m);
 }
 
 // A game's first genre, in the language's words ("" when none known).
@@ -157,19 +156,19 @@ std::pair<std::string, const char*> reason_text(const library::Reason& r)
 // may be on one of them).
 std::string key_of(const insights::Snapshot& s)
 {
-    std::string key = fmt::format("{} {} {} {} {} {} {} {} {} {}|", s.console_games, s.server_games, s.updates, s.dlcs,
+    std::string key = std::format("{} {} {} {} {} {} {} {} {} {}|", s.console_games, s.server_games, s.updates, s.dlcs,
                                   s.downloads, s.space.free / 100000000, s.loading, library::load_servers().size(),
                                   popular_flow::size(), config::get().nlib_api);
     for (const auto* list : { &s.to_get, &s.added, &s.popular, &s.trending, &s.month, &s.newest }) {
-        for (const insights::Pick& p : *list) key += fmt::format("{:x},", p.title().id);
+        for (const insights::Pick& p : *list) key += std::format("{:x},", p.title().id);
         key += '|';
     }
-    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x}.{},", l.pick.title().id, std::to_underlying(l.reason.kind), l.reason.because, l.reason.hours);
-    for (const insights::InSeries& l : s.series) key += fmt::format("{:x},", l.pick.title().id);
-    for (const insights::Deal& d : s.deals) key += fmt::format("{:x}.{}.{},", d.pick.title().id, d.price.sale, d.price.until);
-    for (const insights::Played& p : s.recent) key += fmt::format("{:x}.{},", p.game.game.id, p.game.last_played);
-    for (const insights::Wished& w : s.wished) key += fmt::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
-    for (const insights::Coming& c : s.coming) key += fmt::format("{:x},", c.id);
+    for (const insights::Suggested& l : s.like) key += std::format("{:x}.{}.{:x}.{},", l.pick.title().id, std::to_underlying(l.reason.kind), l.reason.because, l.reason.hours);
+    for (const insights::InSeries& l : s.series) key += std::format("{:x},", l.pick.title().id);
+    for (const insights::Deal& d : s.deals) key += std::format("{:x}.{}.{},", d.pick.title().id, d.price.sale, d.price.until);
+    for (const insights::Played& p : s.recent) key += std::format("{:x}.{},", p.game.game.id, p.game.last_played);
+    for (const insights::Wished& w : s.wished) key += std::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
+    for (const insights::Coming& c : s.coming) key += std::format("{:x},", c.id);
     return key;
 }
 }   // namespace
