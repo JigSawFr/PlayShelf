@@ -7,6 +7,8 @@
 //   logs/uploads/upload_20261011_142530.url    one per report sent online: an
 //                                              Internet shortcut to its gist
 //                                              (shortcut())
+//   logs/<other folders>                       the app's own (PlayGuard's
+//                                              play_timer/), left alone here
 //
 // The reports, the crashes, the sessions and the uploads are pruned with the limits of
 // About › Help & diagnostics (config: logs_keep, logs_keep_days, logs_keep_mb), each folder on

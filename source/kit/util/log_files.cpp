@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "app_id.h"
 #include "util/paths.hpp"
 
 namespace log_files
@@ -56,7 +57,7 @@ std::string name(const char* prefix, const std::string& stamp, unsigned n)
 
 std::string shortcut(const std::string& url, const std::string& removal, const std::string& sent)
 {
-    std::string out = "[InternetShortcut]\r\nURL=" + url + "\r\n\r\n[PlayShelf]\r\n";
+    std::string out = "[InternetShortcut]\r\nURL=" + url + "\r\n\r\n[" APP_NAME "]\r\n";
     if (!sent.empty()) out += "Sent=" + sent + "\r\n";
     if (!removal.empty()) out += "Removal=" + removal + "\r\n";
     return out;
@@ -80,7 +81,7 @@ bool parse(const std::string& name, const char* prefix, std::string* stamp)
     const size_t p = std::strlen(prefix);
     if (name.compare(0, p, prefix) != 0 || name.size() < p + 1 + 15 + 4 || name[p] != '_') return false;
     const size_t at = p + 1, end = at + 15;
-    if (!is_stamp(name, at) || name.compare(name.size() - 4, 4, extension(prefix)) != 0) return false;
+    if (!is_stamp(name, at) || !name.ends_with(extension(prefix))) return false;
     const size_t rest = name.size() - 4 - end;   // "" or "_<n>"
     if (rest == 1 || (rest > 1 && (name[end] != '_' || !digits(name, end + 1, rest - 1)))) return false;
     if (stamp) *stamp = name.substr(at, 15);
