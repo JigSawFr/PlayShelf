@@ -37,6 +37,9 @@ class SeenBook
 
     std::string to_json() const;
     bool        from_json(const std::string& text);
+    // Whether seen.json's text is of a newer schema than this build's: not
+    // read, and never written over.
+    static bool newer(const std::string& text);
 
   private:
     struct Server

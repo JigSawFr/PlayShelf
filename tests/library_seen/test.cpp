@@ -1,6 +1,6 @@
 // library/seen: the games a server had from its first reading, those seen
 // later dated, the dates let go after MAX_DAYS, written and read back; the
-// days between two dates; the wishlist's ids.
+// days between two dates; the wishlist's ids; a newer schema's book.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "library/seen.hpp"
@@ -35,6 +35,19 @@ void test_book()
     CHECK(again.first_seen("x", A) == 20261001 && again.first_seen("x", B) == 0);
 }
 
+// A newer schema's book: not read, and newer() tells the app to leave the
+// file alone (action/insights). An unknown key is skipped.
+void test_schema()
+{
+    SeenBook b;
+    const std::string newer = R"({"schema":2,"servers":{"x":{"known":"0100000000010000"}}})";
+    CHECK(SeenBook::newer(newer) && !b.from_json(newer) && b.first_seen("x", A) == 0);
+    CHECK(!SeenBook::newer(b.to_json()) && !SeenBook::newer("nope") && !SeenBook::newer(R"({"servers":{}})"));
+    CHECK(!SeenBook::newer(R"({"schema":-3})") && !SeenBook::newer(R"({"schema":"2"})"));
+    CHECK(b.from_json(R"({"schema":1,"shelf":"top","servers":{"x":{"known":"0100000000010000","pinned":true}}})"));
+    CHECK(!b.note("x", { A }, 20261001));   // known already
+}
+
 void test_days()
 {
     CHECK(days_between(20261001, 20261031) == 30 && days_between(20240228, 20240301) == 2 && days_between(20230228, 20230301) == 1);
@@ -52,6 +65,7 @@ void test_ids()
 int main()
 {
     test_book();
+    test_schema();
     test_days();
     test_ids();
     CHECK_DONE("library_seen");

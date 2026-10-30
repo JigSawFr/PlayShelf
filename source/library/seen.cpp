@@ -142,6 +142,14 @@ bool SeenBook::from_json(const std::string& text)
     return true;
 }
 
+bool SeenBook::newer(const std::string& text)
+{
+    const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
+    if (!root.is_object()) return false;
+    const auto schema = root.find("schema");   // a newer one is above 0: JSON's unsigned
+    return schema != root.end() && schema->is_number_unsigned() && schema->get<uint64_t>() > (uint64_t)SCHEMA;
+}
+
 std::string ids_text(const std::vector<uint64_t>& ids)
 {
     std::string out;
