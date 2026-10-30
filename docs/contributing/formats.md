@@ -19,6 +19,7 @@ The schema is one named constant per format, never a number repeated in the code
 | `servers.json` | `"schema"`, 1 | `library::SERVERS_SCHEMA` | `source/library/servers.cpp` | No servers, the file not written; a password or pin of a format not known kept as it is, unused |
 | `queue.json`, with each job's install journal | `"schema"`, 1 (the journal's own `"schema"`, 1) | `download::QUEUE_SCHEMA`, `download::JOURNAL_SCHEMA` | `source/download/queue.cpp` | An empty queue, the file not written; a job of a newer journal not taken up (failed, its journal kept) |
 | `seen.json` | `"schema"`, 1 | `SCHEMA` in `source/library/seen.cpp` | `source/library/seen.cpp`, `source/action/insights.cpp` | Not read, not written |
+| `news.json` (the games the bell told new or trending, from Atlas' `changes.json`) | `"schema"`, 1 | `library::TellBook::SCHEMA` | `source/library/news.cpp`, `source/activity/insight_notices.cpp` | Read as none (a game may be told again), not written |
 | `nlib/facts.json` | `"schema"`, 1 | `SCHEMA` in `source/library/facts.cpp` | `source/library/facts.cpp`, `source/action/nlib_flow.cpp` | Not read, not written |
 | `wishlist.txt`, `not_interested.txt` | a first line `schema=1` (none: 1) | `library::IDS_SCHEMA` (`source/kit/util/text_schema.hpp` reads the line) | `source/library/seen.cpp`, `source/action/wishlist.cpp`, `source/action/not_interested.cpp` | Empty, not written |
 | `notices_read.txt` | a first line `schema=1` (none: 1) | `notice_logic::KEYS_SCHEMA` | `source/action/notice_logic.cpp`, `source/action/notices.cpp` | Empty, not written |

@@ -1,5 +1,6 @@
 // library/changes: Atlas' changes.json read for the Switch (the games out
-// today, the sales started and the new lowest prices by country), the
+// today, the games new, the trends moved, the sales started and the new
+// lowest prices by country), the
 // schema rule (absent or another: none; unknown fields skipped), bad
 // entries skipped.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -34,7 +35,33 @@ void test_read()
     CHECK(book.new_lowest("FR", LOW) && !book.new_lowest("FR", SALE));
     // Not a country of Atlas' prices.
     CHECK(!book.sale_started("XX", OUT));
-    CHECK(book.size() == 3);
+    // New and trends, in the file's order.
+    CHECK(book.new_games().size() == 1 && book.new_games()[0] == 0x0100000000040000);
+    CHECK(book.trends().size() == 1 && book.trends()[0].first == OUT && book.trends()[0].second.before == 10 &&
+          book.trends()[0].second.now == 210);
+    CHECK(book.size() == 5);
+}
+
+void test_new_and_trends()
+{
+    ChangeBook book;
+    CHECK(book.from_json(R"({"schema":1,"generated":"2026-11-02","platforms":{"switch":{
+        "new":["0100000000040000","0100000000040000","0100000000040800",3,"0100000000050000"],
+        "trends":[["0100000000010000",10,210],["0100000000010000",0,500],["0100000000020000",50],
+                  ["0100000000030000",-100,1000],["0100000000060000",300,-100],"odd",["zz",1,2],
+                  ["0100000000070000",1.5,200],["0100000000080000",0,120,"later"]]}}})"));
+    // Each game once, an update's id and malformed entries skipped.
+    CHECK(book.new_games().size() == 2 && book.new_games()[1] == 0x0100000000050000);
+    // Out of -100..999, not numbers, too short: skipped; a longer entry read.
+    CHECK(book.trends().size() == 3);
+    CHECK(book.trends()[0].second.now == 210);
+    CHECK(book.trends()[1].first == 0x0100000000060000 && book.trends()[1].second.now == -100);
+    CHECK(book.trends()[2].first == 0x0100000000080000 && book.trends()[2].second.now == 120);
+    // Read again: the last file's lists only.
+    CHECK(book.from_json(R"({"schema":1,"generated":"2026-11-03","platforms":{"switch":{"new":"odd","trends":{}}}})"));
+    CHECK(book.new_games().empty() && book.trends().empty());
+    CHECK(!book.from_json(R"({"schema":2,"generated":"2026-11-04","platforms":{"switch":{"new":["0100000000040000"]}}})"));
+    CHECK(book.new_games().empty());
 }
 
 void test_schema()
@@ -73,6 +100,7 @@ void test_limits()
 int main()
 {
     test_read();
+    test_new_and_trends();
     test_schema();
     test_limits();
     CHECK_DONE("library_changes");

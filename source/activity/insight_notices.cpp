@@ -13,9 +13,12 @@
 #include "action/game_page.hpp"
 #include "action/library_flow.hpp"
 #include "action/notices.hpp"
+#include "action/popular_flow.hpp"
 #include "action/prices_flow.hpp"
 #include "activity/storage_activity.hpp"
 #include "activity/tabs.hpp"
+#include "library/news.hpp"
+#include "util/paths.hpp"
 #include "tab/library_tab.hpp"
 #include "ui/ui.hpp"
 
@@ -29,6 +32,28 @@ namespace
 std::set<std::string> s_wished;   // the wishlist's entries set, to clear those gone
 std::set<std::string> s_sales;    // the wishlist's sales said, to clear those over
 std::set<std::string> s_news;     // the last run's news said (out today, new lowest), to clear the older
+std::set<std::string> s_atlas;    // the last run's new games and trends said, to clear the older
+
+// The games told new or trending once (library/news), read at the first
+// publish; news.json of a newer build is kept in memory only.
+library::TellBook s_told;
+bool              s_told_read = false, s_told_newer = false;
+
+std::string told_file() { return paths::data_dir() + "/news.json"; }
+
+void read_told()
+{
+    if (s_told_read) return;
+    s_told_read = true;
+    std::string text;
+    if (!paths::read_file(told_file(), text) || text.empty()) return;
+    if (library::TellBook::newer(text)) {
+        aurore::Logger::warning("notices: {} is from a newer PlayShelf, left as it is", told_file());
+        s_told_newer = true;
+    } else if (!s_told.from_json(text)) {
+        aurore::Logger::warning("notices: {} not read", told_file());
+    }
+}
 
 // "Ember Vale, Turbo Kart, Ink Squad…": the first names of a list.
 template <typename List, typename Name>
@@ -175,6 +200,44 @@ void publish(const insights::Snapshot& s)
     for (const std::string& id : s_news)
         if (!news.contains(id)) notices::clear(id);
     s_news = news;
+
+    // Beyond the wishlist (library/news): the games new on the Switch of a
+    // series the console's or the wishlist's games are of, or much like one
+    // of them; the wishlist's games, and those of the console's series, read
+    // much more lately. Each game told once, while its run is the last one.
+    std::set<std::string> atlas;
+    if (run_day) {
+        read_told();
+        std::vector<uint64_t> wished_ids;
+        for (const insights::Wished& w : s.wished) wished_ids.push_back(w.id);
+        bool changed = s_told.forget_older(run_day);
+        for (const library::News& n : library::news_of(*changes, *popular_flow::signals(), *popular_flow::similar(),
+                                                       *popular_flow::editions(), s.owned, wished_ids, s_told)) {
+            const bool        fresh = n.kind == library::NewsKind::New;
+            const std::string id = std::format("{}.{:016x}.{}", fresh ? "atlas_new" : "trend", n.id, run_day);
+            atlas.insert(id);
+            changed |= s_told.note(n.kind, n.id, run_day);
+            const std::string     name = insights::name_of(n.id);
+            const insights::Pick  found = insights::found_of(n.id);
+            std::function<void()> open;
+            if (found.data) open = [data = found.data, index = found.index]() { game_page::open(data, index); };
+            std::string title, detail;
+            if (fresh) {
+                title = aurore::getStr("playshelf/notices/atlas_new", name);
+                detail = n.why == library::News::Why::Alike ? aurore::getStr("playshelf/notices/atlas_new_like", insights::name_of(n.like))
+                                                            : aurore::getStr("playshelf/notices/atlas_new_series", n.series);
+            } else {
+                title = aurore::getStr("playshelf/notices/trend", name);
+                detail = n.why == library::News::Why::Wished ? aurore::getStr("playshelf/notices/trend_detail", n.now)
+                                                             : aurore::getStr("playshelf/notices/trend_series", n.series, n.now);
+            }
+            notices::set(id, notices::Level::Info, title, detail, found.data ? see : "", open);
+        }
+        if (changed && !s_told_newer) ui::save_later("news", told_file(), s_told.to_json());
+    }
+    for (const std::string& id : s_atlas)
+        if (!atlas.contains(id)) notices::clear(id);
+    s_atlas = atlas;
 
     // The updates no server has yet: for information.
     if (!s.missing.empty())

@@ -113,6 +113,7 @@ struct Snapshot
     std::vector<Coming>  coming;     // coming out soon (the title databases)
     std::vector<Missing> missing;    // updates no server has yet
     std::vector<Wished>  wished;     // the wishlist, those a server has first
+    std::vector<uint64_t> owned;     // the console's games, by title id
 
     installed_flow::Space space;
     // The console's games not played for months, the largest first.
