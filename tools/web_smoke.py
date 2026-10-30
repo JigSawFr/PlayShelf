@@ -338,7 +338,9 @@ def steps_link(new_page):
         else:
             print("ok   steps link replayed")
         # A report: a new issue, the steps link in its body.
-        url = page.evaluate("() => { let u = ''; window.open = (x) => { u = x; }; report(); return u; }")
+        url = page.evaluate("() => { let u = ''; const click = HTMLAnchorElement.prototype.click; "
+                            "HTMLAnchorElement.prototype.click = function () { u = this.referrerPolicy === 'strict-origin' ? this.href : 'no strict-origin'; }; "
+                            "report(); HTMLAnchorElement.prototype.click = click; return u; }")
         if "/issues/new?" not in url or "rec%3D" not in url or len(url) > 8000:
             fail(f"report: not a new issue with the steps ({len(url)} characters)")
         else:

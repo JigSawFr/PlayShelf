@@ -161,6 +161,11 @@ function linkFor(values) {
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
+  // A link out says nothing of the visit, but to our own sites (sim_logic.js).
+  if (tag === 'a') {
+    const out = SimLogic.linkOutAttributes(attrs.href || '');
+    attrs = { ...out, ...attrs, ...(out.rel && attrs.rel ? { rel: `${attrs.rel} ${out.rel}` } : {}) };
+  }
   for (const [k, v] of Object.entries(attrs)) {
     if (k === 'class') node.className = v;
     else if (k === 'text') node.textContent = v;
@@ -859,7 +864,8 @@ function report() {
   };
   let lines = 40;
   while (lines > 0 && url(lines).length > 8000) lines -= 5;
-  window.open(url(lines), '_blank', 'noopener');
+  // Opened as a link, so the issue page gets the origin alone (el()).
+  el('a', { href: url(lines), target: '_blank', rel: 'noopener' }).click();
 }
 
 // ---- The page ------------------------------------------------------------
