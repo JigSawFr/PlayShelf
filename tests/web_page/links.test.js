@@ -9,12 +9,8 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const fs = require('node:fs');
 
-const own = (href) => {
-  const u = new URL(href);
-  const host = u.hostname.toLowerCase();
-  return u.protocol === 'https:' && (host === 'boreale.dev' || host.endsWith('.boreale.dev') ||
-    (host === 'github.com' && u.pathname.toLowerCase().startsWith('/jigsawfr/')));
-};
+const L = require('../../web/sim_logic.js');
+const own = L.ownSite;
 
 test('own sites, and look-alikes that are not', () => {
   for (const href of ['https://boreale.dev/', 'https://guard.boreale.dev/fr/', 'https://github.com/JigSawFr/PlayShelf']) {
@@ -24,6 +20,13 @@ test('own sites, and look-alikes that are not', () => {
     'https://boreale.dev.example.com/', 'https://notboreale.dev/', 'http://boreale.dev/']) {
     assert.ok(!own(href), href);
   }
+});
+
+test('the attributes a link built by the page takes', () => {
+  assert.deepEqual(L.linkOutAttributes('https://github.com/JigSawFr/X/pull/1'), { referrerpolicy: 'strict-origin' });
+  assert.deepEqual(L.linkOutAttributes('https://github.com/someone/X/pull/1'), { rel: 'noreferrer' });
+  assert.deepEqual(L.linkOutAttributes('../docs/'), {});
+  assert.equal(own('not a url'), false);
 });
 
 test('the page sends no referrer, but the origin to our own sites', () => {

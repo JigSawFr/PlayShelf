@@ -160,9 +160,27 @@
     return out.join('.');
   }
 
+  // Links out (the rule "liens sortants anonymes"): our own sites
+  // (boreale.dev and its subdomains, the repositories of github.com/JigSawFr/)
+  // get the origin alone, any other site nothing. A fork's repository, the
+  // profile page or a look-alike is another site.
+  function ownSite(href) {
+    let u;
+    try { u = new URL(href); } catch { return false; }
+    const host = u.hostname.toLowerCase();
+    return u.protocol === 'https:' && (host === 'boreale.dev' || host.endsWith('.boreale.dev') ||
+      (host === 'github.com' && u.pathname.toLowerCase().startsWith('/jigsawfr/')));
+  }
+
+  // The attributes a link to `href` takes: none on the page itself.
+  function linkOutAttributes(href) {
+    if (!/^https?:/i.test(href)) return {};
+    return ownSite(href) ? { referrerpolicy: 'strict-origin' } : { rel: 'noreferrer' };
+  }
+
   const SimLogic = {
     LANGUAGES, FLAGS, flag, FALSY, STEP_BUTTONS, isOn, consoleLanguage, firstConsoleLanguage, readQuery, toQuery, changedNames,
-    envValue, envName, startEnvironment, parseSteps, stepValue, stepsText,
+    envValue, envName, startEnvironment, parseSteps, stepValue, stepsText, ownSite, linkOutAttributes,
   };
   if (typeof module === 'object' && module.exports) module.exports = SimLogic;
   else root.SimLogic = SimLogic;
