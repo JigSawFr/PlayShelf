@@ -21,6 +21,7 @@
 #include "library/seen.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 #include "util/title_id.hpp"
 
@@ -39,8 +40,7 @@ constexpr int      TRENDING = 25;         // read a quarter more than before, at
 constexpr int      POPULAR = 20;          // a score worth showing
 
 std::shared_ptr<const Snapshot>      s_now = std::make_shared<Snapshot>();
-std::map<int, std::function<void()>> s_listeners;
-int                                  s_next = 1;
+Listeners                            s_listeners;
 bool                                 s_started = false;
 bool                                 s_pending = false;   // a make() asked for the next frame
 
@@ -102,8 +102,7 @@ std::vector<std::shared_ptr<const library_flow::Loaded>> catalogues()
 
 void tell()
 {
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 
 // The seen book written, off the UI thread.
@@ -111,7 +110,8 @@ void save_seen()
 {
     auto text = std::make_shared<std::string>(s_seen.to_json());
     ui::in_background("seen", [text]() {
-        if (paths::ensure_dir(paths::data_dir())) paths::atomic_write(seen_file(), *text);
+        // Saved again at the next change: a failed write is not reported.
+        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(seen_file(), *text);
     });
 }
 
@@ -481,14 +481,12 @@ void update_all()
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 std::string name_of(uint64_t id, const std::string& console)

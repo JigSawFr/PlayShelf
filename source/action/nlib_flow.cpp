@@ -6,7 +6,6 @@
 #include <aurore/cadran/ui/live_prefs.hpp>
 #include <ctime>
 #include <deque>
-#include <map>
 #include <mutex>
 #include <set>
 #include <sys/stat.h>
@@ -18,6 +17,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 namespace nlib_flow
@@ -37,8 +37,7 @@ std::string        s_language;          // its language (s_lock)
 library::FactsBook                    s_book;
 bool                                  s_dirty = false;   // facts not written yet
 size_t                                s_untold = 0;      // facts the listeners were not told of
-std::map<int, std::function<void()>> s_listeners;
-int                                   s_next = 1;
+Listeners                            s_listeners;
 
 std::string dir()
 {
@@ -92,15 +91,15 @@ std::shared_ptr<const titledb::Details> fetch(uint64_t base, const std::string& 
         }
         return nullptr;
     }
-    if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(paths::cache_dir() + "/nlib")) paths::atomic_write(file, r.body);
+    // A cache: a copy not written is fetched again.
+    if (paths::ensure_dir(paths::cache_dir()) && paths::ensure_dir(paths::cache_dir() + "/nlib")) (void)paths::atomic_write(file, r.body);
     return d;
 }
 
 void tell()
 {
     s_untold = 0;
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 
 // The facts written, off the UI thread.
@@ -110,7 +109,8 @@ void save()
     s_dirty = false;
     auto text = std::make_shared<std::string>(s_book.to_json());
     ui::in_background("nlib facts", [text]() {
-        if (paths::ensure_dir(dir())) paths::atomic_write(book_file(), *text);
+        // Saved again at the next change: a failed write is not reported.
+        if (paths::ensure_dir(dir())) (void)paths::atomic_write(book_file(), *text);
     });
 }
 
@@ -253,14 +253,12 @@ bool waiting(uint64_t title_id)
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace nlib_flow

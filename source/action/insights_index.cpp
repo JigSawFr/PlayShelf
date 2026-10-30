@@ -65,7 +65,8 @@ std::shared_ptr<const library::InsightsIndex> today()
         aurore::Logger::warning("insights data: the fetched index.json is not one");
         return nullptr;
     }
-    if (paths::ensure_dir(paths::cache_dir())) paths::atomic_write(cached(), r.body);
+    // A cache: a copy not written is fetched again.
+    if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(cached(), r.body);
     aurore::Logger::info("insights data: index.json, {} files", s_index->size());
     return s_index;
 }
@@ -81,7 +82,7 @@ bool unchanged(const std::string& name, const std::string& path)
     std::string bytes;
     if (!index || !paths::read_file(path, bytes) || library::must_fetch(index.get(), name, bytes)) return false;
     // A stamp next to the copy: the copy itself is not written again.
-    paths::atomic_write(path + ".checked", "");
+    (void)paths::atomic_write(path + ".checked", "");
     aurore::Logger::debug("insights data: {} unchanged", name);
     return true;
 }

@@ -76,7 +76,7 @@ void nca_header_crypt(uint8_t header[NCA_HEADER], const uint8_t header_key[32], 
 // section within it and its fs header matching the hash the header keeps.
 // nca_size, when known (non-zero: the file's size in its archive), must be
 // the header's.
-std::optional<NcaHeader> nca_parse_header(const uint8_t header[NCA_HEADER], uint64_t nca_size = 0, std::string* why = nullptr);
+[[nodiscard]] std::optional<NcaHeader> nca_parse_header(const uint8_t header[NCA_HEADER], uint64_t nca_size = 0, std::string* why = nullptr);
 
 enum class NcaSignature { Valid, Invalid, UnknownKey };
 // The fixed-key signature of a decrypted header: UnknownKey for a signature

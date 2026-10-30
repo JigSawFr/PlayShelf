@@ -255,16 +255,17 @@ bool Installer::import_tickets(std::string* why)
 
 void Installer::undo()
 {
+    // Undone as far as it goes: a step that fails leaves nothing better to do.
     for (auto it = metas.rbegin(); it != metas.rend(); ++it) {
         std::string ignored;
         if (it->previous)
-            console.set_meta(it->key, *it->previous, &ignored);
+            (void)console.set_meta(it->key, *it->previous, &ignored);
         else
-            console.remove_meta(it->key, &ignored);
+            (void)console.remove_meta(it->key, &ignored);
     }
     if (!metas.empty()) {
         std::string ignored;
-        console.commit_meta(&ignored);
+        (void)console.commit_meta(&ignored);
     }
     metas.clear();
     for (const ContentId& id : made) {

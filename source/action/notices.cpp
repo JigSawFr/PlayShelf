@@ -8,6 +8,7 @@
 
 #include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 namespace notices
@@ -17,8 +18,7 @@ namespace
 {
 notice_logic::Store                          s_store;
 std::map<std::string, Entry>                 s_actions;   // each entry's button, by id
-std::map<int, std::function<void()>>         s_listeners;
-int                                          s_next = 1;
+Listeners                                    s_listeners;
 
 std::string read_file_path()
 {
@@ -27,8 +27,7 @@ std::string read_file_path()
 
 void tell()
 {
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 
 // What was put away, written off the UI thread.
@@ -36,7 +35,8 @@ void save_read()
 {
     auto text = std::make_shared<std::string>(notice_logic::keys_text(s_store.read_keys()));
     ui::in_background("notices", [text]() {
-        if (paths::ensure_dir(paths::data_dir())) paths::atomic_write(read_file_path(), *text);
+        // Saved again at the next change: a failed write is not reported.
+        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(read_file_path(), *text);
     });
 }
 }   // namespace
@@ -112,14 +112,12 @@ int info_count()
 
 int listen(std::function<void()> fn)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(fn);
-    return id;
+    return s_listeners.listen(std::move(fn));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace notices

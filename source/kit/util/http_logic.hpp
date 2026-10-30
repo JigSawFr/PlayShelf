@@ -35,7 +35,7 @@ struct Outcome
     bool        range_error = false;  // CURLE_RANGE_ERROR: a Range request the server would not honour
     std::string transfer_error;
 };
-bool succeeded(const Outcome& o, std::string* error);
+[[nodiscard]] bool succeeded(const Outcome& o, std::string* error);
 
 // The error of a resumed download the server will not go on with, the same
 // whatever libcurl's version says ("doesn't seem to support byte ranges" in
@@ -64,7 +64,7 @@ Start download_start(long status, bool resumed);
 
 // A redirect() answer: a 3xx status pointing to an https:// URL. False and
 // *error otherwise.
-bool redirect_ok(long status, const std::string& target, std::string* error);
+[[nodiscard]] bool redirect_ok(long status, const std::string& target, std::string* error);
 
 // A response header line "Content-Range: bytes <first>-<last>/<total>"
 // (the name in any case, spaces around the value): the range a 206 holds
@@ -82,6 +82,6 @@ bool parse_content_range(const std::string& line, ContentRange* out);
 bool parse_set_cookie(const std::string& line, std::string* cookie);
 
 // What a range() answer may be: a 206 for exactly the range asked.
-bool range_ok(long status, const ContentRange* got, uint64_t first, uint64_t length, std::string* error);
+[[nodiscard]] bool range_ok(long status, const ContentRange* got, uint64_t first, uint64_t length, std::string* error);
 
 }   // namespace http_logic

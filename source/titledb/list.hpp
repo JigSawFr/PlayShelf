@@ -32,8 +32,8 @@ struct ListEntry
 
 // The entries of a title list, by title id (the last one of an id kept);
 // false (why set) for a text that is not one, or that names no title.
-bool parse_title_list(std::istream& in, std::vector<ListEntry>* out, std::string* why);
-bool parse_title_list(const std::string& text, std::vector<ListEntry>* out, std::string* why);
+[[nodiscard]] bool parse_title_list(std::istream& in, std::vector<ListEntry>* out, std::string* why);
+[[nodiscard]] bool parse_title_list(const std::string& text, std::vector<ListEntry>* out, std::string* why);
 
 constexpr size_t MAX_LIST_ENTRIES = 1000000;
 

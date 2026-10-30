@@ -85,7 +85,7 @@ std::vector<std::string> api_headers(const std::string& token);
 
 // Asks GitHub for a code. Blocking (network). On the desktop build
 // PLAYSHELF_SIM_GITHUB_LOGIN ("ok", "denied" or "offline") replaces it.
-bool start(DeviceCode* out, std::string* error);
+[[nodiscard]] bool start(DeviceCode* out, std::string* error);
 // Asks whether the code was authorised. Blocking.
 Poll poll(const DeviceCode& code, std::string* token, std::string* error);
 

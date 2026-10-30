@@ -67,7 +67,7 @@ class Transport
     // Whether `url`'s host answers at all (a LAN address tried first).
     virtual bool reachable(const std::string& url) = 0;
     // The certificate `url` presents, as PEM; "" with `why` when it cannot be read.
-    virtual std::string certificate(const std::string& url, std::string* why) = 0;
+    [[nodiscard]] virtual std::string certificate(const std::string& url, std::string* why) = 0;
 };
 
 enum class FetchStatus { Ok, Failed, UnknownCertificate };

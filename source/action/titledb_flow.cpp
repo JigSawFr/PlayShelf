@@ -16,6 +16,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 using namespace aurore::literals;
@@ -31,8 +32,7 @@ std::mutex                                   s_lock;   // s_db
 std::shared_ptr<const titledb::Database>     s_db;
 Status                                       s_status;
 std::atomic<bool>                            s_stop{ false };
-std::map<int, std::function<void()>>         s_listeners;
-int                                          s_next = 1;
+Listeners                                    s_listeners;
 
 std::string root()
 {
@@ -55,8 +55,7 @@ std::shared_ptr<const titledb::Database> current()
 
 void tell()
 {
-    const auto listeners = s_listeners;
-    for (const auto& [id, fn] : listeners) fn();
+    s_listeners.notify();
 }
 
 // On a worker: the folders tidied and opened, the old database dropped.
@@ -211,7 +210,7 @@ std::vector<std::pair<uint64_t, std::string>> search(const std::string& query, s
         });
     }
     for (auto& [id, name] : found) out.emplace_back(id, name);
-    std::sort(out.begin(), out.end(), [](const auto& a, const auto& b) { return library::fold(a.second) < library::fold(b.second); });
+    library::sort_folded(out, [](const auto& r) -> const std::string& { return r.second; });
     if (out.size() > max) out.resize(max);
     return out;
 }
@@ -287,14 +286,12 @@ void sources_changed()
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace titledb_flow

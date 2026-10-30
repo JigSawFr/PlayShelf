@@ -2,7 +2,6 @@
 #include "action/popular_flow.hpp"
 
 #include <algorithm>
-#include <map>
 #include <memory>
 #include <string>
 
@@ -12,6 +11,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 namespace popular_flow
@@ -41,14 +41,12 @@ File<library::PopularBook> s_popular{ "popular.json" };
 File<library::SignalBook>  s_signals{ "games.json" };
 File<library::SimilarBook> s_similar{ "similar.json" };
 File<library::EditionBook> s_editions{ "editions.json" };
-std::map<int, std::function<void()>> s_listeners;
-int                                  s_next = 1;
+Listeners                            s_listeners;
 bool                                 s_fetching = false;
 
 void tell()
 {
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 
 template <typename Book>
@@ -104,7 +102,8 @@ bool fetch(File<Book>& file)
         aurore::Logger::warning("insights data: the fetched {} is not one", file.published());
         return false;
     }
-    if (paths::ensure_dir(paths::cache_dir())) paths::atomic_write(file.cached(), r.body);
+    // A cache: a copy not written is fetched again.
+    if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(file.cached(), r.body);
     aurore::Logger::info("insights data: {}, {} games, made {}", file.published(), book->size(), book->generated());
     aurore::sync([&file, book]() {
         if (offer(file, book)) tell();
@@ -180,14 +179,12 @@ std::shared_ptr<const library::EditionBook> editions()
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace popular_flow

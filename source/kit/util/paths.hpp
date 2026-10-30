@@ -50,7 +50,7 @@ bool ensure_dir(const std::string& dir);
 // full SD card never leaves a half-written file behind (the content is
 // written as "<path>.part" first: a ".tmp" there is always whole). On failure returns
 // false and puts a short English reason in *error (when non-null).
-bool atomic_write(const std::string& path, const std::string& content, std::string* error = nullptr);
+[[nodiscard]] bool atomic_write(const std::string& path, const std::string& content, std::string* error = nullptr);
 
 // Whole file. When `path` is missing but `path`.tmp exists (atomic_write
 // stopped between its remove and its rename), reads that one instead.

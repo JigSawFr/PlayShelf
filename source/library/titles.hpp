@@ -7,6 +7,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -39,6 +40,22 @@ std::vector<Title> group_titles(const Catalog& catalog);
 // A name made for comparing: lower case, the Latin accents dropped
 // ("Créatures" -> "creatures"); other scripts as they are.
 std::string fold(const std::string& text);
+
+// Sorts `items` by fold(name(item)), keeping the order of equal names. Each
+// name is folded once: fold() allocates, and a comparison would fold both
+// sides n·log n times.
+template <typename T, typename Name>
+void sort_folded(std::vector<T>& items, Name name)
+{
+    std::vector<std::pair<std::string, size_t>> keys;
+    keys.reserve(items.size());
+    for (size_t i = 0; i < items.size(); i++) keys.emplace_back(fold(name(items[i])), i);
+    std::stable_sort(keys.begin(), keys.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    std::vector<T> sorted;
+    sorted.reserve(items.size());
+    for (const auto& k : keys) sorted.push_back(std::move(items[k.second]));
+    items = std::move(sorted);
+}
 
 // "Game [0100ABCD00010000][v0].nsp" -> "Game": a file name without its
 // tags in brackets and its extension.

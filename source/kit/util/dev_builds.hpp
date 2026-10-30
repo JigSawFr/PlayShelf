@@ -217,16 +217,16 @@ bool is_nro(const std::string& head);
 // screens compare against and say as dev_build/no_digest, in the user's
 // language.
 extern const char* const NO_DIGEST;
-bool verify_file(const std::string& path, uint64_t size, const std::string& sha256, std::string* error);
+[[nodiscard]] bool verify_file(const std::string& path, uint64_t size, const std::string& sha256, std::string* error);
 // Checks that `path` is an NRO.
-bool verify_nro(const std::string& path, std::string* error);
+[[nodiscard]] bool verify_nro(const std::string& path, std::string* error);
 
 // Replaces `target` with `fresh` (both on the same file system), through
 // paths::replace_file: target moves aside to "<target>.old", fresh takes
 // its name, then the old one is removed, or kept as `keep_as` when given
 // (util/rollback.hpp: the previous build). When fresh cannot take its place,
 // the old one is put back. A missing target is simply created.
-bool replace(const std::string& target, const std::string& fresh, std::string* error, const std::string& keep_as = "");
+[[nodiscard]] bool replace(const std::string& target, const std::string& fresh, std::string* error, const std::string& keep_as = "");
 
 // The last list fetched, kept on the SD card (cache/dev_builds.json) so the
 // next opening shows it at once while it is fresh.
@@ -266,17 +266,17 @@ using Progress = std::function<void(float done, Step step)>;
 // On the desktop build PLAYSHELF_SIM_DEV_BUILDS ("offline", or a folder
 // holding releases.json, artifacts.json and pulls.json; latest.json for
 // fetch_release) replaces the network.
-bool fetch(std::vector<Build>* out, bool* needs_login, std::string* error, Progress progress = nullptr);
+[[nodiscard]] bool fetch(std::vector<Build>* out, bool* needs_login, std::string* error, Progress progress = nullptr);
 
 // Find a build: the newest build of pull request `q.pr` (open or closed), or
 // of commit `q.commit`, from a branch of this repository (a fork's is
 // refused). Needs the token. Blocking (network); simulated like fetch() with
 // pull_<n>.json, commit.json, runs.json and run_artifacts.json.
-bool find(const Query& q, Build* out, std::string* error);
+[[nodiscard]] bool find(const Query& q, Build* out, std::string* error);
 
 // The latest release alone (no account needed): what Update in place
 // installs. Blocking (network); simulated like fetch().
-bool fetch_release(Build* out, std::string* error);
+[[nodiscard]] bool fetch_release(Build* out, std::string* error);
 
 // Downloads `b` to `path` (playshelf.nro itself, out of the zip for an
 // artifact) and verifies it. Blocking. On the desktop build, with
@@ -285,8 +285,8 @@ bool fetch_release(Build* out, std::string* error);
 // calling thread.
 // `cancel` (when given), set by another thread, stops it within a second
 // (false, *error "cancelled").
-bool download(const Build& b, const std::string& path, std::string* error,
-              std::function<void(uint64_t done, uint64_t total)> progress = nullptr,
-              const std::atomic<bool>* cancel = nullptr);
+[[nodiscard]] bool download(const Build& b, const std::string& path, std::string* error,
+                            std::function<void(uint64_t done, uint64_t total)> progress = nullptr,
+                            const std::atomic<bool>* cancel = nullptr);
 
 }   // namespace dev_builds

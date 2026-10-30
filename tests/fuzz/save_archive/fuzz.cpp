@@ -34,7 +34,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     ::mkdir(out.c_str(), 0755);
     std::string why;
     save_archive::unzip_to(zip, out, nullptr, nullptr, &why);
-    save_archive::clear_dir(out, &why);
+    // Emptied once whatever unzip_to left; the second call must then succeed.
+    (void)save_archive::clear_dir(out, &why);
     // Only the archive and its folder there.
     FUZZ_ASSERT(save_archive::clear_dir(out, &why));
     return 0;

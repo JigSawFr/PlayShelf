@@ -1,7 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/prices_flow.hpp"
 
-#include <map>
 
 #include <aurore.hpp>
 #include <aurore/cadran/ui/live_prefs.hpp>
@@ -10,6 +9,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 
 namespace prices_flow
@@ -27,13 +27,11 @@ constexpr long        STALE = 4 * 24 * 3600;  // a cached file older is not show
 std::shared_ptr<const library::PriceBook> s_book = std::make_shared<library::PriceBook>();
 std::string                               s_country;
 int                                       s_run = 0;   // the latest start(): an older one's answer is dropped
-std::map<int, std::function<void()>>      s_listeners;
-int                                       s_next = 1;
+Listeners                                 s_listeners;
 
 void tell()
 {
-    const auto listeners = s_listeners;
-    for (const auto& l : listeners) l.second();
+    s_listeners.notify();
 }
 
 std::string cached(const std::string& country)
@@ -104,7 +102,8 @@ void start()
             aurore::Logger::warning("prices: the fetched {} is not one", country);
             return;
         }
-        if (paths::ensure_dir(paths::cache_dir())) paths::atomic_write(file, r.body);
+        // A cache: a copy not written is fetched again.
+        if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(file, r.body);
         aurore::Logger::info("prices: {}, {} games, made {}", country, book->size(), book->generated());
         aurore::sync([run, book]() { offer(run, book); });
     });
@@ -127,14 +126,12 @@ const library::Price* of(uint64_t base_id)
 
 int listen(std::function<void()> changed)
 {
-    const int id = s_next++;
-    s_listeners[id] = std::move(changed);
-    return id;
+    return s_listeners.listen(std::move(changed));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 }   // namespace prices_flow
