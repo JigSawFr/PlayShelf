@@ -8,9 +8,11 @@
 #include <mutex>
 
 #include "action/library_flow.hpp"
+#include "bl_cache.h"
 #include "core/games.h"
 #include "core/play.h"
 #include "ui/ui.hpp"
+#include "util/paths.hpp"
 
 namespace installed_flow
 {
@@ -35,14 +37,16 @@ struct Control
 std::mutex                    s_control_lock;
 std::map<uint64_t, Control>   s_controls;
 
-// On the worker thread.
-Control control_of(uint64_t id, uint32_t running)
+// On the worker thread. `fresh`: read from ns now (not this run's earlier read).
+Control control_of(uint64_t id, uint32_t running, bool* fresh)
 {
+    *fresh = false;
     {
         const std::lock_guard<std::mutex> g(s_control_lock);
         const auto                        it = s_controls.find(id);
         if (it != s_controls.end() && it->second.running == running) return it->second;
     }
+    *fresh = true;
     Control              c;
     c.running = running;
     char                 name[0x201] = "", version[0x20] = "";
@@ -60,6 +64,27 @@ Control control_of(uint64_t id, uint32_t running)
     s_controls[id] = c;
     return c;
 }
+
+// The names and icons read from ns now, kept for the other Boréale
+// homebrews (boreale-link's bl_cache, config/boreale/cache/): PlayGuard
+// shows them without asking ns again, and its agent publishes the icons.
+// On the worker thread.
+void share(const std::vector<std::pair<uint64_t, Control>>& read)
+{
+    if (read.empty()) return;
+    BlCache cache;
+    if (!bl_cache_open(&cache, paths::sd_root().c_str(), core_game_language())) return;
+    std::vector<uint64_t>    ids;
+    std::vector<const char*> names;
+    for (const auto& [id, c] : read) {
+        if (c.icon) bl_cache_icon_put(&cache, id, c.icon->data(), c.icon->size());
+        if (!c.name.empty()) {
+            ids.push_back(id);
+            names.push_back(c.name.c_str());
+        }
+    }
+    if (!ids.empty()) bl_cache_names_put(&cache, ids.data(), names.data(), ids.size());
+}
 }   // namespace
 
 void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
@@ -72,9 +97,12 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
         ui::in_background("installed games", [installed]() {
             auto       out = std::make_shared<std::vector<Game>>();
             const bool play = core_play_open();
+            std::vector<std::pair<uint64_t, Control>> read;
             for (library::InstalledGame& g : library::installed_games(*installed)) {
                 Game game;
-                const Control c = control_of(g.id, library::running_version(g));
+                bool          fresh = false;
+                const Control c = control_of(g.id, library::running_version(g), &fresh);
+                if (fresh) read.emplace_back(g.id, c);
                 game.name = c.name;
                 game.version = c.version;
                 game.icon = c.icon;
@@ -90,6 +118,7 @@ void read(std::function<void(std::shared_ptr<const std::vector<Game>>)> done)
                 out->push_back(std::move(game));
             }
             if (play) core_play_close();
+            share(read);
             Space room;
             room.known = core_sd_space(&room.total, &room.free);
             aurore::sync([out, room]() {

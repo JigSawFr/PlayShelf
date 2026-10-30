@@ -413,4 +413,14 @@ except (OSError, ValueError) as e:
     fail(f"PlayShelf's shared bell was not written: {e}")
 if bell.get("schema") != 1 or bell.get("module") != "playshelf" or not isinstance(bell.get("notices"), list):
     fail(f"PlayShelf's shared bell: {bell}")
+# The installed games' names and icons, kept for the other Boréale homebrews
+# (boreale-link's bl_cache) once the Library read them: the demo's games
+# (a build without the demo has none).
+if os.path.isdir(os.path.join(run_dir, "playshelf_data", "sim_console", "control")):
+    names_file = os.path.join(sd, "cache", "names.txt")
+    names = open(names_file).read() if os.path.exists(names_file) else ""
+    if not names.startswith("schema=1\n") or "=" not in names[len("schema=1\n"):]:
+        fail("the installed games' names were not shared: " + names_file)
+    if not os.listdir(os.path.join(sd, "cache", "icons")):
+        fail("the installed games' icons were not shared")
 finish()

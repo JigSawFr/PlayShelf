@@ -25,6 +25,10 @@ extern "C" {
 bool core_game_control(u64 app_id, char *name, size_t name_size, char *version, size_t version_size, void *icon,
                        size_t *icon_size);
 
+// The console language as the Boréale homebrews' shared cache keeps it
+// (boreale-link's bl_cache): SetLanguage + 1, 0 when it cannot be read.
+u8 core_game_language(void);
+
 // The bytes `app_id` takes on the console, its base game, update and
 // add-ons on every storage together (ns' CalculateApplicationOccupiedSize).
 // False when the console does not say.

@@ -11,6 +11,24 @@
 #define NACP_DISPLAY_VERSION      0x3060
 #define NACP_DISPLAY_VERSION_SIZE 0x10
 
+// The console's language and its title entry in a control.nacp: read once.
+static u8   s_language;
+static u32  s_title_index;
+static bool s_language_read;
+
+static void read_language(void)
+{
+    if (s_language_read) return;
+    s_language = nacp_console_language(&s_title_index);
+    s_language_read = true;
+}
+
+u8 core_game_language(void)
+{
+    read_language();
+    return s_language;
+}
+
 bool core_game_control(u64 app_id, char *name, size_t name_size, char *version, size_t version_size, void *icon,
                        size_t *icon_size)
 {
@@ -22,14 +40,8 @@ bool core_game_control(u64 app_id, char *name, size_t name_size, char *version, 
     u64  size = 0;
     bool ok = cd && nacp_read_control(app_id, cd, false, &size);
     if (ok) {
-        // The console's language: read once.
-        static u32  title_index;
-        static bool language_read;
-        if (!language_read) {
-            nacp_console_language(&title_index);
-            language_read = true;
-        }
-        nacp_name(&cd->nacp, sizeof(cd->nacp), title_index, name, name_size);
+        read_language();
+        nacp_name(&cd->nacp, sizeof(cd->nacp), s_title_index, name, name_size);
         char shown[NACP_DISPLAY_VERSION_SIZE + 1] = {0};
         memcpy(shown, (const u8 *)&cd->nacp + NACP_DISPLAY_VERSION, NACP_DISPLAY_VERSION_SIZE);
         if (nacp_utf8_valid(shown, strlen(shown))) nacp_copy_utf8(version, version_size, shown);
