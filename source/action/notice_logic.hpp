@@ -38,8 +38,12 @@ class Store
   public:
     // Adds the entry, or replaces the one with the same id. True when what
     // the bell shows changed. One for information whose read_key() is in
-    // `read` (put away at an earlier start) stays away.
-    bool set(const std::string& id, Level level, const std::string& title, const std::string& detail);
+    // `read` (put away at an earlier start) stays away. `key`, when given,
+    // is what brings one put away back once it changes, in place of its
+    // title and detail: the words can change ("goes on sale" the first day,
+    // "is on sale" after) without telling it again.
+    bool set(const std::string& id, Level level, const std::string& title, const std::string& detail,
+             const std::string& key = "");
     // Removes it, and forgets that it was put away. True when it was shown.
     bool clear(const std::string& id);
     // Puts away an Info entry. False for an Action entry or an unknown id.
@@ -61,8 +65,9 @@ class Store
   private:
     struct Slot
     {
-        Item item;
-        bool dismissed = false;
+        Item        item;
+        std::string key;   // set()'s, "" for its title and detail
+        bool        dismissed = false;
     };
     std::vector<Slot>        slots;
     std::vector<std::string> read;   // put away at an earlier start
@@ -70,6 +75,7 @@ class Store
 
     Slot*       find(const std::string& id);
     const Slot* find(const std::string& id) const;
+    static std::string read_key_of(const Slot& s);
 };
 
 // An entry for information put away: its id and a hash of its text

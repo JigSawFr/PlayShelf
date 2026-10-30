@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "activity/main_activity.hpp"
 
+#include "action/changes_flow.hpp"
 #include "action/download_flow.hpp"
 #include "action/insights.hpp"
 #include "action/notices.hpp"
@@ -38,6 +39,7 @@ void MainActivity::onContentAvailable()
     nlib_flow::start();
     popular_flow::start();
     prices_flow::start();
+    changes_flow::start();
     wishlist::start();
     not_interested::start();
     download_flow::init();

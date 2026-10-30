@@ -576,6 +576,11 @@
         "downloads_failed": "{} transferências falharam",
         "sale": "{} está em promoção",
         "sale_lowest": "{} está no preço mais baixo",
+        "sale_started": "{} entra em promoção",
+        "lowest": "{} nunca custou tão pouco",
+        "lowest_now": "Agora {}",
+        "out": "{} já saiu",
+        "out_on": "Lançado a {}",
         "sale_until": "-{0}% · {1} até {2}",
         "day": "{0} de {1}"
     },
