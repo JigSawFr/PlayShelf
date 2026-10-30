@@ -40,14 +40,14 @@ bool serves(const std::string& url);
 // theirs (each "simulated: no connection" for an address it does not
 // serve): its server's at PLAYSHELF_SIM_SPEED KB/s (96 unless set; 0: at
 // once), so a download is seen going, the other services' at once.
-[[nodiscard]] bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long timeout_s,
-                       const http::Headers& headers, long* status);
-bool post(const std::string& url, const std::string& data, const char* content_type, std::string* body,
-          std::string* error, long* status, size_t max_bytes, long timeout_s, const http::Headers& headers);
-[[nodiscard]] bool redirect(const std::string& url, std::string* target, std::string* error, const http::Headers& headers,
-                            long* status);
-[[nodiscard]] bool download(const std::string& url, const std::string& path, std::string* error, size_t max_bytes, long timeout_s,
-                            std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel);
+[[nodiscard]] http::Result<http::Reply> get(const std::string& url, size_t max_bytes, long timeout_s,
+                                            const http::Headers& headers);
+[[nodiscard]] http::Result<http::Reply> post(const std::string& url, const std::string& data, const char* content_type,
+                                             size_t max_bytes, long timeout_s, const http::Headers& headers);
+[[nodiscard]] http::Result<std::string> redirect(const std::string& url, const http::Headers& headers);
+[[nodiscard]] http::Result<void> download(const std::string& url, const std::string& path, size_t max_bytes, long timeout_s,
+                                          std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from,
+                                          const std::atomic<bool>* cancel);
 bool range(const std::string& url, uint64_t offset, uint64_t length,
            const std::function<bool(const uint8_t*, size_t)>& sink, std::string* error, const http::Headers& headers,
            const std::atomic<bool>* cancel, const std::string& pinned_key);

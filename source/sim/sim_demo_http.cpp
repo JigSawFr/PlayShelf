@@ -148,33 +148,59 @@ bool serves(const std::string& url)
     return demo_file(url, &path);
 }
 
-bool get(const std::string& url, std::string* body, std::string* error, size_t max_bytes, long, const http::Headers&,
-         long* status)
+namespace
+{
+// "simulated: no connection", as a Failure.
+std::unexpected<http::Failure> offline()
+{
+    std::string error;
+    sim_net::offline(&error);
+    return std::unexpected(http::Failure{ std::move(error) });
+}
+
+bool save(const std::string& url, const std::string& path, std::string* error, size_t max_bytes,
+          std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel);
+}   // namespace
+
+http::Result<http::Reply> get(const std::string& url, size_t max_bytes, long, const http::Headers&)
+{
+    std::string path, error;
+    bool        paced = true;
+    if (!demo_file(url, &path, &paced)) return offline();
+    http::Reply r;
+    if (!whole(path, &r.body, &error, max_bytes, &r.status, paced))
+        return std::unexpected(http::Failure{ std::move(error), r.status });
+    return r;
+}
+
+http::Result<http::Reply> post(const std::string&, const std::string&, const char*, size_t, long, const http::Headers&)
+{
+    return offline();
+}
+
+http::Result<std::string> redirect(const std::string& url, const http::Headers&)
 {
     std::string path;
     bool        paced = true;
-    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
-    return whole(path, body, error, max_bytes, status, paced);
-}
-
-bool post(const std::string&, const std::string&, const char*, std::string*, std::string* error, long*, size_t, long,
-          const http::Headers&)
-{
-    return sim_net::offline(error);
-}
-
-bool redirect(const std::string& url, std::string*, std::string* error, const http::Headers&, long* status)
-{
-    std::string path;
-    bool        paced = true;
-    if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
+    if (!demo_file(url, &path, &paced)) return offline();
     // The demo server answers itself: no redirect.
-    if (status) *status = 200;
-    return false;
+    return std::unexpected(http::Failure{ "", 200 });
 }
 
-bool download(const std::string& url, const std::string& path, std::string* error, size_t max_bytes, long,
-              std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel)
+http::Result<void> download(const std::string& url, const std::string& path, size_t max_bytes, long,
+                            std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from,
+                            const std::atomic<bool>* cancel)
+{
+    std::string error;
+    if (!save(url, path, &error, max_bytes, std::move(progress), resume_from, cancel))
+        return std::unexpected(http::Failure{ std::move(error) });
+    return {};
+}
+
+namespace
+{
+bool save(const std::string& url, const std::string& path, std::string* error, size_t max_bytes,
+          std::function<void(uint64_t, uint64_t)> progress, uint64_t resume_from, const std::atomic<bool>* cancel)
 {
     std::string from;
     bool        paced = true;
@@ -208,6 +234,7 @@ bool download(const std::string& url, const std::string& path, std::string* erro
     }
     return ok;
 }
+}   // namespace
 
 bool range(const std::string& url, uint64_t offset, uint64_t length, const std::function<bool(const uint8_t*, size_t)>& sink,
            std::string* error, const http::Headers&, const std::atomic<bool>* cancel, const std::string&)
@@ -260,7 +287,7 @@ bool call(const std::string& url, const http::Call& c, const http::Headers&, con
     }
     if (!c.method.empty() && c.method != "GET" && c.method != "OPTIONS") return sim_net::offline(error);
     if (c.to_path.empty()) return whole(path, &response->body, error, max_bytes, &response->status, paced);
-    const bool ok = download(url, c.to_path, error, max_bytes, 0, c.progress, 0, c.cancel);
+    const bool ok = save(url, c.to_path, error, max_bytes, c.progress, 0, c.cancel);
     response->status = ok ? 200 : 404;
     return ok;
 }

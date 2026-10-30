@@ -39,20 +39,20 @@ Result upload_gist(const std::vector<Part>& files, const std::string& token, con
 {
     Result r;
     if (simulated(&r)) return r;
-    std::string body;
-    long status = 0;
     http::Headers headers = github_auth::api_headers(token);
     // The answer repeats the content: room for it, escaped.
-    if (!http::post(github_auth::api_url("gists"), gist_body(files, version, what), "application/json", &body, &r.error,
-                    &status, 3 * GIST_MAX_BYTES, 60, headers)) {
+    const auto got =
+        http::post(github_auth::api_url("gists"), gist_body(files, version, what), "application/json", 3 * GIST_MAX_BYTES, 60, headers);
+    if (!got) {
+        const long status = got.error().status;
         // 401: the token was revoked (forgotten: no use keeping it); 403 /
         // 404: it was given before PlayShelf asked for the gist permission.
         r.relogin = github_auth::forget_if_revoked(status, token) || status == 403 || status == 404;
-        r.error = "GitHub: " + r.error;
+        r.error = "GitHub: " + got.error().error;
         return r;
     }
-    if (!parse_gist(body, &r.url)) {
-        r.error = "unexpected answer from GitHub (HTTP " + std::to_string(status) + ")";
+    if (!parse_gist(got->body, &r.url)) {
+        r.error = "unexpected answer from GitHub (HTTP " + std::to_string(got->status) + ")";
         return r;
     }
     r.ok = true;

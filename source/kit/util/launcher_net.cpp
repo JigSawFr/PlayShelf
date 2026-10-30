@@ -24,7 +24,6 @@ constexpr const char* STORE_INFO_URL = "https://switch.cdn.fortheusers.org/packa
 std::string store_version(std::string* error)
 {
     std::string body;
-    long status = 0;
 #ifndef __SWITCH__
     // Desktop simulation: "1.2.0" (the version the catalogue has), "none"
     // (PlayShelf not listed) or "offline".
@@ -41,11 +40,12 @@ std::string store_version(std::string* error)
     } else
 #endif
     {
-        std::string err;
-        if (!http::get(STORE_INFO_URL, &body, &err, 16 * 1024, 10, {}, &status)) {
-            if (error) *error = status == 404 ? "not listed" : err;
+        auto got = http::get(STORE_INFO_URL, 16 * 1024, 10);
+        if (!got) {
+            if (error) *error = got.error().status == 404 ? "not listed" : got.error().error;
             return "";
         }
+        body = std::move(got->body);
     }
     nlohmann::json info;
     std::string version;

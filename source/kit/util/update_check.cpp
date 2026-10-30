@@ -26,7 +26,6 @@ Result check(uint32_t console_fw)
 {
     Result r;
     std::string body;
-    long status = 0;
 #ifndef __SWITCH__
     // Desktop simulation: "1.1.0:24.0.0" (latest version : firmware it supports),
     // "none" (no release published) or "offline".
@@ -48,17 +47,15 @@ Result check(uint32_t console_fw)
     {
         // This build's schema first; a release without that file (published
         // before it was) answers 404, and has compat.json.
-        bool got = http::get(compat_url(std::to_string(COMPAT_SCHEMA)), &body, &r.error, 64 * 1024, 10, {}, &status);
-        if (!got && status == 404) {
-            r.error.clear();
-            status = 0;
-            got = http::get(compat_url(""), &body, &r.error, 64 * 1024, 10, {}, &status);
-        }
+        auto got = http::get(compat_url(std::to_string(COMPAT_SCHEMA)), 64 * 1024, 10);
+        if (!got && got.error().status == 404) got = http::get(compat_url(""), 64 * 1024, 10);
         if (!got) {
+            r.error = got.error().error;
             // GitHub answers 404 for releases/latest while none is published.
-            if (status == 404) r.verdict = Verdict::NoRelease;
+            if (got.error().status == 404) r.verdict = Verdict::NoRelease;
             return r;
         }
+        body = std::move(got->body);
     }
     if (!parse_compat(body, &r.latest)) {
         r.error = "unexpected compat.json";

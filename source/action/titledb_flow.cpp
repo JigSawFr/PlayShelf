@@ -86,6 +86,13 @@ void reopen(const std::vector<std::string>& sources)
     });
 }
 
+// A download's outcome as titledb::Net gives it: false, with why.
+bool saved(const http::Result<void>& r, std::string* why)
+{
+    if (!r && why) *why = r.error().error;
+    return r.has_value();
+}
+
 // A pack fetched as the downloads are (install/split_stream): over the
 // connections Downloads › Connections per download sets, each taking the
 // next 4 MB piece, the bytes appended in order to the part that a cut left.
@@ -94,9 +101,10 @@ bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, 
                 const std::function<void(uint64_t)>& progress, std::string* why)
 {
     auto whole = [&]() {
-        return http::download(url, path, why, (size_t)size, PACK_TIMEOUT,
-                              [from, progress](uint64_t done, uint64_t) { progress(done > from ? done - from : 0); }, from,
-                              &s_stop);
+        return saved(http::download(url, path, (size_t)size, PACK_TIMEOUT,
+                                    [from, progress](uint64_t done, uint64_t) { progress(done > from ? done - from : 0); },
+                                    from, &s_stop),
+                     why);
     };
     const int connections = config::get().connections;
     if (connections < 2 || size - from < 2 * install::SPLIT_CHUNK) return whole();
@@ -109,8 +117,8 @@ bool fetch_pack(const std::string& url, const std::string& path, uint64_t size, 
         const std::lock_guard<std::mutex> g(target_lock);
         const double now = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
         if (now - target_at >= TARGET_AGE) {
-            std::string to, unused;
-            target = http::redirect(url, &to, &unused) && to.starts_with("https://") ? to : url;
+            const auto to = http::redirect(url);
+            target = to && to->starts_with("https://") ? *to : url;
             target_at = now;
         }
         return target;
@@ -155,11 +163,12 @@ titledb::Net console_net()
     // A manifest, or a title list of tens of MB.
     n.save = [](const std::string& url, const std::string& path, uint64_t max, const std::function<void(uint64_t, uint64_t)>& progress,
                 std::string* why) {
-        return http::download(url, path, why, (size_t)max, PACK_TIMEOUT,
-                              [progress](uint64_t done, uint64_t total) {
-                                  if (progress && total) progress(done, total);
-                              },
-                              0, &s_stop);
+        return saved(http::download(url, path, (size_t)max, PACK_TIMEOUT,
+                                    [progress](uint64_t done, uint64_t total) {
+                                        if (progress && total) progress(done, total);
+                                    },
+                                    0, &s_stop),
+                     why);
     };
     n.file = fetch_pack;
     n.free_space = []() -> uint64_t {

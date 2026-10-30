@@ -57,12 +57,16 @@ bool api_get(const std::string& path, const char* name, const std::string& token
     }
 #endif
     (void)name;
-    long status = 0;
-    const bool ok = http::get(api_url() + path, body, error, max, 30, github_auth::api_headers(token), &status);
-    // A token GitHub no longer takes (revoked): forgotten, the next fetch
-    // lists what needs none and asks to sign in again.
-    if (!ok) github_auth::forget_if_revoked(status, token);
-    return ok;
+    auto got = http::get(api_url() + path, max, 30, github_auth::api_headers(token));
+    if (!got) {
+        // A token GitHub no longer takes (revoked): forgotten, the next fetch
+        // lists what needs none and asks to sign in again.
+        github_auth::forget_if_revoked(got.error().status, token);
+        if (error) *error = got.error().error;
+        return false;
+    }
+    *body = std::move(got->body);
+    return true;
 }
 }   // namespace
 
@@ -263,16 +267,28 @@ bool download(const Build& b, const std::string& path, std::string* error,
             // The token only ever goes to the API itself, whatever the list says.
             const bool api = text::starts_with(b.url, github_auth::API_ROOT);
             const std::string token = api ? github_auth::token() : "";
-            long status = 0;
-            ok = http::redirect(b.url, &link, error, github_auth::api_headers(token), &status);
-            // A token without the Actions permission (an older sign-in) lists the
-            // builds but is refused the download (403); a revoked one is
-            // refused everything (401), and forgotten.
-            if (!ok) github_auth::forget_if_revoked(status, token);
-            if (!ok && error && (status == 401 || status == 403))
-                *error += ": GitHub refused the download, sign out of GitHub and sign in again";
+            const auto target = http::redirect(b.url, github_auth::api_headers(token));
+            ok = target.has_value();
+            if (ok) {
+                link = *target;
+            } else {
+                // A token without the Actions permission (an older sign-in) lists the
+                // builds but is refused the download (403); a revoked one is
+                // refused everything (401), and forgotten.
+                const long status = target.error().status;
+                github_auth::forget_if_revoked(status, token);
+                if (error) {
+                    *error = target.error().error;
+                    if (status == 401 || status == 403) *error += ": GitHub refused the download, sign out of GitHub and sign in again";
+                }
+            }
         }
-        if (ok) ok = http::download(link, part, error, (size_t)b.size + 1, 600, progress, resume_from, cancel);
+        const auto fetch_part = [&](uint64_t from) {
+            const auto done = http::download(link, part, (size_t)b.size + 1, 600, progress, from, cancel);
+            if (!done && error) *error = done.error().error;
+            return done.has_value();
+        };
+        if (ok) ok = fetch_part(resume_from);
         // The part kept no longer matches what the server has (416), or the
         // server cannot resume it (libcurl stops before the 200 that starts
         // over is written): from the start, or every later attempt would stop
@@ -280,7 +296,7 @@ bool download(const Build& b, const std::string& path, std::string* error,
         if (!ok && resume_from && error && http_logic::restart_resume(*error) && !(cancel && cancel->load())) {
             resume_from = 0;
             std::remove(part.c_str());
-            ok = http::download(link, part, error, (size_t)b.size + 1, 600, progress, 0, cancel);
+            ok = fetch_part(0);
         }
     }
     if (!ok) {
