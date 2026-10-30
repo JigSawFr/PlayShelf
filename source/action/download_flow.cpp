@@ -24,6 +24,7 @@
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
+#include "util/listeners.hpp"
 #include "util/paths.hpp"
 #include "util/patches.hpp"
 
@@ -86,8 +87,7 @@ class CutSource : public install::Source
 
 // The UI thread's only.
 std::vector<download::Job>     s_jobs;
-std::map<int, std::function<void()>> s_listeners;
-int                            s_next_listener = 1;
+Listeners                      s_listeners;
 bool                           s_loaded = false;
 bool                           s_patches_checked = false, s_asking = false;
 std::string                    s_running;   // the running job's id
@@ -149,9 +149,7 @@ download::Job* find(const std::string& id)
 void changed()
 {
     show_pill();
-    // A copy: a listener may unlisten (a screen closing).
-    const auto listeners = s_listeners;
-    for (const auto& kv : listeners) kv.second();
+    s_listeners.notify();
 }
 
 void save()
@@ -826,14 +824,12 @@ void keep_awake_changed()
 
 int listen(std::function<void()> on_change)
 {
-    const int id = s_next_listener++;
-    s_listeners[id] = std::move(on_change);
-    return id;
+    return s_listeners.listen(std::move(on_change));
 }
 
 void unlisten(int id)
 {
-    s_listeners.erase(id);
+    s_listeners.unlisten(id);
 }
 
 std::string summary()
