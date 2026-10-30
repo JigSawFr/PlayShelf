@@ -51,15 +51,15 @@ void test_must_fetch()
     CHECK(index.from_json(R"({"schema":1,"files":{
         "platforms/switch/popular.json":{"generated":"2026-10-29","bytes":3,"sha256":"ba7816bf8f01cfea"},
         "platforms/switch/games.json":{"generated":"2026-10-29","bytes":3,"sha256":"0000000000000000"},
-        "switch/similar.json":{"generated":"2026-10-29","bytes":4,"sha256":"ba7816bf8f01cfea"}}})"));
+        "platforms/switch/similar.json":{"generated":"2026-10-29","bytes":4,"sha256":"ba7816bf8f01cfea"}}})"));
     // The same bytes: kept.
     CHECK(!must_fetch(&index, "platforms/switch/popular.json", cached));
     // Changed, or another size: fetched.
     CHECK(must_fetch(&index, "platforms/switch/games.json", cached));
-    CHECK(must_fetch(&index, "switch/similar.json", cached));
+    CHECK(must_fetch(&index, "platforms/switch/similar.json", cached));
     // No cached copy, a file not listed, no index: fetched, as before the index.
     CHECK(must_fetch(&index, "platforms/switch/popular.json", ""));
-    CHECK(must_fetch(&index, "switch/upcoming.json", cached));
+    CHECK(must_fetch(&index, "platforms/switch/upcoming.json", cached));
     CHECK(must_fetch(nullptr, "platforms/switch/popular.json", cached));
 }
 }   // namespace

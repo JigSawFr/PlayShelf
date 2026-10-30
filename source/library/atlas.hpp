@@ -1,5 +1,5 @@
 // atlas — the schema of Atlas' Switch files PlayShelf reads
-// (https://github.com/JigSawFr/Atlas: switch/popular.json, games.json,
+// (https://github.com/JigSawFr/Atlas: platforms/switch/popular.json, games.json,
 // similar.json, editions.json, prices/<COUNTRY>.json and index.json). Atlas
 // adds fields under the same schema and publishes a new one beside the old
 // while PlayShelf reads it: a file of another schema is refused, and the
