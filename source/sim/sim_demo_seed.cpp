@@ -40,11 +40,11 @@ void sys_patch()
     for (const std::string& d : { sd + "/atmosphere", sd + "/atmosphere/contents", contents, contents + "/flags",
                                   sd + "/config", log })
         ::mkdir(d.c_str(), 0755);
-    paths::atomic_write(contents + "/exefs.nsp", "");
-    paths::atomic_write(contents + "/flags/boot2.flag", "");
-    paths::atomic_write(log + "/log.ini", "[stats]\nversion=1.5.7\nfw_version=23.0.1\nis_emummc=0\n"
-                                          "[fs]\nnoncasigchk_new=Patched (sys-patch)\n"
-                                          "[ldr]\nnoacidsigchk=Patched (sys-patch)\n[es]\nes2=Patched (sys-patch)\n");
+    (void)paths::atomic_write(contents + "/exefs.nsp", "");
+    (void)paths::atomic_write(contents + "/flags/boot2.flag", "");
+    (void)paths::atomic_write(log + "/log.ini", "[stats]\nversion=1.5.7\nfw_version=23.0.1\nis_emummc=0\n"
+                                                "[fs]\nnoncasigchk_new=Patched (sys-patch)\n"
+                                                "[ldr]\nnoacidsigchk=Patched (sys-patch)\n[es]\nes2=Patched (sys-patch)\n");
 }
 
 // The demo's first games: their content meta records (meta/), their names
@@ -64,7 +64,7 @@ void seed_console()
         while (const dirent* e = ::readdir(d)) {
             const std::string name = e->d_name;
             std::string       bytes;
-            if (name[0] != '.' && paths::read_file(from + "/" + name, bytes)) paths::atomic_write(to + "/" + name, bytes);
+            if (name[0] != '.' && paths::read_file(from + "/" + name, bytes)) (void)paths::atomic_write(to + "/" + name, bytes);
         }
         ::closedir(d);
     }

@@ -113,6 +113,6 @@ bool can_set_aside(const Report& r);
 // (hekate_ipl.ini may name it). *moved gets the folders moved. False, with
 // a short English reason, when one could not be moved (those moved before
 // stay moved, and listed).
-bool set_aside(const std::string& root, const std::string& dest, std::vector<std::string>* moved, std::string* error);
+[[nodiscard]] bool set_aside(const std::string& root, const std::string& dest, std::vector<std::string>* moved, std::string* error);
 
 }   // namespace patches

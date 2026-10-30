@@ -40,7 +40,7 @@ bool installed_by_store();
 // tell, and with a 404 (*error "not listed") when PlayShelf is not in it. On
 // the desktop build PLAYSHELF_SIM_STORE ("1.2.0", "none" or "offline")
 // replaces the network (launcher_net.cpp).
-std::string store_version(std::string* error);
+[[nodiscard]] std::string store_version(std::string* error);
 
 // The loader can start another homebrew after this one (false on desktop and
 // when PlayShelf was not started through hbloader).

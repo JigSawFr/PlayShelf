@@ -30,7 +30,8 @@ void save()
 {
     auto text = std::make_shared<std::string>(library::ids_text(s_games));
     ui::in_background("wishlist", [text]() {
-        if (paths::ensure_dir(paths::data_dir())) paths::atomic_write(file(), *text);
+        // Saved again at the next change: a failed write is not reported.
+        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(file(), *text);
     });
 }
 }   // namespace

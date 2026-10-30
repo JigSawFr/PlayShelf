@@ -24,6 +24,6 @@ void add_section(std::function<std::string()> section);
 
 // Saves as logs/reports/report_<timestamp>.txt (util/log_files.hpp). Returns the
 // saved path, or an empty string (and *error set) on failure.
-std::string save(const std::string& report, std::string* error = nullptr);
+[[nodiscard]] std::string save(const std::string& report, std::string* error = nullptr);
 
 }   // namespace diagnostic

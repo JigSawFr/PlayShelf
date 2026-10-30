@@ -27,7 +27,7 @@ constexpr const char* EMPTY_MARK = ".empty";
 using Progress = std::function<void(size_t done, size_t total, const std::string& name)>;
 
 // The zip of every file and folder under `dir`, written to `zip_path`.
-bool zip_dir(const std::string& dir, const std::string& zip_path, const Progress& progress, std::string* why);
+[[nodiscard]] bool zip_dir(const std::string& dir, const std::string& zip_path, const Progress& progress, std::string* why);
 
 struct Entry
 {
@@ -42,7 +42,7 @@ struct Entry
 bool safe_name(const std::string& name);
 // The archive's entries, every one checked (its name, its method, the
 // sizes and their total); false, with why, at the first that is not.
-bool read_entries(const std::string& zip_path, std::vector<Entry>* out, std::string* why);
+[[nodiscard]] bool read_entries(const std::string& zip_path, std::vector<Entry>* out, std::string* why);
 // Every entry written under `dir` (its folders made), each file checked
 // against its CRC-32 and size; `after_file` after each one (a save's
 // commit: its journal has room for so much at a time), false stopping it.
@@ -51,6 +51,6 @@ bool unzip_to(const std::string& zip_path, const std::string& dir, const std::fu
               const Progress& progress, std::string* why);
 
 // Everything under `dir` deleted, `dir` itself kept.
-bool clear_dir(const std::string& dir, std::string* why);
+[[nodiscard]] bool clear_dir(const std::string& dir, std::string* why);
 
 }   // namespace save_archive

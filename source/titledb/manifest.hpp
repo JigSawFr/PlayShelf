@@ -29,7 +29,7 @@ struct Manifest
 
 // False (why set) for a text that is no manifest: not JSON, no version, no
 // titles pack, a pack's address not HTTPS, its hash or size missing.
-bool parse_manifest(const std::string& text, const std::string& manifest_url, Manifest* out, std::string* why);
+[[nodiscard]] bool parse_manifest(const std::string& text, const std::string& manifest_url, Manifest* out, std::string* why);
 
 // `url` against `base` (the manifest's address): itself when absolute, else
 // under base's folder ("/x": base's origin).
