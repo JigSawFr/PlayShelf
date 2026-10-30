@@ -1,0 +1,88 @@
+name: toolchain-watch
+
+# Monthly: is the devkitPro image that build.yml pins still Docker Hub's latest?
+# The `image:` line of build.yml is the only place the digest is written
+# (run.sh and this job read it there). When `latest` moved, the job lists what
+# changed between the two images (dkp-pacman's packages) and opens, or
+# refreshes, an issue with the line to paste into build.yml. It never moves the
+# pin itself: a new devkitPro wants a build tried on a console first. Dependabot does not follow the images of
+# container jobs.
+on:
+  schedule:
+    - cron: '0 7 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/workflows/build.yml
+          sparse-checkout-cone-mode: false
+      # Logged in with the read-only token when the secrets exist (build.yml
+      # says why), anonymous otherwise.
+      - name: Docker Hub login
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+            printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          else
+            echo "no Docker Hub secrets: anonymous"
+          fi
+      - name: Compare the pinned image with Docker Hub's latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          pinned=$(sed -n 's/^ *image: \(devkitpro\/devkita64@sha256:[0-9a-f]*\)$/\1/p' .github/workflows/build.yml)
+          test -n "$pinned" || { echo "::error::no devkitpro/devkita64 digest in build.yml"; exit 1; }
+          latest="devkitpro/devkita64@$(docker buildx imagetools inspect devkitpro/devkita64:latest --format '{{.Manifest.Digest}}')"
+          echo "pinned: $pinned"
+          echo "latest: $latest"
+          if [ "$pinned" = "$latest" ]; then
+            { echo "## 🧰 devkitPro image — ✅ the pinned image is Docker Hub's latest"; echo; echo "\`$pinned\`"; } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          packages() { docker run --rm "$1" dkp-pacman -Q devkitA64 libnx deko3d switch-tools switch-curl; }
+          packages "$pinned" > pinned.txt
+          packages "$latest" > latest.txt
+          {
+            echo "Docker Hub's \`devkitpro/devkita64:latest\` is no longer the image \`.github/workflows/build.yml\` pins."
+            echo
+            echo "| Package | Pinned | Latest |"
+            echo "|---|---|---|"
+            paste -d ' ' pinned.txt latest.txt | while read -r name old _ new; do
+              if [ "$old" != "$new" ]; then echo "| \`$name\` | $old | **$new** |"; else echo "| \`$name\` | $old | $new |"; fi
+            done
+            echo
+            echo "To move to it, replace the \`image:\` line of the \`switch\` job in \`.github/workflows/build.yml\` with:"
+            echo
+            echo '```yaml'
+            echo "      image: $latest"
+            echo '```'
+            echo
+            echo "Build on a console before merging. \`./run.sh\` builds locally with the pinned image."
+            echo
+            echo "_Opened by the monthly \`toolchain-watch\` workflow; it refreshes this issue while the images differ._"
+          } > report.md
+          { echo "## 🧰 devkitPro image — ⚠️ Docker Hub's latest moved"; echo; cat report.md; } >> "$GITHUB_STEP_SUMMARY"
+          moved=$(paste -d ' ' pinned.txt latest.txt | while read -r name old _ new; do [ "$old" != "$new" ] && printf '%s %s → %s, ' "$name" "$old" "$new"; done)
+          title="devkitPro image moved: ${moved%, }"
+          [ -n "$moved" ] || title="devkitPro image moved (same packages, another build)"
+          number=$(gh issue list --label dependencies --state open --search "devkitPro image moved in:title" --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --title "$title" --body-file report.md
+            echo "issue #$number refreshed"
+          else
+            gh issue create --title "$title" --label dependencies --body-file report.md
+          fi

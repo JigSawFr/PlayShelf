@@ -23,10 +23,10 @@ concurrency:
 env:
   # Emscripten, pinned: a new one is a pull request of its own (its ports, its
   # threads and its file packager can change).
-  EMSDK_VERSION: 6.0.12
+  EMSDK_VERSION: 6.0.13
   # The emsdk tool itself, at that version's tag, checked against the commit
   # the tag pointed to when pinned: a tag can be moved, a commit cannot.
-  EMSDK_COMMIT: 35ff8a6d150541276abbc6bae512ca90bcfbe220
+  EMSDK_COMMIT: 35659964bc2762fffec0d257997fb61475f765b7
   # Playwright, pinned, for the smoke test and the website's screenshots.
   PLAYWRIGHT_VERSION: 1.64.0
   # axe-core, for the website's accessibility (tools/site_layout.py): its

@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   release-please:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
@@ -63,7 +63,7 @@ jobs:
   boreale:
     needs: [ release-please, assets ]
     if: needs.release-please.outputs.release_created == 'true'
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
       - name: Tell boreale.dev
