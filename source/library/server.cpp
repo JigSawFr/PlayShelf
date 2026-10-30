@@ -52,7 +52,7 @@ struct Tlv
     uint8_t tag = 0;
     size_t  start = 0, value = 0, end = 0;   // the element's first byte, its value's, past its last
 };
-std::optional<Tlv> next(const uint8_t* d, size_t at, size_t limit)
+std::optional<Tlv> next(std::span<const uint8_t> d, size_t at, size_t limit)
 {
     if (at + 2 > limit) return std::nullopt;
     Tlv t;
@@ -73,15 +73,15 @@ std::optional<Tlv> next(const uint8_t* d, size_t at, size_t limit)
 }
 }   // namespace
 
-std::optional<Discovered> parse_discovery(const char* data, size_t size, const std::string& source_ip)
+std::optional<Discovered> parse_discovery(std::string_view reply, const std::string& source_ip)
 {
     using json = nlohmann::json;
-    if (!data || !size || size > DISCOVERY_MAX_REPLY) return std::nullopt;
+    if (reply.empty() || reply.size() > DISCOVERY_MAX_REPLY) return std::nullopt;
     const auto ip = ipv4(source_ip);
     if (!ip || *ip == 0 || (*ip >> 24) >= 224 || (*ip & 0xff) == 0xff) return std::nullopt;
     bool       deep = false;
     const json j = json::parse(
-        data, data + size,
+        reply.begin(), reply.end(),
         [&](int depth, json::parse_event_t, json&) {
             if (depth > 8) deep = true;
             return depth <= 8;
@@ -138,13 +138,13 @@ std::string choose_endpoint(const Endpoints& e, const std::function<bool(const s
     return e.wan_url;
 }
 
-std::optional<std::array<uint8_t, 32>> spki_sha256(const uint8_t* der, size_t size)
+std::optional<std::array<uint8_t, 32>> spki_sha256(std::span<const uint8_t> der)
 {
     // Certificate ::= SEQUENCE { tbsCertificate SEQUENCE { [0] version?,
     // serialNumber, signature, issuer, validity, subject,
     // subjectPublicKeyInfo, … }, … }
-    const auto cert = next(der, 0, size);
-    if (!cert || cert->tag != 0x30 || cert->end != size) return std::nullopt;
+    const auto cert = next(der, 0, der.size());
+    if (!cert || cert->tag != 0x30 || cert->end != der.size()) return std::nullopt;
     const auto tbs = next(der, cert->value, cert->end);
     if (!tbs || tbs->tag != 0x30) return std::nullopt;
     size_t     at = tbs->value;
@@ -164,12 +164,13 @@ std::optional<std::array<uint8_t, 32>> spki_sha256(const uint8_t* der, size_t si
     const auto spki = next(der, at, tbs->end);
     if (!spki || spki->tag != 0x30) return std::nullopt;
     Sha256 h;
-    h.update(der + spki->start, spki->end - spki->start);
+    h.update(der.subspan(spki->start, spki->end - spki->start));
     return h.digest();
 }
 
-std::string base64(const uint8_t* data, size_t size)
+std::string base64(std::span<const uint8_t> data)
 {
+    const size_t size = data.size();
     static const char T[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     std::string       out;
     for (size_t i = 0; i < size; i += 3) {
@@ -229,7 +230,7 @@ std::optional<std::vector<uint8_t>> pem_to_der(const std::string& pem)
     return unbase64(pem.substr(b + begin.size(), e - b - begin.size()));
 }
 
-std::string pin_text(const std::array<uint8_t, 32>& h) { return "sha256//" + base64(h.data(), h.size()); }
+std::string pin_text(const std::array<uint8_t, 32>& h) { return "sha256//" + base64(h); }
 
 std::string pin_short(const std::array<uint8_t, 32>& h)
 {

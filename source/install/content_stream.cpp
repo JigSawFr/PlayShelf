@@ -80,7 +80,7 @@ struct ContentStream::Impl
             *why = "more data than the NCA's size";
             return false;
         }
-        if (!hashed) sha.update(data, size);
+        if (!hashed) sha.update({data, size});
         if (!write(out, data, size)) {
             *why = "the content could not be written";
             return false;
@@ -95,7 +95,7 @@ struct ContentStream::Impl
         for (const Section& s : sections) {
             if (!s.ctr) continue;
             const uint64_t from = std::max(out, s.offset), to = std::min(out + size, s.offset + s.size);
-            if (from < to) s.ctr->crypt(data + (from - out), (size_t)(to - from), from);
+            if (from < to) s.ctr->crypt({data + (from - out), (size_t)(to - from)}, from);
         }
         return emit(data, size, why);
     }
@@ -113,7 +113,7 @@ struct ContentStream::Impl
         }
         if (on_header && !on_header(*h, nca_check_signature(plain), why)) return false;
         nca = h->size;
-        sha.update(buf.data(), buf.size());   // as published
+        sha.update(buf);   // as published
         if (h->distribution == 1) nca_make_download(buf.data(), header_key.data());
         return emit(buf.data(), buf.size(), why, true);
     }
@@ -410,7 +410,7 @@ ContentStream::ContentStream(const uint8_t header_key[32], std::optional<std::ar
 
 ContentStream::~ContentStream() = default;
 
-bool ContentStream::feed(const uint8_t* data, size_t size)
+bool ContentStream::feed(std::span<const uint8_t> data)
 {
     if (impl->phase == Impl::Phase::Failed) return false;
     if (impl->phase == Impl::Phase::Done) {
@@ -418,7 +418,7 @@ bool ContentStream::feed(const uint8_t* data, size_t size)
         impl->phase = Impl::Phase::Failed;
         return false;
     }
-    if (!impl->feed(data, size, &err)) {
+    if (!impl->feed(data.data(), data.size(), &err)) {
         impl->phase = Impl::Phase::Failed;
         return false;
     }
@@ -456,7 +456,7 @@ bool ContentStream::resume_at(const Checkpoint& at)
     uint64_t hashed = 0;
     for (size_t i = Sha256::STATE_SIZE - 8; i < Sha256::STATE_SIZE; i++) hashed = hashed << 8 | at.sha[i];
     Sha256 sha;
-    if (hashed != at.offset || !sha.restore(at.sha.data(), at.sha.size())) return false;
+    if (hashed != at.offset || !sha.restore(at.sha)) return false;
     impl->sha = sha;
     impl->nca = at.nca_size;
     impl->out = at.offset;

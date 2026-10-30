@@ -12,7 +12,9 @@
 #include <cstdint>
 #include <functional>
 #include <optional>
+#include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace library
@@ -38,7 +40,7 @@ struct Discovered
 // An answer from `source_ip` (dotted IPv4): nothing when it is not a
 // well-formed OWNFOIL reply, too big, or from a broadcast or multicast
 // address.
-std::optional<Discovered> parse_discovery(const char* data, size_t size, const std::string& source_ip);
+std::optional<Discovered> parse_discovery(std::string_view reply, const std::string& source_ip);
 // `s` into `servers`: replaces the one of the same uid, else added (at most
 // DISCOVERY_MAX_SERVERS).
 void add_discovered(std::vector<Discovered>& servers, const Discovered& s);
@@ -57,7 +59,7 @@ std::string choose_endpoint(const Endpoints& e, const std::function<bool(const s
 
 // The SHA-256 of a certificate's SubjectPublicKeyInfo, from the
 // certificate's DER bytes; nothing when they are not an X.509 certificate.
-std::optional<std::array<uint8_t, 32>> spki_sha256(const uint8_t* der, size_t size);
+std::optional<std::array<uint8_t, 32>> spki_sha256(std::span<const uint8_t> der);
 // The DER bytes of the first certificate of a PEM text.
 std::optional<std::vector<uint8_t>> pem_to_der(const std::string& pem);
 // "sha256//<base64>", what CURLOPT_PINNEDPUBLICKEY takes.
@@ -65,7 +67,7 @@ std::string pin_text(const std::array<uint8_t, 32>& spki_hash);
 // A pin for a person to compare: "AB:CD:…" (the first 8 bytes).
 std::string pin_short(const std::array<uint8_t, 32>& spki_hash);
 
-std::string base64(const uint8_t* data, size_t size);
+std::string base64(std::span<const uint8_t> data);
 std::optional<std::vector<uint8_t>> unbase64(const std::string& text);
 
 }   // namespace library

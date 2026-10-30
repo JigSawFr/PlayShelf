@@ -153,31 +153,30 @@ void Aes128::decrypt_block(const uint8_t in[16], uint8_t out[16]) const
     std::memcpy(out, s, 16);
 }
 
-void aes128_ecb_decrypt(const uint8_t key[16], uint8_t* data, size_t size)
+void aes128_ecb_decrypt(const uint8_t key[16], std::span<uint8_t> data)
 {
     const Aes128 aes(key);
-    for (size_t i = 0; i + 16 <= size; i += 16)
-        aes.decrypt_block(data + i, data + i);
+    for (size_t i = 0; i + 16 <= data.size(); i += 16)
+        aes.decrypt_block(&data[i], &data[i]);
 }
 
-void aes128_ecb_encrypt(const uint8_t key[16], uint8_t* data, size_t size)
+void aes128_ecb_encrypt(const uint8_t key[16], std::span<uint8_t> data)
 {
     const Aes128 aes(key);
-    for (size_t i = 0; i + 16 <= size; i += 16)
-        aes.encrypt_block(data + i, data + i);
+    for (size_t i = 0; i + 16 <= data.size(); i += 16)
+        aes.encrypt_block(&data[i], &data[i]);
 }
 
-void aes128_xts_nintendo(const uint8_t key[32], uint8_t* data, size_t size, uint64_t sector, size_t sector_size,
-                         bool encrypt)
+void aes128_xts_nintendo(const uint8_t key[32], std::span<uint8_t> data, uint64_t sector, size_t sector_size, bool encrypt)
 {
     const Aes128 data_key(key), tweak_key(key + 16);
-    for (size_t at = 0; at + sector_size <= size; at += sector_size, sector++) {
+    for (size_t at = 0; at + sector_size <= data.size(); at += sector_size, sector++) {
         uint8_t tweak[16] = {};
         for (int i = 0; i < 8; i++)
             tweak[15 - i] = (uint8_t)(sector >> (8 * i));
         tweak_key.encrypt_block(tweak, tweak);
         for (size_t b = 0; b + 16 <= sector_size; b += 16) {
-            uint8_t* p = data + at + b;
+            uint8_t* p = &data[at + b];
             for (int i = 0; i < 16; i++)
                 p[i] ^= tweak[i];
             if (encrypt)
@@ -196,12 +195,12 @@ Aes128Ctr::Aes128Ctr(const uint8_t key[16], const uint8_t iv_[16]) : aes(key)
     std::memcpy(iv.data(), iv_, 16);
 }
 
-void Aes128Ctr::crypt(uint8_t* data, size_t size, uint64_t offset) const
+void Aes128Ctr::crypt(std::span<uint8_t> data, uint64_t offset) const
 {
     uint64_t block = offset / 16;
     size_t   skip = (size_t)(offset % 16);
     size_t   done = 0;
-    while (done < size) {
+    while (done < data.size()) {
         // iv + block, as a 128-bit big-endian number.
         uint8_t  ctr[16];
         uint64_t lo = 0, hi = 0;
@@ -217,7 +216,7 @@ void Aes128Ctr::crypt(uint8_t* data, size_t size, uint64_t offset) const
         }
         uint8_t ks[16];
         aes.encrypt_block(ctr, ks);
-        for (size_t i = skip; i < 16 && done < size; i++)
+        for (size_t i = skip; i < 16 && done < data.size(); i++)
             data[done++] ^= ks[i];
         skip = 0;
         block++;

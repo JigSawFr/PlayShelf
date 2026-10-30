@@ -59,7 +59,7 @@ const IndexEntry* InsightsIndex::find(const std::string& name) const
 std::string short_hash(const std::string& bytes)
 {
     Sha256 sha;
-    sha.update(bytes.data(), bytes.size());
+    sha.update(bytes);
     return sha.hex().substr(0, 16);
 }
 

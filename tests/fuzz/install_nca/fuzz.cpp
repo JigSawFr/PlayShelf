@@ -21,7 +21,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     keys.unwrap = [](uint8_t generation, uint8_t index, const uint8_t in[16], uint8_t out[16]) {
         if (generation > 4 || index != 0) return false;
         std::memcpy(out, in, 16);
-        aes128_ecb_decrypt(KAEK, out, 16);
+        aes128_ecb_decrypt(KAEK, {out, 16});
         return true;
     };
     if (const auto cnmt = nca_read_cnmt({data, size}, keys)) FUZZ_ASSERT(cnmt->size() <= size);

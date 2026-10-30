@@ -158,7 +158,7 @@ std::vector<std::string> auth_headers(const std::string& user, const std::string
 {
     if (user.empty()) return {};
     const std::string both = user + ":" + password;
-    return {"Authorization: Basic " + base64((const uint8_t*)both.data(), both.size())};
+    return {"Authorization: Basic " + base64({(const uint8_t*)both.data(), both.size()})};
 }
 
 Fetch fetch(const Server& server, const std::string& password, Transport& t)
@@ -183,7 +183,7 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
         std::string why;
         const std::string pem = t.certificate(endpoint, &why);
         const auto        der = pem_to_der(pem);
-        const auto        h = der ? spki_sha256(der->data(), der->size()) : std::nullopt;
+        const auto        h = der ? spki_sha256(*der) : std::nullopt;
         if (!h) return failed(why.empty() ? "the server's certificate cannot be read" : why);
         Fetch f;
         f.status = FetchStatus::UnknownCertificate;

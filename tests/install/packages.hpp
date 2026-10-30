@@ -32,7 +32,7 @@ inline Bytes content_nca(uint8_t type, size_t body, const char* seed, uint8_t di
     fs[4] = 3;
     put_le64(fs + 0x140, 0x0000000900000000ull);
     Sha256 sh;
-    sh.update(fs, 0x200);
+    sh.update({fs, 0x200});
     const auto d = sh.digest();
     std::memcpy(h + 0x280, d.data(), 32);
     const Bytes data = stream(section, seed);
@@ -40,7 +40,7 @@ inline Bytes content_nca(uint8_t type, size_t body, const char* seed, uint8_t di
     NcaSection s;
     s.ctr = 0x0000000900000000ull;
     const auto iv = nca_section_iv(s);
-    Aes128Ctr(SECTION_KEY, iv.data()).crypt(nca.data() + NCA_FULL_HEADER, section, NCA_FULL_HEADER);
+    Aes128Ctr(SECTION_KEY, iv.data()).crypt(std::span(nca).subspan(NCA_FULL_HEADER, section), NCA_FULL_HEADER);
     nca_header_crypt(h, HEADER_KEY, true);
     return nca;
 }
@@ -52,7 +52,7 @@ inline ContentInfo info_of(const Bytes& nca, ContentType type, uint8_t id_byte)
     c.size = nca.size();
     c.type = type;
     Sha256 s;
-    s.update(nca.data(), nca.size());
+    s.update(nca);
     c.hash = s.digest();
     return c;
 }
@@ -68,7 +68,7 @@ inline Bytes ncz_of(const Bytes& nca)
     const NcaSection& s = h->sections[0];
     Bytes             plain(nca.begin() + NCA_FULL_HEADER, nca.end());
     const auto        iv = nca_section_iv(s);
-    Aes128Ctr(SECTION_KEY, iv.data()).crypt(plain.data(), plain.size(), NCA_FULL_HEADER);
+    Aes128Ctr(SECTION_KEY, iv.data()).crypt(plain, NCA_FULL_HEADER);
     Bytes out(nca.begin(), nca.begin() + NCA_FULL_HEADER);
     Bytes sec(16 + 0x40);
     put_le64(sec.data(), 0x4e544345535a434eull);

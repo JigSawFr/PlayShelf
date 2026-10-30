@@ -34,7 +34,7 @@ std::string hash_of(const std::string& path)
     Sha256               h;
     std::vector<uint8_t> buf(1u << 20);
     size_t               n = 0;
-    while ((n = std::fread(buf.data(), 1, buf.size(), f)) > 0) h.update(buf.data(), n);
+    while ((n = std::fread(buf.data(), 1, buf.size(), f)) > 0) h.update(std::span(buf).first(n));
     const bool failed = std::ferror(f) != 0;
     std::fclose(f);
     return failed ? "" : h.hex();
@@ -145,7 +145,7 @@ bool read_state(const std::string& dir, State* out)
 std::string source_dir(const std::string& root, const std::string& url)
 {
     Sha256 h;
-    h.update(url.data(), url.size());
+    h.update(url);
     return root + "/" + h.hex().substr(0, 16);
 }
 

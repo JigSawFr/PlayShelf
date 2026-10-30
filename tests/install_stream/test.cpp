@@ -38,7 +38,7 @@ void write_seed(const char* name, const Bytes& b)
 std::array<uint8_t, 32> sha(const Bytes& b)
 {
     Sha256 h;
-    h.update(b.data(), b.size());
+    h.update(b);
     return h.digest();
 }
 
@@ -95,14 +95,14 @@ Built build(uint8_t distribution = 0)
         fs[4] = crypt[i];
         put_le64(fs + 0x140, ctr[i]);
         Sha256 s;
-        s.update(fs, 0x200);
+        s.update({fs, 0x200});
         const auto d = s.digest();
         std::memcpy(h + 0x280 + 0x20 * i, d.data(), 32);
     }
     nca_header_crypt(h, HEADER_KEY, true);
     std::copy(b.plain.begin(), b.plain.end(), b.nca.begin() + NCA_FULL_HEADER);
-    Aes128Ctr(SECTION_KEY, iv_of(CTR0).data()).crypt(b.nca.data() + b.s0, b.s0_size, b.s0);
-    Aes128Ctr(SECTION_KEY, iv_of(CTR1).data()).crypt(b.nca.data() + b.s1, b.s1_size, b.s1);
+    Aes128Ctr(SECTION_KEY, iv_of(CTR0).data()).crypt(std::span(b.nca).subspan(b.s0, b.s0_size), b.s0);
+    Aes128Ctr(SECTION_KEY, iv_of(CTR1).data()).crypt(std::span(b.nca).subspan(b.s1, b.s1_size), b.s1);
     return b;
 }
 
@@ -212,7 +212,7 @@ Result run(const Bytes& file, std::optional<std::array<uint8_t, 32>> hash, uint6
     while (fed && at < file.size()) {
         size_t n = sizes[k++ % sizes.size()];
         if (!n || n > file.size() - at) n = file.size() - at;
-        fed = cs.feed(file.data() + at, n);
+        fed = cs.feed(std::span(file).subspan(at, n));
         at += n;
     }
     r.ok = fed && cs.finish();
@@ -353,18 +353,18 @@ void test_resume()
     {
         const Bytes data = stream(1000, "sha");
         Sha256      whole;
-        whole.update(data.data(), data.size());
+        whole.update(data);
         Sha256 first;
-        first.update(data.data(), 333);
+        first.update(std::span(data).first(333));
         const auto state = first.save();
         Sha256     second;
-        CHECK(second.restore(state.data(), state.size()));
-        second.update(data.data() + 333, data.size() - 333);
+        CHECK(second.restore(state));
+        second.update(std::span(data).subspan(333));
         CHECK(second.digest() == whole.digest());
         auto broken = state;
         broken[Sha256::STATE_SIZE - 1] ^= 1;   // a total that no longer matches what is held
-        CHECK(!Sha256().restore(broken.data(), broken.size()));
-        CHECK(!Sha256().restore(state.data(), state.size() - 1));
+        CHECK(!Sha256().restore(broken));
+        CHECK(!Sha256().restore(std::span(state).first(state.size() - 1)));
     }
 
     for (const uint8_t distribution : {0, 1}) {
@@ -380,19 +380,19 @@ void test_resume()
             };
             ContentStream first(HEADER_KEY, hash, b.nca.size(), nullptr, write);
             CHECK(!first.checkpoint());   // nothing of the body yet
-            CHECK(first.feed(b.nca.data(), cut));
+            CHECK(first.feed(std::span(b.nca).first(cut)));
             const auto at = first.checkpoint();
             if (!CHECK(at && at->offset == cut && at->nca_size == b.nca.size())) continue;
 
             ContentStream again(HEADER_KEY, hash, b.nca.size(), nullptr, write);
             CHECK(again.resume_at(*at));
-            CHECK(again.feed(b.nca.data() + cut, b.nca.size() - cut));
+            CHECK(again.feed(std::span(b.nca).subspan(cut)));
             CHECK(again.finish());
             CHECK(out == whole.out);
         }
         // What cannot be this content's: refused, the stream left as it was.
         ContentStream first(HEADER_KEY, hash, b.nca.size(), nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
-        CHECK(first.feed(b.nca.data(), 0x6000));
+        CHECK(first.feed(std::span(b.nca).first(0x6000)));
         const auto at = first.checkpoint();
         if (!CHECK(at)) return;
         auto check = [&](ContentStream::Checkpoint c, uint64_t size) {
@@ -412,7 +412,7 @@ void test_resume()
         other.sha[0] ^= 1;   // a state, but not this content's: its hash fails at the end
         ContentStream wrong(HEADER_KEY, hash, b.nca.size(), nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
         CHECK(wrong.resume_at(other));
-        CHECK(wrong.feed(b.nca.data() + at->offset, b.nca.size() - at->offset));
+        CHECK(wrong.feed(std::span(b.nca).subspan(at->offset)));
         CHECK(!wrong.finish() && wrong.error().find("SHA-256") != std::string::npos);
     }
 
@@ -422,7 +422,7 @@ void test_resume()
     const Bytes head = sections(b);
     ncz.insert(ncz.end(), head.begin(), head.end());
     ContentStream z(HEADER_KEY, std::nullopt, 0, nullptr, [](uint64_t, const uint8_t*, size_t) { return true; });
-    CHECK(z.feed(ncz.data(), ncz.size()));
+    CHECK(z.feed(ncz));
     CHECK(!z.checkpoint());
 }
 

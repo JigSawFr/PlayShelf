@@ -114,7 +114,7 @@ std::vector<Discovered> discover(const std::atomic<bool>* cancel, std::string* w
         if (got <= 0 || from.sin_family != AF_INET) continue;
         char ip[INET_ADDRSTRLEN];
         if (!::inet_ntop(AF_INET, &from.sin_addr, ip, sizeof ip)) continue;
-        if (const auto s = parse_discovery(buf, (size_t)got, ip)) add_discovered(servers, *s);
+        if (const auto s = parse_discovery(std::string_view(buf, (size_t)got), ip)) add_discovered(servers, *s);
     }
     if (!sent && why) *why = "the discovery broadcast cannot be sent: is the console on a network?";
     return servers;
