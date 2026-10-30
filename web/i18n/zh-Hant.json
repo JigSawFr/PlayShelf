@@ -68,7 +68,8 @@
     "tour_download": "全部安裝：其資料包進入下載，逐一安裝。",
     "tour_downloads": "下載：佇列、每個遊戲的時間軸，以及資料包的取得方式。",
     "tour_preferences": "偏好設定：語言、主題和遊戲資訊資料庫。",
-    "tour_end": "輪到你了：方向鍵移動，Enter 為 A，Esc 為 B。面板可設定任何狀態。"
+    "tour_end": "輪到你了：方向鍵移動，Enter 為 A，Esc 為 B。面板可設定任何狀態。",
+    "sites_legal": "隱私與法律聲明"
   },
   "groups": {
     "app": "PlayShelf",

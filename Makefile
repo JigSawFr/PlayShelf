@@ -2,7 +2,7 @@
 #
 #   make              -> ./playshelf.nro            (needs devkitPro, DEVKITPRO set)
 #   make dist         -> ./playshelf.zip            (unzip onto the SD card root)
-#   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend and the demo; needs GLFW,
+#   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend and the demo; SDL3, built with it,
 #                        and Playwright for the demo's pictures: DESKTOP_DEMO= builds it without)
 #   make web          -> ./build-web/simulator/     (the web simulator; needs Emscripten's emcmake)
 #   make web-serve    -> make web, served at http://localhost:8000

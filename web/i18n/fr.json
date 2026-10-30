@@ -68,7 +68,8 @@
     "tour_download": "Tout installer : ses paquets vont dans les téléchargements et s'installent l'un après l'autre.",
     "tour_downloads": "Téléchargements : la file, la frise de chaque jeu et la façon dont les paquets sont récupérés.",
     "tour_preferences": "Préférences : la langue, le thème et la base de titres.",
-    "tour_end": "À vous : les flèches déplacent, Entrée vaut A, Échap vaut B. Le panneau règle n'importe quel état."
+    "tour_end": "À vous : les flèches déplacent, Entrée vaut A, Échap vaut B. Le panneau règle n'importe quel état.",
+    "sites_legal": "Confidentialité et mentions légales"
   },
   "groups": {
     "app": "PlayShelf",

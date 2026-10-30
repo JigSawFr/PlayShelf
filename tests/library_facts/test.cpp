@@ -63,6 +63,9 @@ void test_read()
     FactsBook b;
     // Not the book's: not JSON, another schema, no games.
     CHECK(!b.from_json("{") && !b.from_json(R"({"schema":2,"games":{}})") && !b.from_json(R"({"schema":1})"));
+    // A newer one is left alone (action/nlib_flow): newer() says so.
+    CHECK(FactsBook::newer(R"({"schema":2,"games":{}})") && !FactsBook::newer(b.to_json()) && !FactsBook::newer("{"));
+    CHECK(!FactsBook::newer(R"({"games":{}})") && !FactsBook::newer(R"({"schema":"9"})"));
     // A key that is no title id, an entry that is no object, fields of the
     // wrong kind: what holds together stays.
     CHECK(b.from_json(R"({"schema":1,"games":{

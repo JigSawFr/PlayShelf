@@ -47,6 +47,9 @@ struct Job
     bool        accept_unsigned = false;    // the user said to install it anyway
     uint64_t    done = 0, total = 0;        // the install's bytes, as last known
     std::optional<install::Journal> journal;
+    // The job as queue.json held it (a JSON object): the keys this build
+    // does not know are written back with it, a newer build's journal too.
+    std::string kept;
     // Not kept in the file: PlayShelf's own tries since the user's last
     // word, and when it tries again (a steady clock's seconds, 0: it does
     // not).
@@ -55,9 +58,19 @@ struct Job
 };
 
 constexpr size_t MAX_JOBS = 256;
+// queue.json's format, and a job's journal's: one more when a key changes
+// meaning (none counts as 1). A file of a newer schema is read as an empty
+// queue and never written over; a job whose journal is of a newer one is
+// not taken up (Failed, NEWER_JOURNAL), its journal written back as it is.
+constexpr int QUEUE_SCHEMA = 1;
+constexpr int JOURNAL_SCHEMA = 1;
+extern const char* const NEWER_JOURNAL;
 
-std::string      queue_to_json(const std::vector<Job>& jobs);
+// `previous`: the file's text before, whose other keys are written back.
+std::string      queue_to_json(const std::vector<Job>& jobs, const std::string& previous = "");
 std::vector<Job> queue_from_json(const std::string& text);
+// Whether queue.json's text is of a newer schema than this build's.
+bool             queue_newer(const std::string& text);
 
 std::string      queue_file();
 std::vector<Job> load_queue();

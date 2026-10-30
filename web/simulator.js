@@ -25,15 +25,19 @@
 // before this file and tested on its own (tests/web_page/).
 'use strict';
 
-const { LANGUAGES, isOn } = SimLogic;
+const { LANGUAGES, isOn, keptDatabase } = SimLogic;
 
 const THEMES = ['auto', 'light', 'dark'];
 // The languages PlayShelf draws with the CJK font (cjk.otf, next to the page):
 // waited for before it starts; fetched once it runs in the others.
 const CJK = new Set(['ja', 'ko', 'zh-Hans', 'zh-Hant']);
 const CJK_FILE = '/app/resources/font/cjk.otf';
-// The data folder (source/util/paths.cpp), kept in IndexedDB under that name with `keep`.
+// The data folder (source/util/paths.cpp), kept in IndexedDB with `keep`:
+// in a database of this deployment's own (KEPT_DB, SimLogic.keptDatabase).
 const DATA = '/playshelf_data';
+const KEPT_DB = keptDatabase(DATA, location.pathname);
+// config.json's schema (config::SCHEMA in source/util/config.hpp).
+const CONFIG_SCHEMA = 1;
 // Where a report goes without build.json (a local build).
 const REPO = 'JigSawFr/PlayShelf';
 
@@ -161,6 +165,11 @@ function linkFor(values) {
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
+  // A link out says nothing of the visit, but to our own sites (sim_logic.js).
+  if (tag === 'a') {
+    const out = SimLogic.linkOutAttributes(attrs.href || '');
+    attrs = { ...out, ...attrs, ...(out.rel && attrs.rel ? { rel: `${attrs.rel} ${out.rel}` } : {}) };
+  }
   for (const [k, v] of Object.entries(attrs)) {
     if (k === 'class') node.className = v;
     else if (k === 'text') node.textContent = v;
@@ -406,14 +415,22 @@ function saveData() {
 // its first games to the simulated console, itself (source/sim/sim_demo.hpp),
 // unless `no_demo`.
 function mountKept(m, config) {
+  // Emscripten's IDBFS names the database after the mount point: this
+  // deployment's own name in its place.
+  const idbfs = m.FS.filesystems.IDBFS;
+  const getDB = idbfs.getDB;
+  idbfs.getDB = (name, callback) => getDB.call(idbfs, name === DATA ? KEPT_DB : name, callback);
   m.FS.mkdirTree(DATA);
-  m.FS.mount(m.FS.filesystems.IDBFS, {}, DATA);
+  m.FS.mount(idbfs, {}, DATA);
   m.addRunDependency('keep');
   m.FS.syncfs(true, (e) => {
     if (e) log(`keep: ${e}`, true);
     let kept = {};
     try { kept = JSON.parse(m.FS.readFile(`${DATA}/config.json`, { encoding: 'utf8' })); } catch { /* first run */ }
-    m.FS.writeFile(`${DATA}/config.json`, JSON.stringify({ ...kept, ...config }));
+    // A newer PlayShelf's file is left as it is (it reads the defaults).
+    if (!(kept?.schema > CONFIG_SCHEMA)) {
+      m.FS.writeFile(`${DATA}/config.json`, JSON.stringify({ ...kept, ...config, schema: CONFIG_SCHEMA }));
+    }
     setInterval(saveData, 3000);
     addEventListener('pagehide', saveData);
     addEventListener('visibilitychange', () => { if (document.hidden) saveData(); });
@@ -424,7 +441,7 @@ function mountKept(m, config) {
 function forget() {
   forgetting = true;
   const done = () => location.reload();
-  const req = indexedDB.deleteDatabase(DATA);
+  const req = indexedDB.deleteDatabase(KEPT_DB);
   req.onsuccess = req.onerror = req.onblocked = done;
 }
 
@@ -859,7 +876,8 @@ function report() {
   };
   let lines = 40;
   while (lines > 0 && url(lines).length > 8000) lines -= 5;
-  window.open(url(lines), '_blank', 'noopener');
+  // Opened as a link, so the issue page gets the origin alone (el()).
+  el('a', { href: url(lines), target: '_blank', rel: 'noopener' }).click();
 }
 
 // ---- The page ------------------------------------------------------------
@@ -875,6 +893,10 @@ function translatePage() {
 
 // The website's pages in the page's language (tools/build_site.py's
 // folders): its home, and the header's links as on the website.
+// A link to another of Boréale's sites says where the visit comes from, for
+// Umami (workbench's "Mesure d'audience"); the simulator is part of shelf.boreale.dev.
+const SITE_TAGS = 'utm_source=shelf&utm_medium=nav';
+
 function homeLink() {
   const home = `${SITE_UP}${language === 'en-US' ? '' : `${language.toLowerCase()}/`}`;
   $('home-link').href = home;
@@ -884,8 +906,10 @@ function homeLink() {
   // Boréale's other sites, in French where the page is (the four have it).
   const french = language.startsWith('fr');
   for (const link of document.querySelectorAll('#sites [data-site]')) {
-    link.href = link.dataset.site + (french ? 'fr/' : '');
+    link.href = `${link.dataset.site}${french ? 'fr/' : ''}?${SITE_TAGS}`;
   }
+  // The privacy and legal notice, boreale.dev's, in the same folder.
+  $('legal-link').href = `https://boreale.dev/${language === 'en-US' ? '' : `${language.toLowerCase()}/`}legal/?${SITE_TAGS}`;
   $('sites-button').setAttribute('aria-label', `PlayShelf · ${t('sites_label')}`);
 }
 

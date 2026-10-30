@@ -493,7 +493,7 @@ std::string encode_cache(const Cache& cache)
                          { "url", b.url }, { "size", b.size }, { "sha256", b.sha256 }, { "notes", b.notes },
                          { "branch", b.branch }, { "expires", b.expires }, { "run", b.run }, { "ci", ci_name(b.ci) },
                          { "page", b.page } });
-    const json j = { { "version", 1 }, { "fetched_at", cache.fetched_at }, { "needs_login", cache.needs_login },
+    const json j = { { "schema", CACHE_SCHEMA }, { "fetched_at", cache.fetched_at }, { "needs_login", cache.needs_login },
                      { "builds", list } };
     return j.dump(1) + "\n";
 }
@@ -502,7 +502,9 @@ bool decode_cache(const std::string& text, Cache* out)
 {
     return json_util::parse_with(text, [out](const json& j) {
         const json* builds = json_util::array_at(j, "builds");
-        if (!j.is_object() || json_util::integer_or(j, "version") != 1 || !builds) return false;
+        // "version": the schema's name in the files of earlier builds.
+        const int64_t schema = j.is_object() ? json_util::integer_or(j, "schema", json_util::integer_or(j, "version")) : 0;
+        if (schema != CACHE_SCHEMA || !builds) return false;
         Cache c;
         c.fetched_at = json_util::integer_or(j, "fetched_at");
         c.needs_login = j.value("needs_login", true);

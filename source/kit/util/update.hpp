@@ -1,8 +1,11 @@
 // update — is there a newer PlayShelf, and does it support this firmware?
 //
-// Every release publishes compat.json next to playshelf.nro (written by
-// tools/gen_compat.py from CMakeLists.txt and core/sysinfo.h):
+// Every release publishes compat-<COMPAT_SCHEMA>.json and compat.json next
+// to playshelf.nro (written by tools/gen_compat.py from CMakeLists.txt and
+// core/sysinfo.h):
 //   {"schema": 1, "version": "1.1.0", "fw_tested_max": "24.0.0"}
+// compat.json stays at schema 1 for the builds that fetch only it; this one
+// fetches compat-<its schema>.json, then compat.json when a release has none.
 // Parsing and the decision are plain C++ (host-tested); check() fetches the
 // file of the latest release over HTTPS (update_check.cpp).
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -44,7 +47,10 @@ bool     parse_version(const std::string& text, int out[3]);
 int      compare_versions(const std::string& a, const std::string& b);
 // "24.0.0" -> MAKEHOSVERSION(24, 0, 0); 0 when malformed.
 uint32_t parse_firmware(const std::string& text);
-// Reads compat.json; false when a required field is missing or malformed.
+// compat.json's "schema": one more when a field changes meaning.
+constexpr int COMPAT_SCHEMA = 1;
+// Reads compat.json; false when a required field is missing or malformed,
+// or its schema is not COMPAT_SCHEMA (none counts as 1).
 bool     parse_compat(const std::string& json, Latest* out);
 Verdict  decide(uint32_t console_fw, const std::string& app_version, const Latest& latest);
 

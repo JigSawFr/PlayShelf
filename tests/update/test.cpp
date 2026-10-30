@@ -65,6 +65,10 @@ static void test_compat()
         R"({"version": "1.1.0", "fw_tested_max": "24"})",
         R"({"version": "1.1.0", "fw_tested_max": 24})",
         "<html>404</html>",
+        // Another schema: its fields may not mean these (a newer build reads
+        // compat-2.json; compat.json stays at 1).
+        R"({"schema": 2, "version": "1.1.0", "fw_tested_max": "24.0.0"})",
+        R"({"schema": "1", "version": "1.1.0", "fw_tested_max": "24.0.0"})",
     };
     for (const char* text : bad) {
         CHECK(!update::parse_compat(text, &untouched));

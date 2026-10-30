@@ -1,7 +1,8 @@
 // The web simulator's page logic that touches neither the page nor PlayShelf
 // (web/README.md): which of the console's languages a browser's is, the URL
 // a set of settings makes, the PLAYSHELF_SIM_* variables and config.json
-// PlayShelf starts with, the steps a link replays. simulator.js uses it as
+// PlayShelf starts with, the steps a link replays, the database that keeps
+// its data folder. simulator.js uses it as
 // `SimLogic`; tests/web_page/ tests it with Node
 // (`node --test tests/web_page/*.test.js`).
 // `known` is params.json's entries by name (a Map).
@@ -80,6 +81,9 @@
         v = '1';
       }
       if (v === '' || v == null) continue;
+      // A visit's UTM tags (it came from another of our sites) stay out of the
+      // links the page makes: the first change of the URL drops them.
+      if (name.startsWith('utm_')) continue;
       q.set(name, v);
     }
     const s = q.toString();
@@ -160,9 +164,36 @@
     return out.join('.');
   }
 
+  // Links out (the rule "liens sortants anonymes"): our own sites
+  // (boreale.dev and its subdomains, the repositories of github.com/JigSawFr/)
+  // get the origin alone, any other site nothing. A fork's repository, the
+  // profile page or a look-alike is another site.
+  function ownSite(href) {
+    let u;
+    try { u = new URL(href); } catch { return false; }
+    const host = u.hostname.toLowerCase();
+    return u.protocol === 'https:' && (host === 'boreale.dev' || host.endsWith('.boreale.dev') ||
+      (host === 'github.com' && u.pathname.toLowerCase().startsWith('/jigsawfr/')));
+  }
+
+  // The attributes a link to `href` takes: none on the page itself.
+  function linkOutAttributes(href) {
+    if (!/^https?:/i.test(href)) return {};
+    return ownSite(href) ? { referrerpolicy: 'strict-origin' } : { rel: 'noreferrer' };
+  }
+
+  // The IndexedDB database that keeps the data folder (`keep`): one per
+  // deployment, by the page's folder (a release's, main's, a pull
+  // request's), so that one never reads or writes another's files, newer or
+  // older, on the same origin.
+  function keptDatabase(data, pathname) {
+    const folder = String(pathname || '/').replace(/[^/]*$/, '');
+    return `${data}@${folder.startsWith('/') ? folder : `/${folder}`}`;
+  }
+
   const SimLogic = {
     LANGUAGES, FLAGS, flag, FALSY, STEP_BUTTONS, isOn, consoleLanguage, firstConsoleLanguage, readQuery, toQuery, changedNames,
-    envValue, envName, startEnvironment, parseSteps, stepValue, stepsText,
+    envValue, envName, startEnvironment, parseSteps, stepValue, stepsText, ownSite, linkOutAttributes, keptDatabase,
   };
   if (typeof module === 'object' && module.exports) module.exports = SimLogic;
   else root.SimLogic = SimLogic;

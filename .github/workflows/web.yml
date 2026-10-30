@@ -53,12 +53,13 @@ jobs:
           # documentation of the latest release comes out of its tag.
           fetch-depth: 0
           filter: blob:none
-      # Emscripten's cache: its system libraries and ports (SDL2, zlib), built
-      # for threads and exceptions on first use, which takes minutes.
+      # Emscripten's cache: its system libraries and ports (SDL3, zlib), built
+      # for threads and exceptions on first use, which takes minutes. A hit is
+      # not saved again: the key names the ports it holds.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.emscripten_cache
-          key: emscripten-${{ env.EMSDK_VERSION }}
+          key: emscripten-${{ env.EMSDK_VERSION }}-sdl3
       # The compiler's own cache: main's, saved by main's builds only (a pull
       # request's would only serve itself).
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -204,6 +205,8 @@ jobs:
           python3 tools/check_site_links.py out "$SITE_URL"
           cp -r build-web/simulator out/simulator
           cp -r build-web/shots out/simulator/shots
+          # Its visits counted as the site's (not a preview's): Umami's tracker.
+          python3 tools/simulator_audience.py out/simulator
           # What the simulator's header says it was built from.
           python3 - <<'EOF'
           import json, os

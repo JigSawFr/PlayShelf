@@ -42,6 +42,10 @@ struct Server
     std::string username;
     std::string password_box;   // util/secret_box: sealed for this console
     std::string pin;            // "sha256//…": the LAN server's key, once trusted
+    // servers.json's keys this build does not know (a newer build's), and a
+    // password or pin of a format it cannot read: a JSON object, written
+    // back as it is (servers.cpp).
+    std::string kept;
 };
 
 struct Answer

@@ -7,7 +7,7 @@ Thanks for helping! This page is the map; each subject has a page of its own und
 ```sh
 git clone --recursive https://github.com/JigSawFr/PlayShelf && cd PlayShelf
 make test        # the host tests: gcc, g++, zlib headers, no devkitPro
-make desktop     # the real UI against a simulated console and a demo: GLFW, X11 and D-Bus dev packages, Playwright
+make desktop     # the real UI against a simulated console and a demo: X11, Wayland and D-Bus dev packages, Playwright
 make dist        # playshelf.zip for the SD card: devkitPro's switch-dev
 ```
 
@@ -23,6 +23,7 @@ Then a pull request with a conventional title and a scope (`fix(install): …`),
 | [The website](site/README.md) | `make site`: the home page and the documentation (`docs/`), on GitHub Pages with the simulator |
 | [Tests and CI](docs/contributing/tests.md) | The host tests, the fuzz targets, the smoke test, what CI runs |
 | [Code layout](docs/contributing/layout.md) | The kit shared with PlayGuard and its rules, the Cadran look |
+| [File formats](docs/contributing/formats.md) | Each file's schema, its readers, and what a newer one does |
 | [Pull requests and releases](docs/contributing/releases.md) | Conventional titles, squash merges, release-please, development builds, reproducible zips |
 | [Translating PlayShelf](docs/contributing/translating.md) | The 15 catalogs, how to add a language |
 

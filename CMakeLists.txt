@@ -13,34 +13,30 @@ if (AURORE_PLATFORM STREQUAL "SWITCH" AND NOT AURORE_GRAPHICS)
 endif ()
 
 # The web simulator (web/README.md): the desktop build, compiled by
-# Emscripten for a browser, with SDL2 and OpenGL ES 3 (WebGL 2) from
-# Emscripten's own ports instead of GLFW and the system's OpenGL. Its
-# toolchain file (emcmake) is only read by project(), below.
+# Emscripten for a browser, with SDL3 and OpenGL ES 3 (WebGL 2) from
+# Emscripten's own ports instead of the system's. Its toolchain file
+# (emcmake) is only read by project(), below.
 set(PLAYSHELF_WEB OFF)
 if (CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten\\.cmake$")
     set(PLAYSHELF_WEB ON)
 endif ()
 if (PLAYSHELF_WEB)
     set(AURORE_PLATFORM DESKTOP CACHE STRING "" FORCE)
-    set(AURORE_WINDOW SDL2 CACHE STRING "" FORCE)
-    set(USE_SYSTEM_SDL2 ON CACHE BOOL "" FORCE)
+    set(AURORE_WINDOW SDL3 CACHE STRING "" FORCE)
+    set(USE_SYSTEM_SDL3 ON CACHE BOOL "" FORCE)
     set(AURORE_GRAPHICS GLES3 CACHE STRING "" FORCE)
-    set(SDL2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/web/cmake)
-    add_compile_options(-pthread -sUSE_SDL=2 -sUSE_ZLIB=1 -fexceptions)
+    set(SDL3_DIR ${CMAKE_CURRENT_SOURCE_DIR}/web/cmake)
+    add_compile_options(-pthread -sUSE_SDL=3 -sUSE_ZLIB=1 -fexceptions)
 endif ()
 
 # The desktop build is the simulator, built in Release: Aurore's debugging
 # aids still read from the environment there (AURORE_INSPECTOR,
 # AURORE_HOT_RELOAD…; docs/environment.md in Aurore). -DAURORE_DEV_TOOLS=AUTO
 # leaves them out of a release build again.
-# Its window stays GLFW's, as on the Switch: Aurore's default on the desktop
-# is SDL3 now (JigSawFr/Aurore#92), which needs more of the system's
-# packages. -DAURORE_WINDOW=SDL3 tries it.
+# Its window is SDL3's, Aurore's default on the desktop
+# (JigSawFr/Aurore#92); -DAURORE_WINDOW=GLFW builds the GLFW one.
 if (AURORE_PLATFORM STREQUAL "DESKTOP" AND NOT PLAYSHELF_WEB)
     set(AURORE_DEV_TOOLS ON CACHE STRING "")
-    if (NOT AURORE_WINDOW)
-        set(AURORE_WINDOW GLFW CACHE STRING "" FORCE)
-    endif ()
 endif ()
 
 # AURORE_PLATFORM / AURORE_GRAPHICS … options, and the PLATFORM_* and USE_*
@@ -279,7 +275,7 @@ endif ()
 if (PLAYSHELF_WEB)
     set(PLAYSHELF_WEB_DEMO ${CMAKE_BINARY_DIR}/demo CACHE PATH "Web simulator: the demo server's files (tools/web_demo.cpp)")
     target_link_options(${PROJECT_NAME} PRIVATE
-        -pthread -fexceptions -sUSE_SDL=2 -sUSE_ZLIB=1
+        -pthread -fexceptions -sUSE_SDL=3 -sUSE_ZLIB=1
         -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sFULL_ES3
         # Not -sGROWABLE_ARRAYBUFFERS, which Emscripten suggests for threads
         # with memory growth: WebGL refuses views of a resizable buffer.

@@ -14,10 +14,11 @@ namespace update
 
 namespace
 {
-// <repository>/releases/latest/download/compat.json
-std::string compat_url()
+// <repository>/releases/latest/download/compat-<schema>.json, or the
+// compat.json every release has ("" for it).
+std::string compat_url(const std::string& schema)
 {
-    return std::string(app::repo_url()) + "/releases/latest/download/compat.json";
+    return std::string(app::repo_url()) + "/releases/latest/download/compat" + (schema.empty() ? "" : "-" + schema) + ".json";
 }
 }   // namespace
 
@@ -44,10 +45,20 @@ Result check(uint32_t console_fw)
                std::string(colon + 1) + "\"}";
     } else
 #endif
-    if (!http::get(compat_url(), &body, &r.error, 64 * 1024, 10, {}, &status)) {
-        // GitHub answers 404 for releases/latest while none is published.
-        if (status == 404) r.verdict = Verdict::NoRelease;
-        return r;
+    {
+        // This build's schema first; a release without that file (published
+        // before it was) answers 404, and has compat.json.
+        bool got = http::get(compat_url(std::to_string(COMPAT_SCHEMA)), &body, &r.error, 64 * 1024, 10, {}, &status);
+        if (!got && status == 404) {
+            r.error.clear();
+            status = 0;
+            got = http::get(compat_url(""), &body, &r.error, 64 * 1024, 10, {}, &status);
+        }
+        if (!got) {
+            // GitHub answers 404 for releases/latest while none is published.
+            if (status == 404) r.verdict = Verdict::NoRelease;
+            return r;
+        }
     }
     if (!parse_compat(body, &r.latest)) {
         r.error = "unexpected compat.json";
