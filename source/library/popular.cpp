@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/popular.hpp"
+#include "library/atlas.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -39,7 +40,8 @@ bool PopularBook::from_json(const std::string& text)
     this->games.clear();
     this->day.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
-    if (!root.is_object() || !root.contains("games") || !root["games"].is_object()) return false;
+    if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA || !root.contains("games") || !root["games"].is_object())
+        return false;
     const auto generated = root.find("generated");
     if (generated == root.end() || !generated->is_string() || !is_day(generated->get<std::string>())) return false;
     for (const auto& [key, value] : root["games"].items()) {

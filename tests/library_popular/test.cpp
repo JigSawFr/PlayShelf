@@ -1,4 +1,5 @@
-// library/popular: popular.json read, what does not hold together left out.
+// library/popular: popular.json read, what does not hold together left out,
+// another schema refused.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "library/popular.hpp"
@@ -9,8 +10,8 @@ int main()
 {
     PopularBook b;
     CHECK(!b.from_json("") && !b.from_json("[]") && !b.from_json("{\"games\":{}}") && b.size() == 0);
-    CHECK(!b.from_json("{\"generated\":\"27/10/2026\",\"games\":{}}"));
-    CHECK(b.from_json(R"({"generated":"2026-10-27","month":"2026-09","games":{
+    CHECK(!b.from_json("{\"schema\":1,\"generated\":\"27/10/2026\",\"games\":{}}"));
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-10-27","month":"2026-09","games":{
         "010025400AECE000":[93,12],
         "0100b0c013912000":[71,-40],
         "010025400AECE800":[50,0],
@@ -35,6 +36,13 @@ int main()
     CHECK(b.of(0x0100000000030000).score == 100 && b.of(0x0100000000030000).trend == 999);
     CHECK(b.of(0x0100000000010000).score == 0 && b.of(0x010025400AECE800).score == 0);
     // Read again: what was there goes.
-    CHECK(b.from_json(R"({"generated":"2026-11-01","games":{}})") && b.size() == 0);
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-11-01","games":{}})") && b.size() == 0);
+    // Atlas' schema: another one (a field that changed meaning), or none, is
+    // refused, the copy PlayShelf had kept by the caller; a field it does
+    // not know is skipped.
+    CHECK(!b.from_json(R"({"schema":2,"generated":"2026-11-02","games":{"0100000000050000":[40,10]}})"));
+    CHECK(!b.from_json(R"({"generated":"2026-11-02","games":{"0100000000050000":[40,10]}})"));
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-11-02","mood":"calm","games":{"0100000000050000":[40,10,88,"x"]}})"));
+    CHECK(b.size() == 1 && b.of(0x0100000000050000).critics == 88);
     CHECK_DONE("library_popular");
 }
