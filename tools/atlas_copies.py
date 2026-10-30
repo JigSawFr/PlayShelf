@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Refreshes the copies of Atlas' Switch files PlayShelf ships with
-(resources/data/: popular.json, games.json, similar.json), read at start-up
-until the newest are fetched (action/popular_flow).
+(resources/data/: popular.json, games.json), read at start-up until the
+newest are fetched (action/popular_flow). Only those two: Home's popular
+rows and the names of the games nothing else names have to work offline;
+similar.json (megabytes) and the others are only fetched.
 
 Each file is taken from Atlas' data branch through jsDelivr
 (https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/platforms/switch/<file>),
@@ -10,7 +12,7 @@ schema 1 (library::ATLAS_SCHEMA), for the Switch, with a day and games; a
 games.json without titledb's names is refused, as PlayShelf would show
 title ids where it has no other name.
 
-Usage: tools/atlas_copies.py [repo] [file…]   (default: all three)
+Usage: tools/atlas_copies.py [repo] [file…]   (default: both)
 """
 import json
 import os
@@ -18,7 +20,7 @@ import sys
 import urllib.request
 
 BASE = "https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/platforms/switch/"
-FILES = ("popular.json", "games.json", "similar.json")
+FILES = ("popular.json", "games.json")
 SCHEMA = 1   # library::ATLAS_SCHEMA
 
 

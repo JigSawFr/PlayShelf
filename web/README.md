@@ -67,7 +67,7 @@ none of a real game's names, characters or pictures. 24 are on the server,
   `insights/`; the Switch's in `platforms/switch/`, as Atlas publishes them: `popular.json`, `games.json`, `similar.json` and
   `editions.json`, schema 1, a few games with an IGDB players' rating and one
   edition (*Summit Ascent: Deluxe Edition*),
-  made on the day of the build, newer than the files PlayShelf ships): Home
+  made on the day of the build, newer than the files PlayShelf ships; it ships no `similar.json`, so these are the demo's only similar games): Home
   ranks, recommends and groups the demo's games by their series and
   studios, each recommendation with its reason, and a game's page lists the
   ones like it. With them (`tools/web_demo_art.py`),

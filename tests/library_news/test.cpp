@@ -72,6 +72,11 @@ void test_worth()
     CHECK(one.size() == 2 && one[0].id == IN_Q1 && one[1].id == WISHED);
     // No day, no news.
     CHECK(news_of(ChangeBook{}, b.signals, b.similar, b.editions, { OWNED }, { WISHED }, told).empty());
+    // similar.json not there yet (it does not ship): the series and the
+    // trends still told, nothing as much alike.
+    const auto unlike = news_of(b.changes, b.signals, SimilarBook{}, b.editions, { OWNED }, { WISHED }, told);
+    CHECK(unlike.size() == 4);
+    for (const News& n : unlike) CHECK(n.id != ALIKE && n.why != News::Why::Alike);
 }
 
 void test_once()

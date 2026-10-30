@@ -113,6 +113,10 @@ void test_similar()
     CHECK(other.size() == 0);
     CHECK(other.from_json(R"({"schema":1,"generated":"2026-10-29","by":"traits","games":{"0100000000010000":[["0100000000020000",86,"x"]]}})"));
     CHECK(other.between(A, B) == 86);
+    // Not there yet (similar.json does not ship, it comes with the first
+    // fetch): an empty book, nothing like anything.
+    const SimilarBook none;
+    CHECK(none.size() == 0 && !none.find(A) && none.between(A, B) == 0 && none.generated().empty());
 }
 // Whether a list of games known by their title id has one the book names.
 void test_names_any()
@@ -125,7 +129,8 @@ void test_names_any()
 }
 
 // The copy PlayShelf ships with (resources/data/games.json, made by
-// tools/atlas_copies.py): read, and with titledb's names.
+// tools/atlas_copies.py): read, and with titledb's names. similar.json is
+// not shipped (megabytes): only fetched.
 void test_shipped()
 {
     std::ifstream in("resources/data/games.json", std::ios::binary);
@@ -138,6 +143,7 @@ void test_shipped()
     CHECK(b.size() > 1000);
     for (uint64_t id : { A, (uint64_t)0x01006A800016E000, (uint64_t)0x0100152000022000 })
         CHECK(b.find(id) && !b.find(id)->name.empty());
+    CHECK(!std::ifstream("resources/data/similar.json"));
 }
 }   // namespace
 
