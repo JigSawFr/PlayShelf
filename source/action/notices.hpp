@@ -51,6 +51,13 @@ int action_count();   // the bell's number
 int info_count();     // the entries for information: the bell's dot
 
 // Called (UI thread) after every change of what the bell shows.
+// MainActivity, once per start: PlayShelf in the Boréale homebrews' registry
+// (sd:/config/boreale/apps/playshelf.conf) and its bell as they read it
+// (sd:/config/boreale/notices/playshelf.json, action/shared_bell_logic),
+// each written only when it changed. The bell is written again at each of
+// its changes.
+void publish();
+
 int  listen(std::function<void()> fn);
 void unlisten(int id);
 

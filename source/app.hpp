@@ -28,6 +28,11 @@ int         pr();
 // as hbloader gave it in argv[0]; empty when unknown (nxlink, desktop).
 std::string self_path();
 void        set_self_path(const char* argv0);
+// The tab another Boréale homebrew opened PlayShelf at (a click in its bell:
+// --open=<tab>, boreale-link's bl_open_route): one of the main screen's
+// tabs (activity/tabs.hpp), "" none or one PlayShelf does not know.
+std::string open_route();
+void        set_open_route(int argc, char** argv);
 const char* repo_url();
 // A page of the user guide (docs/<page>.md), with an anchor: a release's as
 // published at its tag, main's for a development build.

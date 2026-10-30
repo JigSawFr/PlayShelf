@@ -25,6 +25,7 @@ import atexit
 import ctypes
 import ctypes.util
 import glob
+import json
 import os
 import re
 import shutil
@@ -367,4 +368,17 @@ time.sleep(1)
 shot("10_dev_report")
 if not logged("main screen opened"):
     fail("the main screen was never opened")
+# What the other Boréale homebrews read of PlayShelf: its registry entry and
+# its bell (boreale-link), written once the main screen opened.
+sd = os.path.join(run_dir, "playshelf_data", "sd", "config", "boreale")
+app_conf = os.path.join(sd, "apps", "playshelf.conf")
+bell_file = os.path.join(sd, "notices", "playshelf.json")
+if not os.path.exists(app_conf) or "name=PlayShelf\n" not in open(app_conf).read():
+    fail("PlayShelf is not in the Boréale homebrews' registry: " + app_conf)
+try:
+    bell = json.load(open(bell_file))
+except (OSError, ValueError) as e:
+    fail(f"PlayShelf's shared bell was not written: {e}")
+if bell.get("schema") != 1 or bell.get("module") != "playshelf" or not isinstance(bell.get("notices"), list):
+    fail(f"PlayShelf's shared bell: {bell}")
 finish()

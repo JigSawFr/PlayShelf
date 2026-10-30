@@ -1,11 +1,14 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/notices.hpp"
 
+#include <ctime>
 #include <map>
 #include <memory>
 
 #include <aurore.hpp>
 
+#include "action/shared_bell_logic.hpp"
+#include "app.hpp"
 #include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/listeners.hpp"
@@ -26,8 +29,38 @@ std::string read_file_path()
     return paths::data_dir() + "/notices_read.txt";
 }
 
+bool s_published = false;   // publish() ran: the bell is written at each change from then on
+
+// `text` to `file` off the UI thread, made there from what is on the SD
+// card (`make`: "" when nothing changed).
+void write_shared(const char* what, const std::string& file, std::function<std::string(const std::string&)> make)
+{
+    ui::write_later(what, [file, make]() {
+        std::string before;
+        paths::read_file(file, before);
+        const std::string text = make(before);
+        if (text.empty()) return;
+        std::string why = "cannot make its folder";
+        if (!paths::ensure_dir(file.substr(0, file.rfind('/'))) || !paths::atomic_write(file, text, &why))
+            aurore::Logger::warning("{} not saved: {}", file, why);
+    }, file);
+}
+
+// The bell as the other Boréale homebrews read it (action/shared_bell_logic).
+void write_shared_bell()
+{
+    std::vector<shared_bell_logic::Entry> entries;
+    for (const notice_logic::Item& i : s_store.visible())
+        entries.push_back({ i.id, i.level == Level::Action, i.title, i.detail, shared_bell_logic::route_of(i.id) });
+    const std::string lang = aurore::Application::getLocale(), nro = app::self_path();
+    write_shared("shared bell", shared_bell_logic::file(paths::sd_root()), [entries, lang, nro](const std::string& before) {
+        return shared_bell_logic::text(entries, lang, nro, before, (int64_t)std::time(nullptr));
+    });
+}
+
 void tell()
 {
+    if (s_published) write_shared_bell();
     s_listeners.notify();
 }
 
@@ -110,6 +143,16 @@ int action_count()
 int info_count()
 {
     return s_store.info_count();
+}
+
+void publish()
+{
+    s_published = true;
+    const std::string version = app::version(), nro = app::self_path();
+    write_shared("Boréale registry", shared_bell_logic::app_file(paths::sd_root()), [version, nro](const std::string& before) {
+        return shared_bell_logic::app_text(version, nro, before);
+    });
+    write_shared_bell();
 }
 
 int listen(std::function<void()> fn)
