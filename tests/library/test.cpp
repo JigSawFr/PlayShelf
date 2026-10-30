@@ -20,6 +20,8 @@ using namespace library;
 
 namespace
 {
+std::string b64(std::string_view text) { return library::base64({(const uint8_t*)text.data(), text.size()}); }
+
 void write_seed(const char* name, const std::string& s)
 {
     const char* dir = std::getenv("PLAYSHELF_WRITE_SEEDS");
@@ -167,25 +169,25 @@ void test_discovery()
 {
     const std::string ok = R"({"magic":"OWNFOIL","uid":"0A1B2C3D-0000-1111-2222-333344445555","name":"Shelf\nServer","version":"2.4","port":8443,"public":false,"remote":"https://shelf.example.org"})";
     write_seed("discovery", ok);
-    const auto s = parse_discovery(ok.data(), ok.size(), "192.168.1.20");
+    const auto s = parse_discovery(ok, "192.168.1.20");
     if (!CHECK(s)) return;
     CHECK(s->uid == "0a1b2c3d-0000-1111-2222-333344445555" && s->name == "Shelf Server" && s->port == 8443);
     CHECK(!s->is_public && s->remote == "https://shelf.example.org" && s->url() == "https://192.168.1.20:8443");
-    CHECK(!parse_discovery(ok.data(), ok.size(), "255.255.255.255"));
-    CHECK(!parse_discovery(ok.data(), ok.size(), "224.0.0.1"));
-    CHECK(!parse_discovery(ok.data(), ok.size(), "0.0.0.0"));
-    CHECK(!parse_discovery(ok.data(), ok.size(), "not.an.ip"));
+    CHECK(!parse_discovery(ok, "255.255.255.255"));
+    CHECK(!parse_discovery(ok, "224.0.0.1"));
+    CHECK(!parse_discovery(ok, "0.0.0.0"));
+    CHECK(!parse_discovery(ok, "not.an.ip"));
     for (const char* bad : {"192.168.1", "192.168.1.256", "192.168.1.2.3", " 192.168.1.2", "192.168.1.2 ", "-1.2.3.4", "1234.1.1.1"})
-        CHECK(!parse_discovery(ok.data(), ok.size(), bad));
+        CHECK(!parse_discovery(ok, bad));
     const std::string http_remote = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":80,"public":true,"remote":"http://x"})";
-    const auto h = parse_discovery(http_remote.data(), http_remote.size(), "10.0.0.2");
+    const auto h = parse_discovery(http_remote, "10.0.0.2");
     CHECK(h && h->remote.empty());
     // Ownfoil's host alone: over https; anything else in it, dropped.
     const std::string bare = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":8465,"public":true,"remote":"shop.example.org"})";
-    const auto b = parse_discovery(bare.data(), bare.size(), "10.0.0.2");
+    const auto b = parse_discovery(bare, "10.0.0.2");
     CHECK(b && b->remote == "https://shop.example.org");
     const std::string odd = R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":8465,"public":true,"remote":"shop example/x"})";
-    const auto o = parse_discovery(odd.data(), odd.size(), "10.0.0.2");
+    const auto o = parse_discovery(odd, "10.0.0.2");
     CHECK(o && o->remote.empty());
     // Ownfoil 2's handshake.
     const auto info = parse_handshake(R"({"uid":"u","name":"Home\nShop","version":"2.5.0","protocol_version":1,"motd":"Hi","public":true,"features":{"save_backup":true}})");
@@ -197,7 +199,7 @@ void test_discovery()
                             R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":70000,"public":true})",
                             R"({"magic":"OWNFOIL","uid":"0a1b2c3d-0000-1111-2222-333344445555","name":"a","version":"1","port":80})",
                             "[]", "{"})
-        CHECK(!parse_discovery(bad, std::strlen(bad), "10.0.0.2"));
+        CHECK(!parse_discovery(bad, "10.0.0.2"));
     std::vector<Discovered> list;
     add_discovered(list, *s);
     Discovered again = *s;
@@ -230,21 +232,21 @@ void test_pins()
 {
     for (const auto& [der, size, pem, pin] :
          {std::make_tuple(CERT_EC, sizeof CERT_EC, CERT_EC_PEM, CERT_EC_PIN), std::make_tuple(CERT_RSA, sizeof CERT_RSA, CERT_RSA_PEM, CERT_RSA_PIN)}) {
-        const auto h = spki_sha256(der, size);
+        const auto h = spki_sha256({der, size});
         if (!CHECK(h)) continue;
         CHECK(pin_text(*h) == pin);
         const auto from_pem = pem_to_der(pem);
         CHECK(from_pem && from_pem->size() == size && std::memcmp(from_pem->data(), der, size) == 0);
         CHECK(pin_short(*h).size() == 8 * 3 - 1);
         // Cut, or with a byte more: no certificate.
-        CHECK(!spki_sha256(der, size - 1));
+        CHECK(!spki_sha256({der, size - 1}));
         std::vector<uint8_t> longer(der, der + size);
         longer.push_back(0);
-        CHECK(!spki_sha256(longer.data(), longer.size()));
+        CHECK(!spki_sha256(longer));
         for (size_t n = 0; n < size; n += 37)
-            CHECK(!spki_sha256(der, n));
+            CHECK(!spki_sha256({der, n}));
     }
-    CHECK(base64((const uint8_t*)"Man", 3) == "TWFu" && base64((const uint8_t*)"Ma", 2) == "TWE=" && base64((const uint8_t*)"M", 1) == "TQ==");
+    CHECK(b64("Man") == "TWFu" && b64("Ma") == "TWE=" && b64("M") == "TQ==");
     const auto back = unbase64("TWFu\nTWE=");
     CHECK(!unbase64("TWE=x") && !unbase64("T!") && back);
     CHECK(!pem_to_der("no certificate here"));

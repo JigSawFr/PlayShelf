@@ -417,7 +417,7 @@ function saveData() {
 function mountKept(m, config) {
   // Emscripten's IDBFS names the database after the mount point: this
   // deployment's own name in its place.
-  const idbfs = m.FS.filesystems.IDBFS;
+  const idbfs = m.IDBFS;
   const getDB = idbfs.getDB;
   idbfs.getDB = (name, callback) => getDB.call(idbfs, name === DATA ? KEPT_DB : name, callback);
   m.FS.mkdirTree(DATA);
@@ -903,7 +903,7 @@ function homeLink() {
   $('nav-features').href = `${home}#features`;
   $('nav-install').href = `${home}#install`;
   $('nav-docs').href = `${home}docs/getting-started/`;
-  // Boréale's other sites, in French where the page is (the four have it).
+  // Boréale's other sites, in French where the page is (they all have it).
   const french = language.startsWith('fr');
   for (const link of document.querySelectorAll('#sites [data-site]')) {
     link.href = `${link.dataset.site}${french ? 'fr/' : ''}?${SITE_TAGS}`;
@@ -913,7 +913,7 @@ function homeLink() {
   $('sites-button').setAttribute('aria-label', `PlayShelf · ${t('sites_label')}`);
 }
 
-// Boréale's site switcher: the menu of the four sites opens under the name, as
+// Boréale's site switcher: the menu of Boréale's sites opens under the name, as
 // on the website (site/assets/site.js' "site switcher" block). Without
 // popovers (an old browser), the menu stays closed.
 function setUpSites() {

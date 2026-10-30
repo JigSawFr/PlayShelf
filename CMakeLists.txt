@@ -282,7 +282,7 @@ if (PLAYSHELF_WEB)
         -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=128MB -sSTACK_SIZE=1MB -sDEFAULT_PTHREAD_STACK_SIZE=1MB
         -sPTHREAD_POOL_SIZE=16
         -sEXIT_RUNTIME=0
-        -sEXPORTED_RUNTIME_METHODS=ENV,FS,ccall,addRunDependency,removeRunDependency
+        -sEXPORTED_RUNTIME_METHODS=ENV,FS,IDBFS,ccall,addRunDependency,removeRunDependency
         -lidbfs.js
         # SHELL: keeps each pair together (CMake drops a repeated option).
         "SHELL:--preload-file ${CMAKE_BINARY_DIR}/resources@/app/resources"

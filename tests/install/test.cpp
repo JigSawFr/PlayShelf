@@ -29,7 +29,7 @@ namespace
 std::string sha_hex(const Bytes& b)
 {
     Sha256 h;
-    h.update(b.data(), b.size());
+    h.update(b);
     return h.hex();
 }
 
@@ -57,9 +57,9 @@ void test_aes()
 
     uint8_t ecb[32];
     std::memcpy(ecb, ECB_PLAIN, 32);
-    aes128_ecb_encrypt(ECB_KEY, ecb, 32);
+    aes128_ecb_encrypt(ECB_KEY, ecb);
     CHECK(std::memcmp(ecb, ECB_CIPHER, 32) == 0);
-    aes128_ecb_decrypt(ECB_KEY, ecb, 32);
+    aes128_ecb_decrypt(ECB_KEY, ecb);
     CHECK(std::memcmp(ecb, ECB_PLAIN, 32) == 0);
 }
 
@@ -67,13 +67,13 @@ void test_xts()
 {
     const Bytes plain = stream(3 * 0x200, XTS_PLAIN_SEED);
     Bytes       data = plain;
-    aes128_xts_nintendo(XTS_KEY, data.data(), data.size(), 1, 0x200, true);
+    aes128_xts_nintendo(XTS_KEY, data, 1, 0x200, true);
     CHECK(sha_hex(data) == XTS_CIPHER_SHA256);
-    aes128_xts_nintendo(XTS_KEY, data.data(), data.size(), 1, 0x200, false);
+    aes128_xts_nintendo(XTS_KEY, data, 1, 0x200, false);
     CHECK(data == plain);
     // Another first sector number gives other bytes.
     Bytes other = plain;
-    aes128_xts_nintendo(XTS_KEY, other.data(), other.size(), 0, 0x200, true);
+    aes128_xts_nintendo(XTS_KEY, other, 0, 0x200, true);
     CHECK(sha_hex(other) != XTS_CIPHER_SHA256);
 }
 
@@ -82,42 +82,42 @@ void test_ctr()
     const Bytes     plain = stream(0x300, CTR_PLAIN_SEED);
     const Aes128Ctr ctr(CTR_KEY, CTR_IV);
     Bytes           whole = plain;
-    ctr.crypt(whole.data(), whole.size(), 0);
+    ctr.crypt(whole, 0);
     CHECK(sha_hex(whole) == CTR_CIPHER_SHA256);   // the counter carried into the upper half on the way
     // In pieces that start inside a block: the same bytes.
     Bytes pieces = plain;
-    ctr.crypt(pieces.data(), 0x23, 0);
-    ctr.crypt(pieces.data() + 0x23, 0x1f1, 0x23);
-    ctr.crypt(pieces.data() + 0x214, pieces.size() - 0x214, 0x214);
+    ctr.crypt(std::span(pieces).first(0x23), 0);
+    ctr.crypt(std::span(pieces).subspan(0x23, 0x1f1), 0x23);
+    ctr.crypt(std::span(pieces).subspan(0x214), 0x214);
     CHECK(pieces == whole);
-    ctr.crypt(pieces.data(), pieces.size(), 0);
+    ctr.crypt(pieces, 0);
     CHECK(pieces == plain);
 }
 
 void test_rsa()
 {
     const Bytes msg = stream(0x200, RSA_MESSAGE_SEED);
-    CHECK(rsa2048_pss_sha256_verify(msg.data(), msg.size(), RSA_SIGNATURE, RSA_MODULUS));
+    CHECK(rsa2048_pss_sha256_verify(msg, RSA_SIGNATURE, RSA_MODULUS));
 
     Bytes changed = msg;
     changed[0x100] ^= 1;
-    CHECK(!rsa2048_pss_sha256_verify(changed.data(), changed.size(), RSA_SIGNATURE, RSA_MODULUS));
+    CHECK(!rsa2048_pss_sha256_verify(changed, RSA_SIGNATURE, RSA_MODULUS));
 
     uint8_t sig[256];
     std::memcpy(sig, RSA_SIGNATURE, 256);
     sig[200] ^= 0x40;
-    CHECK(!rsa2048_pss_sha256_verify(msg.data(), msg.size(), sig, RSA_MODULUS));
+    CHECK(!rsa2048_pss_sha256_verify(msg, sig, RSA_MODULUS));
     // A "signature" not below the modulus, and a modulus that is not odd.
-    CHECK(!rsa2048_pss_sha256_verify(msg.data(), msg.size(), RSA_MODULUS, RSA_MODULUS));
+    CHECK(!rsa2048_pss_sha256_verify(msg, RSA_MODULUS, RSA_MODULUS));
     uint8_t even[256];
     std::memcpy(even, RSA_MODULUS, 256);
     even[255] &= 0xfe;
-    CHECK(!rsa2048_pss_sha256_verify(msg.data(), msg.size(), RSA_SIGNATURE, even));
+    CHECK(!rsa2048_pss_sha256_verify(msg, RSA_SIGNATURE, even));
     // Zero and one sign nothing.
     uint8_t small[256] = {};
-    CHECK(!rsa2048_pss_sha256_verify(msg.data(), msg.size(), small, RSA_MODULUS));
+    CHECK(!rsa2048_pss_sha256_verify(msg, small, RSA_MODULUS));
     small[255] = 1;
-    CHECK(!rsa2048_pss_sha256_verify(msg.data(), msg.size(), small, RSA_MODULUS));
+    CHECK(!rsa2048_pss_sha256_verify(msg, small, RSA_MODULUS));
 }
 
 // ---------------------------------------------------------------- archives
@@ -187,7 +187,7 @@ void test_pfs()
     CHECK(h->kind == PfsKind::Hfs0);
     CHECK(h->entries[0].hashed_size == 0x200);
     Sha256 sh;
-    sh.update(hfs.data() + h->entries[0].offset, 0x200);
+    sh.update(std::span(hfs).subspan(h->entries[0].offset, 0x200));
     CHECK(sh.digest() == h->entries[0].hash);
     CHECK(h->entries[1].size == 0);
     bad = hfs;

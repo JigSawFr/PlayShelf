@@ -24,7 +24,7 @@ namespace
 std::string hex(const std::string& bytes)
 {
     Sha256 h;
-    h.update(bytes.data(), bytes.size());
+    h.update(bytes);
     return h.hex();
 }
 

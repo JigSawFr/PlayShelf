@@ -127,7 +127,7 @@ bool download(const std::string& url, const std::string& path, std::string* erro
 static std::string sha(const std::string& s)
 {
     Sha256 h;
-    h.update(s.data(), s.size());
+    h.update(s);
     return h.hex();
 }
 

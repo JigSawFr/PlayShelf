@@ -27,8 +27,8 @@ inline Bytes stream(size_t n, const char* seed)
     for (uint32_t i = 0; out.size() < n; i++) {
         Sha256        h;
         const uint8_t c[4] = {(uint8_t)(i >> 24), (uint8_t)(i >> 16), (uint8_t)(i >> 8), (uint8_t)i};
-        h.update(seed, std::strlen(seed));
-        h.update(c, 4);
+        h.update(std::string_view(seed));
+        h.update(c);
         const auto d = h.digest();
         out.insert(out.end(), d.begin(), d.end());
     }
@@ -66,7 +66,7 @@ inline Bytes archive(PfsKind kind, const std::vector<File>& files, size_t pad = 
             const uint32_t hashed = (uint32_t)std::min<size_t>(files[i].data.size(), 0x200);
             put_le32(e + 20, hashed);
             Sha256 h;
-            h.update(files[i].data.data(), hashed);
+            h.update(std::span(files[i].data).first(hashed));
             const auto d = h.digest();
             std::memcpy(e + 32, d.data(), 32);
         }
@@ -161,7 +161,7 @@ inline NcaKeys test_keys()
     k.unwrap = [](uint8_t generation, uint8_t index, const uint8_t in[16], uint8_t out[16]) {
         if (generation > 4 || index != 0) return false;
         std::memcpy(out, in, 16);
-        aes128_ecb_decrypt(KAEK, out, 16);
+        aes128_ecb_decrypt(KAEK, {out, 16});
         return true;
     };
     return k;
@@ -196,19 +196,19 @@ inline Bytes cnmt_nca(const Bytes& cnmt, uint8_t key_generation = 3, uint8_t dis
     put_le64(fs + 0x48, pfs.size());
     put_le64(fs + 0x140, 0x0000000500000000ull);   // the upper counter
     Sha256 sh;
-    sh.update(fs, 0x200);
+    sh.update({fs, 0x200});
     const auto d = sh.digest();
     std::memcpy(h + 0x280, d.data(), 32);
     uint8_t key_area[0x40] = {};
     std::memcpy(key_area + 0x20, SECTION_KEY, 16);
-    aes128_ecb_encrypt(KAEK, key_area, 0x40);
+    aes128_ecb_encrypt(KAEK, key_area);
     std::memcpy(h + 0x300, key_area, 0x40);
 
     std::memcpy(nca.data() + NCA_FULL_HEADER + hash_table, pfs.data(), pfs.size());
     NcaSection s;
     s.ctr = le64(fs + 0x140);
     const auto iv = nca_section_iv(s);
-    Aes128Ctr(SECTION_KEY, iv.data()).crypt(nca.data() + NCA_FULL_HEADER, section_size, NCA_FULL_HEADER);
+    Aes128Ctr(SECTION_KEY, iv.data()).crypt(std::span(nca).subspan(NCA_FULL_HEADER, section_size), NCA_FULL_HEADER);
     nca_header_crypt(h, HEADER_KEY, true);
     return nca;
 }

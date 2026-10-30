@@ -108,9 +108,9 @@ void mgf1_xor(uint8_t* out, size_t size, const uint8_t seed[32])
 {
     for (uint32_t counter = 0, done = 0; done < size; counter++) {
         Sha256 h;
-        h.update(seed, 32);
+        h.update({seed, 32});
         const uint8_t c[4] = {(uint8_t)(counter >> 24), (uint8_t)(counter >> 16), (uint8_t)(counter >> 8), (uint8_t)counter};
-        h.update(c, 4);
+        h.update(c);
         const auto mask = h.digest();
         for (size_t i = 0; i < 32 && done < size; i++)
             out[done++] ^= mask[i];
@@ -118,7 +118,7 @@ void mgf1_xor(uint8_t* out, size_t size, const uint8_t seed[32])
 }
 }   // namespace
 
-bool rsa2048_pss_sha256_verify(const void* msg, size_t size, const uint8_t signature[256], const uint8_t modulus[256])
+bool rsa2048_pss_sha256_verify(std::span<const uint8_t> msg, const uint8_t signature[256], const uint8_t modulus[256])
 {
     const Big n = from_bytes(modulus);
     const Big s = from_bytes(signature);
@@ -156,13 +156,13 @@ bool rsa2048_pss_sha256_verify(const void* msg, size_t size, const uint8_t signa
     if (em[DB - SALT - 1] != 0x01) return false;
 
     Sha256 m;
-    m.update(msg, size);
+    m.update(msg);
     const auto mhash = m.digest();
     Sha256     check;
     const uint8_t zeros[8] = {};
-    check.update(zeros, 8);
-    check.update(mhash.data(), mhash.size());
-    check.update(em + DB - SALT, SALT);
+    check.update(zeros);
+    check.update(mhash);
+    check.update({em + DB - SALT, SALT});
     const auto expect = check.digest();
     return std::memcmp(expect.data(), hash, H) == 0;
 }

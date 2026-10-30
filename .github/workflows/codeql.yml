@@ -27,7 +27,8 @@ jobs:
   # is skipped rather than failing on the upload. Asked of the API, since a
   # scheduled run's event carries no repository.
   visibility:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
     outputs:
       public: ${{ steps.repo.outputs.public }}
     steps:
@@ -41,6 +42,7 @@ jobs:
     needs: visibility
     if: needs.visibility.outputs.public == 'true'
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     permissions:
       contents: read
       security-events: write

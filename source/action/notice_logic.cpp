@@ -2,7 +2,7 @@
 #include "action/notice_logic.hpp"
 
 #include <algorithm>
-#include <cstdio>
+#include <format>
 
 #include "util/text_schema.hpp"
 
@@ -143,9 +143,7 @@ void Store::set_read(const std::vector<std::string>& keys)
 
 std::string read_key(const std::string& id, const std::string& title, const std::string& detail)
 {
-    char print[9];
-    std::snprintf(print, sizeof(print), "%08x", hash_of(title + "\n" + detail));
-    return id + ":" + print;
+    return std::format("{}:{:08x}", id, hash_of(title + "\n" + detail));
 }
 
 std::string keys_text(const std::vector<std::string>& keys)

@@ -109,7 +109,7 @@ std::string dir()
 std::string file_of(const std::string& url)
 {
     Sha256 h;
-    h.update(url.data(), url.size());
+    h.update(url);
     return dir() + "/" + h.hex().substr(0, 32) + ".img";
 }
 
