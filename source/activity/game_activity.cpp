@@ -20,6 +20,7 @@
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
+#include "util/number.hpp"
 #include "util/title_id.hpp"
 #include "view/cover_placeholder.hpp"
 #include "view/game_tile.hpp"
@@ -637,9 +638,10 @@ void GameActivity::fill_details_tab()
         if (price->on_sale() && price->at_lowest()) line += " · " + "playshelf/game/price_lowest_now"_i18n;
         fact(card, "playshelf/game/price"_i18n, line);
         const std::string since = prices_flow::book() ? prices_flow::book()->since() : "";
-        if (price->lowest > 0 && price->lowest < price->now() - 0.004 && price->lowest_day && since.size() == 10) {
-            const uint32_t first = (uint32_t)std::stoul(since.substr(0, 4) + since.substr(5, 2) + since.substr(8, 2));
-            fact(card, aurore::getStr("playshelf/game/lowest", date_text(first)),
+        const auto  first = since.size() == 10 ? number::parse<uint32_t>(since.substr(0, 4) + since.substr(5, 2) + since.substr(8, 2))
+                                               : std::nullopt;
+        if (price->lowest > 0 && price->lowest < price->now() - 0.004 && price->lowest_day && first) {
+            fact(card, aurore::getStr("playshelf/game/lowest", date_text(*first)),
                  aurore::getStr("playshelf/game/lowest_value", library::price_text(price->lowest, country), date_text(price->lowest_day)));
         }
     }

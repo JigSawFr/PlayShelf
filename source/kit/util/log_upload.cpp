@@ -14,6 +14,7 @@
 
 #include "util/json_util.hpp"
 #include "util/log_files.hpp"
+#include "util/number.hpp"
 #include "util/paths.hpp"
 
 namespace log_upload
@@ -144,7 +145,7 @@ std::vector<Part> atmosphere_crashes(std::time_t now, int days, size_t limit)
                 name.compare(name.size() - 4, 4, ".log") != 0 ||
                 !std::all_of(name.begin(), name.begin() + sep, [](char c) { return c >= '0' && c <= '9'; }))
                 continue;
-            const long long t = std::stoll(name.substr(0, sep));
+            const long long t = *number::parse<long long>(std::string_view(name).substr(0, sep));   // digits, checked above
             if (t <= (long long)now && (long long)now - t <= (long long)days * 86400) found.push_back({ t, name });
         }
         closedir(d);

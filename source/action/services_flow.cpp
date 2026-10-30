@@ -20,6 +20,7 @@
 #include "library/titles.hpp"
 #include "saves/archive.hpp"
 #include "ui/ui.hpp"
+#include "util/number.hpp"
 #include "util/paths.hpp"
 #include "util/title_id.hpp"
 
@@ -504,9 +505,7 @@ void search_and_ask(const Loaded& l)
 {
     ui::prompt_text("playshelf/services/request_search"_i18n, "", 64, [l](const std::string& query) {
         // A title id typed as it is.
-        uint64_t typed = 0;
-        if (query.size() == 16 && std::all_of(query.begin(), query.end(), [](unsigned char c) { return std::isxdigit(c); }))
-            typed = std::strtoull(query.c_str(), nullptr, 16);
+        const uint64_t typed = query.size() == 16 ? number::parse<uint64_t>(query, 16).value_or(0) : 0;
         if (typed) {
             const uint64_t base = library::base_of(typed);
             ui::confirm(aurore::getStr("playshelf/services/request_body", game_name(*l, base)), "playshelf/services/request"_i18n,

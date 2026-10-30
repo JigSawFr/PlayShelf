@@ -8,6 +8,7 @@
 #include <aurore/extern/nlohmann/json.hpp>
 
 #include "titledb/pack.hpp"
+#include "util/number.hpp"
 
 namespace titledb
 {
@@ -35,10 +36,9 @@ uint32_t date_of(uint64_t v)
 bool number_of(const std::string& v, uint64_t* out)
 {
     if (v.empty() || v.size() > 20) return false;
-    char*                    end = nullptr;
-    const unsigned long long n = std::strtoull(v.c_str(), &end, 10);
-    if (!end || *end) return false;
-    *out = n;
+    const auto n = number::parse<uint64_t>(v);
+    if (!n) return false;
+    *out = *n;
     return true;
 }
 

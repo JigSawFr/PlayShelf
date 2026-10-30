@@ -14,6 +14,7 @@
 
 #include "util/date.hpp"
 #include "util/json_util.hpp"
+#include "util/number.hpp"
 #include "util/paths.hpp"
 #include "util/sha256.hpp"
 #include "util/update.hpp"
@@ -269,7 +270,7 @@ Subject parse_subject(const std::string& title)
         const std::string digits = t.substr(open + 3, t.size() - open - 4);
         if (!digits.empty() && digits.size() <= 7 &&
             std::all_of(digits.begin(), digits.end(), [](char c) { return c >= '0' && c <= '9'; })) {
-            s.pr = std::atoi(digits.c_str());
+            s.pr = *number::parse<int>(digits);   // 7 digits at most, checked above
             t.resize(open);
         }
     }
@@ -321,7 +322,7 @@ bool parse_query(const std::string& text, Query* out)
     const bool digits = !t.empty() && std::all_of(t.begin(), t.end(), [](char c) { return c >= '0' && c <= '9'; });
     // A number is a pull request (up to 6 digits); 7 hex digits or more a commit.
     if (digits && t.size() <= 6) {
-        q.pr = std::atoi(t.c_str());
+        q.pr = *number::parse<int>(t);   // 6 digits at most
         if (q.pr <= 0) return false;
     } else if (!hash && t.size() >= 7 && t.size() <= 40 && is_hex(t)) {
         q.commit = text::lower_ascii(t);
