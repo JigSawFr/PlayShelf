@@ -65,6 +65,7 @@ class LibraryTab : public TabBase
     int                    listener = 0;
     int                    titledb_listener = 0;
     int                    nlib_listener = 0;
+    int                    popular_listener = 0;
     int                    titledb_opened = 0;   // titledb_flow::Status::opened when its names were read
     size_t                 done_jobs = 0;   // the downloads installed when last read: one more, read again
 

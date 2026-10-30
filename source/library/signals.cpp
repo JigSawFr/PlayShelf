@@ -196,4 +196,11 @@ std::vector<uint64_t> EditionBook::editions_of(uint64_t game) const
     return it == this->of_game.end() ? std::vector<uint64_t>{} : it->second;
 }
 
+bool names_any(const SignalBook& book, const std::vector<uint64_t>& unnamed)
+{
+    for (uint64_t id : unnamed)
+        if (const GameSignals* g = book.find(id); g && !g->name.empty()) return true;
+    return false;
+}
+
 }   // namespace library
