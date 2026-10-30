@@ -161,6 +161,12 @@ size_t size()
     return s_popular.book->size();
 }
 
+std::string name_of(uint64_t base_id)
+{
+    const library::GameSignals* g = s_signals.book->find(base_id);
+    return g ? g->name : std::string();
+}
+
 std::shared_ptr<const library::SignalBook> signals()
 {
     return s_signals.book;

@@ -75,6 +75,9 @@ bool SignalBook::from_json(const std::string& text)
         const uint64_t id = base_id_of(key);
         if (!id || !value.is_object()) continue;
         GameSignals g;
+        if (const auto name = value.find("name");
+            name != value.end() && name->is_string() && name->get_ref<const std::string&>().size() <= MAX_NAME)
+            g.name = name->get<std::string>();
         g.series = traits_of(value, "series");
         g.developers = traits_of(value, "developers");
         g.publishers = traits_of(value, "publishers");

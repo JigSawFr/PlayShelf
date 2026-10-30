@@ -1,6 +1,7 @@
 // signals — what PlayInsights (https://github.com/JigSawFr/PlayInsights)
 // knows of each game beyond its popularity, for the recommendations
-// (library/recommend) and a game's page: its traits from Wikidata (series,
+// (library/recommend) and a game's page: its name (titledb's, for a game no
+// server or title database names), its traits from Wikidata (series,
 // developers, publishers, genres, modes, each an id and an English label),
 // its Steam audience and its players' rating on IGDB (games.json), the games
 // most like it (similar.json) and the game an edition is one of
@@ -43,6 +44,7 @@ struct PlayersRating
 
 struct GameSignals
 {
+    std::string        name;   // titledb's (US, else GB, else JP), "" when not told
     std::vector<Trait> series, developers, publishers, genres, modes;
     SteamAudience      steam;
     PlayersRating      igdb;
@@ -53,6 +55,7 @@ class SignalBook
   public:
     static constexpr size_t MAX_GAMES = 20000;
     static constexpr size_t MAX_TRAITS = 12;   // of a kind
+    static constexpr size_t MAX_NAME = 256;    // bytes: a longer name is not one
 
     // From games.json; false when it is not one (the book is left empty).
     bool from_json(const std::string& text);

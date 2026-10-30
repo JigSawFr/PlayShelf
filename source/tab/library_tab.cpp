@@ -13,6 +13,7 @@
 #include "action/download_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/services_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "activity/game_activity.hpp"
@@ -210,6 +211,7 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
             if (const auto known = titledb_flow::title(g.game.id)) e.name = known->name;
         if (e.name.empty() && e.data) e.name = e.data->titles[(size_t)e.title].name;
         if (e.name.empty()) e.name = nlib_flow::facts(g.game.id).name;
+        if (e.name.empty()) e.name = popular_flow::name_of(g.game.id);
         if (e.name.empty()) e.name = title_id::text(g.game.id);
         if (something_to_get(state_in(e.data, e.title))) to_get++;
         this->entries.push_back(std::move(e));

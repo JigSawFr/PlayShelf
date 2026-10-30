@@ -1,6 +1,6 @@
 // popular_flow — what Atlas (https://github.com/JigSawFr/Atlas)
 // knows of the games, for Home and a game's page: how well known each is
-// (popular.json: library/popular), its traits, Steam audience and IGDB
+// (popular.json: library/popular), its name, its traits, Steam audience and IGDB
 // players' rating (games.json), the games most like it (similar.json) and
 // the game an edition is one of (editions.json: library/signals).
 // Each as PlayShelf came with it and, once a day when config popular_online
@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "library/popular.hpp"
 #include "library/signals.hpp"
@@ -30,6 +31,9 @@ void refresh();
 library::Renown of(uint64_t base_id);
 // The games known (0 before the file is read).
 size_t size();
+// A game's name as Atlas' games.json tells it (titledb's), "" when unknown:
+// for one no server, title database or Nlib API names (UI thread).
+std::string name_of(uint64_t base_id);
 
 // games.json's, similar.json's and editions.json's, empty before they are
 // read (editions.json does not ship with PlayShelf: fetched only).
