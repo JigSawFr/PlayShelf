@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <mutex>
 #include <random>
 #include <sys/stat.h>
@@ -43,13 +44,36 @@ std::string str(const json& j, const char* key, size_t max = 2048)
 }
 
 bool https_or_empty(const std::string& u) { return u.empty() || (u.size() > 8 && u.starts_with("https://")); }
+
+// The keys of a server servers_to_json writes.
+constexpr const char* KNOWN[] = { "id", "name", "lan_url", "wan_url", "connection", "format", "username", "password", "pin" };
+
+// The schema of servers.json's text: 1 when it has none (files from before
+// it was read), 0 when it is not a whole number.
+int64_t schema_of(const json& root)
+{
+    const auto it = root.find("schema");
+    if (it == root.end()) return 1;
+    if (it->is_number_unsigned()) return it->get<uint64_t>() > INT32_MAX ? INT32_MAX : (int64_t)it->get<uint64_t>();
+    return it->is_number_integer() ? it->get<int64_t>() : 0;
+}
+
+json kept_of(const std::string& kept)
+{
+    json j = kept.empty() ? json::object() : json::parse(kept, nullptr, false);
+    return j.is_object() ? j : json::object();
+}
 }   // namespace
 
-std::string servers_to_json(const std::vector<Server>& servers)
+std::string servers_to_json(const std::vector<Server>& servers, const std::string& previous)
 {
     json list = json::array();
     for (const Server& s : servers) {
-        json j;
+        // What this build does not know first; a password or pin it holds
+        // replaces one it could not read.
+        json j = kept_of(s.kept);
+        if (!s.password_box.empty()) j.erase("password");
+        if (!s.pin.empty()) j.erase("pin");
         j["id"] = s.id;
         j["name"] = s.name;
         j["lan_url"] = s.lan_url;
@@ -57,12 +81,13 @@ std::string servers_to_json(const std::vector<Server>& servers)
         j["connection"] = connection_name(s.connection);
         j["format"] = format_name(s.format);
         j["username"] = s.username;
-        j["password"] = s.password_box;
-        j["pin"] = s.pin;
+        if (!j.contains("password")) j["password"] = s.password_box;
+        if (!j.contains("pin")) j["pin"] = s.pin;
         list.push_back(j);
     }
-    json root;
-    root["schema"] = 1;
+    json root = previous.empty() ? json::object() : json::parse(previous, nullptr, false);
+    if (!root.is_object()) root = json::object();
+    root["schema"] = SERVERS_SCHEMA;
     root["servers"] = list;
     return root.dump(2) + "\n";
 }
@@ -71,7 +96,7 @@ std::vector<Server> servers_from_json(const std::string& text)
 {
     std::vector<Server> out;
     const json          root = json::parse(text, nullptr, false);
-    if (root.is_discarded() || !root.is_object()) return out;
+    if (root.is_discarded() || !root.is_object() || schema_of(root) != SERVERS_SCHEMA) return out;
     const auto list = root.find("servers");
     if (list == root.end() || !list->is_array()) return out;
     for (const json& j : *list) {
@@ -87,12 +112,24 @@ std::vector<Server> servers_from_json(const std::string& text)
         s.username = str(j, "username", 256);
         s.password_box = str(j, "password", 4096);
         s.pin = str(j, "pin", 128);
-        // An address that is not https (a file edited by hand) is dropped,
-        // and a password kept as it is never used.
+        // An address that is not https (a file edited by hand) is dropped.
+        // A password or pin of a format this build cannot read (a newer
+        // build's, or a password typed in as it is) is never used, and
+        // kept in the file as it is.
         if (!https_or_empty(s.lan_url)) s.lan_url.clear();
         if (!https_or_empty(s.wan_url)) s.wan_url.clear();
-        if (!s.password_box.empty() && !secret_box::is_sealed(s.password_box)) s.password_box.clear();
-        if (!s.pin.starts_with("sha256//")) s.pin.clear();
+        json kept = json::object();
+        for (const auto& [key, value] : j.items())
+            if (std::ranges::find_if(KNOWN, [&](const char* k) { return key == k; }) == std::end(KNOWN)) kept[key] = value;
+        if (!s.password_box.empty() && !secret_box::is_sealed(s.password_box)) {
+            kept["password"] = j.at("password");
+            s.password_box.clear();
+        }
+        if (!s.pin.empty() && !s.pin.starts_with("sha256//")) {
+            kept["pin"] = j.at("pin");
+            s.pin.clear();
+        }
+        if (!kept.empty()) s.kept = kept.dump();
         if (s.id.empty() || (s.lan_url.empty() && s.wan_url.empty())) continue;
         out.push_back(std::move(s));
     }
@@ -118,13 +155,26 @@ std::vector<Server> load_servers()
     return servers;
 }
 
+bool servers_newer(const std::string& text)
+{
+    const json root = json::parse(text, nullptr, false);
+    return root.is_object() && schema_of(root) > SERVERS_SCHEMA;
+}
+
 bool save_servers(const std::vector<Server>& servers, std::string* why)
 {
+    // A newer build's file is left as it is: this one would lose what it
+    // cannot read.
+    std::string old;
+    if (paths::read_file(servers_file(), old) && servers_newer(old)) {
+        if (why) *why = "servers.json is from a newer PlayShelf";
+        return false;
+    }
     if (!paths::ensure_dir(paths::data_dir())) {
         if (why) *why = "cannot create " + paths::data_dir();
         return false;
     }
-    const bool written = paths::atomic_write(servers_file(), servers_to_json(servers), why);
+    const bool written = paths::atomic_write(servers_file(), servers_to_json(servers, old), why);
     // After the write, so that a load meanwhile does not keep the old file.
     std::lock_guard lock(s_cache_lock);
     s_cache = {};
@@ -152,6 +202,10 @@ bool set_password(Server& s, const std::string& password)
 {
     if (password.empty()) {
         s.password_box.clear();
+        // One that could not be read goes too: the user cleared it.
+        json kept = kept_of(s.kept);
+        kept.erase("password");
+        s.kept = kept.empty() ? "" : kept.dump();
         return true;
     }
     const auto box = secret_box::seal(password);

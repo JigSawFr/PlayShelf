@@ -108,3 +108,12 @@ test('steps: read before any is played', () => {
   // Every button a step names is one the page presses.
   assert.equal(L.STEP_BUTTONS.length, 14);
 });
+
+test('each deployment keeps its data folder in a database of its own', () => {
+  assert.equal(L.keptDatabase('/playshelf_data', '/PlayShelf/simulator/'), '/playshelf_data@/PlayShelf/simulator/');
+  assert.equal(L.keptDatabase('/playshelf_data', '/PlayShelf/simulator/index.html'), '/playshelf_data@/PlayShelf/simulator/');
+  assert.notEqual(L.keptDatabase('/playshelf_data', '/PlayShelf/simulator/v1.2.0/'),
+    L.keptDatabase('/playshelf_data', '/PlayShelf/simulator/dev/'));
+  assert.notEqual(L.keptDatabase('/playshelf_data', '/'), '/playshelf_data');
+  assert.equal(L.keptDatabase('/playshelf_data', ''), '/playshelf_data@/');
+});

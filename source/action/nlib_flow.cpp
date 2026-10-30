@@ -36,6 +36,7 @@ std::string        s_language;          // its language (s_lock)
 // On the UI thread.
 library::FactsBook                    s_book;
 bool                                  s_dirty = false;   // facts not written yet
+bool                                  s_newer = false;   // facts.json is a newer build's: never written over
 size_t                                s_untold = 0;      // facts the listeners were not told of
 Listeners                            s_listeners;
 
@@ -105,7 +106,7 @@ void tell()
 // The facts written, off the UI thread.
 void save()
 {
-    if (!s_dirty) return;
+    if (!s_dirty || s_newer) return;
     s_dirty = false;
     auto text = std::make_shared<std::string>(s_book.to_json());
     ui::in_background("nlib facts", [text]() {
@@ -172,8 +173,11 @@ void start()
     ui::in_background("nlib facts", []() {
         auto        book = std::make_shared<library::FactsBook>();
         std::string text;
-        if (paths::read_file(book_file(), text) && !book->from_json(text)) aurore::Logger::warning("nlib: {} not read", book_file());
-        aurore::sync([book]() {
+        const bool  newer = paths::read_file(book_file(), text) && library::FactsBook::newer(text);
+        if (newer) aurore::Logger::warning("nlib: {} is from a newer PlayShelf, left as it is", book_file());
+        else if (!text.empty() && !book->from_json(text)) aurore::Logger::warning("nlib: {} not read", book_file());
+        aurore::sync([book, newer]() {
+            s_newer = newer;
             // Facts that came meanwhile stay: they are newer.
             s_book.add_missing(*book);
             tell();

@@ -498,13 +498,32 @@ SITES = [(None, [("boreale", "Boréale", "https://boreale.dev/")]),
          ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")])]
 
 
+# versions.json's schema this build reads ({"schema": 1, "projects": {...}});
+# the flat {project: "vX"} of before it had one is read too.
+VERSIONS_SCHEMA = 1
+
+
+def versions_of(data):
+    """The projects' versions in versions.json's `data`, as {project: "vX"}:
+    the flat shape of before, or {"schema": 1, "projects": {...}}. Another
+    schema or shape is none (the menu shows no versions), never an error."""
+    if not isinstance(data, dict):
+        return {}
+    if "schema" in data:
+        projects = data.get("projects")
+        if type(data["schema"]) is not int or data["schema"] != VERSIONS_SCHEMA or not isinstance(projects, dict):
+            return {}
+        data = projects
+    return {k: v for k, v in data.items() if isinstance(k, str) and isinstance(v, str)}
+
+
 def boreale_versions():
     """The projects' latest releases as boreale.dev publishes them
-    (versions.json), for the menu; none when it cannot be read (offline, a
-    local build), and the menu shows no versions."""
+    (versions.json, versions_of()), for the menu; none when it cannot be read
+    (offline, a local build), and the menu shows no versions."""
     try:
         with urllib.request.urlopen("https://boreale.dev/versions.json", timeout=10) as r:
-            return {k: v for k, v in json.load(r).items() if isinstance(v, str)}
+            return versions_of(json.load(r))
     except (OSError, ValueError):
         return {}
 

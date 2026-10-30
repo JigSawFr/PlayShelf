@@ -6,6 +6,8 @@
 //
 // to_json / from_json are plain C++ for the host tests; a file that cannot
 // be read keeps nothing of it (the next save writes what the app has).
+// A file of a newer schema is read as none and never written over; the
+// keys a server has that this build does not know are written back.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -18,9 +20,14 @@ namespace library
 {
 
 constexpr size_t MAX_SERVERS = 16;
+// servers.json's format: one more when a key changes meaning.
+constexpr int SERVERS_SCHEMA = 1;
 
-std::string         servers_to_json(const std::vector<Server>& servers);
+// `previous`: the file's text before, whose other keys are written back.
+std::string         servers_to_json(const std::vector<Server>& servers, const std::string& previous = "");
 std::vector<Server> servers_from_json(const std::string& text);
+// Whether servers.json's text is of a newer schema than this build's.
+bool                servers_newer(const std::string& text);
 
 std::string         servers_file();
 std::vector<Server> load_servers();

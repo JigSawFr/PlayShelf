@@ -129,7 +129,9 @@ simulated console as it starts, and fetches the title database
 - **Keep the state** (`keep=1`): PlayShelf's data folder (`playshelf_data`:
   its settings, servers, downloads, and what the simulated console has
   installed) is kept in the browser's IndexedDB, written every 3 s and when
-  the page is left. The console settings of the panel then count for a
+  the page is left: in a database of each deployment's own, by the page's
+  folder (a release's, main's, a pull request's), so that one never reads
+  another's files. The console settings of the panel then count for a
   first start only; **Forget the kept state** starts over.
 - **Controls**: the arrows, Enter (Ⓐ) and Esc (Ⓑ) reach SDL directly; the
   page presses the other buttons by what the key says: X, Y, L, R, Shift+L

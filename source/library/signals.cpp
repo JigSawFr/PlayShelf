@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "library/signals.hpp"
+#include "library/atlas.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -66,7 +67,7 @@ bool SignalBook::from_json(const std::string& text)
     this->games.clear();
     this->day.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
-    if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("games") || !root["games"].is_object()) return false;
+    if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA || !root.contains("games") || !root["games"].is_object()) return false;
     const auto generated = root.find("generated");
     if (generated == root.end() || !generated->is_string() || !is_day(generated->get<std::string>())) return false;
     for (const auto& [key, value] : root["games"].items()) {
@@ -113,7 +114,7 @@ bool SimilarBook::from_json(const std::string& text)
     this->games.clear();
     this->day.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
-    if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("games") || !root["games"].is_object()) return false;
+    if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA || !root.contains("games") || !root["games"].is_object()) return false;
     const auto generated = root.find("generated");
     if (generated == root.end() || !generated->is_string() || !is_day(generated->get<std::string>())) return false;
     for (const auto& [key, value] : root["games"].items()) {
@@ -157,7 +158,7 @@ bool EditionBook::from_json(const std::string& text)
     this->of_game.clear();
     this->day.clear();
     const nlohmann::json root = nlohmann::json::parse(text, nullptr, false);
-    if (!root.is_object() || root.value("schema", 0) != 1 || !root.contains("games") || !root["games"].is_object()) return false;
+    if (!root.is_object() || root.value("schema", 0) != ATLAS_SCHEMA || !root.contains("games") || !root["games"].is_object()) return false;
     const auto generated = root.find("generated");
     if (generated == root.end() || !generated->is_string() || !is_day(generated->get<std::string>())) return false;
     for (const auto& [key, value] : root["games"].items()) {

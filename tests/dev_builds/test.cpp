@@ -471,6 +471,12 @@ static void test_cache()
     dev_builds::Cache none;
     CHECK(!dev_builds::decode_cache("", &none) && !dev_builds::decode_cache("[]", &none) &&
            !dev_builds::decode_cache(R"({"version": 2, "builds": []})", &none));
+    // Its schema, "version" in an earlier build's file: still read; another
+    // (or none) refused, the list fetched again.
+    CHECK(dev_builds::encode_cache(c).find("\"schema\": 1") != std::string::npos);
+    CHECK(dev_builds::decode_cache(R"({"version": 1, "fetched_at": 5, "builds": []})", &none) && none.fetched_at == 5);
+    CHECK(dev_builds::decode_cache(R"({"schema": 1, "fetched_at": 6, "mirror": "x", "builds": []})", &none) && none.fetched_at == 6);
+    CHECK(!dev_builds::decode_cache(R"({"schema": 2, "builds": []})", &none) && !dev_builds::decode_cache(R"({"builds": []})", &none));
     CHECK(!dev_builds::cache_fresh(none, 0, false));
 }
 

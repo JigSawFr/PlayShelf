@@ -15,6 +15,8 @@ namespace config
 
 static Config s_config;
 static Loaded s_loaded = Loaded::Missing;
+// The file as last read: its keys this build does not know are written back.
+static nlohmann::json s_file = nlohmann::json::object();
 
 Config& get() { return s_config; }
 Loaded loaded() { return s_loaded; }
@@ -160,7 +162,15 @@ static void load_shared()
         damaged();
         return;
     }
+    // A newer build's file: defaults in memory, the file left as it is.
+    const auto schema = j.find("schema");
+    if (schema != j.end() && schema->is_number_integer() &&
+        (schema->is_number_unsigned() ? schema->get<unsigned long long>() > (unsigned)SCHEMA : schema->get<long long>() > SCHEMA)) {
+        s_loaded = Loaded::Newer;
+        return;
+    }
     s_loaded = Loaded::Read;
+    s_file = j;
 
     Config& c = s_config;
     read_string(j, "language", c.look.language);
@@ -201,6 +211,7 @@ void load()
 {
     s_config = Config{};
     s_loaded = Loaded::Missing;
+    s_file = nlohmann::json::object();
     load_shared();
     sanitize(s_config);
 }
@@ -212,11 +223,12 @@ bool write(const Snapshot& snap)
 
 bool snapshot(Snapshot& snap)
 {
-    if (s_loaded == Loaded::Stuck) return false;   // it would overwrite the unreadable file
+    // It would overwrite the unreadable file, or a newer build's.
+    if (s_loaded == Loaded::Stuck || s_loaded == Loaded::Newer) return false;
     const auto dump = [](const nlohmann::json& j) {
         return j.dump(2, ' ', false, nlohmann::json::error_handler_t::replace) + "\n";
     };
-    nlohmann::json j;
+    nlohmann::json j = s_file;   // the keys this build does not know, kept
     j["schema"]          = SCHEMA;
     j["language"]        = s_config.look.language;
     j["theme"]           = s_config.look.theme;

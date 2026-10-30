@@ -2,7 +2,8 @@
 // source/kit/util/paths.cpp: every field read on its own, out-of-range values
 // put back to their defaults, round trip, recovery of a save that stopped
 // between its remove and its rename, a damaged file put aside
-// (config.json.bad) before anything saves over it.
+// (config.json.bad) before anything saves over it, a newer schema's file
+// left as it is, keys this build does not know written back.
 #include "check.h"
 #include "fs.hpp"
 #include "temp_dir.hpp"
@@ -216,6 +217,32 @@ static void test_round_trip()
     }
 }
 
+// The schema: none counts as 1; a newer one gives the defaults and the file
+// is never written over; keys this build does not know are written back.
+static void test_schema()
+{
+    const std::string file = paths::config_file();
+    write_config(R"({"theme": "light", "mascot": {"name": "Pip"}})");
+    config::load();
+    CHECK(config::loaded() == config::Loaded::Read && config::get().look.theme == "light");
+    config::get().dev_mode = true;
+    CHECK(save_config());
+    std::string text;
+    CHECK(paths::read_file(file, text) && text.find("\"mascot\"") != std::string::npos && text.find("\"Pip\"") != std::string::npos);
+    CHECK(text.find("\"schema\": 1") != std::string::npos && text.find("\"dev_mode\": true") != std::string::npos);
+
+    const std::string newer = R"({"schema": 2, "theme": "light", "dev_mode": true})";
+    write_config(newer);
+    config::load();
+    CHECK(config::loaded() == config::Loaded::Newer);
+    CHECK(config::get().look.theme == "dark" && !config::get().dev_mode);
+    config::get().look.theme = "system";
+    CHECK(!save_config());
+    CHECK(paths::read_file(file, text) && text == newer && !exists(file + ".bad"));
+    std::remove(file.c_str());
+    config::load();
+}
+
 static void test_tmp_recovery()
 {
     // Stopped after removing config.json, before renaming config.json.tmp.
@@ -296,6 +323,7 @@ int main()
     test_damaged();
     test_fields();
     test_round_trip();
+    test_schema();
     test_tmp_recovery();
 
     CHECK(tmp.remove());
