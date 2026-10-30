@@ -34,7 +34,12 @@ bool platform_set_next_load(const char *path)
 {
     // hbloader passes the argument string as is; like its default
     // ("sdmc:/hbmenu.nro"), argv[0] is the full path of the homebrew.
-    return path && envHasNextLoad() && R_SUCCEEDED(envSetNextLoad(path, path));
+    return platform_set_next_load_args(path, path);
+}
+
+bool platform_set_next_load_args(const char *path, const char *args)
+{
+    return path && args && envHasNextLoad() && R_SUCCEEDED(envSetNextLoad(path, args));
 }
 
 // hbmenu's own exit (+): libnx then ends the application itself (appletExit:

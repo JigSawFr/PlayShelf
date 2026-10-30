@@ -35,6 +35,7 @@
             <aurore:DetailCell id="pf_effects" title="@i18n/playshelf/prefs/effects"/>
             <aurore:BooleanCell id="pf_intro"/>
             <aurore:BooleanCell id="pf_support_reminder"/>
+            <aurore:BooleanCell id="pf_notices_others"/>
             <aurore:Header title="@i18n/playshelf/tools/section_update" marginTop="24" marginBottom="8"/>
             <aurore:BooleanCell id="pf_update_daily"/>
             <aurore:DetailCell id="pf_update_via" title="@i18n/playshelf/tools/update_via"/>

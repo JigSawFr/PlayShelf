@@ -6,11 +6,13 @@
 #include <memory>
 
 #include <aurore.hpp>
+#include <aurore/core/timer.hpp>
 
 #include "action/shared_bell_logic.hpp"
 #include "app.hpp"
 #include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
 #include "util/listeners.hpp"
 #include "util/paths.hpp"
 
@@ -30,6 +32,8 @@ std::string read_file_path()
 }
 
 bool s_published = false;   // publish() ran: the bell is written at each change from then on
+int  s_others = 0;           // the other homebrews' notices to do or failed, as last read
+std::unique_ptr<aurore::RepeatingTimer> s_others_timer;   // their count read again every minute
 
 // `text` to `file` off the UI thread, made there from what is on the SD
 // card (`make`: "" when nothing changed).
@@ -145,9 +149,33 @@ int info_count()
     return s_store.info_count();
 }
 
+int others_count()
+{
+    return s_others;
+}
+
+void count_others()
+{
+    int count = 0;
+    if (config::get().notices_others)
+        for (const auto& other : shared_bell_logic::others(paths::sd_root(), aurore::Application::getLocale(),
+                                                           (int64_t)std::time(nullptr)))
+            for (const auto& n : other.notices) count += n.attention;
+    if (count == s_others) return;
+    s_others = count;
+    s_listeners.notify();   // the bell's number: PlayShelf's own file is not written again
+}
+
 void publish()
 {
     s_published = true;
+    count_others();
+    s_others_timer = std::make_unique<aurore::RepeatingTimer>();
+    s_others_timer->setPeriod(60 * 1000);
+    s_others_timer->setCallback([]() {
+        if (app::in_focus()) count_others();
+    });
+    s_others_timer->start();
     const std::string version = app::version(), nro = app::self_path();
     write_shared("Boréale registry", shared_bell_logic::app_file(paths::sd_root()), [version, nro](const std::string& before) {
         return shared_bell_logic::app_text(version, nro, before);

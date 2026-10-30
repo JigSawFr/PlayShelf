@@ -336,6 +336,7 @@
         "section_app": "アプリ",
         "intro": "イントロを2秒間表示する",
         "support_reminder": "月に一度、PlayShelfの応援についてお知らせする",
+        "notices_others": "ほかの Boréale homebrew の通知",
         "help": "ヘルプと診断",
         "effects": "視覚効果",
         "effects_values": {
@@ -582,7 +583,9 @@
         "out": "{} が発売されました",
         "out_on": "{}に発売",
         "sale_until": "-{0}% · {1}（{2}まで）",
-        "day": "{1}{0}日"
+        "day": "{1}{0}日",
+        "open_in": "{}で開く",
+        "open_manual": "homebrewメニューから{}を開いて対応してください。"
     },
     "cadran": {
         "about": {
