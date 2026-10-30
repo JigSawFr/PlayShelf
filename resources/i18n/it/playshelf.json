@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "Diagnostica salvata: {}",
         "diag_err": "Impossibile salvare la diagnostica",
-        "config_err": "Impossibile salvare le preferenze sulla scheda SD"
+        "config_err": "Impossibile salvare le preferenze sulla scheda SD",
+        "save_err": "Impossibile salvare una modifica sulla scheda SD; verrà salvata alla prossima"
     },
     "quick": {
         "hint": "Lingua e tema"

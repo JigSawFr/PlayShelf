@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "Diagnose opgeslagen: {}",
         "diag_err": "Kan de diagnose niet opslaan",
-        "config_err": "Kan de voorkeuren niet op de SD-kaart opslaan"
+        "config_err": "Kan de voorkeuren niet op de SD-kaart opslaan",
+        "save_err": "Een wijziging kon niet op de SD-kaart worden opgeslagen; bij de volgende wordt ze opgeslagen"
     },
     "quick": {
         "hint": "Taal en thema"

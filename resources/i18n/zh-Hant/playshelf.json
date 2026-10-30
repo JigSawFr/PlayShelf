@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "已儲存診斷報告：{}",
         "diag_err": "無法儲存診斷報告",
-        "config_err": "無法將偏好設定儲存至SD卡"
+        "config_err": "無法將偏好設定儲存至SD卡",
+        "save_err": "無法將變更儲存至SD卡；將於下次變更時儲存"
     },
     "quick": {
         "hint": "語言和主題"

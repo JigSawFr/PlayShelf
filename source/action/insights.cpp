@@ -109,11 +109,7 @@ void tell()
 // The seen book written, off the UI thread.
 void save_seen()
 {
-    auto text = std::make_shared<std::string>(s_seen.to_json());
-    ui::in_background("seen", [text]() {
-        // Saved again at the next change: a failed write is not reported.
-        if (paths::ensure_dir(paths::data_dir())) (void)paths::atomic_write(seen_file(), *text);
-    });
+    ui::save_later("seen", seen_file(), s_seen.to_json());
 }
 
 // A catalogue read for the first time in this run: its games noted.

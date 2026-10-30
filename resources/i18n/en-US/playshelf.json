@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "Diagnostic saved: {}",
         "diag_err": "Could not save the diagnostic",
-        "config_err": "Could not save the preferences on the SD card"
+        "config_err": "Could not save the preferences on the SD card",
+        "save_err": "A change could not be saved on the SD card; it is saved again at the next one"
     },
     "quick": {
         "hint": "Language & theme"

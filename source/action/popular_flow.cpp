@@ -102,8 +102,7 @@ bool fetch(File<Book>& file)
         aurore::Logger::warning("insights data: the fetched {} is not one", file.published());
         return false;
     }
-    // A cache: a copy not written is fetched again.
-    if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(file.cached(), r.body);
+    ui::keep_copy("insights data", file.cached(), r.body);
     aurore::Logger::info("insights data: {}, {} games, made {}", file.published(), book->size(), book->generated());
     aurore::sync([&file, book]() {
         if (offer(file, book)) tell();

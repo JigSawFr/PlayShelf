@@ -10,6 +10,7 @@
 #include <aurore.hpp>
 
 #include "library/insights_index.hpp"
+#include "ui/ui.hpp"
 #include "util/http.hpp"
 #include "util/paths.hpp"
 
@@ -65,8 +66,7 @@ std::shared_ptr<const library::InsightsIndex> today()
         aurore::Logger::warning("insights data: the fetched index.json is not one");
         return nullptr;
     }
-    // A cache: a copy not written is fetched again.
-    if (paths::ensure_dir(paths::cache_dir())) (void)paths::atomic_write(cached(), r.body);
+    ui::keep_copy("insights data", cached(), r.body);
     aurore::Logger::info("insights data: index.json, {} files", s_index->size());
     return s_index;
 }
@@ -82,7 +82,7 @@ bool unchanged(const std::string& name, const std::string& path)
     std::string bytes;
     if (!index || !paths::read_file(path, bytes) || library::must_fetch(index.get(), name, bytes)) return false;
     // A stamp next to the copy: the copy itself is not written again.
-    (void)paths::atomic_write(path + ".checked", "");
+    ui::keep_copy("insights data", path + ".checked", "");
     aurore::Logger::debug("insights data: {} unchanged", name);
     return true;
 }

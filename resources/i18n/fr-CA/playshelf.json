@@ -532,7 +532,8 @@
     "toast": {
         "diag_saved": "Diagnostic enregistré : {}",
         "diag_err": "Impossible d'enregistrer le diagnostic",
-        "config_err": "Impossible d'enregistrer les préférences sur la carte SD"
+        "config_err": "Impossible d'enregistrer les préférences sur la carte SD",
+        "save_err": "Une modification n'a pas pu être enregistrée sur la carte SD ; elle le sera à la suivante"
     },
     "quick": {
         "hint": "Langue et thème"
