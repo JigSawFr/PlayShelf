@@ -143,12 +143,13 @@ std::vector<Other> others(const std::string& sd_root, const std::string& lang, i
         if (!read_file(under(sd_root, BL_NOTICES_DIR "/") + ent->d_name, text)) continue;
         bl_notices_init(file_notices.get(), module, "");
         if (!bl_notices_parse(file_notices.get(), text.data(), text.size(), toks.get(), BL_NOTICES_TOKENS)) continue;
-        // Its .nro, from its file; gone (the homebrew deleted): nothing.
+        // Its .nro, from its file; gone (the homebrew deleted): nothing. One
+        // started from elsewhere (nxlink) does not know it: kept, not launched.
         struct stat st;
-        if (!file_notices->nro[0] || stat(under(sd_root, file_notices->nro).c_str(), &st) != 0) continue;
+        if (file_notices->nro[0] && stat(under(sd_root, file_notices->nro).c_str(), &st) != 0) continue;
         Other o;
         o.module = module;
-        o.nro = std::string(file_notices->nro[0] == '/' ? "" : "/") + file_notices->nro;
+        if (file_notices->nro[0]) o.nro = std::string(file_notices->nro[0] == '/' ? "" : "/") + file_notices->nro;
         o.name = module;
         char app_path[BL_APP_PATH_MAX];
         std::string app_text;

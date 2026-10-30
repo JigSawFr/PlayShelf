@@ -115,8 +115,13 @@ static void test_others()
     put(root + "/config/boreale/notices/kite.json",
         "{\"schema\":1,\"nro\":\"/switch/kite.nro\",\"notices\":[{\"id\":\"i\",\"level\":\"info\",\"title\":\"Ready\"}]}");
 
-    const auto all = shared_bell_logic::others(root, "en", 100);
-    if (!CHECK(all.size() == 2)) return;
+    // Hawk: started from nxlink, no .nro known: kept, with nothing to launch.
+    put(root + "/config/boreale/notices/hawk.json",
+        "{\"schema\":1,\"nro\":\"\",\"notices\":[{\"id\":\"h\",\"level\":\"todo\",\"title\":\"Hi\"}]}");
+    auto all = shared_bell_logic::others(root, "en", 100);
+    if (!CHECK(all.size() == 3)) return;
+    CHECK(all[1].name == "hawk" && all[1].nro.empty() && all[1].notices.size() == 1);
+    all.erase(all.begin() + 1);
     CHECK(all[0].name == "Lantern" && all[0].module == "lantern" && all[0].nro == "/switch/Lantern/Lantern.nro");
     CHECK(all[1].name == "kite" && all[1].nro == "/switch/kite.nro" && all[1].notices.size() == 1 && !all[1].notices[0].attention);
     if (!CHECK(all[0].notices.size() == 2)) return;
@@ -125,7 +130,7 @@ static void test_others()
     CHECK(all[0].notices[1].id == "fail" && all[0].notices[1].attention && all[0].notices[1].route == "downloads/queue");
     // In French: its French notice instead.
     const auto fr = shared_bell_logic::others(root, "fr", 100);
-    CHECK(fr.size() == 2 && fr[0].notices.size() == 1 && fr[0].notices[0].id == "fr");
+    CHECK(fr.size() == 3 && fr[0].notices.size() == 1 && fr[0].notices[0].id == "fr");
 }
 
 static void test_app()

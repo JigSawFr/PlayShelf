@@ -66,7 +66,7 @@ struct Other
 {
     std::string         module;   // "playshelf"
     std::string         name;     // its registry's (config/boreale/apps/), else the module
-    std::string         nro;      // from the SD card's root, with its '/': "/switch/PlayShelf/PlayShelf.nro"
+    std::string         nro;      // from the SD card's root, with its '/': "/switch/PlayShelf/PlayShelf.nro"; "" unknown
     std::vector<Notice> notices;
 };
 
