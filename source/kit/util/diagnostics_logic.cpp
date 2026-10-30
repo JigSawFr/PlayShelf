@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #include "util/diagnostics_logic.hpp"
 
+#include <utility>
+
 #include <fmt/format.h>
 
 namespace diagnostic
@@ -37,7 +39,7 @@ std::string patch_line(const patches::Report& pr)
     static const char* const ISSUE[]  = { "none", "not at boot", "no log", "stale log", "skipped", "not patched" };
     return fmt::format(
         "{} (issue: {}; sys-patch installed={} boot2={} log={}{}; fs={} ldr={} es={}{}; files={})",
-        STATUS[(int)patches::status(pr)], ISSUE[(int)patches::issue(pr)],
+        STATUS[std::to_underlying(patches::status(pr))], ISSUE[std::to_underlying(patches::issue(pr))],
         pr.syspatch_installed ? 1 : 0, pr.syspatch_at_boot ? 1 : 0,
         !pr.log_present ? "none" : (pr.log_current ? "current" : "stale"),
         pr.log_present ? fmt::format(" fw={} emummc={} version={}", pr.log_fw, pr.log_emummc ? 1 : 0,

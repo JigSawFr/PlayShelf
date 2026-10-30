@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iterator>
 #include <map>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -286,7 +287,7 @@ void CatalogueTab::build_grid(bool force)
     const auto* data = this->shown_data.get();
     const library::Filter& f = s_filter;
     const std::string      key = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
-                                             f.language, f.players, (int)f.state, f.hide_demos);
+                                             f.language, f.players, std::to_underlying(f.state), f.hide_demos);
     // Its sections: a choice only when the server has several.
     const bool sections = data && data->fetch.catalog.sections.size() > 1;
     ui::set_visible(section_cell, sections);

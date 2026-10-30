@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 namespace install
@@ -14,7 +15,7 @@ CoreMetaKey core_key(const MetaKey& k)
     CoreMetaKey c{};
     c.id = k.id;
     c.version = k.version;
-    c.type = (u8)k.type;
+    c.type = std::to_underlying(k.type);
     return c;
 }
 

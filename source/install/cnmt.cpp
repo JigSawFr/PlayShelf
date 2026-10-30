@@ -2,6 +2,7 @@
 #include "install/cnmt.hpp"
 
 #include <cstring>
+#include <utility>
 
 #include "install/bytes.hpp"
 
@@ -37,7 +38,7 @@ void put_info(uint8_t* p, const ContentInfo& c)
     put_le32(p + 16, (uint32_t)c.size);
     p[20] = (uint8_t)(c.size >> 32);
     p[21] = c.attributes;
-    p[22] = (uint8_t)c.type;
+    p[22] = std::to_underlying(c.type);
     p[23] = c.id_offset;
 }
 

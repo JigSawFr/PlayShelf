@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "activity/dev_builds_activity.hpp"
 
+#include <utility>
+
 #include <fmt/format.h>
 
 #include <aurore/cadran/view/cadran_icon.hpp>
@@ -325,7 +327,7 @@ void DevBuildsActivity::show_tab(dev_builds::Kind kind, bool focus_list)
 
 void DevBuildsActivity::next_tab(int step)
 {
-    int at = (int)this->tab;
+    int at = std::to_underlying(this->tab);
     for (int n = 0; n < 3; n++) {
         at = (at + step + 3) % 3;
         if (this->builds(KINDS[at]).empty()) continue;

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -278,7 +279,7 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
         nlib_flow::enrich(waiting);
     }
     const std::string filtered = filter_sheet::summary(s_filter);
-    filter_cell->set_value(aurore::getStr(std::string("playshelf/installed/order_values/") + ORDERS[(int)s_order]) +
+    filter_cell->set_value(aurore::getStr(std::string("playshelf/installed/order_values/") + ORDERS[std::to_underlying(s_order)]) +
                            (filtered.empty() ? "" : " · " + filtered));
     filter_cell->set_active(!filtered.empty());
     ui::set_visible(empty_box, count == 0);
@@ -389,7 +390,7 @@ void LibraryTab::pick_filter()
         for (const installed_flow::Game& g : *this->shown_games) games.push_back(g.game.id);
     filter_sheet::Order order;
     for (const char* o : ORDERS) order.labels.push_back(aurore::getStr(std::string("playshelf/installed/order_values/") + o));
-    order.chosen = (int)s_order;
+    order.chosen = std::to_underlying(s_order);
     auto again = ui::guarded(this->alive, [this]() {
         if (this->shown_games) this->show_games(this->shown_games);
     });

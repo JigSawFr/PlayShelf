@@ -32,7 +32,7 @@ std::string connection_text(library::Connection c)
 
 std::string format_text(library::Format f)
 {
-    return aurore::getStr(std::string("playshelf/library/format_values/") + FORMATS[(int)f]);
+    return aurore::getStr(std::string("playshelf/library/format_values/") + FORMATS[std::to_underlying(f)]);
 }
 
 std::string or_none(const std::string& text)
@@ -81,7 +81,7 @@ void ServerActivity::onContentAvailable()
         std::vector<std::string> labels;
         labels.reserve(3);
         for (int i = 0; i < 3; i++) labels.push_back(format_text((library::Format)i));
-        ui::pick("playshelf/library/format"_i18n, labels, (int)this->server.format, [this](int i) {
+        ui::pick("playshelf/library/format"_i18n, labels, std::to_underlying(this->server.format), [this](int i) {
             this->server.format = (library::Format)i;
             this->show();
         });
