@@ -9,8 +9,8 @@
 // zlib).
 //
 // With them, what Home reads of Atlas about those games, made up as
-// well (insights/switch/: popular.json, games.json, similar.json and
-// editions.json, in Atlas' schema 1 and its switch/ folder), which sim_demo_http.cpp answers in place of
+// well (insights/platforms/switch/: popular.json, games.json, similar.json and
+// editions.json, in Atlas' schema 1 and its platforms/switch/ folder), which sim_demo_http.cpp answers in place of
 // Atlas' own, and the console's first games (console/meta/: a content
 // meta record for each, empty; console/control/: its name and icon), which
 // PlayShelf puts on the simulated console at a first start with the demo
@@ -372,7 +372,8 @@ int main(int argc, char** argv)
     // content meta records and names (web_demo_art.py adds their icons), and
     // the wishlist.
     mkdir((out + "/insights").c_str(), 0755);
-    write_insights(out + "/insights/switch", games, day);
+    mkdir((out + "/insights/platforms").c_str(), 0755);
+    write_insights(out + "/insights/platforms/switch", games, day);
     mkdir((out + "/console").c_str(), 0755);
     mkdir((out + "/console/meta").c_str(), 0755);
     mkdir((out + "/console/control").c_str(), 0755);

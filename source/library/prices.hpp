@@ -1,5 +1,5 @@
 // prices — what a game costs on the eShop of one country, from PlayInsights'
-// switch/prices/<COUNTRY>.json (schema 1): its regular price and, while it is on
+// platforms/switch/prices/<COUNTRY>.json (schema 1): its regular price and, while it is on
 // sale, its sale price and the sale's last day; the lowest price it has had
 // since the files began (`since`) and the last day it had it. With the country of each
 // language PlayShelf speaks, and a price written as that country writes it.

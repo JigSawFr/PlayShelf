@@ -64,13 +64,13 @@ none of a real game's names, characters or pictures. 24 are on the server,
   `titledb/`): every game's name, studio and release, the coming ones among
   them, fetched once at the first start, so Home has its games coming soon.
 - **Atlas' files** (`https://cdn.jsdelivr.net/gh/JigSawFr/Atlas@data/`,
-  `insights/`; the Switch's in `switch/`, as Atlas publishes them: `popular.json`, `games.json`, `similar.json` and
+  `insights/`; the Switch's in `platforms/switch/`, as Atlas publishes them: `popular.json`, `games.json`, `similar.json` and
   `editions.json`, schema 1, a few games with an IGDB players' rating and one
   edition (*Summit Ascent: Deluxe Edition*),
   made on the day of the build, newer than the files PlayShelf ships): Home
   ranks, recommends and groups the demo's games by their series and
   studios, each recommendation with its reason, and a game's page lists the
-  ones like it. With them, `insights/switch/prices/<COUNTRY>.json` for each of
+  ones like it. With them, `insights/platforms/switch/prices/<COUNTRY>.json` for each of
   Atlas' 13 countries (`tools/web_demo_art.py`): made-up eShop
   prices, about one game in four on sale until 12 days after the build (the
   wishlist's too, so the bell says it), each with the lowest it has had
