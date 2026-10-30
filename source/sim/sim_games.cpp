@@ -19,6 +19,11 @@
 #include "library/catalog.hpp"
 #include "util/paths.hpp"
 
+u8 core_game_language(void)
+{
+    return 2;   // American English (SetLanguage_ENUS + 1)
+}
+
 bool core_game_control(u64 app_id, char* name, size_t name_size, char* version, size_t version_size, void* icon,
                        size_t* icon_size)
 {
