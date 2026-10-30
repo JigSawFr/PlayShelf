@@ -70,17 +70,11 @@ none of a real game's names, characters or pictures. 24 are on the server,
   made on the day of the build, newer than the files PlayShelf ships): Home
   ranks, recommends and groups the demo's games by their series and
   studios, each recommendation with its reason, and a game's page lists the
-  ones like it. With them, `insights/platforms/switch/prices/<COUNTRY>.json` for each of
-  Atlas' 13 countries (`tools/web_demo_art.py`): made-up eShop
-  prices, about one game in four on sale until 12 days after the build (the
-  wishlist's too, so the bell says it), each with the lowest it has had
-  since four months before (`since`), half the sales at it: for Home's
-  **Deals** row, its lowest-price marks and a game page's **eShop price**.
+  ones like it. With them (`tools/web_demo_art.py`),
   `insights/changes.json`, what Atlas' last run would have changed: the
   wishlist's *Moonlit Meadows* out on the day of the build, *Turbo Kart
   Rumble* new (of a series the console has a game of), the wishlist's *Sky
-  Kingdom: Echoes Below* read much more lately, the wishlist's sales started
-  that day, so the bell says them.
+  Kingdom: Echoes Below* read much more lately, so the bell says them.
   And `insights/index.json`, every one of those files with its size and
   short hash, as Atlas publishes it, so PlayShelf downloads again
   only the ones that changed.

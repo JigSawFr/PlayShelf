@@ -36,10 +36,8 @@ struct Entry
 void start();
 
 // Adds or replaces the entry `id`. `action` runs from the list, after it closed.
-// `key`: what brings it back once put away, when not its words
-// (notice_logic::Store::set).
 void set(const std::string& id, Level level, const std::string& title, const std::string& detail,
-         const std::string& action_label = "", std::function<void()> action = nullptr, const std::string& key = "");
+         const std::string& action_label = "", std::function<void()> action = nullptr);
 void clear(const std::string& id);
 // Puts away an Info entry, remembered on the SD card until its text changes.
 void dismiss(const std::string& id);

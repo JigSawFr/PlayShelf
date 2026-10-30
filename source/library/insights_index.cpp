@@ -13,7 +13,7 @@ namespace library
 namespace
 {
 // A file's path in the data branch: lower-case letters, digits, '_', '-',
-// '.' and '/' (prices/FR.json), upper case for a country; no "..".
+// '.' and '/' (platforms/switch/games.json), upper case; no "..".
 bool is_name(const std::string& name)
 {
     if (name.empty() || name.size() > InsightsIndex::MAX_NAME || name.front() == '/' || name.contains(".."))

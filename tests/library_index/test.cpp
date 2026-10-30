@@ -13,7 +13,7 @@ void test_read()
     InsightsIndex index;
     CHECK(index.from_json(R"({"schema":1,"files":{
         "platforms/switch/popular.json":{"generated":"2026-10-29","bytes":70123,"sha256":"0123456789abcdef"},
-        "platforms/switch/prices/FR.json":{"generated":"2026-10-29","bytes":512,"sha256":"fedcba9876543210"},
+        "platforms/switch/games.lite.json":{"generated":"2026-10-29","bytes":512,"sha256":"fedcba9876543210"},
         "../secret":{"generated":"2026-10-29","bytes":1,"sha256":"0123456789abcdef"},
         "/abs.json":{"generated":"2026-10-29","bytes":1,"sha256":"0123456789abcdef"},
         "upper.json":{"generated":"2026-10-29","bytes":1,"sha256":"0123456789ABCDEF"},
@@ -25,7 +25,7 @@ void test_read()
     CHECK(index.size() == 2);
     const IndexEntry* p = index.find("platforms/switch/popular.json");
     if (CHECK(p != nullptr)) CHECK(p->generated == "2026-10-29" && p->bytes == 70123 && p->sha256 == "0123456789abcdef");
-    CHECK(index.find("platforms/switch/prices/FR.json") != nullptr);
+    CHECK(index.find("platforms/switch/games.lite.json") != nullptr);
     CHECK(index.find("popular.json") == nullptr);
     CHECK(index.find("platforms/switch/games.json") == nullptr);
     // Not one: another schema, no files, not JSON.

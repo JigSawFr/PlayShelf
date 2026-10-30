@@ -14,7 +14,6 @@
 #include "action/library_flow.hpp"
 #include "action/notices.hpp"
 #include "action/popular_flow.hpp"
-#include "action/prices_flow.hpp"
 #include "activity/storage_activity.hpp"
 #include "activity/tabs.hpp"
 #include "library/news.hpp"
@@ -30,8 +29,7 @@ namespace insight_notices
 namespace
 {
 std::set<std::string> s_wished;   // the wishlist's entries set, to clear those gone
-std::set<std::string> s_sales;    // the wishlist's sales said, to clear those over
-std::set<std::string> s_news;     // the last run's news said (out today, new lowest), to clear the older
+std::set<std::string> s_news;     // the last run's news said (out today), to clear the older
 std::set<std::string> s_atlas;    // the last run's new games and trends said, to clear the older
 
 // The games told new or trending once (library/news), read at the first
@@ -68,7 +66,7 @@ std::string names(const List& list, Name name)
     return out;
 }
 
-// "12 November": a sale's last day, in the language's words.
+// "12 November": a day of Atlas' run, in the language's words.
 std::string day_text(uint32_t date)
 {
     const unsigned d = date % 100, m = date / 100 % 100;
@@ -136,43 +134,10 @@ void publish(const insights::Snapshot& s)
         if (!wished.contains(id)) notices::clear(id);
     s_wished = wished;
 
-    // The wishlist's games on sale on the eShop of the player's country: for
-    // information, once a sale (its id has the sale's last day: put away, it
-    // comes back with the next sale, or when its price changes). The day
-    // Atlas saw it start (changes.json), it "goes on sale"; the day it
-    // reached a new lowest, or while it is at its lowest, it says so: the
-    // same entry, its words changed, not told again for them.
-    std::set<std::string> sales;
-    const std::string     country = prices_flow::country();
-    const auto            changes = changes_flow::book();
-    for (const insights::Wished& w : s.wished) {
-        const library::Price* price = prices_flow::of(w.id);
-        if (w.installed || !price || !price->on_sale()) continue;
-        const std::string id = std::format("sale.{:016x}.{}", w.id, price->until);
-        sales.insert(id);
-        const std::string sale = library::price_text(price->sale, country);
-        const std::string until = price->until ? day_text(price->until) : "";
-        const bool        lowest = price->at_lowest() || changes->new_lowest(country, w.id);
-        const char*       title = lowest                                 ? "playshelf/notices/sale_lowest"
-                                  : changes->sale_started(country, w.id) ? "playshelf/notices/sale_started"
-                                                                         : "playshelf/notices/sale";
-        const auto        data = w.found.data;
-        const size_t      index = w.found.index;
-        std::function<void()> open;
-        if (data) open = [data, index]() { game_page::open(data, index); };
-        notices::set(id, notices::Level::Info, aurore::getStr(title, w.name),
-                     until.empty() ? aurore::getStr("playshelf/home/deal", price->discount(), sale)
-                                   : aurore::getStr("playshelf/notices/sale_until", price->discount(), sale, until),
-                     data ? see : "", open, sale + (lowest ? " lowest" : ""));
-    }
-    for (const std::string& id : s_sales)
-        if (!sales.count(id)) notices::clear(id);
-    s_sales = sales;
-
+    const auto changes = changes_flow::book();
     // From the last run of Atlas (changes.json), for the wishlist's games
-    // the console has not: one out that day, one whose price (not on sale)
-    // fell to a new lowest. Each as long as that run is the last one known:
-    // the next one's news replaces it (its id has the day: put away, it
+    // the console has not: one out that day, as long as that run is the last
+    // one known: the next one's news replaces it (its id has the day: put away, it
     // does not come back for the same news).
     std::set<std::string> news;
     const uint32_t        run_day = changes->day_number();
@@ -187,14 +152,6 @@ void publish(const insights::Snapshot& s)
             news.insert(id);
             notices::set(id, notices::Level::Info, aurore::getStr("playshelf/notices/out", w.name),
                          aurore::getStr("playshelf/notices/out_on", day_text(run_day)), data ? see : "", open);
-        }
-        const library::Price* price = prices_flow::of(w.id);
-        if (price && !price->on_sale() && changes->new_lowest(country, w.id)) {
-            const std::string id = std::format("lowest.{:016x}.{}", w.id, run_day);
-            news.insert(id);
-            notices::set(id, notices::Level::Info, aurore::getStr("playshelf/notices/lowest", w.name),
-                         aurore::getStr("playshelf/notices/lowest_now", library::price_text(price->now(), country)),
-                         data ? see : "", open);
         }
     }
     for (const std::string& id : s_news)

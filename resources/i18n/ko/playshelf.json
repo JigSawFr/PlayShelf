@@ -576,11 +576,6 @@
         "downloads_done": "다운로드 {}개가 설치되었습니다",
         "downloads_failed_one": "다운로드 1개가 실패했습니다",
         "downloads_failed": "다운로드 {}개가 실패했습니다",
-        "sale": "{} 할인 중",
-        "sale_lowest": "{} 역대 최저가",
-        "sale_started": "{} 할인 시작",
-        "lowest": "{} 역대 최저가",
-        "lowest_now": "현재 {}",
         "out": "{} 출시",
         "out_on": "{} 출시",
         "atlas_new": "Switch 신작: {}",
@@ -589,7 +584,6 @@
         "trend": "{}이(가) 화제입니다",
         "trend_detail": "위키백과에서 평소보다 {}% 더 읽혔습니다",
         "trend_series": "{0} 시리즈 · 위키백과에서 평소보다 {1}% 더 읽혔습니다",
-        "sale_until": "-{0}% · {1} ({2}까지)",
         "day": "{1} {0}일",
         "open_in": "{}에서 열기",
         "open_manual": "홈브루 메뉴에서 {}을(를) 열어 처리하세요."
@@ -797,14 +791,7 @@
         "similar": "비슷한 게임",
         "series": "시리즈",
         "steam": "Steam 평가",
-        "steam_value": "긍정 {}% · {}개",
-        "price": "eShop 가격",
-        "free": "무료",
-        "price_sale": "{0} → {1} ({2}% 할인)",
-        "price_sale_until": "{0} → {1} ({2}% 할인, {3}까지)",
-        "price_lowest_now": "역대 최저가",
-        "lowest": "{} 이후 최저가",
-        "lowest_value": "{0} ({1})"
+        "steam_value": "긍정 {}% · {}개"
     },
     "genres": {
         "action": "액션",
@@ -928,10 +915,7 @@
         "because_series": "시리즈: {}",
         "because_developer": "{} 개발",
         "because_popular": "인기",
-        "because_played": "{1}시간: {0}",
-        "deals": "할인 중",
-        "deals_line": "eShop에서 할인 중",
-        "deal": "{0}% 할인 · {1}"
+        "because_played": "{1}시간: {0}"
     },
     "wishlist": {
         "add": "위시리스트에 추가",
@@ -962,28 +946,6 @@
         "about": "홈에서 추천하는 게임에서 X를 누르면 여기에 보관됩니다. 더 이상 추천되지 않고, 매우 비슷한 게임도 덜 추천됩니다.",
         "clear": "모두 다시 추천",
         "none": "없음"
-    },
-    "prices": {
-        "row": "eShop 가격 기준",
-        "auto": "언어에 따라",
-        "auto_value": "{} (언어)",
-        "none": "표시 안 함",
-        "none_for_language": "이 언어에는 없음",
-        "countries": {
-            "US": "미국",
-            "CA": "캐나다",
-            "MX": "멕시코",
-            "BR": "브라질",
-            "GB": "영국",
-            "FR": "프랑스",
-            "DE": "독일",
-            "ES": "스페인",
-            "IT": "이탈리아",
-            "NL": "네덜란드",
-            "PT": "포르투갈",
-            "AU": "호주",
-            "JP": "일본"
-        }
     },
     "boreale": {
         "intro": "이 콘솔에 설치된 Boréale 패밀리의 홈브류입니다. 각각 시작할 때 여기에 추가됩니다. A를 누르면 열립니다.",

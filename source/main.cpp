@@ -52,6 +52,7 @@
 #include "util/crash_dump.h"
 #include "util/crash_report.hpp"
 #include "util/diagnostics.hpp"
+#include "util/no_prices.hpp"
 #include "util/http.hpp"
 #include "util/migrations.hpp"
 #include "util/paths.hpp"
@@ -332,10 +333,17 @@ int main(int argc, char* argv[])
     app::set_self_path(argc > 0 ? argv[0] : nullptr);
     app::set_open_route(argc, argv);
 
-    // No earlier layout of the data folder yet: nothing to move
-    // (util/migrations.hpp), the build recorded.
-    migrations::set_latest(migrations::None);
-    migrations::run(paths::migrations_file(), {}, app::version());
+    // The earlier layouts of the data folder (util/migrations.hpp), the
+    // build recorded. Step 1: what the eShop prices left (util/no_prices);
+    // it goes with the first release after the one that brings it.
+    migrations::set_latest(1);
+    migrations::run(paths::migrations_file(),
+                    { { 1, "no_prices",
+                        []() {
+                            return no_prices::clean(paths::config_file(), config::SCHEMA, paths::cache_dir(),
+                                                    paths::data_dir() + "/notices_read.txt");
+                        } } },
+                    app::version());
     startup_mark(StartupStep_Migrations);
 #ifndef __SWITCH__
     sim_demo::start();   // the simulators' demo: its answers, and on a first start its server and games

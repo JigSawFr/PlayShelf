@@ -197,11 +197,10 @@ library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/libr
 # What Atlas knows of each game beyond its popularity (games.json,
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
-library_prices_SRC := source/library/signals.cpp source/library/prices.cpp tests/library_prices/test.cpp
-# What Atlas' last run changed (changes.json): the games out today, the sales started, the new lowest prices.
-library_changes_SRC := source/library/signals.cpp source/library/prices.cpp source/library/changes.cpp tests/library_changes/test.cpp
+# What Atlas' last run changed (changes.json): the games out today, the games new, the trends moved.
+library_changes_SRC := source/library/signals.cpp source/library/changes.cpp tests/library_changes/test.cpp
 # What the bell tells of Atlas' new games and trends, each once (news.json).
-library_news_SRC := source/library/signals.cpp source/library/prices.cpp source/library/changes.cpp source/library/seen.cpp \
+library_news_SRC := source/library/signals.cpp source/library/changes.cpp source/library/seen.cpp \
                     source/library/news.cpp tests/library_news/test.cpp
 # Atlas' index.json, and which of its files to download again.
 library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(K)/util/sha256.cpp tests/library_index/test.cpp
@@ -298,6 +297,8 @@ listeners_SRC := tests/listeners/test.cpp
 # A whole text read as a number (header only).
 number_SRC := tests/number/test.cpp
 log_files_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp tests/log_files/test.cpp
+# What the eShop prices left in the data folder, removed (a migration step).
+no_prices_SRC := $(K)/util/paths.cpp source/action/notice_logic.cpp source/util/no_prices.cpp tests/no_prices/test.cpp
 migrations_SRC   := $(K)/util/paths.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(K)/util/migrations.cpp tests/migrations/test.cpp
 
 TESTS := $(sort $(patsubst %_SRC,%,$(filter %_SRC,$(.VARIABLES))))

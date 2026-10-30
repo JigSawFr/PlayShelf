@@ -576,11 +576,6 @@
         "downloads_done": "{} download sono installati",
         "downloads_failed_one": "Un download non è riuscito",
         "downloads_failed": "{} download non sono riusciti",
-        "sale": "{} è in offerta",
-        "sale_lowest": "{} è al suo prezzo più basso",
-        "sale_started": "{} entra in offerta",
-        "lowest": "{} non è mai costato così poco",
-        "lowest_now": "Ora {}",
         "out": "{} è uscito",
         "out_on": "Uscito il {}",
         "atlas_new": "Novità su Switch: {}",
@@ -589,7 +584,6 @@
         "trend": "Si parla di {}",
         "trend_detail": "Letto il {}% in più del solito su Wikipedia",
         "trend_series": "Della serie {0} · letto il {1}% in più del solito su Wikipedia",
-        "sale_until": "-{0}% · {1} fino al {2}",
         "day": "{0} {1}",
         "open_in": "Apri in {}",
         "open_manual": "Apri {} dal menu degli homebrew per occupartene."
@@ -797,14 +791,7 @@
         "similar": "Giochi simili",
         "series": "Serie",
         "steam": "Recensioni Steam",
-        "steam_value": "{} % positive · {} recensioni",
-        "price": "Prezzo eShop",
-        "free": "Gratis",
-        "price_sale": "{0} → {1} (-{2}%)",
-        "price_sale_until": "{0} → {1} (-{2}%) fino al {3}",
-        "price_lowest_now": "prezzo più basso",
-        "lowest": "Più basso dal {}",
-        "lowest_value": "{0} il {1}"
+        "steam_value": "{} % positive · {} recensioni"
     },
     "genres": {
         "action": "Azione",
@@ -928,10 +915,7 @@
         "because_series": "Serie: {}",
         "because_developer": "Di {}",
         "because_popular": "Popolare",
-        "because_played": "{1} h di {0}",
-        "deals": "Offerte",
-        "deals_line": "In saldo sull'eShop",
-        "deal": "-{0}% · {1}"
+        "because_played": "{1} h di {0}"
     },
     "wishlist": {
         "add": "Aggiungi alla lista dei desideri",
@@ -962,28 +946,6 @@
         "about": "X su un gioco suggerito dalla Home lo mette qui: non viene più suggerito, e i giochi molto simili lo sono meno.",
         "clear": "Suggeriscili tutti di nuovo",
         "none": "Nessuno"
-    },
-    "prices": {
-        "row": "Prezzi dell'eShop di",
-        "auto": "In base alla lingua",
-        "auto_value": "{} (lingua)",
-        "none": "Nessun prezzo",
-        "none_for_language": "Nessuno per questa lingua",
-        "countries": {
-            "US": "Stati Uniti",
-            "CA": "Canada",
-            "MX": "Messico",
-            "BR": "Brasile",
-            "GB": "Regno Unito",
-            "FR": "Francia",
-            "DE": "Germania",
-            "ES": "Spagna",
-            "IT": "Italia",
-            "NL": "Paesi Bassi",
-            "PT": "Portogallo",
-            "AU": "Australia",
-            "JP": "Giappone"
-        }
     },
     "boreale": {
         "intro": "Gli homebrew della famiglia Boréale installati su questa console: ognuno si aggiunge qui all'avvio. A su uno lo apre.",

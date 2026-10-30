@@ -576,11 +576,6 @@
         "downloads_done": "{} transferências foram instaladas",
         "downloads_failed_one": "Uma transferência falhou",
         "downloads_failed": "{} transferências falharam",
-        "sale": "{} está em promoção",
-        "sale_lowest": "{} está no preço mais baixo",
-        "sale_started": "{} entra em promoção",
-        "lowest": "{} nunca custou tão pouco",
-        "lowest_now": "Agora {}",
         "out": "{} já saiu",
         "out_on": "Lançado a {}",
         "atlas_new": "Novo na Switch: {}",
@@ -589,7 +584,6 @@
         "trend": "Fala-se de {}",
         "trend_detail": "Lido mais {}% do que o habitual na Wikipédia",
         "trend_series": "Da série {0} · lido mais {1}% do que o habitual na Wikipédia",
-        "sale_until": "-{0}% · {1} até {2}",
         "day": "{0} de {1}",
         "open_in": "Abrir em {}",
         "open_manual": "Abra {} a partir do menu de homebrew para tratar disto."
@@ -797,14 +791,7 @@
         "similar": "Jogos semelhantes",
         "series": "Série",
         "steam": "Análises Steam",
-        "steam_value": "{} % positivas · {} análises",
-        "price": "Preço na eShop",
-        "free": "Grátis",
-        "price_sale": "{0} → {1} (-{2}%)",
-        "price_sale_until": "{0} → {1} (-{2}%) até {3}",
-        "price_lowest_now": "preço mais baixo",
-        "lowest": "Mais baixo desde {}",
-        "lowest_value": "{0} em {1}"
+        "steam_value": "{} % positivas · {} análises"
     },
     "genres": {
         "action": "Ação",
@@ -928,10 +915,7 @@
         "because_series": "Série: {}",
         "because_developer": "De {}",
         "because_popular": "Popular",
-        "because_played": "{1} h de {0}",
-        "deals": "Promoções",
-        "deals_line": "Em promoção na eShop",
-        "deal": "-{0}% · {1}"
+        "because_played": "{1} h de {0}"
     },
     "wishlist": {
         "add": "Adicionar à lista de desejos",
@@ -962,28 +946,6 @@
         "about": "X num jogo sugerido pelo Início guarda-o aqui: deixa de ser sugerido, e os jogos muito parecidos são-no menos.",
         "clear": "Voltar a sugerir todos",
         "none": "Nenhum"
-    },
-    "prices": {
-        "row": "Preços da eShop de",
-        "auto": "Conforme o idioma",
-        "auto_value": "{} (idioma)",
-        "none": "Sem preços",
-        "none_for_language": "Nenhum para este idioma",
-        "countries": {
-            "US": "Estados Unidos",
-            "CA": "Canadá",
-            "MX": "México",
-            "BR": "Brasil",
-            "GB": "Reino Unido",
-            "FR": "França",
-            "DE": "Alemanha",
-            "ES": "Espanha",
-            "IT": "Itália",
-            "NL": "Países Baixos",
-            "PT": "Portugal",
-            "AU": "Austrália",
-            "JP": "Japão"
-        }
     },
     "boreale": {
         "intro": "Os homebrews da família Boréale instalados nesta consola: cada um junta-se aqui ao arrancar. A num deles abre-o.",

@@ -77,10 +77,6 @@ struct Config
     // Home's popular games: popular.json fetched again once a day (else the
     // one PlayShelf came with).
     bool popular_online = true;
-    // Whose eShop prices Home's deals and a game's page show (action/prices_flow,
-    // with popular_online): "" the country of PlayShelf's language, "none"
-    // no prices, else one of library::PRICE_COUNTRIES.
-    std::string prices_country;
     std::string support_reminded;
     std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means

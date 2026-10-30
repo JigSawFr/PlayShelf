@@ -1,7 +1,7 @@
 // changes_flow — what Atlas' last run changed (changes.json at the root of
 // its data branch: library/changes), for the bell (activity/insight_notices):
-// the wishlist's games out today, their sales started, their new lowest
-// prices. Fetched through jsDelivr once a day while config popular_online
+// the wishlist's games out today, the games new on the Switch and the
+// trends that moved (library/news). Fetched through jsDelivr once a day while config popular_online
 // allows it, only when Atlas' index.json says it changed
 // (action/insights_index), kept in cache_dir(). Not shipped with PlayShelf:
 // news goes stale, so a cached file older than STALE is not shown. Read off

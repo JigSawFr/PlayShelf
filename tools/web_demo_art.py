@@ -10,15 +10,12 @@ folder:
   banner and screenshots, as Nlib API serves a game's;
 - nlib/<id>/details.en.json and details.fr.json: its details, in Nlib API's
   shape (titledb/nlib.cpp reads them);
-- insights/platforms/switch/prices/<COUNTRY>.json: every game's eShop price in each country
-  Atlas has prices for (Atlas' schema 1), a few on sale (the
-  wishlist's among them), with the lowest each has had;
 - insights/changes.json: what Atlas' last run would have changed, in its
-  schema 1 (action/changes_flow): the wishlist's games out today, and in
-  each country the wishlist's sales started and those at a new lowest, so
-  the bell says them;
+  schema 1 (action/changes_flow): the wishlist's games out today, a game
+  new in a series the console has, a wishlist game read much more lately,
+  so the bell says them;
 - insights/index.json: each of the demo's Atlas files (tools/web_demo.cpp's
-  and the prices) with its day, size and short hash, as Atlas' index
+  and changes.json) with its day, size and short hash, as Atlas' index
   (action/insights_index);
 - titledb/index.json: every game of the table, as NXMeta's Tinfoil index
   (titledb/list.cpp): names, studios, releases, the coming ones among them.
@@ -153,66 +150,10 @@ def save(img, path, size):
     img.save(path, "JPEG", quality=QUALITY, optimize=True, progressive=True)
 
 
-# Each country of Atlas' prices: its currency, and how much its price
-# is of a US dollar one (rounded as its eShop would).
-COUNTRIES = {
-    "US": ("USD", 1.0), "CA": ("CAD", 1.35), "MX": ("MXN", 18.0), "BR": ("BRL", 5.5), "GB": ("GBP", 0.85),
-    "FR": ("EUR", 1.0), "DE": ("EUR", 1.0), "ES": ("EUR", 1.0), "IT": ("EUR", 1.0), "NL": ("EUR", 1.0),
-    "PT": ("EUR", 1.0), "AU": ("AUD", 1.5), "JP": ("JPY", 110.0),
-}
-TIERS = (9.99, 14.99, 19.99, 29.99, 39.99, 49.99, 59.99, 69.99)   # in US dollars
-
-
-def in_currency(dollars, country):
-    """A price of `dollars` in `country`'s currency, ending as eShop prices do."""
-    currency, rate = COUNTRIES[country]
-    if currency == "JPY":
-        return float(round(dollars * rate / 100) * 100 - 20)
-    return round(max(1, round(dollars * rate)) - 0.01, 2)
-
-
-def cut_of(regular, off, currency):
-    """`regular` less `off` percent, ending as eShop prices do."""
-    cut = regular * (100 - off) / 100
-    return float(round(cut / 10) * 10) if currency == "JPY" else round(max(1, round(cut)) - 0.01, 2)
-
-
-def prices(games, today):
-    """{country: prices/<COUNTRY>.json}: every game the server has its price;
-    one in four on sale, and the wishlist's (so the bell says it); each with
-    the lowest price it has had since the files began (`since`, four months
-    ago): a sale at it half the time, some deeper sale before for the rest."""
-    out = {}
-    end = int((today + datetime.timedelta(days=12)).strftime("%Y%m%d"))
-    since = today - datetime.timedelta(days=120)
-    for country, (currency, _) in COUNTRIES.items():
-        table = {}
-        for i, g in enumerate(games):
-            if not g.get("on_server", True):
-                continue
-            seed = sum(map(ord, g["name"]))
-            regular = in_currency(TIERS[(seed // 4) % len(TIERS)], country)
-            sale, until, off = 0, 0, (40, 50, 60)[seed % 3]
-            if seed % 4 == 1 or g.get("wished"):
-                off = (20, 33, 50, 60, 75)[seed % 5]
-                sale, until = cut_of(regular, off, currency), end
-            # The lowest so far: today's sale, or a deeper one some weeks ago.
-            if sale and (seed // 7) % 2:
-                lowest, day = sale, today
-            else:
-                lowest = cut_of(regular, min(off + 15, 85) if sale else off, currency)
-                day = since + datetime.timedelta(days=seed % 90)
-            table[f"{tid(i):016X}"] = [regular, sale, until, lowest, int(day.strftime("%Y%m%d"))]
-        out[country] = {"schema": 1, "generated": today.isoformat(), "country": country, "currency": currency,
-                        "since": since.isoformat(), "source": "PlayShelf's web demo (made up)", "games": table}
-    return out
-
-
-def changes(games, today, by_country):
+def changes(games, today):
     """changes.json: the wishlist's games out today; the games of a series
     the console has a game of, new (not on a server, not wished); the
-    wishlist's games coming soon, their trend risen; by country, the
-    wishlist's sales (they started today) and those at their lowest today."""
+    wishlist's games coming soon, their trend risen."""
     wished = [i for i, g in enumerate(games) if g.get("wished")]
     out = [f"{tid(i):016X}" for i in wished if release_of(games[i], today) == today.isoformat()]
     owned_series = {g["series"] for g in games if g.get("installed") and g.get("series")}
@@ -220,15 +161,8 @@ def changes(games, today, by_country):
            if g.get("on_server") is False and not g.get("wished") and g.get("series") in owned_series]
     trends = [[f"{tid(i):016X}", g["trend"] - 100, g["trend"] + 100] for i, g in enumerate(games)
               if g.get("wished") and g.get("on_server") is False and g.get("series")]
-    day = int(today.strftime("%Y%m%d"))
-    sales = {}
-    for country, payload in by_country.items():
-        rows = payload["games"]
-        mine = [f"{tid(i):016X}" for i in wished if f"{tid(i):016X}" in rows]
-        sales[country] = {"started": [g for g in mine if rows[g][1]], "ended": [],
-                          "lowest": [g for g in mine if rows[g][4] == day and rows[g][1]]}
     return {"schema": 1, "generated": today.isoformat(), "source": "PlayShelf's web demo (made up)",
-            "platforms": {"switch": {"new": new, "out_today": sorted(out), "trends": trends, "sales": sales}}}
+            "platforms": {"switch": {"new": new, "out_today": sorted(out), "trends": trends}}}
 
 
 def release_of(game, today):
@@ -276,13 +210,9 @@ def main():
         titledb[gid] = {"name": g["name"], "publisher": g["studio"], "releaseDate": release.replace("-", ""),
                         "version": 0, "size": (1 + i % 12) * 1_000_000_000}
     render.close()
-    os.makedirs(f"{out}/insights/platforms/switch/prices", exist_ok=True)
-    by_country = prices(games, today)
-    for country, payload in by_country.items():
-        with open(f"{out}/insights/platforms/switch/prices/{country}.json", "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False)
+    os.makedirs(f"{out}/insights", exist_ok=True)
     with open(f"{out}/insights/changes.json", "w", encoding="utf-8") as f:
-        json.dump(changes(games, today, by_country), f, ensure_ascii=False)
+        json.dump(changes(games, today), f, ensure_ascii=False)
     write_index(f"{out}/insights", today)
     os.makedirs(f"{out}/titledb", exist_ok=True)
     with open(f"{out}/titledb/index.json", "w", encoding="utf-8") as f:
@@ -294,7 +224,7 @@ def main():
 
 def write_index(folder, today):
     """insights/index.json: every file under it (changes.json,
-    platforms/switch/popular.json, platforms/switch/prices/FR.json), as Atlas lists them."""
+    platforms/switch/popular.json), as Atlas lists them."""
     files = {}
     for root, _, names in os.walk(folder):
         for name in names:

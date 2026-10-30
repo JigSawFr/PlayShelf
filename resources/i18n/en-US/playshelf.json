@@ -576,11 +576,6 @@
         "downloads_done": "{} downloads are installed",
         "downloads_failed_one": "A download failed",
         "downloads_failed": "{} downloads failed",
-        "sale": "{} is on sale",
-        "sale_lowest": "{} is at its lowest price",
-        "sale_started": "{} goes on sale",
-        "lowest": "{} costs less than ever",
-        "lowest_now": "Now {}",
         "out": "{} is out",
         "out_on": "Released on {}",
         "atlas_new": "New on the Switch: {}",
@@ -589,7 +584,6 @@
         "trend": "{} is trending",
         "trend_detail": "Read {}% more than usual on Wikipedia",
         "trend_series": "In the {0} series · read {1}% more than usual on Wikipedia",
-        "sale_until": "-{0}% · {1} until {2}",
         "day": "{1} {0}",
         "open_in": "Open in {}",
         "open_manual": "Open {} from the homebrew menu to deal with it."
@@ -797,14 +791,7 @@
         "similar": "Similar games",
         "series": "Series",
         "steam": "Steam reviews",
-        "steam_value": "{} % positive · {} reviews",
-        "price": "eShop price",
-        "free": "Free",
-        "price_sale": "{0} → {1} (-{2}%)",
-        "price_sale_until": "{0} → {1} (-{2}%) until {3}",
-        "price_lowest_now": "lowest price yet",
-        "lowest": "Lowest since {}",
-        "lowest_value": "{0} on {1}"
+        "steam_value": "{} % positive · {} reviews"
     },
     "genres": {
         "action": "Action",
@@ -928,10 +915,7 @@
         "because_series": "Series: {}",
         "because_developer": "By {}",
         "because_popular": "Popular",
-        "because_played": "{1} h of {0}",
-        "deals": "Deals",
-        "deals_line": "On sale on the eShop",
-        "deal": "-{0}% · {1}"
+        "because_played": "{1} h of {0}"
     },
     "wishlist": {
         "add": "Add to wishlist",
@@ -962,28 +946,6 @@
         "about": "X on a game Home suggests puts it here: it is no longer suggested, and the games much like it less often.",
         "clear": "Suggest them all again",
         "none": "None"
-    },
-    "prices": {
-        "row": "eShop prices from",
-        "auto": "From the language",
-        "auto_value": "{} (language)",
-        "none": "No prices",
-        "none_for_language": "None for this language",
-        "countries": {
-            "US": "United States",
-            "CA": "Canada",
-            "MX": "Mexico",
-            "BR": "Brazil",
-            "GB": "United Kingdom",
-            "FR": "France",
-            "DE": "Germany",
-            "ES": "Spain",
-            "IT": "Italy",
-            "NL": "Netherlands",
-            "PT": "Portugal",
-            "AU": "Australia",
-            "JP": "Japan"
-        }
     },
     "boreale": {
         "intro": "The homebrews of the Boréale family installed on this console: each one adds itself here when it starts. A on one opens it.",

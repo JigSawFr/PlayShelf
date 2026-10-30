@@ -151,7 +151,8 @@ static void test_routes()
     // Each entry to the tab where it is dealt with: a tab of the main screen.
     CHECK(shared_bell_logic::route_of("updates") == "library" && shared_bell_logic::route_of("dlcs") == "library");
     CHECK(shared_bell_logic::route_of("wish.0100000000010000") == "catalogue");
-    CHECK(shared_bell_logic::route_of("sale.0100000000010000.1792000000") == "catalogue");
+    CHECK(shared_bell_logic::route_of("out.0100000000010000.20261102") == "catalogue");
+    CHECK(shared_bell_logic::route_of("atlas_new.0100000000010000.20261102") == "catalogue");
     CHECK(shared_bell_logic::route_of("downloads_failed") == "downloads" && shared_bell_logic::route_of("kit.update") == "about");
     CHECK(shared_bell_logic::route_of("storage") == "home");
 }
