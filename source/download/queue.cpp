@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <random>
+#include <utility>
 
 #include <aurore/extern/nlohmann/json.hpp>
 
@@ -119,7 +120,7 @@ std::string queue_to_json(const std::vector<Job>& jobs)
         j["title_id"] = job.title_id;
         if (job.version) j["version"] = *job.version;
         j["size"] = job.size;
-        j["state"] = STATES[(int)job.state];
+        j["state"] = STATES[std::to_underlying(job.state)];
         if (!job.error.empty()) j["error"] = job.error;
         if (job.unsigned_content) j["unsigned"] = true;
         if (job.accept_unsigned) j["accept_unsigned"] = true;

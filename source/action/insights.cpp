@@ -6,6 +6,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <utility>
 
 #include <aurore.hpp>
 #include <fmt/format.h>
@@ -415,13 +416,13 @@ void start()
         const download_flow::Live live = download_flow::live();
         std::string               key;
         for (const download::Job& j : download_flow::jobs()) {
-            key += j.id + ":" + std::to_string((int)j.state) + ";";
+            key += j.id + ":" + std::to_string(std::to_underlying(j.state)) + ";";
             if (j.id == live.id && live.speed > 0) library_flow::note_speed(j.server_id, live.speed);
         }
         // The jobs and their states, not their progress. One more done: the
         // console's games read again.
         if (key == s_jobs_key) return;
-        const std::string done_mark = ":" + std::to_string((int)download::State::Done) + ";";
+        const std::string done_mark = ":" + std::to_string(std::to_underlying(download::State::Done)) + ";";
         const auto        done = [&done_mark](const std::string& k) {
             size_t n = 0;
             for (size_t at = k.find(done_mark); at != std::string::npos; at = k.find(done_mark, at + 1)) n++;

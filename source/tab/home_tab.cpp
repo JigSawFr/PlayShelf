@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <ctime>
 #include <map>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -163,7 +164,7 @@ std::string key_of(const insights::Snapshot& s)
         for (const insights::Pick& p : *list) key += fmt::format("{:x},", p.title().id);
         key += '|';
     }
-    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x}.{},", l.pick.title().id, (int)l.reason.kind, l.reason.because, l.reason.hours);
+    for (const insights::Suggested& l : s.like) key += fmt::format("{:x}.{}.{:x}.{},", l.pick.title().id, std::to_underlying(l.reason.kind), l.reason.because, l.reason.hours);
     for (const insights::InSeries& l : s.series) key += fmt::format("{:x},", l.pick.title().id);
     for (const insights::Deal& d : s.deals) key += fmt::format("{:x}.{}.{},", d.pick.title().id, d.price.sale, d.price.until);
     for (const insights::Played& p : s.recent) key += fmt::format("{:x}.{},", p.game.game.id, p.game.last_played);
