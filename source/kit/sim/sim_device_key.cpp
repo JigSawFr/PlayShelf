@@ -5,7 +5,9 @@
 #include <cstdio>
 #include <random>
 #include <string>
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "../core/device_key.h"
 #include "util/paths.hpp"
@@ -22,8 +24,9 @@ extern "C" Result device_key(u8 out[16])
     std::random_device rd;
     for (int i = 0; i < 16; i++)
         out[i] = (u8)rd();
-    FILE* f = std::fopen(path.c_str(), "wb");
-    if (!f) return NXM_RESULT(81);
-    const bool ok = std::fwrite(out, 1, 16, f) == 16;
-    return std::fclose(f) == 0 && ok ? 0 : NXM_RESULT(81);
+    // Readable by this user alone: it opens every secret sealed on this PC.
+    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    if (fd < 0) return NXM_RESULT(81);
+    const bool ok = ::write(fd, out, 16) == 16;
+    return ::close(fd) == 0 && ok ? 0 : NXM_RESULT(81);
 }
