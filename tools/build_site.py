@@ -42,7 +42,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-from urllib.parse import urlsplit
+from urllib.parse import urlparse, urlsplit
 
 import markdown
 
@@ -93,6 +93,45 @@ LANGUAGES = [
 # language, Mexico for Latin America's Spanish, Taiwan for Traditional Chinese.
 FLAGS = {"en-US": "US", "fr": "FR", "fr-CA": "CA", "de": "DE", "es": "ES", "es-419": "MX", "it": "IT", "nl": "NL",
          "pt": "PT", "pt-BR": "BR", "ru": "RU", "ja": "JP", "ko": "KR", "zh-Hans": "CN", "zh-Hant": "TW"}
+
+
+
+# Links out say nothing of the visit (workbench rule "liens sortants
+# anonymes"): the page sends no referrer (template.html's meta), a link to a
+# third party carries rel="noreferrer"; a link to *.boreale.dev or to
+# github.com/JigSawFr keeps the origin alone (referrerpolicy="strict-origin"),
+# so GitHub's traffic insights still see our sites.
+LINK_OUT = re.compile(r'<a\b[^<>]*?\bhref="(https?://[^"]*)"[^<>]*>')
+
+
+def own_site(url: str) -> bool:
+    """boreale.dev, its subdomains, and the repositories of github.com/JigSawFr/
+    (that account's alone: another owner, a gist or GitHub's own pages are
+    third parties)."""
+    u = urlparse(url)
+    host = (u.hostname or "").lower()
+    return u.scheme == "https" and (host == "boreale.dev" or host.endswith(".boreale.dev") or
+                                    (host == "github.com" and u.path.lower().startswith("/jigsawfr/")))
+
+
+def link_out(tag: str, url: str) -> str:
+    tag = re.sub(r'\sreferrerpolicy="[^"]*"', "", tag)
+    rel = re.search(r'\srel="([^"]*)"', tag)
+    words = [w for w in (rel.group(1).split() if rel else []) if w != "noreferrer"]
+    if rel:
+        tag = tag[:rel.start()] + tag[rel.end():]
+    if own_site(url):
+        extra = ' referrerpolicy="strict-origin"'
+    else:
+        words.append("noreferrer")
+        extra = ""
+    if words:
+        extra = f' rel="{" ".join(words)}"' + extra
+    return tag[:-1] + extra + ">"
+
+
+def links_out(text: str) -> str:
+    return LINK_OUT.sub(lambda m: link_out(m.group(0), m.group(1)), text)
 
 
 def flag(lang):
@@ -616,6 +655,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
 <html lang="{html_lang}" data-lang="{code}">
 <head>
   <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="{CSP}">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{html.escape(full_title)}</title>
@@ -1342,7 +1382,7 @@ def sitemap(paths):
 def redirect_page(to, canonical, html_lang):
     """A page that sends its visitor on at once (GitHub Pages has no
     redirects of its own): no script, which the CSP refuses inline."""
-    return (f'<!doctype html>\n<html lang="{html_lang}">\n<meta charset="utf-8">\n'
+    return (f'<!doctype html>\n<html lang="{html_lang}">\n<meta charset="utf-8">\n<meta name="referrer" content="no-referrer">\n'
             f'<meta name="robots" content="noindex">\n<meta http-equiv="refresh" content="0; url={to}">\n'
             f'<link rel="canonical" href="{canonical}">\n<title>PlayShelf</title>\n<a href="{to}">{canonical}</a>\n')
 
@@ -1358,6 +1398,8 @@ def favicon_ico(png):
 def write(out, rel, text):
     path = os.path.join(out, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    if rel.endswith(".html"):
+        text = links_out(text)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
