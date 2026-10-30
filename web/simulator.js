@@ -892,6 +892,8 @@ function homeLink() {
   for (const link of document.querySelectorAll('#sites [data-site]')) {
     link.href = link.dataset.site + (french ? 'fr/' : '');
   }
+  // The privacy and legal notice, boreale.dev's, in the same folder.
+  $('legal-link').href = `https://boreale.dev/${language === 'en-US' ? '' : `${language.toLowerCase()}/`}legal/`;
   $('sites-button').setAttribute('aria-label', `PlayShelf · ${t('sites_label')}`);
 }
 

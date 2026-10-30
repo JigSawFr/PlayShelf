@@ -68,7 +68,8 @@
     "tour_download": "Install everything: its packages go to the downloads and are installed one after the other.",
     "tour_downloads": "Downloads: the queue, each game's timeline, and how the packages are fetched.",
     "tour_preferences": "Preferences: the language, the theme and the title database.",
-    "tour_end": "Your turn: the arrows move, Enter is A, Esc is B. The panel sets any state."
+    "tour_end": "Your turn: the arrows move, Enter is A, Esc is B. The panel sets any state.",
+    "sites_legal": "Privacy and legal notice"
   },
   "groups": {
     "app": "PlayShelf",

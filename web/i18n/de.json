@@ -68,7 +68,8 @@
     "tour_download": "Alles installieren: Seine Pakete kommen in die Downloads und werden nacheinander installiert.",
     "tour_downloads": "Downloads: die Warteschlange, der Zeitstrahl jedes Spiels und wie die Pakete geladen werden.",
     "tour_preferences": "Einstellungen: die Sprache, das Design und die Titeldatenbank.",
-    "tour_end": "Jetzt du: Die Pfeile bewegen, Enter ist A, Esc ist B. Das Panel stellt jeden Zustand ein."
+    "tour_end": "Jetzt du: Die Pfeile bewegen, Enter ist A, Esc ist B. Das Panel stellt jeden Zustand ein.",
+    "sites_legal": "Datenschutz und Impressum"
   },
   "groups": {
     "app": "PlayShelf",
