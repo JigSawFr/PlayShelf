@@ -491,11 +491,14 @@ def rewrite_links(body, source, lang, to_root, assets):
 
 # Boréale's sites, in the header's menu (switcher()): the same in each of
 # Boréale's sites (boreale/tools/build_site.py's the reference). boreale.dev
-# first, then the homebrew, then the libraries, each group under its title.
+# first, then the homebrew, the libraries, and the open data and protocols,
+# each group under its title.
 SITES = [(None, [("boreale", "Boréale", "https://boreale.dev/")]),
          ("sites_homebrew", [("playguard", "PlayGuard", "https://guard.boreale.dev/"),
                              ("playshelf", "PlayShelf", "https://shelf.boreale.dev/")]),
-         ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")])]
+         ("sites_libraries", [("aurore", "Aurore", "https://aurore.boreale.dev/")]),
+         ("sites_open", [("atlas", "Atlas", "https://atlas.boreale.dev/"),
+                         ("lantern", "Lantern", "https://lantern.boreale.dev/")])]
 
 
 # versions.json's schema this build reads ({"schema": 1, "projects": {...}});
@@ -531,7 +534,7 @@ def boreale_versions():
 def switcher(t, lang, to_root, home, here, name, versions):
     """The header's name (`name`), a button that opens the menu of Boréale's
     sites, `here` marked and leading to `home`, each in the page's language
-    (the four sites share the same 15 folders), with its latest release
+    (Boréale's sites share the same 15 folders), with its latest release
     (`versions`). A
     popover: the browser closes it on Esc or a click elsewhere; site.css's
     and site.js's "site switcher" blocks."""
@@ -804,6 +807,8 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
           <ul><li><a href="https://boreale.dev/{lang_dir(code)}">boreale.dev</a></li>
             <li><a href="https://guard.boreale.dev/{lang_dir(code)}">PlayGuard</a></li>
             <li><a href="https://aurore.boreale.dev/{lang_dir(code)}">Aurore</a></li>
+            <li><a href="https://atlas.boreale.dev/{lang_dir(code)}">Atlas</a></li>
+            <li><a href="https://lantern.boreale.dev/{lang_dir(code)}">Lantern</a></li>
             <li><a href="https://boreale.dev/{lang_dir(code)}legal/">{t('sites_legal')}</a></li>
             <li><a href="mailto:contact@boreale.dev">contact@boreale.dev</a></li></ul>
         </div>
