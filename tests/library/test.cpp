@@ -20,6 +20,9 @@ using namespace library;
 
 namespace
 {
+// Why a reading failed; "" when it did not.
+template <class T> std::string error_of(const Parsed<T>& r) { return r ? "" : r.error(); }
+
 std::string b64(std::string_view text) { return library::base64({(const uint8_t*)text.data(), text.size()}); }
 
 void write_seed(const char* name, const std::string& s)
@@ -52,10 +55,9 @@ const char* API = R"({
 void test_api()
 {
     write_seed("api", API);
-    std::string why;
-    const auto  c = parse_api(API, "https://shelf.example.org:8443/api/remote", &why);
+    const auto c = parse_api(API, "https://shelf.example.org:8443/api/remote");
     if (!CHECK(c)) {
-        fprintf(stderr, "  %s\n", why.c_str());
+        fprintf(stderr, "  %s\n", c.error().c_str());
         return;
     }
     CHECK(c->motd == "Welcome to the shelf Second line");   // a control character made a space
@@ -80,9 +82,9 @@ void test_api()
     CHECK(c->skipped == 4);   // http, gdrive, the same address again, no address
 
     // The server's own refusal, and answers that are no catalogue.
-    CHECK(!parse_api(R"({"error": "Unauthorized: wrong password"})", "https://a/", &why) && why == "Unauthorized: wrong password");
-    CHECK(!parse_api(R"({"success": "hi"})", "https://a/", &why) && why.find("no sections") != std::string::npos);
-    CHECK(!parse_api("<html>login</html>", "https://a/", &why));
+    CHECK(error_of(parse_api(R"({"error": "Unauthorized: wrong password"})", "https://a/")) == "Unauthorized: wrong password");
+    CHECK(error_of(parse_api(R"({"success": "hi"})", "https://a/")).contains("no sections"));
+    CHECK(!parse_api("<html>login</html>", "https://a/"));
     CHECK(!parse_api("[1,2]", "https://a/"));
     std::string deep = std::string(100, '[') + std::string(100, ']');
     CHECK(!parse_api(R"({"sections": )" + deep + "}", "https://a/"));

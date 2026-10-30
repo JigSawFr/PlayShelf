@@ -115,7 +115,7 @@ struct TitleRequest
     std::string title_name, status;   // "open", "closed" (the game is on the server now), "denied"…
     int64_t     created = 0;          // POSIX time, 0 when unknown
 };
-[[nodiscard]] std::optional<std::vector<TitleRequest>> parse_requests(const std::string& body, std::string* why = nullptr);
+[[nodiscard]] Parsed<std::vector<TitleRequest>> parse_requests(const std::string& body);
 [[nodiscard]] bool list_requests(const Link& link, Transport& t, Session& session, std::vector<TitleRequest>* out, std::string* why);
 // Asks the server for `title_id` (a base game). *message: what the server
 // answered (a request already open counts as done).

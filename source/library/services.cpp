@@ -368,12 +368,11 @@ bool delete_save(const Link& link, Transport& t, const SaveBackup& backup, std::
 
 // ---- Requests
 
-std::optional<std::vector<TitleRequest>> parse_requests(const std::string& body, std::string* why)
+Parsed<std::vector<TitleRequest>> parse_requests(const std::string& body)
 {
     json j;
     if (!parse_json(body, &j) || !j.is_object() || !array_at(j, "requests")) {
-        fail(why, "the server's answer is not a list of requests");
-        return std::nullopt;
+        return std::unexpected("the server's answer is not a list of requests");
     }
     std::vector<TitleRequest> out;
     for (const json& e : *array_at(j, "requests")) {
@@ -395,8 +394,8 @@ bool list_requests(const Link& link, Transport& t, Session& session, std::vector
     bool         ok = false;
     const Answer a = with_session(link, t, session, "/api/requests", http::Call(), why, &ok);
     if (!ok) return false;
-    auto list = parse_requests(a.body, why);
-    if (!list) return false;
+    auto list = parse_requests(a.body);
+    if (!list) return fail(why, list.error());
     *out = std::move(*list);
     return true;
 }

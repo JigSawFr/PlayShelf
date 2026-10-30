@@ -395,22 +395,19 @@ bool parse_name_tags(const std::string& name, uint64_t* title_id, uint32_t* vers
     return found;
 }
 
-std::optional<Catalog> parse_api(const std::string& body, const std::string& base_url, std::string* why)
+Parsed<Catalog> parse_api(const std::string& body, const std::string& base_url)
 {
     json j;
     if (!parse_json(body, &j) || !j.is_object()) {
-        fail(why, "the server's answer is not a catalogue");
-        return std::nullopt;
+        return std::unexpected("the server's answer is not a catalogue");
     }
     const std::string error = str_at(j, "error");
     if (!error.empty()) {
-        fail(why, display_text(error, MAX_TITLE * 2));
-        return std::nullopt;
+        return std::unexpected(display_text(error, MAX_TITLE * 2));
     }
     const auto sections = j.find("sections");
     if (sections == j.end() || !sections->is_array()) {
-        fail(why, "the server's answer has no sections");
-        return std::nullopt;
+        return std::unexpected("the server's answer has no sections");
     }
     Catalog               c;
     std::set<std::string> seen;
@@ -554,16 +551,14 @@ bool add_graphql_apps(Catalog& c, const std::string& body, const std::string& ba
     return true;
 }
 
-std::optional<Catalog> parse_index(const std::string& body, const std::string& base_url, std::string* why)
+Parsed<Catalog> parse_index(const std::string& body, const std::string& base_url)
 {
     json j;
     if (!parse_json(body, &j) || !j.is_object()) {
-        fail(why, "the index is not JSON");
-        return std::nullopt;
+        return std::unexpected("the index is not JSON");
     }
     if (!j.contains("files") && !j.contains("directories") && !j.contains("titledb") && !j.contains("success")) {
-        fail(why, "the index has none of files, directories, titledb, success");
-        return std::nullopt;
+        return std::unexpected("the index has none of files, directories, titledb, success");
     }
     Catalog               c;
     std::set<std::string> seen;
