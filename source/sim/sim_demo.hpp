@@ -3,8 +3,9 @@
 // DEMO_ORIGIN, which source/sim/sim_demo_http.cpp answers from the files
 // tools/web_demo.cpp and tools/web_demo_art.py made into dir(); and the
 // other services' answers about its games, so the demo fetches nothing
-// real: PlayInsights' files (dir()/insights/, at INSIGHTS_BASE,
-// action/popular_flow's address, its prices/ action/prices_flow's), Nlib API's details and pictures
+// real: PlayInsights' files (dir()/insights/, at INSIGHTS_BASE: the
+// Switch's in switch/, action/popular_flow's, and switch/prices/,
+// action/prices_flow's), Nlib API's details and pictures
 // (dir()/nlib/, at NLIB_BASE, titledb/nlib's) and a title database
 // (dir()/titledb/index.json, at TITLEDB_URL, NXMeta's in util/config.hpp);
 // and the console's first games (dir()/console/, put on the simulated
