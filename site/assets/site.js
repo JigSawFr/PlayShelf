@@ -526,7 +526,7 @@
   if (target && target[0] !== 'en-US') location.replace(target[1] + location.hash);
 })();
 
-// Boréale's site switcher: the menu of the four sites opens under the name
+// Boréale's site switcher: the menu of Boréale's sites opens under the name
 // beside its button, wherever the header is. The same block in boreale.dev's,
 // PlayGuard's, PlayShelf's and Aurore's site.js; boreale's is the reference.
 // Without popovers (an old browser), the name still leads home.
