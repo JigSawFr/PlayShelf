@@ -34,6 +34,8 @@ const CJK = new Set(['ja', 'ko', 'zh-Hans', 'zh-Hant']);
 const CJK_FILE = '/app/resources/font/cjk.otf';
 // The data folder (source/util/paths.cpp), kept in IndexedDB under that name with `keep`.
 const DATA = '/playshelf_data';
+// config.json's schema (config::SCHEMA in source/util/config.hpp).
+const CONFIG_SCHEMA = 1;
 // Where a report goes without build.json (a local build).
 const REPO = 'JigSawFr/PlayShelf';
 
@@ -418,7 +420,10 @@ function mountKept(m, config) {
     if (e) log(`keep: ${e}`, true);
     let kept = {};
     try { kept = JSON.parse(m.FS.readFile(`${DATA}/config.json`, { encoding: 'utf8' })); } catch { /* first run */ }
-    m.FS.writeFile(`${DATA}/config.json`, JSON.stringify({ ...kept, ...config }));
+    // A newer PlayShelf's file is left as it is (it reads the defaults).
+    if (!(kept?.schema > CONFIG_SCHEMA)) {
+      m.FS.writeFile(`${DATA}/config.json`, JSON.stringify({ ...kept, ...config, schema: CONFIG_SCHEMA }));
+    }
     setInterval(saveData, 3000);
     addEventListener('pagehide', saveData);
     addEventListener('visibilitychange', () => { if (document.hidden) saveData(); });
