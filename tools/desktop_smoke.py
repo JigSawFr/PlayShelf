@@ -393,6 +393,13 @@ key("Down", 20)
 time.sleep(1)
 shot("13_notices_others")
 key("Escape")
+# About › Boréale homebrews: PlayShelf, then the made-up Lantern.
+key("Right")
+go_to("Boréale homebrews")
+key("Return")
+time.sleep(1)
+shot("14_boreale")
+key("Escape")
 # What the other Boréale homebrews read of PlayShelf: its registry entry and
 # its bell (boreale-link), written once the main screen opened.
 sd = os.path.join(run_dir, "playshelf_data", "sd", "config", "boreale")

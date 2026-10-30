@@ -9,6 +9,7 @@
 
 #include "activity/changelog_activity.hpp"
 #include "app.hpp"
+#include "tab/boreale_tab.hpp"
 #include "tab/help_tab.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -49,6 +50,11 @@ AboutTab::AboutTab()
     help->setDetailText(ui::opens());
     help->registerClickAction([](aurore::View*) {
         ui::open_screen(new HelpTab(), "playshelf/prefs/help"_i18n);
+        return true;
+    });
+
+    boreale->registerClickAction([](aurore::View*) {
+        ui::open_screen(new BorealeTab(), "playshelf/about/boreale"_i18n);
         return true;
     });
 
@@ -106,7 +112,7 @@ AboutTab::AboutTab()
         column->addView(hero, 0);
     }
     this->list.apply({ { "ab_version", "info" }, { "ab_update", "download" }, { "ab_help", "tools" },
-                       { "ab_credits", "user" } });
+                       { "ab_boreale", "list" }, { "ab_credits", "user" } });
 }
 
 void AboutTab::count_version_press()
@@ -146,6 +152,7 @@ void AboutTab::refresh()
                                      : app::version();
     version->setDetailText(ui::opens(status + commit + flags));
     version->detail->setThemeColor("textColor", newer ? "cadran/amber" : "cadran/text2");
+    boreale->setDetailText(ui::opens(BorealeTab::names()));
     this->list.sync();
     if (this->version_line) {
         const std::string version_text = app::commit().empty() ? app::version() : app::version() + " · " + app::commit();

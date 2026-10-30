@@ -33,6 +33,7 @@
             <aurore:DetailCell id="ab_version" title="@i18n/playshelf/tools/version"/>
             <aurore:DetailCell id="ab_update" title="@i18n/playshelf/tools/update"/>
             <aurore:DetailCell id="ab_help" title="@i18n/playshelf/prefs/help" marginTop="24"/>
+            <aurore:DetailCell id="ab_boreale" title="@i18n/playshelf/about/boreale"/>
             <aurore:DetailCell id="ab_credits" title="@i18n/playshelf/about/credits_open" marginTop="24"/>
             <aurore:Header title="@i18n/playshelf/about/section_support" marginTop="24" marginBottom="8"/>
             <aurore:Label id="ab_support_note" text="@i18n/playshelf/about/support_note" fontSize="20" marginBottom="6" textColor="@theme/cadran/text3"/>

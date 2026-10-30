@@ -330,7 +330,8 @@
         "whats_new_close": "繼續",
         "changelog_hint": "更新內容",
         "credit_base": "基於",
-        "version_newer": "{}（{} 可用）"
+        "version_newer": "{}（{} 可用）",
+        "boreale": "Boréale 自製軟體"
     },
     "prefs": {
         "section_app": "應用程式",
@@ -983,5 +984,10 @@
             "AU": "澳洲",
             "JP": "日本"
         }
+    },
+    "boreale": {
+        "intro": "此主機上安裝的 Boréale 家族自製軟體：每個軟體啟動時會把自己加到這裡。在其中一個上按 A 即可開啟。",
+        "this_app": "本應用程式",
+        "open_manual": "請從自製軟體選單開啟 {}。"
     }
 }

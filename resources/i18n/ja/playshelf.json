@@ -330,7 +330,8 @@
         "whats_new_close": "続ける",
         "changelog_hint": "変更点",
         "credit_base": "ベース",
-        "version_newer": "{}（{} が利用可能）"
+        "version_newer": "{}（{} が利用可能）",
+        "boreale": "Boréale のHomebrew"
     },
     "prefs": {
         "section_app": "アプリ",
@@ -983,5 +984,10 @@
             "AU": "オーストラリア",
             "JP": "日本"
         }
+    },
+    "boreale": {
+        "intro": "このコンソールにインストールされている Boréale ファミリーのHomebrew です。それぞれ起動時にここに追加されます。A で開きます。",
+        "this_app": "このアプリ",
+        "open_manual": "Homebrew メニューから {} を開いてください。"
     }
 }
