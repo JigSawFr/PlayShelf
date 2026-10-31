@@ -77,4 +77,11 @@ bool offer_at_start(const std::string& latest, const std::string& running, const
 // ("1.1.0:24.0.0", "none" or "offline") replaces the network.
 Result      check(uint32_t console_fw);
 
+// The newest release of another Boréale homebrew, from its repository
+// ("owner/name" on GitHub: its compat document, as check() reads PlayGuard's),
+// for the update check made for all (action/update_flow); "" when it cannot
+// tell. Blocking (network). On the desktop build <APP_ENV>_SIM_LATEST_OF
+// ("owner/name=1.2.0;…") replaces the network.
+std::string latest_of(const std::string& repo);
+
 }   // namespace update

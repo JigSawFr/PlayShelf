@@ -18,6 +18,7 @@
 #include "core/sim_env.h"
 #include "tab/help_tab.hpp"
 #include "tab/tab_base.hpp"
+#include "action/updates_for_all.hpp"
 #include "ui/app_hooks.hpp"
 #include "ui/ui.hpp"
 #include "util/paths.hpp"
@@ -174,4 +175,5 @@ void install_screen_hooks()
     a.make_help_tab = []() -> aurore::View* { return new HelpTab(); };
     a.mode_changed = []() { frame_stats_flow::apply(); };
     a.open_notices = []() { NoticesActivity::open(); };
+    a.update_checked = [](const update::Result& r) { updates_for_all::check(r); };
 }

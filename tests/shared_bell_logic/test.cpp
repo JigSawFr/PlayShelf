@@ -131,6 +131,22 @@ static void test_others()
     // In French: its French notice instead.
     const auto fr = shared_bell_logic::others(root, "fr", 100);
     CHECK(fr.size() == 3 && fr[0].notices.size() == 1 && fr[0].notices[0].id == "fr");
+
+    // The update check made for all: Lantern 0.4.0 over the 0.3.0 installed;
+    // Quill, with no notices, there for its update alone; Kite up to date;
+    // PlayShelf itself never.
+    put(root + "/switch/Quill/Quill.nro", "NRO0");
+    put(root + "/config/boreale/apps/quill.conf", "schema=1\nname=Quill\nversion=1.0.0\nnro=switch/Quill/Quill.nro\n");
+    put(root + "/config/boreale/apps/kite.conf", "schema=1\nname=Kite\nversion=2.0.0\nnro=switch/kite.nro\n");
+    put(root + "/config/boreale/apps/playshelf.conf", "schema=1\nname=PlayShelf\nversion=1.0.0\n");
+    put(root + "/config/boreale/updates.conf",
+        "schema=1\nchecked=50\nlatest.lantern=0.4.0\nlatest.quill=1.1.0\nlatest.kite=2.0.0\nlatest.playshelf=9.0.0\n");
+    const auto up = shared_bell_logic::others(root, "en", 100);
+    if (!CHECK(up.size() == 4)) return;
+    CHECK(up[0].name == "Kite" && up[0].update.empty());
+    CHECK(up[1].name == "Lantern" && up[1].update == "0.4.0" && up[1].notices.size() == 2);
+    CHECK(up[2].name == "Quill" && up[2].update == "1.1.0" && up[2].notices.empty() && up[2].nro == "/switch/Quill/Quill.nro");
+    CHECK(up[3].name == "hawk" && up[3].update.empty());   // by name: lower case after
 }
 
 static void test_app()

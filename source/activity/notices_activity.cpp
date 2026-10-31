@@ -184,6 +184,20 @@ void NoticesActivity::rebuild()
         h->setMarginTop(first ? 24 : 0);
         h->setMarginBottom(8);
         box->addView(h);
+        // Its newer release, found by the update check made for all: Ⓐ opens
+        // it on its About, where it updates.
+        if (!o.update.empty()) {
+            shared_bell_logic::Notice update;
+            update.id = "update";
+            update.title = aurore::getStr("playshelf/notices/update_available", o.name, o.update);
+            update.route = "about";
+            aurore::DetailCell* cell = this->other_cell(o, update);
+            ids.push_back("notice_line_" + std::to_string(ids.size()));
+            todo_of.push_back(false);
+            cell->setId(ids.back());
+            box->addView(cell);
+            if (!first) first = cell;
+        }
         for (const shared_bell_logic::Notice& n : o.notices) {
             aurore::DetailCell* cell = this->other_cell(o, n);
             ids.push_back("notice_line_" + std::to_string(ids.size()));

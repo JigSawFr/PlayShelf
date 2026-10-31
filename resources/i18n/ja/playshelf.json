@@ -587,7 +587,8 @@
         "trend_series": "{0}シリーズ · Wikipediaで普段より{1}%多く読まれています",
         "day": "{1}{0}日",
         "open_in": "{}で開く",
-        "open_manual": "homebrewメニューから{}を開いて対応してください。"
+        "open_manual": "homebrewメニューから{}を開いて対応してください。",
+        "update_available": "{} {} が利用可能です"
     },
     "cadran": {
         "about": {

@@ -52,6 +52,8 @@ other_sd = os.path.join(run_dir, "playshelf_data", "sd")
 for rel, text in (
     ("switch/Lantern/Lantern.nro", "NRO0"),
     ("config/boreale/apps/lantern.conf", "schema=1\nname=Lantern\nversion=0.3.0\n"),
+    # The update check made for all found a newer Lantern: the bell says so.
+    ("config/boreale/updates.conf", "schema=1\nchecked=1\nlatest.lantern=0.4.0\n"),
     ("config/boreale/notices/lantern.json",
      '{"schema":1,"module":"lantern","nro":"switch/Lantern/Lantern.nro","notices":[{"id":"dl","level":"progress",'
      '"title":"Downloading Star Kart Racers","detail":"2 of 3 files","lang":"en-US","progress":40,"route":"downloads"}]}'),

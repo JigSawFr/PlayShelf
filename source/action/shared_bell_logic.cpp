@@ -12,6 +12,8 @@
 
 #include "bl_app.h"
 #include "bl_notices.h"
+#include "bl_updates.h"
+#include "util/update.hpp"
 
 namespace shared_bell_logic
 {
@@ -132,49 +134,81 @@ std::string text(const std::vector<Entry>& entries, const std::string& lang, con
 std::vector<Other> others(const std::string& sd_root, const std::string& lang, int64_t now)
 {
     std::vector<Other> out;
-    DIR* dir = opendir(under(sd_root, BL_NOTICES_DIR).c_str());
-    if (!dir) return out;
     auto file_notices = std::make_unique<BlNotices>();
     auto toks = std::make_unique<BlJTok[]>(BL_NOTICES_TOKENS);
-    while (const dirent* ent = readdir(dir)) {
-        char module[BL_APP_MODULE_MAX];
-        if (!bl_notices_module_of(ent->d_name, module, sizeof(module)) || !std::strcmp(module, MODULE)) continue;
-        std::string text;
-        if (!read_file(under(sd_root, BL_NOTICES_DIR "/") + ent->d_name, text)) continue;
-        bl_notices_init(file_notices.get(), module, "");
-        if (!bl_notices_parse(file_notices.get(), text.data(), text.size(), toks.get(), BL_NOTICES_TOKENS)) continue;
-        // Its .nro, from its file; gone (the homebrew deleted): nothing. One
-        // started from elsewhere (nxlink) does not know it: kept, not launched.
-        struct stat st;
-        if (file_notices->nro[0] && stat(under(sd_root, file_notices->nro).c_str(), &st) != 0) continue;
-        Other o;
-        o.module = module;
-        if (file_notices->nro[0]) o.nro = std::string(file_notices->nro[0] == '/' ? "" : "/") + file_notices->nro;
-        o.name = module;
-        char app_path[BL_APP_PATH_MAX];
-        std::string app_text;
-        if (bl_app_path(module, app_path, sizeof(app_path)) && read_file(under(sd_root, app_path), app_text)) {
+    if (DIR* dir = opendir(under(sd_root, BL_NOTICES_DIR).c_str())) {
+        while (const dirent* ent = readdir(dir)) {
+            char module[BL_APP_MODULE_MAX];
+            if (!bl_notices_module_of(ent->d_name, module, sizeof(module)) || !std::strcmp(module, MODULE)) continue;
+            std::string text;
+            if (!read_file(under(sd_root, BL_NOTICES_DIR "/") + ent->d_name, text)) continue;
+            bl_notices_init(file_notices.get(), module, "");
+            if (!bl_notices_parse(file_notices.get(), text.data(), text.size(), toks.get(), BL_NOTICES_TOKENS)) continue;
+            // Its .nro, from its file; gone (the homebrew deleted): nothing. One
+            // started from elsewhere (nxlink) does not know it: kept, not launched.
+            struct stat st;
+            if (file_notices->nro[0] && stat(under(sd_root, file_notices->nro).c_str(), &st) != 0) continue;
+            Other o;
+            o.module = module;
+            if (file_notices->nro[0]) o.nro = std::string(file_notices->nro[0] == '/' ? "" : "/") + file_notices->nro;
+            o.name = module;
+            for (size_t i = 0; i < file_notices->count; i++) {
+                const BlNotice& n = file_notices->items[i];
+                if (!bl_notice_shown(&n, now, lang.c_str())) continue;
+                Notice shown;
+                shown.id = n.id;
+                shown.attention = n.level == BlNotice_Todo || n.level == BlNotice_Error;
+                shown.title = n.title;
+                shown.detail = n.detail;
+                if (n.progress >= 0)
+                    shown.detail += (shown.detail.empty() ? "" : " · ") + std::to_string(n.progress) + "\u00a0%";
+                shown.route = n.route;
+                o.notices.push_back(shown);
+            }
+            out.push_back(std::move(o));
+        }
+        closedir(dir);
+    }
+
+    // The registry: each homebrew's name, and its update when the check made
+    // for all found a newer release than the one it says it is.
+    BlUpdates updates;
+    bl_updates_defaults(&updates);
+    std::string updates_text;
+    if (read_file(under(sd_root, BL_UPDATES_FILE), updates_text))
+        bl_updates_parse(&updates, updates_text.data(), updates_text.size());
+    if (DIR* dir = opendir(under(sd_root, BL_APPS_DIR).c_str())) {
+        while (const dirent* ent = readdir(dir)) {
+            char module[BL_APP_MODULE_MAX];
+            if (!bl_app_module_of(ent->d_name, module, sizeof(module)) || !std::strcmp(module, MODULE)) continue;
+            std::string app_text;
+            if (!read_file(under(sd_root, BL_APPS_DIR "/") + ent->d_name, app_text)) continue;
             BlApp app;
             bl_app_defaults(&app);
             bl_app_parse(&app, app_text.data(), app_text.size());
-            if (app.name[0]) o.name = app.name;
+            Other* o = nullptr;
+            for (Other& known : out)
+                if (known.module == module) o = &known;
+            const char* latest = bl_updates_get(&updates, module);
+            const bool newer = latest && app.version[0] && update::compare_versions(latest, app.version) > 0;
+            if (!o && newer) {
+                // An update and nothing else to say: from the registry alone.
+                const char* nro = app.nro[0] == '/' ? app.nro + 1 : app.nro;
+                struct stat st;
+                if (nro[0] && stat(under(sd_root, nro).c_str(), &st) != 0) continue;   // deleted
+                out.push_back(Other{});
+                o = &out.back();
+                o->module = module;
+                o->name = module;
+                if (nro[0]) o->nro = std::string("/") + nro;
+            }
+            if (!o) continue;
+            if (app.name[0]) o->name = app.name;
+            if (newer) o->update = latest;
         }
-        for (size_t i = 0; i < file_notices->count; i++) {
-            const BlNotice& n = file_notices->items[i];
-            if (!bl_notice_shown(&n, now, lang.c_str())) continue;
-            Notice shown;
-            shown.id = n.id;
-            shown.attention = n.level == BlNotice_Todo || n.level == BlNotice_Error;
-            shown.title = n.title;
-            shown.detail = n.detail;
-            if (n.progress >= 0)
-                shown.detail += (shown.detail.empty() ? "" : " · ") + std::to_string(n.progress) + "\u00a0%";
-            shown.route = n.route;
-            o.notices.push_back(shown);
-        }
-        if (!o.notices.empty()) out.push_back(std::move(o));
+        closedir(dir);
     }
-    closedir(dir);
+    std::erase_if(out, [](const Other& o) { return o.notices.empty() && o.update.empty(); });
     std::sort(out.begin(), out.end(), [](const Other& a, const Other& b) { return a.name < b.name; });
     return out;
 }

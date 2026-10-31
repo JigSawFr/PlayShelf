@@ -68,11 +68,15 @@ struct Other
     std::string         name;     // its registry's (config/boreale/apps/), else the module
     std::string         nro;      // from the SD card's root, with its '/': "/switch/PlayShelf/PlayShelf.nro"; "" unknown
     std::vector<Notice> notices;
+    // Its newest release when newer than the one installed (its registry
+    // file's version), as the last update check made for all found it
+    // (config/boreale/updates.conf, boreale-link's bl_updates); "" none.
+    std::string         update;
 };
 
 // The other homebrews' notices shown at `now` on a console in `lang`, read
-// from under `sd_root`: by name; a homebrew whose .nro is no longer there,
-// or with nothing to show, left out, and PlayShelf's own file too.
+// from under `sd_root`, and their updates: by name; a homebrew whose .nro is
+// no longer there, or with nothing to show, left out, and PlayShelf itself.
 std::vector<Other> others(const std::string& sd_root, const std::string& lang, int64_t now);
 
 }   // namespace shared_bell_logic

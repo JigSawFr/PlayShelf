@@ -587,7 +587,8 @@
         "trend_series": "Uit de reeks {0} · {1}% meer gelezen dan normaal op Wikipedia",
         "day": "{0} {1}",
         "open_in": "Openen in {}",
-        "open_manual": "Open {} via het homebrewmenu om dit af te handelen."
+        "open_manual": "Open {} via het homebrewmenu om dit af te handelen.",
+        "update_available": "{} {} is beschikbaar"
     },
     "cadran": {
         "about": {

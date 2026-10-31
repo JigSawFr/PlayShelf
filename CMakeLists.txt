@@ -181,7 +181,7 @@ endif ()
 # the flat files and the JSON they are written in.
 set(BOREALE_LINK ${CMAKE_CURRENT_SOURCE_DIR}/library/boreale-link/source)
 list(APPEND PLAYSHELF_SRC ${BOREALE_LINK}/bl_kv.c ${BOREALE_LINK}/bl_app.c ${BOREALE_LINK}/bl_json.c
-                          ${BOREALE_LINK}/bl_jread.c ${BOREALE_LINK}/bl_notices.c
+                          ${BOREALE_LINK}/bl_jread.c ${BOREALE_LINK}/bl_notices.c ${BOREALE_LINK}/bl_updates.c
                           ${BOREALE_LINK}/bl_cache.c ${BOREALE_LINK}/bl_prefs.c)
 
 # QR codes (sign-in with GitHub, funding links in About) (MIT, vendored: extern/qrcodegen).

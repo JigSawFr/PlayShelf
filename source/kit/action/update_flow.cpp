@@ -115,6 +115,7 @@ void run_check(std::function<void(const Offer&)> done)
     ui::in_background("update check", [fw]() {
         Offer o;
         o.result = update::check(fw);
+        if (const auto& checked = ui::app_hooks::get().update_checked) checked(o.result);
         // The newer release's file and notes, for the update screen and an
         // update in place (shown without its notes when they cannot be read).
         if (newer(o.result)) {
