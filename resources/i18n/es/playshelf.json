@@ -587,7 +587,8 @@
         "trend_series": "De la saga {0} · leído un {1} % más de lo habitual en Wikipedia",
         "day": "{0} de {1}",
         "open_in": "Abrir en {}",
-        "open_manual": "Abre {} desde el menú de homebrew para ocuparte de ello."
+        "open_manual": "Abre {} desde el menú de homebrew para ocuparte de ello.",
+        "update_available": "{} {} está disponible"
     },
     "cadran": {
         "about": {

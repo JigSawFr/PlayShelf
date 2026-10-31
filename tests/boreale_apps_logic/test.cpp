@@ -46,5 +46,19 @@ int main()
     CHECK(!all[1].self && all[1].name == "Hawk" && all[1].nro.empty() && all[1].version.empty());
     CHECK(all[2].name == "Lantern" && all[2].version == "0.3.0" && all[2].nro == "/switch/Lantern/Lantern.nro");
     CHECK(all[3].name == "kite" && all[3].module == "kite" && all[3].version == "2.0" && all[3].nro == "/switch/kite.nro");
-    return CHECK_DONE("boreale_apps_logic: registry read, sorted, deleted ones left out assertions passed");
+    CHECK(all[0].repo.empty());
+    put(root + "/config/boreale/apps/lantern.conf", "schema=1\nname=Lantern\nversion=0.3.0\nrepo=example/lantern\n");
+    CHECK(boreale_apps_logic::installed(root)[2].repo == "example/lantern");
+
+    // The update check made for all: due without a file, then a day later.
+    CHECK(boreale_apps_logic::updates_file("/") == "/config/boreale/updates.conf");
+    CHECK(boreale_apps_logic::updates_due("", 1000));
+    const std::string text = boreale_apps_logic::updates_text("", { { "playshelf", "1.9.1" }, { "lantern", "0.4.0" } }, 1000);
+    CHECK(text.find("checked=1000\nlatest.playshelf=1.9.1\nlatest.lantern=0.4.0\n") != std::string::npos);
+    CHECK(!boreale_apps_logic::updates_due(text, 1000 + 3600) && boreale_apps_logic::updates_due(text, 1000 + 86400));
+    // Lantern not found this time: its last version kept; a newer version's file never written.
+    const std::string again = boreale_apps_logic::updates_text(text, { { "playshelf", "1.9.2" } }, 90000);
+    CHECK(again.find("checked=90000\nlatest.playshelf=1.9.2\nlatest.lantern=0.4.0\n") != std::string::npos);
+    CHECK(boreale_apps_logic::updates_text("schema=2\n", { { "playshelf", "2.0.0" } }, 1).empty());
+    return CHECK_DONE("boreale_apps_logic: registry read, sorted, deleted ones left out, update check assertions passed");
 }

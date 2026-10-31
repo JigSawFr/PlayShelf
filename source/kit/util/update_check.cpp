@@ -73,4 +73,25 @@ Result check(uint32_t console_fw)
     return r;
 }
 
+std::string latest_of(const std::string& repo)
+{
+    if (repo.empty() || repo.find('/') == std::string::npos) return "";
+#ifndef __SWITCH__
+    // Desktop simulation: "owner/name=1.2.0;owner/other=0.4.0", or nothing.
+    if (const char* sim = sim_net::value(APP_ENV "_SIM_LATEST_OF")) {
+        const std::string all = std::string(";") + sim + ";";
+        const size_t at = all.find(";" + repo + "=");
+        if (at == std::string::npos) return "";
+        const size_t from = at + repo.size() + 2;
+        return all.substr(from, all.find(';', from) - from);
+    }
+#endif
+    const std::string base = "https://github.com/" + repo + "/releases/latest/download/";
+    Latest latest;
+    auto got = http::get(base + "compat-" + std::to_string(COMPAT_SCHEMA) + ".json", 64 * 1024, 10);
+    if (got && parse_compat(got->body, &latest)) return latest.version;
+    got = http::get(base + "compat.json", 64 * 1024, 10);
+    return got && parse_compat(got->body, &latest) ? latest.version : "";
+}
+
 }   // namespace update

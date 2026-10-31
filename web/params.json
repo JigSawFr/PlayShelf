@@ -26,6 +26,7 @@
   {"name": "battery", "live": true, "group": "console", "type": "bool"},
   {"name": "boot_choice", "group": "console", "type": "select", "options": ["", "a"]},
   {"name": "now", "live": true, "group": "console", "type": "datetime"},
+  {"name": "latest_of", "group": "updates", "type": "text", "panel": false},
   {"name": "latest", "live": true, "group": "updates", "type": "text", "placeholder": "1.1.0:24.0.0", "suggestions": ["offline"]},
   {"name": "store", "live": true, "group": "updates", "type": "text", "placeholder": "1.1.0", "suggestions": ["none", "offline"]},
   {"name": "dev_builds", "live": true, "group": "updates", "type": "select", "options": ["", "offline"]},

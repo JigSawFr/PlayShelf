@@ -587,7 +587,8 @@
         "trend_series": "{0}系列 · 維基百科閱讀量比平時多 {1}%",
         "day": "{1}{0}日",
         "open_in": "在 {} 中開啟",
-        "open_manual": "從 homebrew 選單開啟 {} 進行處理。"
+        "open_manual": "從 homebrew 選單開啟 {} 進行處理。",
+        "update_available": "{} {} 可用"
     },
     "cadran": {
         "about": {

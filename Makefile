@@ -178,14 +178,14 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
-shared_bell_logic_SRC   := source/action/shared_bell_logic.cpp tests/shared_bell_logic/test.cpp
-shared_bell_logic_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_json.c library/boreale-link/source/bl_jread.c library/boreale-link/source/bl_app.c library/boreale-link/source/bl_notices.c
-shared_bell_logic_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source
+shared_bell_logic_SRC   := source/action/shared_bell_logic.cpp $(K)/util/date.cpp $(K)/util/update.cpp tests/shared_bell_logic/test.cpp
+shared_bell_logic_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_json.c library/boreale-link/source/bl_jread.c library/boreale-link/source/bl_app.c library/boreale-link/source/bl_notices.c library/boreale-link/source/bl_updates.c $(CALENDAR_C)
+shared_bell_logic_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source -Isource/kit/core
 shared_look_SRC   := source/action/shared_look.cpp tests/shared_look/test.cpp
 shared_look_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_prefs.c
 shared_look_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source
 boreale_apps_logic_SRC   := source/action/boreale_apps_logic.cpp tests/boreale_apps_logic/test.cpp
-boreale_apps_logic_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_app.c
+boreale_apps_logic_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_app.c library/boreale-link/source/bl_updates.c
 boreale_apps_logic_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source
 # How well known the games are, their trend and critics (popular.json, Atlas).
 library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp

@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 
 #include "bl_app.h"
+#include "bl_updates.h"
 #include "action/shared_bell_logic.hpp"
 
 namespace boreale_apps_logic
@@ -54,6 +55,7 @@ std::vector<App> installed(const std::string& sd_root)
         app.module = module;
         app.name = a.name[0] ? a.name : module;
         app.version = a.version;
+        app.repo = a.repo;
         if (nro[0]) app.nro = std::string("/") + nro;
         app.self = !std::strcmp(module, shared_bell_logic::MODULE);
         out.push_back(std::move(app));
@@ -63,6 +65,33 @@ std::vector<App> installed(const std::string& sd_root)
         if (a.self != b.self) return a.self;
         return a.name < b.name;
     });
+    return out;
+}
+
+std::string updates_file(const std::string& sd_root)
+{
+    return under(sd_root, BL_UPDATES_FILE);
+}
+
+bool updates_due(const std::string& text, int64_t now)
+{
+    BlUpdates u;
+    bl_updates_defaults(&u);
+    bl_updates_parse(&u, text.data(), text.size());
+    return bl_updates_due(&u, now);
+}
+
+std::string updates_text(const std::string& text, const std::vector<std::pair<std::string, std::string>>& latest,
+                         int64_t now)
+{
+    BlUpdates u;
+    bl_updates_defaults(&u);
+    bl_updates_parse(&u, text.data(), text.size());
+    if (!bl_updates_may_write(&u)) return "";
+    for (const auto& [module, version] : latest) bl_updates_set(&u, module.c_str(), version.c_str());
+    u.checked = now;
+    std::string out(4096, '\0');
+    out.resize(bl_updates_write(&u, &out[0], out.size()));
     return out;
 }
 

@@ -23,6 +23,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_HBLOADER=1` | A homebrew loader that can hand an update over to a store |
 | `PLAYSHELF_SIM_HOLD_LOADING=1` | Not the console: the start-up stops on the loading screen, at its last step (the `loading` smoke scenario's screenshot) |
 | `PLAYSHELF_SIM_LATEST=1.1.0:24.0.0` | The latest release and the newest firmware it supports, for the update check (`offline` for no network) |
+| `PLAYSHELF_SIM_LATEST_OF=owner/name=1.2.0;…` | Not the console: the newest release of other Boréale homebrews, by their repository, for the update check made for all (`config/boreale/updates.conf`) |
 | `PLAYSHELF_SIM_NOW=<POSIX seconds>` | A frozen console time (with `TZ=` for its time zone) |
 | `PLAYSHELF_SIM_NO_CFW=1` | No Atmosphère |
 | `PLAYSHELF_SIM_NO_GAME=1` | No game open (applet mode with nothing behind it) |

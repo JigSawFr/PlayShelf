@@ -9,6 +9,8 @@
 #include <functional>
 #include <string>
 
+#include "util/update.hpp"
+
 namespace ui::app_hooks
 {
 
@@ -18,6 +20,11 @@ struct Hooks
     std::function<void(const char* what, bool ok)> note_write;   // a write that failed, for the app to say
     std::function<void()>             mode_changed;           // what runs only in developer mode
     std::function<void()>             open_notices;           // the notification bell's list
+
+    // After each check for the app's own update, on the check's thread
+    // (blocking is fine): the app may check more with it, the other
+    // homebrews' releases for one. Unset: nothing more.
+    std::function<void(const update::Result&)> update_checked;
 
     // Before replacing the running .nro (an update, another build, going
     // back): false stops it, the app having said why. Unset: allowed.

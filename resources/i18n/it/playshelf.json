@@ -587,7 +587,8 @@
         "trend_series": "Della serie {0} · letto il {1}% in più del solito su Wikipedia",
         "day": "{0} {1}",
         "open_in": "Apri in {}",
-        "open_manual": "Apri {} dal menu degli homebrew per occupartene."
+        "open_manual": "Apri {} dal menu degli homebrew per occupartene.",
+        "update_available": "{} {} è disponibile"
     },
     "cadran": {
         "about": {
