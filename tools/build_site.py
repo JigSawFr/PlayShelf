@@ -537,8 +537,11 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
     # site's own address; a pull request's preview has none.
     umami = "" if NOINDEX else f"  {SITE.audience(to_root)}\n"
     common = t.common()
+    # The English home page, where boreale-site's lang.js sends a first visit
+    # on to the browser's language.
+    first_visit = " data-first-visit" if lang == "en-US" and path == "" and "home" in body_class.split() else ""
     return f"""<!doctype html>
-<html lang="{html_lang}" data-lang="{code}">
+<html lang="{html_lang}" data-lang="{code}"{first_visit}>
 <head>
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer">
@@ -568,6 +571,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <link rel="alternate" type="application/atom+xml" title="PlayShelf releases" href="{SITE_URL}releases.atom">
 {"".join(json_ld(d) for d in structured)}
   <script src="{to_root}assets/reading.js"></script>
+  <script src="{to_root}assets/lang.js"></script>
   <link rel="preload" href="{to_root}assets/fonts/sora.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{to_root}assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{to_root}assets/boreale.css">
@@ -1387,11 +1391,13 @@ def main():
     # search engines' and AI assistants' alike, is welcome.
     if urlsplit(SITE_URL).path == "/":
         write(out, "robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n")
-    # GitHub Pages serves 404.html at any path: its links start from the site's root.
+    # GitHub Pages serves 404.html at any path: its links start from the
+    # site's root (SITE_BASE, the path of SITE_URL by default).
     t = Texts("en-US", version)
-    base_url = os.environ.get("SITE_BASE", "/PlayShelf/")
-    # Its text in every language, the English one shown: site.js shows the
-    # one of the address' folder (/fr/…), else the visitor's.
+    base_url = os.environ.get("SITE_BASE") or urlsplit(SITE_URL).path
+    # Its text in every language, the English one shown: boreale-site's
+    # lang.js shows the one of the address' folder (/fr/…), else the one
+    # chosen, else the browser's.
     blocks = []
     for lang, folder, _, html_lang in LANGUAGES:
         tl = Texts(lang, version)
@@ -1407,7 +1413,7 @@ def main():
     # Afresh: boreale-site's assets would be found twice in a site built before.
     shutil.rmtree(os.path.join(out, "assets"), ignore_errors=True)
     shutil.copytree(os.path.join(ROOT, "site", "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
-    # boreale-site's: the fonts, the marks, Umami's tracker, boreale.css and boreale.js.
+    # boreale-site's: the fonts, the marks, Umami's tracker, lang.js, boreale.css and boreale.js.
     boreale.copy_assets(Path(out))
     for name in ("icon.svg", "mark.svg"):
         shutil.copy(os.path.join(ROOT, "branding", name), os.path.join(out, "assets", name))

@@ -913,28 +913,12 @@ function homeLink() {
   $('sites-button').setAttribute('aria-label', `PlayShelf · ${t('sites_label')}`);
 }
 
-// Boréale's site switcher: the menu of Boréale's sites opens under the name, as
-// on the website (boreale-site's boreale.js, library/boreale-site). Without
-// popovers (an old browser), the menu stays closed.
-function setUpSites() {
-  const menu = $('sites');
-  const anchor = menu.closest('.switcher');
-  if (!menu.showPopover) return;
-  menu.addEventListener('beforetoggle', (event) => {
-    if (event.newState !== 'open') return;
-    const box = anchor.getBoundingClientRect();
-    const screen = document.documentElement.clientWidth;
-    const width = Math.min(400, screen - 24); // simulator.css' width
-    menu.style.top = `${box.bottom + window.scrollY + 6}px`;
-    menu.style.left = `${Math.max(12, Math.min(box.left, screen - width - 12)) + window.scrollX}px`;
-  });
-}
-
-// The header's languages, as on the website (boreale-site's Site.languages(), site.js):
+// The header's languages, as on the website (boreale-site's Site.languages()):
 // a button with the page's flag and name (its code on a phone), and under it
 // their menu (a popover: the browser closes it on Esc or a click elsewhere,
-// and gives the focus back to the button), each with its flag, the page's
-// marked. Each is a link to this page in it (the URL's settings kept), which
+// and gives the focus back to the button; boreale-site's boreale.js opens it
+// under the button, the page's language in view), each with its flag, the
+// page's marked. Each is a link to this page in it (the URL's settings kept), which
 // a click applies (PlayShelf starts again in it); the arrows move through
 // them. Without popovers (an old browser), the button does nothing.
 function setUpLanguages() {
@@ -964,15 +948,6 @@ function setUpLanguages() {
     if (event.newState !== 'open') return;
     // The settings as they are now (a live change, the theme): the links follow.
     for (const link of links) link.href = linkFor(values(link.dataset.lang));
-    // Under the button, its right edge on the button's (boreale.js), within the
-    // screen (the settings' button is right of it).
-    const box = button.getBoundingClientRect();
-    const screen = document.documentElement.clientWidth;
-    const width = Math.min(460, screen - 24); // simulator.css' width
-    menu.style.top = `${box.bottom + window.scrollY + 6}px`;
-    menu.style.right = `${Math.max(12, Math.min(screen - box.right, screen - width - 12))}px`;
-    // The language in use in view, in a long list on a short screen.
-    requestAnimationFrame(() => inUse().scrollIntoView({ block: 'nearest' }));
   });
   // The arrows: down (or up) on the button opens the menu at the language in
   // use; in the menu, through the two columns, Home and End to either end.
@@ -1130,7 +1105,6 @@ async function main() {
   const build = showBuild();
   translatePage();
   homeLink();
-  setUpSites();
   setUpHeader();
   setUpPanel();
   setUpVersions(build);

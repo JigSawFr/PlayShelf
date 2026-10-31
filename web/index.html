@@ -24,6 +24,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
   <meta name="theme-color" content="#0e1a33">
+  <!-- Boréale's colours, fonts and the header's two menus (boreale-site's
+       boreale.css, copied by CMake with its fonts/), then the simulator's
+       own look, its light theme on :root. -->
+  <link rel="stylesheet" href="boreale.css">
   <link rel="stylesheet" href="simulator.css">
   <!-- The theme before the first paint (theme.js). -->
   <script src="theme.js"></script>
@@ -31,6 +35,8 @@
        headers, so this service worker adds them (and reloads once). It also
        keeps PlayShelf's files for the next visits, and offline. -->
   <script src="sw.js"></script>
+  <!-- Where the header's two menus open (boreale-site's boreale.js). -->
+  <script src="boreale.js" defer></script>
 </head>
 <body>
   <header class="top">
@@ -50,6 +56,10 @@
         <ul>
           <li><a href="https://guard.boreale.dev/?utm_source=shelf&amp;utm_medium=nav" referrerpolicy="strict-origin" data-site="https://guard.boreale.dev/"><img src="marks/playguard.svg" alt="" width="36" height="36"><span><strong>PlayGuard</strong><small data-i18n="sites_playguard">Parental controls, on the console</small></span></a></li>
           <li><a href="../" id="home-link" aria-current="true"><img src="marks/playshelf.svg" alt="" width="36" height="36"><span><strong>PlayShelf</strong><small data-i18n="sites_playshelf">Your game library, on the console</small></span><em class="soon" data-i18n="sites_soon">Coming soon</em></a></li>
+        </ul>
+        <p class="sites-title" data-i18n="sites_integrations">Integrations</p>
+        <ul>
+          <li><a href="https://ha.boreale.dev/?utm_source=shelf&amp;utm_medium=nav" referrerpolicy="strict-origin" data-site="https://ha.boreale.dev/"><img src="marks/ha.svg" alt="" width="36" height="36"><span><strong>Home Assistant</strong><small data-i18n="sites_ha">Your homebrews in Home Assistant</small></span></a></li>
         </ul>
         <p class="sites-title" data-i18n="sites_libraries">Libraries</p>
         <ul>
