@@ -4,23 +4,28 @@ The desktop simulator (`make desktop`, `source/sim/`), compiled with
 [Emscripten](https://emscripten.org) for a browser: the real Aurore UI
 against a simulated console and a demo library server, to click through a
 change, try a state or show a screen without a build on the console.
-In the website's look: its colours, its header in Boréale's night whatever
-the theme (the name opening the menu of Boréale's sites, the website's
-language menu, the theme's menu, a short face of them on a phone) and Sora
-for the name (boreale-site's `assets/fonts/sora.woff2`, with `branding/mark.svg`
-and the sites' marks of boreale-site's `assets/marks/`, copied by CMake from
-the submodule `library/boreale-site`). Its CSS and script are its own
-(`simulator.css` has a light theme, `boreale.css` a dark look alone), in the
-look of boreale-site's `boreale.css` and `boreale.js`. The language menu is
-the website's (boreale-site's `Site.languages()`, `site/assets/site.js`): a button with
-the page's flag and language (its flag and code on a phone, its flag alone
-under 380px), and under it the 15 languages in a popover, each with its
-flag, the page's marked (Esc or a click elsewhere closes it, the focus back
+In the website's look: boreale-site's `boreale.css` (Boréale's colours, the
+fonts, the flags, the language menu and the menu of Boréale's sites) and
+`boreale.js` (where those two menus open), copied by CMake from the submodule
+`library/boreale-site` with the fonts it names (`fonts/`: Sora, Figtree,
+JetBrains Mono, the 15 flags cut out of Twemoji's, CC-BY 4.0, and their
+licences, so that Windows shows the flags too), `branding/mark.svg` and the
+sites' marks (`marks/`). `simulator.css`, loaded after it, is the simulator's
+own: its light theme on `:root` (`boreale.css` has a dark look alone; its two
+menus keep the night whatever the theme), its header in Boréale's night (the
+name opening the menu of Boréale's sites, the language button at the height
+of the theme's menu, a short face of them on a phone) and the privacy and
+legal notice under the sites. The language menu is the website's
+(boreale-site's `Site.languages()`), built by `simulator.js`: a button with
+the page's flag and language (its flag and code on a phone, no chevron
+under 420px, its flag alone under 380px), and under it the 15 languages in a
+popover (one column under 420px), each with its flag, the page's marked (Esc or a click elsewhere closes it, the focus back
 on the button; ↓ on the button opens it at the language in use, the arrows,
-Home and End move through it). The flags are the website's,
-boreale-site's `assets/fonts/twemoji-flags.woff2` (Twemoji's 15, CC-BY 4.0), copied by
-CMake next to the page with `LICENSE-twemoji-flags.txt`, so Windows shows
-them too.
+Home and End move through it). The menu of Boréale's sites is written in
+`index.html`, the sites of boreale-site's `sites.json` in its order; its
+texts (`sites_*`) are copies of boreale-site's `i18n/` in the simulator's
+`i18n/`, which has no reader of boreale-site's catalogs: a site added there
+is added here too.
 
 ## The demo library server
 

@@ -1,23 +1,11 @@
-/* The web simulator's page (web/README.md), in the website's look
-   (boreale-site's boreale.css): its colours, its header, Sora for the name. The
-   teal of the focus highlight, on a navy that frames the console's screen. */
+/* The web simulator's page (web/README.md), in the website's look: loaded
+   after boreale-site's boreale.css (Boréale's colours, the fonts, the flags,
+   the language menu and the menu of Boréale's sites, in the night whatever
+   the theme), its own colours here. The teal of the focus highlight, on a
+   navy that frames the console's screen. */
 /* Light by default; dark when the page says so (data-theme, set before the
-   first paint from the URL, the choice kept or the system's). */
-@font-face {
-  font-family: "Sora";
-  src: url("sora.woff2") format("woff2");
-  font-weight: 100 800;
-  font-display: swap;
-}
-/* The language menu's flags, the same everywhere (Windows draws none of its
-   own): the website's 15 cut out of Twemoji's (CC-BY 4.0,
-   LICENSE-twemoji-flags.txt; both copied by CMake from boreale-site's assets/fonts/). */
-@font-face {
-  font-family: "Twemoji Flags";
-  src: url("twemoji-flags.woff2") format("woff2");
-  unicode-range: U+1F1E6-1F1FF;
-  font-display: swap;
-}
+   first paint from the URL, the choice kept or the system's): set on :root
+   after boreale.css, whose look alone is dark. */
 :root {
   --bg: #f5f7fb;
   --surface: #ffffff;
@@ -379,37 +367,19 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 .btn.primary.pending { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
 .btn.ghost { background: transparent; }
 .header-settings { display: flex; gap: 8px; margin-left: auto; }
-/* The language button as the website's (boreale-site's boreale.css), the theme's
-   select of the same height and look beside it. */
+/* The language button (boreale-site's boreale.css) at the height and in the
+   look of the theme's select beside it. */
 .header-settings select { width: auto; height: 40px; padding: 0 8px 0 10px; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
 .lang-button {
   display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px 0 12px;
   border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2);
   color: var(--text); font: 500 14px system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; cursor: pointer; white-space: nowrap;
 }
-.lang-button .chevron { width: 14px; height: 14px; flex: none; color: var(--muted); transition: transform 0.2s, color 0.2s; }
 .lang-button:hover .chevron { color: var(--text); }
-.lang-button:has(+ .langs:popover-open) .chevron { transform: rotate(180deg); color: var(--accent); }
-.lang-code { display: none; font: 600 14px system-ui, sans-serif; }
-/* A language's flag before its name, in the button and in the menu. */
-.flag { flex: none; font: 18px/1 "Twemoji Flags", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
-.langs .flag { margin-right: 10px; }
-/* Their menu: a popover under the button, its right edge on the button's
-   (simulator.js' setUpLanguages()), in Boréale's night whatever the theme. */
-.langs {
-  position: absolute; inset: auto; top: 64px; right: 16px; margin: 0;
-  width: min(460px, calc(100vw - 24px)); max-height: min(70vh, 520px); overflow: auto; padding: 8px;
-  list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-  border: 1px solid #22324f; border-radius: 16px; color: #e8eef7; background: #0e1a33;
-  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.8);
-  color-scheme: dark;
-}
-.langs:not(:popover-open) { display: none; }
-.langs::backdrop { background: transparent; }
-.langs a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #e8eef7; text-decoration: none; font-size: 15px; }
-.langs a:hover, .langs a:focus-visible { background: rgb(232 238 247 / 0.06); color: #e8eef7; }
+.lang-code { font: 600 14px system-ui, sans-serif; }
+/* The languages' menu (boreale.css), moved through with the arrows
+   (simulator.js' setUpLanguages()): the one in focus outlined. */
 .langs a:focus-visible { outline: 2px solid #00ffcc; outline-offset: -2px; }
-.langs a[aria-current] { background: rgb(0 255 204 / 0.08); box-shadow: inset 2px 0 0 #00ffcc; font-weight: 600; }
 .picker { position: relative; display: inline-flex; }
 .picker-face { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -564,44 +534,9 @@ html.game .screen { max-width: calc((100dvh - 16px - env(safe-area-inset-top) - 
 html:not(.game) .fs-exit { display: none; }
 
 
-/* ---- Boréale's site switcher: the name, a button that opens the menu of
-   the four sites (a popover: the browser closes it on Esc or a click
-   elsewhere), PlayShelf's leading to the website. The website's block
-   (boreale-site's boreale.css), its marks copied by CMake into marks/. */
-.switcher { display: flex; flex-shrink: 0; align-items: center; }
-.switch {
-  min-height: 44px; margin-left: -8px; padding: 0 8px; border: 0; border-radius: 12px;
-  background: transparent; color: #e8eef7; cursor: pointer; text-align: left;
-}
-.switch .chevron { width: 16px; height: 16px; color: #a9b6cc; transition: transform 0.2s, color 0.2s; }
-.switch:hover { background: rgb(232 238 247 / 0.06); }
-.switch:hover .chevron { color: #e8eef7; }
-.switcher:has(.sites:popover-open) .chevron { transform: rotate(180deg); color: #00ffcc; }
-.sites {
-  position: absolute; inset: auto; top: 64px; left: 16px; margin: 0;
-  width: min(400px, calc(100vw - 24px)); max-height: calc(100vh - 88px); overflow: auto; padding: 8px;
-  border: 1px solid #22324f; border-radius: 16px; color: #e8eef7;
-  background: radial-gradient(120% 80% at 0% 0%, rgb(0 255 204 / 0.08), transparent 60%),
-              radial-gradient(100% 80% at 100% 100%, rgb(138 92 255 / 0.1), transparent 60%), #0e1a33;
-  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(11 20 36 / 0.6);
-}
-.sites::backdrop { background: transparent; }
-.sites-title { margin: 14px 10px 6px; padding-top: 12px; border-top: 1px solid #22324f; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #a9b6cc; }
-.sites ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.sites a {
-  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 12px;
-  min-height: 56px; padding: 8px 10px; border-radius: 12px; color: #e8eef7; text-decoration: none;
-}
-.sites a:hover, .sites a:focus-visible { color: #e8eef7; background: rgb(232 238 247 / 0.06); }
-.sites a[aria-current] { background: rgb(0 255 204 / 0.08); box-shadow: inset 2px 0 0 #00ffcc; }
+/* The menu of Boréale's sites (boreale.css, its marks copied by CMake into
+   marks/), PlayShelf's leading to the website: its privacy and legal
+   notice under the sites, the simulator's own. */
 .sites .sites-legal { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #22324f; }
 .sites .sites-legal a { display: block; min-height: 0; padding: 8px 10px; color: #a9b6cc; font-size: 14px; }
 .sites .sites-legal a:hover, .sites .sites-legal a:focus-visible { color: #e8eef7; }
-.sites img { display: block; width: 36px; height: 36px; }
-.sites strong { display: block; color: #e8eef7; font: 600 16px/1.3 var(--display); letter-spacing: -0.01em; }
-.sites small { display: block; color: #a9b6cc; font-size: 14px; line-height: 1.35; }
-.sites .soon {
-  font-size: 11px; font-weight: 500; line-height: 1.6; font-style: normal; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
-  color: #ffb86b; border: 1px solid rgb(255 184 107 / 0.45); border-radius: 999px; padding: 1px 8px;
-}
-@media (prefers-reduced-motion: reduce) { .switch .chevron, .lang-button .chevron { transition: none; } }

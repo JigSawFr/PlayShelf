@@ -29,8 +29,9 @@ env:
   EMSDK_COMMIT: 35659964bc2762fffec0d257997fb61475f765b7
   # Playwright, pinned, for the smoke test and the website's screenshots.
   PLAYWRIGHT_VERSION: 1.64.0
-  # axe-core, for the website's accessibility (tools/site_layout.py): its
-  # npm package, checked against the hash it had when pinned.
+  # axe-core, for the website's accessibility (boreale-site's
+  # tools/site_layout.py): its npm package, checked against the hash it had
+  # when pinned.
   AXE_VERSION: 4.13.0
   AXE_SHA256: 096912f6e77b4b695fc9304b7be65091db42d98de054da674ae222a11cb33f70
 
@@ -218,9 +219,14 @@ jobs:
           with open("out/simulator/build.json", "w") as f:
               json.dump(build, f)
           EOF
-      # The website's layout (tools/site_layout.py): no page wider than the
-      # screen on a phone, a tablet or a desktop, no field iOS zooms into, no
-      # script that throws, nothing axe finds against WCAG 2.2 AA. Seconds.
+      # The website's layout (boreale-site's tools/site_layout.py): no page
+      # wider than the screen on a phone, a tablet or a desktop, no target
+      # under 24px, no field iOS zooms into, no script that throws, nothing
+      # axe finds against WCAG 2.2 AA. Every page on an iPhone; the widest
+      # (the home page, three of the documentation's, the changelog) in each
+      # language on the four other screens; axe on the English pages and each
+      # language's home page. Not the simulator (built apart, its own smoke
+      # test) nor 404.html (built for SITE_BASE, unstyled from the root).
       - name: The website on a phone, a tablet and a desktop
         timeout-minutes: 5
         run: |
@@ -228,7 +234,9 @@ jobs:
           echo "$AXE_SHA256  $RUNNER_TEMP/axe.tgz" | sha256sum -c --quiet
           python3 -c 'import sys, tarfile; open(sys.argv[2], "wb").write(tarfile.open(sys.argv[1]).extractfile("package/axe.min.js").read())' \
             "$RUNNER_TEMP/axe.tgz" "$RUNNER_TEMP/axe.min.js"
-          SITE_AXE="$RUNNER_TEMP/axe.min.js" "$RUNNER_TEMP/playwright/bin/python" -u tools/site_layout.py out
+          SITE_AXE="$RUNNER_TEMP/axe.min.js" "$RUNNER_TEMP/playwright/bin/python" -u library/boreale-site/tools/site_layout.py out \
+            --skip simulator --skip-page 404.html --axe-english \
+            --wide '' --wide docs/config/ --wide docs/servers/ --wide docs/downloads/ --wide changelog/
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: site

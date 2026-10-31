@@ -1,8 +1,8 @@
 // PlayShelf's website (site/README.md): the aurora of the home page, the
-// language kept from the header's menu, and the home page's first visit in
-// the browser's language. One dark look, Boréale's, as Aurore's and
-// boreale.dev. Where the header's two menus open is boreale-site's
-// boreale.js, loaded beside it.
+// lightbox, the search, the copy buttons. One dark look, Boréale's, as
+// Aurore's and boreale.dev. The language (kept from the header's menu, a
+// first visit in the browser's, the page not found's text) is boreale-site's
+// lang.js, where the header's two menus open its boreale.js, loaded beside it.
 'use strict';
 
 // The aurora behind the home page's header and hero (canvas#sky), boreale.dev's
@@ -108,11 +108,6 @@
 })();
 
 (function () {
-  const store = {
-    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-    set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* storage refused */ } },
-  };
-
   // The way back to the top, far down any page.
   const toTop = document.querySelector('.to-top');
   let ticking = false;
@@ -470,65 +465,6 @@
     });
     search.hidden = false;
   }
-
-  // The header's languages (a popover, boreale-site's Site.languages()): the
-  // one chosen is kept (its data-lang, the language's folder, or en-US), and
-  // the page opens at the same place in it. Not boreale-site's lang.js,
-  // which sends a visitor who chose a language to none at the root, keeps no
-  // #place and wants a 404.html in each folder (site/README.md).
-  const languages = [...document.querySelectorAll('#languages a')];
-  for (const link of languages) {
-    link.addEventListener('click', (e) => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-      e.preventDefault();
-      store.set('pg-site-lang', link.dataset.lang);
-      location.href = link.getAttribute('href') + location.hash;
-    });
-  }
-
-  const options = languages.map((a) => [a.dataset.lang, a.getAttribute('href')]);
-  const find = (code) => options.find(([c]) => c.toLowerCase() === code.toLowerCase());
-  // The visitor's language: the one chosen before, else the browser's when
-  // the site has it (null: English).
-  const visitor = () => {
-    const chosen = store.get('pg-site-lang');
-    if (chosen) return find(chosen);
-    for (const tag of navigator.languages || [navigator.language]) {
-      const t = tag.toLowerCase();
-      const [base, region = ''] = t.split('-');
-      let code = null;
-      if (base === 'en') return null;
-      if (base === 'fr') code = region === 'ca' ? 'fr-CA' : 'fr';
-      else if (base === 'es') code = !region || region === 'es' ? 'es' : 'es-419';
-      else if (base === 'pt') code = region === 'br' ? 'pt-BR' : 'pt';
-      else if (base === 'zh') code = ['tw', 'hk', 'mo', 'hant'].includes(region) || t.includes('hant') ? 'zh-Hant' : 'zh-Hans';
-      else if (['de', 'it', 'nl', 'ru', 'ja', 'ko'].includes(base)) code = base;
-      if (code) return find(code);
-    }
-    return null;
-  };
-
-  // The page not found (404.html, at any address): its text in the language
-  // of the address' folder (/fr/…), else the visitor's.
-  if (document.body.classList.contains('not-found-page')) {
-    const folder = options.find(([c, v]) => c !== 'en-US' && location.pathname.toLowerCase().startsWith(new URL(v, location.href).pathname.toLowerCase()));
-    const code = (folder || visitor() || ['en-US'])[0];
-    const block = document.querySelector(`.not-found[data-lang="${code}"]`);
-    if (block) {
-      for (const b of document.querySelectorAll('.not-found')) b.hidden = b !== block;
-      document.documentElement.lang = block.lang;
-      document.title = `${block.querySelector('h1').textContent} · PlayShelf`;
-    }
-    return;
-  }
-
-  // The English home page (the site's root), on a first visit from elsewhere:
-  // the browser's language when the site has it, unless one was chosen before.
-  const html = document.documentElement;
-  if (html.dataset.lang !== 'en-US' || !document.body.classList.contains('home')) return;
-  if (document.referrer && new URL(document.referrer).origin === location.origin) return;
-  const target = visitor();
-  if (target && target[0] !== 'en-US') location.replace(target[1] + location.hash);
 })();
 
 // The documentation: once the header is scrolled away, a slim bar at the top
