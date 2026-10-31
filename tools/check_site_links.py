@@ -16,6 +16,10 @@ e-mail address. With, for this site:
 - 404.html, served at any address: its links start from SITE_BASE (a pull
   request's preview, /PlayShelf/pr-<n>/), not from where the file is;
 - a preview (SITE_NOINDEX=1) counts no one: no tracker.
+- the page chrome (library/boreale-site, "The page chrome (v4)"): one header
+  with the name's menu and the nav, the call to action (the simulator) before
+  GitHub, the footer linking to every other of Boréale's sites, chrome.css and
+  chrome.js loaded.
 docs/'s pages that send their visitor on (a <meta> refresh) need neither
 policy nor tracker there.
 
@@ -48,7 +52,7 @@ def main():
     site_url = sys.argv[2].rstrip("/") + "/" if len(sys.argv) > 2 else None
     site = boreale.Site("playshelf", site_url or os.environ.get("SITE_URL"))
     problems, count = check.pages(out, site, apart=("simulator",), tracker=os.environ.get("SITE_NOINDEX") != "1",
-                                  base=os.environ.get("SITE_BASE"))
+                                  base=os.environ.get("SITE_BASE"), chrome=True)
     problems += boreale.check_catalogs(ROOT / "site" / "i18n", OPTIONAL)
     for problem in problems:
         print(problem)

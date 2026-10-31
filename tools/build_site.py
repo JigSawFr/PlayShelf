@@ -173,7 +173,8 @@ def app_text(lang, key):
 class Texts:
     """The home page's texts in one language, English underneath: the site's
     own (site/i18n/) and boreale-site's common ones. A text lives in one
-    place: a site's catalog that has a common key stops the build."""
+    place: a site's catalog that has a common key stops the build.
+    t[key] is t(key), for boreale-site's header and footer."""
 
     def __init__(self, lang, version):
         self.lang, self.version = lang, version
@@ -193,9 +194,8 @@ class Texts:
         value = re.sub(r"\{\{app:([^}]+)\}\}", lambda m: app_text(self.lang, m.group(1)), value)
         return html.escape(value) if escape else value
 
-    def common(self):
-        """boreale-site's texts, as the header's menus take them (escaped)."""
-        return {key: self(key) for key in COMMON_TEXTS["en-US"]}
+    def __getitem__(self, key):
+        return self(key)
 
 
 # ---- The documentation's versions ----------------------------------------
@@ -525,7 +525,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
     doc_bar = ""
     if '<div class="doc">' in body:
         doc_bar = (f'  <div class="doc-bar" hidden><div class="doc-bar-inner">'
-                   f'<a class="doc-bar-home" href="{home}" aria-label="PlayShelf"><img src="{to_root}assets/mark.svg" alt="" width="24" height="24"><span>PlayShelf</span></a>'
+                   f'<a class="doc-bar-home" href="{home}" aria-label="PlayShelf"><img src="{to_root}assets/marks/playshelf.svg" alt="" width="24" height="24"><span>PlayShelf</span></a>'
                    f'<span class="doc-bar-title">{html.escape(title)}</span>'
                    f'<button class="doc-bar-search" type="button" aria-label="{t("search_placeholder")}">'
                    f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">'
@@ -533,10 +533,19 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
                    f'{reading_toggle(t)}</div></div>\n')
     full_title = full_title or ("PlayShelf" if not title else f"{title} · PlayShelf")
     head_extra = "\n".join(head)
+    nav_links = [("nav_features", f"{home}#features"), ("nav_install", f"{home}#install"),
+                 ("nav_docs", f"{home}docs/getting-started/")]
+    brand = f'<img src="{to_root}assets/marks/playshelf.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>'
+    footer = SITE.footer(
+        lang, t, to_root,
+        columns=[(t("docs_title"), [(t(f"doc_{p}"), f"{home}docs/{p}/") for p, s in DOCS if s == "guide"]),
+                 ("PlayShelf", [("GitHub", REPO_URL), (t("footer_changelog"), f"{home}changelog/"),
+                                (t("releases_feed"), f"{SITE_URL}releases.atom"),
+                                (t("report_bug"), f"{REPO_URL}/issues/new")])],
+        about=[t("footer_license")], fine=t("footer_nintendo"))
     # The audience, counted by Umami Cloud (site/README.md), only from the
     # site's own address; a pull request's preview has none.
     umami = "" if NOINDEX else f"  {SITE.audience(to_root)}\n"
-    common = t.common()
     # The English home page, where boreale-site's lang.js sends a first visit
     # on to the browser's language.
     first_visit = " data-first-visit" if lang == "en-US" and path == "" and "home" in body_class.split() else ""
@@ -575,63 +584,20 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <link rel="preload" href="{to_root}assets/fonts/sora.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{to_root}assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{to_root}assets/boreale.css">
+  <link rel="stylesheet" href="{to_root}assets/chrome.css">
   <link rel="stylesheet" href="{to_root}assets/site.css">
+  <script src="{to_root}assets/chrome.js" defer></script>
 {umami}</head>
 <body class="{body_class}">
-  <a class="skip" href="#main">{t('skip')}</a>
-{doc_bar}  <div class="sky{' sky-home' if hero else ''}">
-  {'<canvas id="sky" aria-hidden="true"></canvas>' if hero else ''}
-  <header class="top">
-    {SITE.switcher(lang, common, to_root, VERSIONS, home=home,
-                   brand=f'<img src="{to_root}assets/mark.svg" alt="" width="34" height="34"><span>Play<b>Shelf</b></span>')}
-    <nav class="nav" aria-label="PlayShelf">
-      <a href="{home}#features">{t('nav_features')}</a>
-      <a href="{home}#install">{t('nav_install')}</a>
-      <a href="{home}docs/getting-started/">{t('nav_docs')}</a>
-      <a href="{to_root}simulator/?lang={code}" class="nav-try">{t('nav_simulator')}</a>
-      <a href="{REPO_URL}" class="nav-gh">GitHub</a>
-    </nav>
-    {SITE.languages(lang, common, to_root, path)}
-  </header>
+  {SITE.skip(t)}
+{doc_bar}  {SITE.sky(home=bool(hero), veils=body_class != 'not-found-page')}
+  {SITE.header(lang, t, to_root, path, links=nav_links, cta=("nav_simulator", f"{to_root}simulator/?lang={code}"),
+               github=REPO_URL, label="PlayShelf", latest=VERSIONS, home=home, brand=brand)}
 {hero}  </div>
   <main id="main">
 {body}
   </main>
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-cols">
-        <div>
-          <p><img src="{to_root}assets/mark.svg" alt="" width="20" height="20"> <strong>PlayShelf</strong></p>
-          <p>{t('footer_license')}</p>
-          <p><a class="boreale" href="https://boreale.dev/{lang_dir(code)}">{t('footer_boreale')}</a></p>
-        </div>
-        <div>
-          <h2>{t('docs_title')}</h2>
-          <ul>{"".join(f'<li><a href="{home}docs/{p}/">{t(f"doc_{p}")}</a></li>' for p, s in DOCS if s == "guide")}</ul>
-        </div>
-        <div>
-          <h2>PlayShelf</h2>
-          <ul><li><a href="{REPO_URL}">GitHub</a></li><li><a href="{home}changelog/">{t('footer_changelog')}</a></li>
-            <li><a href="{SITE_URL}releases.atom">{t('releases_feed')}</a></li>
-            <li><a href="{REPO_URL}/issues/new">{t('report_bug')}</a></li></ul>
-        </div>
-        <div>
-          <h2>Boréale</h2>
-          <ul><li><a href="https://boreale.dev/{lang_dir(code)}">boreale.dev</a></li>
-            <li><a href="https://guard.boreale.dev/{lang_dir(code)}">PlayGuard</a></li>
-            <li><a href="https://aurore.boreale.dev/{lang_dir(code)}">Aurore</a></li>
-            <li><a href="https://atlas.boreale.dev/{lang_dir(code)}">Atlas</a></li>
-            <li><a href="https://lantern.boreale.dev/{lang_dir(code)}">Lantern</a></li>
-            <li><a href="https://boreale.dev/{lang_dir(code)}legal/">{t('sites_legal')}</a></li></ul>
-        </div>
-        <div>
-          <h2>{t('support')}</h2>
-          <ul><li><a href="https://github.com/sponsors/JigSawFr">GitHub Sponsors</a></li><li><a href="https://ko-fi.com/jigsawfr">Ko-fi</a></li></ul>
-        </div>
-      </div>
-      <p class="fine">{t('footer_nintendo')}</p>
-    </div>
-  </footer>
+  {footer}
   <dialog class="lightbox" aria-label="{t('screens_title')}">
     <figure><img alt=""><figcaption></figcaption></figure>
     <button type="button" class="lightbox-close" aria-label="{t('close')}"></button>
@@ -1415,8 +1381,7 @@ def main():
     shutil.copytree(os.path.join(ROOT, "site", "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     # boreale-site's: the fonts, the marks, Umami's tracker, lang.js, boreale.css and boreale.js.
     boreale.copy_assets(Path(out))
-    for name in ("icon.svg", "mark.svg"):
-        shutil.copy(os.path.join(ROOT, "branding", name), os.path.join(out, "assets", name))
+    shutil.copy(os.path.join(ROOT, "branding", "icon.svg"), os.path.join(out, "assets", "icon.svg"))
     # An iPhone's home screen takes a PNG, not the SVG (tools/render_branding.mjs).
     touch = os.path.join(ROOT, "images", "apple-touch-icon.png")
     shutil.copy(touch, os.path.join(out, "assets", "apple-touch-icon.png"))
