@@ -37,6 +37,21 @@ make dist        # playshelf.zip for the SD card (devkitPro)
 
 Everything else: [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## How it's made
+
+[![Human-led, AI-assisted](https://raw.githubusercontent.com/JigSawFr/boreale/main/branding/badge-ai.svg)](https://boreale.dev/how/?utm_source=github&utm_medium=readme)
+
+PlayShelf is built by [JigSawFr](https://github.com/JigSawFr), a full-stack
+engineer who has shipped production software for years, with AI coding
+assistants as part of the toolbox.
+
+- **I decide**: architecture, scope, what ships and what doesn't.
+- **AI helps write**: first drafts of code and tests, docs, and the translations.
+- **I review everything**: every change is read, tested (on a real console when it touches
+  the console) and signed before it reaches `main`.
+
+Nothing in the app calls an AI service. More on [boreale.dev](https://boreale.dev/how/?utm_source=github&utm_medium=readme).
+
 ## License
 
 **GPLv3**, see [`LICENSE`](LICENSE). Maintained by [JigSawFr](https://github.com/JigSawFr), part of [Boréale](https://boreale.dev/?utm_source=github&utm_medium=readme) with [PlayGuard](https://github.com/JigSawFr/PlayGuard) and [Aurore](https://github.com/JigSawFr/Aurore).
