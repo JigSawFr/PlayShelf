@@ -49,7 +49,10 @@ struct Mem : Console
     bool step()
     {
         const int n = ops++;
-        if (n == crash_at) throw Crash();
+        if (n == crash_at) {
+            pending.clear();   // the service's uncommitted edits die with the process
+            throw Crash();
+        }
         return n != fault_at;
     }
 
@@ -221,7 +224,8 @@ bool is_baseline(const Mem& m, const Title& t)
 // The title as it should be after a run: the new record, the new program and
 // content meta (the program read back against the original, here, apart from
 // the engine), the old ones kept or gone as asked.
-bool is_compressed(const Mem& m, const Title& t, bool old_kept)
+// old: 1 kept, 0 gone, -1 either (a keep() that died half way)
+bool is_compressed(const Mem& m, const Title& t, int old)
 {
     const auto it = m.metas.find(tk(KEY));
     if (it == m.metas.end() || !m.pending.empty() || !m.pholders.empty() || it->second == t.record) return false;
@@ -247,16 +251,20 @@ bool is_compressed(const Mem& m, const Title& t, bool old_kept)
                 return false;
         }
     }
-    if (old_kept) {
-        for (const auto& [id, bytes] : t.mem.contents) {
-            if (!m.contents.count(id) || m.contents.at(id) != bytes) return false;
-            expected.insert(id);
+    const auto old_infos = record_contents(t.record);
+    for (const auto& [id, bytes] : t.mem.contents) {
+        bool replaced = false;   // the old program and content meta
+        for (const ContentInfo& i : *old_infos) replaced = replaced || (i.id == id && (i.type == ContentType::Program || i.type == ContentType::Meta));
+        if (replaced && old != 1) {
+            if (old == 0 && m.contents.count(id)) return false;
+            if (m.contents.count(id)) {
+                if (m.contents.at(id) != bytes) return false;
+                expected.insert(id);
+            }
+            continue;
         }
-    } else {
-        // The old program and content meta are gone, the rest is as it was.
-        const auto old_infos = record_contents(t.record);
-        for (const ContentInfo& i : *old_infos)
-            if ((i.type == ContentType::Program || i.type == ContentType::Meta) && m.contents.count(i.id)) return false;
+        if (!m.contents.count(id) || m.contents.at(id) != bytes) return false;
+        expected.insert(id);
     }
     for (const auto& [id, _] : m.contents)
         if (!expected.count(id)) return false;
@@ -288,7 +296,7 @@ void test_happy_path()
         fprintf(stderr, "run: %s\n", ran.error().c_str());
         return;
     }
-    CHECK(is_compressed(t.mem, t, true));
+    CHECK(is_compressed(t.mem, t, 1));
     CHECK(j.text && CompressJournal::parse(*j.text) && CompressJournal::parse(*j.text)->phase == CompressJournal::Phase::Swapped);
     CHECK(stages.size() == 3 && stages[0] == CompressStage::Measuring && stages[1] == CompressStage::Writing && stages[2] == CompressStage::Checking);
     // The record says the firmware that reads it.
@@ -296,7 +304,7 @@ void test_happy_path()
     CHECK(rec.has_value());
 
     CHECK(c.keep().has_value());
-    CHECK(is_compressed(t.mem, t, false));
+    CHECK(is_compressed(t.mem, t, 0));
     CHECK(!j.text);
     CHECK(!c.keep().has_value() && !c.revert().has_value());   // nothing more to do
 }
@@ -433,8 +441,8 @@ void test_faults()
         const Done ran = c.run();
         if (ran) {
             // The fault came after everything (or hit a call that cannot fail): the new title stands.
-            CHECK(is_compressed(t.mem, t, true));
-            CHECK(c.keep().has_value() && is_compressed(t.mem, t, false));
+            CHECK(is_compressed(t.mem, t, 1));
+            CHECK(c.keep().has_value() && is_compressed(t.mem, t, 0));
             if (t.mem.ops <= k) break;   // no fault was injected: done sweeping
             continue;
         }
@@ -466,7 +474,7 @@ void test_corruption()
             CHECK(is_baseline(t.mem, t) && !j.text);
         } else {
             // A corrupted byte in what carries no meaning (padding) is not an error, but the title must still be good.
-            CHECK(is_compressed(t.mem, t, true));
+            CHECK(is_compressed(t.mem, t, 1));
         }
     }
     CHECK(total >= 5 && found >= total - 2);
@@ -489,7 +497,7 @@ void test_cancel()
         CHECK(c.prepare().has_value());
         const Done ran = c.run();
         if (ran) {
-            CHECK(is_compressed(t.mem, t, true));
+            CHECK(is_compressed(t.mem, t, 1));
             continue;
         }
         CHECK(is_baseline(t.mem, t) && !j.text);
@@ -507,7 +515,7 @@ void test_journal_faults()
         CHECK(c.prepare().has_value());
         const Done ran = c.run();
         if (ran) {
-            CHECK(is_compressed(t.mem, t, true));
+            CHECK(is_compressed(t.mem, t, 1));
             continue;
         }
         const bool clean = is_baseline(t.mem, t);
@@ -537,7 +545,7 @@ void test_crashes()
         }
         t.mem.crash_at = -1;
         if (!crashed) {
-            CHECK(is_compressed(t.mem, t, false));
+            CHECK(is_compressed(t.mem, t, 0));
             break;
         }
         // The next start.
@@ -546,7 +554,7 @@ void test_crashes()
         switch (left->found) {
         case TitleCompressor::Found::Nothing:
             // Nothing was journaled yet, or all was done: the title is as it was, or finished.
-            CHECK(is_baseline(t.mem, t) || is_compressed(t.mem, t, false));
+            CHECK(is_baseline(t.mem, t) || is_compressed(t.mem, t, 0));
             break;
         case TitleCompressor::Found::CleanedUp:
             cleaned++;
@@ -555,14 +563,14 @@ void test_crashes()
         case TitleCompressor::Found::AwaitingDecision:
             awaiting++;
             CHECK(left->key == KEY);
-            CHECK(is_compressed(t.mem, t, true) || is_compressed(t.mem, t, false));
+            CHECK(is_compressed(t.mem, t, -1));
             // Either answer works.
             if (k % 2) {
                 CHECK(TitleCompressor::revert_left(t.mem, j).has_value());
-                CHECK(is_baseline(t.mem, t) && !j.text);
+                if (!CHECK(is_baseline(t.mem, t) && !j.text)) fprintf(stderr, "  (crash at call %d, then revert)\n", k);
             } else {
                 CHECK(TitleCompressor::keep_left(t.mem, j).has_value());
-                CHECK(is_compressed(t.mem, t, false) && !j.text);
+                if (!CHECK(is_compressed(t.mem, t, 0) && !j.text)) fprintf(stderr, "  (crash at call %d, then keep)\n", k);
             }
             break;
         }
