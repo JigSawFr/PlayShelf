@@ -14,6 +14,7 @@ namespace install
 namespace
 {
 constexpr uint64_t MAGIC_SECTN = 0x4e544345535a434eull;   // "NCZSECTN"
+constexpr uint64_t MAGIC_SECT_MASK = 0x00ffffffffffffffull;   // its first seven bytes, "NCZSECT"
 constexpr uint64_t MAGIC_BLOCK = 0x4b434f4c425a434eull;   // "NCZBLOCK"
 constexpr uint32_t MAGIC_ZSTD = 0xfd2fb528u;
 constexpr uint64_t MAX_SECTIONS = 64;           // an NCA has four; nsz writes no more than that
@@ -251,6 +252,14 @@ struct ContentStream::Impl
                     ncz = true;
                     phase = Phase::SectionsHead;
                     break;
+                }
+                // NXPress's extensions (NCZSECT2: sparse bases; NCZSECT3: Nintendo's LZ4
+                // blocks kept decompressed) share the first seven bytes. Left to the
+                // plain NCA path they would be written whole, then fail the hash.
+                if ((le64(buf.data()) & MAGIC_SECT_MASK) == (MAGIC_SECTN & MAGIC_SECT_MASK)) {
+                    *why = "an NCZ in an NXPress extension (NCZSECT2 or NCZSECT3) that installers do not read: "
+                           "decompress it with NXPress first";
+                    return false;
                 }
                 if (!emit(buf.data(), buf.size(), why)) return false;
                 buf.clear();

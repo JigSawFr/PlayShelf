@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -72,7 +73,16 @@ struct TitleState
     uint32_t version = 0;            // the version it runs: its update's, else the base game's
     bool     update_available = false;   // the server has a newer update than that
     size_t   dlcs_missing = 0;       // add-ons the server has and the console has not
+    bool     rebuilt = false;        // installed from a package rebuilt outside Nintendo's tools (see set_rebuilt): its update is inside it
 };
+
+// The base games installed from a package stored compressed and not signed
+// by Nintendo (hacBrewPackLZ and the like): their update is built into the
+// base game, and the official one patches the original, so installing it
+// over would break the game. state_of() never offers an update for them.
+// Set by action/rebuilt on the UI thread; read there too.
+void set_rebuilt(std::set<uint64_t> base_ids);
+
 TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint64_t, uint32_t>& installed);
 
 // The item installed already, at this version or a newer one.

@@ -606,6 +606,7 @@
         "failed": "Não foi possível instalar {}",
         "cancelled": "Instalação cancelada: nada dela ficou na consola.",
         "unsigned_body": "{}.\n\nO conteúdo pode ter sido alterado ou danificado. Instalar mesmo assim?",
+        "rebuilt_body": "{}.\n\nThis game is stored with the console's own compression and was rebuilt outside Nintendo's tools. It runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in: Nintendo's updates cannot be installed over it. Install it anyway?",
         "unsigned_confirm": "Instalar mesmo assim",
         "step": "{} de {}",
         "done_many": "{} pacotes instalados: {} MB escritos."

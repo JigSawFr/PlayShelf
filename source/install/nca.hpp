@@ -50,6 +50,15 @@ struct NcaSection
     NcaEncryption             encryption = NcaEncryption::Auto;
     uint64_t                  ctr = 0;   // the section's upper counter (CTR, BKTR)
     std::array<uint8_t, 0x200> fs_header{};
+
+    // Stored through the firmware's compression layer (12.0.0 and later): the
+    // fs header's compression info (0x178) tells a table, and its bucket tree
+    // header (0x188) says BKTR. Official games and updates use it too: it
+    // says nothing about who built the NCA.
+    bool compressed() const;
+    // Stored sparse (a base game cut down to go with its update): the
+    // sparse generation, a u16 at 0x170 of the fs header, is not 0.
+    bool sparse() const;
 };
 
 struct NcaHeader
@@ -66,6 +75,7 @@ struct NcaHeader
     std::array<NcaSection, 4>  sections{};
     std::array<uint8_t, 0x40>  key_area{};   // as stored: encrypted
 
+    bool compressed() const;   // a present section is (NcaSection::compressed)
     bool has_rights_id() const;   // its key is a title key, from a ticket
     // The key area index generation as the key derivation counts it (0 for
     // the first two, then one less than the header's).

@@ -606,6 +606,7 @@
         "failed": "{}을(를) 설치할 수 없습니다",
         "cancelled": "설치를 취소했습니다. 본체에 아무것도 남지 않았습니다.",
         "unsigned_body": "{}.\n\n콘텐츠가 변경되었거나 손상되었을 수 있습니다. 그래도 설치하시겠습니까?",
+        "rebuilt_body": "{}.\n\nThis game is stored with the console's own compression and was rebuilt outside Nintendo's tools. It runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in: Nintendo's updates cannot be installed over it. Install it anyway?",
         "unsigned_confirm": "그래도 설치",
         "step": "{} / {}",
         "done_many": "패키지 {}개를 설치했습니다: {} MB를 기록했습니다."

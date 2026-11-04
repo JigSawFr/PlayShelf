@@ -606,6 +606,7 @@
         "failed": "{} n'a pas pu être installé",
         "cancelled": "Installation annulée : rien n'en reste sur la console.",
         "unsigned_body": "{}.\n\nLe contenu a peut-être été modifié ou abîmé. L'installer quand même ?",
+        "rebuilt_body": "{}.\n\nCe jeu est stocké avec la compression propre à la console et reconstruit hors des outils de Nintendo. Il ne démarre qu'avec les patchs de signature (sys-patch), demande le firmware 12.0.0 ou plus, et sa mise à jour est intégrée : les mises à jour de Nintendo ne peuvent pas s'installer par-dessus. L'installer quand même ?",
         "unsigned_confirm": "Installer quand même",
         "step": "{} sur {}",
         "done_many": "{} paquets installés : {} Mo écrits."

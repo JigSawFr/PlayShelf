@@ -373,6 +373,27 @@ void test_nca()
     CHECK(nca_signature_valid_with(signed_head, RSA_MODULUS));
     signed_head[0x3ff] ^= 1;
     CHECK(!nca_signature_valid_with(signed_head, RSA_MODULUS));
+
+    // The fs header's compression info (a table at 0x180, BKTR at 0x188) and
+    // sparse generation (u16 at 0x170): read only from a present section.
+    NcaSection s;
+    s.present = true;
+    CHECK(!s.compressed() && !s.sparse());
+    put_le64(s.fs_header.data() + 0x180, 0x4000);
+    CHECK(!s.compressed());   // no BKTR header
+    put_le32(s.fs_header.data() + 0x188, 0x52544b42);
+    CHECK(s.compressed());
+    put_le64(s.fs_header.data() + 0x180, 0);
+    CHECK(!s.compressed());   // an empty table
+    put_le64(s.fs_header.data() + 0x180, 0x4000);
+    s.fs_header[0x171] = 1;
+    CHECK(s.sparse());
+    NcaHeader nh;
+    CHECK(!nh.compressed());
+    nh.sections[2] = s;
+    CHECK(nh.compressed());
+    s.present = false;
+    CHECK(!s.compressed() && !s.sparse());
 }
 }   // namespace
 

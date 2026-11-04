@@ -35,6 +35,24 @@ const uint8_t FIXED_MODULUS_0[256] = {
 
 }   // namespace
 
+bool NcaSection::compressed() const
+{
+    constexpr uint32_t BKTR = 0x52544b42;   // "BKTR"
+    return present && le64(fs_header.data() + 0x180) != 0 && le32(fs_header.data() + 0x188) == BKTR;
+}
+
+bool NcaSection::sparse() const
+{
+    return present && (fs_header[0x170] | (fs_header[0x171] << 8)) != 0;
+}
+
+bool NcaHeader::compressed() const
+{
+    for (const NcaSection& s : sections)
+        if (s.compressed()) return true;
+    return false;
+}
+
 bool NcaHeader::has_rights_id() const
 {
     for (uint8_t b : rights_id)

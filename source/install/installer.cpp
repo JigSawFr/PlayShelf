@@ -150,10 +150,13 @@ Done Installer::write_content(const ContentInfo& c)
             if (sig != NcaSignature::Valid && options.signatures != SignaturePolicy::Off && !signatures_accepted) {
                 if (options.signatures == SignaturePolicy::Require || !cb.accept_signature ||
                     !cb.accept_signature(f->name)) {
+                    stopped_compressed = h.compressed();
                     return fail(f->name + ": not signed by Nintendo");
                 }
                 signatures_accepted = true;
             }
+            if (h.content_type == 0)   // program
+                program_notes[h.program_id & ~0x1fffull] = sig != NcaSignature::Valid && h.compressed();
             if (const Done made_one = console.create_placeholder(c.id, h.size); !made_one) return made_one;
             made.push_back(c.id);
             state.writing = c.id;

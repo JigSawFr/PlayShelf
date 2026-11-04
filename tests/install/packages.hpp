@@ -14,7 +14,7 @@ namespace test_install
 // ---------------------------------------------------------------- a title
 
 // An NCA of `type` with one CTR section of `body` bytes.
-inline Bytes content_nca(uint8_t type, size_t body, const char* seed, uint8_t distribution = 0)
+inline Bytes content_nca(uint8_t type, size_t body, const char* seed, uint8_t distribution = 0, bool compression = false)
 {
     const size_t section = ((body + 0x1ff) / 0x200) * 0x200;
     Bytes        nca(NCA_FULL_HEADER + section);
@@ -31,6 +31,10 @@ inline Bytes content_nca(uint8_t type, size_t body, const char* seed, uint8_t di
     put_le16(fs, 2);
     fs[4] = 3;
     put_le64(fs + 0x140, 0x0000000900000000ull);
+    if (compression) {   // stored through the firmware's compression layer
+        put_le64(fs + 0x180, 0x1000);
+        put_le32(fs + 0x188, 0x52544b42);   // "BKTR"
+    }
     Sha256 sh;
     sh.update({fs, 0x200});
     const auto d = sh.digest();
@@ -95,10 +99,10 @@ struct Title
 
 // An application: a program and a control NCA, its content meta, a ticket
 // and its certificate. compressed: the program as a .ncz.
-inline Title application(bool compressed = false, uint32_t required_version = 0x0c000000)
+inline Title application(bool compressed = false, uint32_t required_version = 0x0c000000, bool compression = false)
 {
     Title t;
-    t.program = content_nca(0, 0x5300, "program");
+    t.program = content_nca(0, 0x5300, "program", 0, compression);
     t.control = content_nca(2, 0x900, "control");
     t.program_info = info_of(t.program, ContentType::Program, 0x11);
     t.control_info = info_of(t.control, ContentType::Control, 0x22);

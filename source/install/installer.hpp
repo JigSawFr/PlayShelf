@@ -23,6 +23,7 @@
 #include <atomic>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -138,6 +139,16 @@ class Installer
     const std::vector<TitlePlan>& plan() const { return titles; }
     uint64_t                      bytes_to_write() const { return total; }
 
+    // The program NCAs run() wrote, by base game (title id with the low 13
+    // bits cleared): true for one rebuilt outside Nintendo's tools, that is
+    // stored compressed and not signed by Nintendo (hacBrewPackLZ and the
+    // like: it runs only with signature patches, and its update is inside
+    // it). Official games and updates use compressed storage too, signed.
+    const std::map<uint64_t, bool>& programs() const { return program_notes; }
+    // The install stopped at a content not signed by Nintendo that is stored
+    // compressed: what to tell the user before they take it anyway.
+    bool stopped_at_compressed() const { return stopped_compressed; }
+
     // Installs what prepare() planned. Why not when it failed or was
     // cancelled (what every run did is undone then), or was paused
     // (paused(): nothing undone, the journal given).
@@ -164,6 +175,8 @@ class Installer
     std::vector<TitlePlan> titles;
     uint64_t               total = 0, done = 0, resumed = 0, journaled = 0;
     bool                   signatures_accepted = false;
+    bool                   stopped_compressed = false;
+    std::map<uint64_t, bool> program_notes;
     bool                   was_paused = false;
     Journal                state;   // what the journal says now
     std::optional<Journal> resume;
