@@ -29,6 +29,9 @@ class CoreConsole : public Console
     [[nodiscard]] Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) override;
     [[nodiscard]] Done register_placeholder(const ContentId& id) override;
     bool     has_placeholder(const ContentId& id) override;
+    [[nodiscard]] Done register_placeholder_as(const ContentId& placeholder, const ContentId& content) override;
+    std::optional<uint64_t> content_size(const ContentId& id) override;
+    [[nodiscard]] Done read_content(const ContentId& id, uint64_t offset, std::span<uint8_t> out) override;
     std::vector<ContentId> placeholders() override;
     void     delete_placeholder(const ContentId& id) override;
     void     delete_content(const ContentId& id) override;
