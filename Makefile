@@ -165,6 +165,12 @@ install_stream_LIBS := -lzstd
 # the system (liblz4-dev), the layer's codec is the caller's.
 compressed_storage_SRC  := source/install/compressed_storage.cpp tests/compressed_storage/test.cpp
 compressed_storage_LIBS := -llz4
+# The integrity tree of a RomFS section.
+ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
+# A Program NCA made over with its RomFS compressed (liblz4 from the system).
+recompress_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/recompress.cpp \
+                   tests/recompress/test.cpp
+recompress_LIBS := -llz4
 # A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
