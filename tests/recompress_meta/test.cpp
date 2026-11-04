@@ -7,7 +7,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <cstring>
 
-#include "../install/builders.hpp"
+#include "../install/recompress_builders.hpp"
 #include "check.h"
 #include "install/aes.hpp"
 #include "install/recompress_meta.hpp"
@@ -17,91 +17,6 @@ using namespace test_install;
 
 namespace
 {
-std::vector<ContentInfo> contents()
-{
-    ContentInfo program;
-    program.id = id_of(0x11);
-    program.size = 0x1234567;
-    program.type = ContentType::Program;
-    program.hash.fill(0xaa);
-    ContentInfo control;
-    control.id = id_of(0x22);
-    control.size = 0x40000;
-    control.type = ContentType::Control;
-    control.hash.fill(0xbb);
-    return {program, control};
-}
-
-ContentInfo now()
-{
-    ContentInfo c;
-    c.hash.fill(0x5c);
-    c.id = id_of(0x99);
-    c.size = 0x2'0000'1000ull;   // beyond 32 bits
-    c.type = ContentType::Program;
-    return c;
-}
-
-// A .cnmt.nca with a real partition hash table: block size 0x1000, the table
-// first, the PFS0 at the next 0x200.
-Bytes meta_nca(const Bytes& cnmt, uint32_t block = 0x1000, uint8_t distribution = 0)
-{
-    const Bytes    pfs = archive(PfsKind::Pfs0, {{"Application_0100000000010000.cnmt", cnmt}});
-    const uint64_t table_size = (pfs.size() + block - 1) / block * 32;
-    const uint64_t pfs_at = (table_size + 0x1ff) / 0x200 * 0x200;
-    const size_t   section = (pfs_at + pfs.size() + 0x1ff) / 0x200 * 0x200;
-    Bytes          nca(NCA_FULL_HEADER + section);
-    uint8_t*       h = nca.data();
-    put_le32(h + 0x200, 0x3341434e);
-    h[0x204] = distribution;
-    h[0x205] = 1;
-    h[0x206] = 2;
-    h[0x220] = 3;
-    put_le64(h + 0x208, nca.size());
-    put_le64(h + 0x210, 0x0100000000010000ull);
-    put_le32(h + 0x240, NCA_FULL_HEADER / 0x200);
-    put_le32(h + 0x244, (uint32_t)(nca.size() / 0x200));
-    uint8_t* fs = h + 0x400;
-    put_le16(fs, 2);
-    fs[2] = 1;
-    fs[3] = 2;
-    fs[4] = 3;
-    put_le32(fs + 0x28, block);
-    put_le32(fs + 0x2c, 2);
-    put_le64(fs + 0x30, 0);
-    put_le64(fs + 0x38, table_size);
-    put_le64(fs + 0x40, pfs_at);
-    put_le64(fs + 0x48, pfs.size());
-    put_le64(fs + 0x140, 0x0000000500000000ull);
-
-    uint8_t* body = nca.data() + NCA_FULL_HEADER;
-    std::memcpy(body + pfs_at, pfs.data(), pfs.size());
-    for (uint64_t i = 0; i < table_size / 32; i++) {
-        Sha256 sh;
-        sh.update({pfs.data() + i * block, std::min<size_t>(block, pfs.size() - i * block)});
-        const auto d = sh.digest();
-        std::memcpy(body + i * 32, d.data(), 32);
-    }
-    Sha256 m;
-    m.update({body, (size_t)table_size});
-    const auto md = m.digest();
-    std::memcpy(fs + 0x08, md.data(), 32);
-    Sha256 f;
-    f.update({fs, 0x200});
-    const auto fd = f.digest();
-    std::memcpy(h + 0x280, fd.data(), 32);
-    uint8_t key_area[0x40] = {};
-    std::memcpy(key_area + 0x20, SECTION_KEY, 16);
-    aes128_ecb_encrypt(KAEK, key_area);
-    std::memcpy(h + 0x300, key_area, 0x40);
-    NcaSection s;
-    s.ctr = le64(fs + 0x140);
-    const auto iv = nca_section_iv(s);
-    Aes128Ctr(SECTION_KEY, iv.data()).crypt(std::span(nca).subspan(NCA_FULL_HEADER, section), NCA_FULL_HEADER);
-    nca_header_crypt(h, HEADER_KEY, true);
-    return nca;
-}
-
 void test_content_ids()
 {
     std::array<uint8_t, 32> h{};

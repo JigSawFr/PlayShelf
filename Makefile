@@ -172,7 +172,13 @@ recompress_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp sour
                    tests/recompress/test.cpp
 recompress_LIBS := -llz4
 # The content meta of a recompressed program, and the .cnmt.nca that holds it.
-recompress_meta_SRC := $(INSTALL_FORMATS) source/install/recompress_meta.cpp tests/recompress_meta/test.cpp
+recompress_meta_SRC  := $(INSTALL_FORMATS) source/install/ivfc.cpp source/install/recompress_meta.cpp tests/recompress_meta/test.cpp
+recompress_meta_LIBS := -llz4
+# An installed title made over with its program compressed, as a transaction,
+# faults and crashes injected everywhere (liblz4 from the system).
+compress_title_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/recompress.cpp \
+                       source/install/recompress_meta.cpp source/install/compress_title.cpp tests/compress_title/test.cpp
+compress_title_LIBS := -llz4
 # A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
