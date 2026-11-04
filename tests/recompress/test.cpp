@@ -257,6 +257,79 @@ void test_roundtrips()
     }
 }
 
+ReadAtFn reader_of(const Bytes& b)
+{
+    return [&b](uint64_t off, std::span<uint8_t> out) {
+        if (off > b.size() || out.size() > b.size() - off) return false;
+        std::memcpy(out.data(), b.data() + off, out.size());
+        return true;
+    };
+}
+
+void test_verify()
+{
+    const Built in = program_nca(900'000, 8);
+    auto        rc = make(in.nca, 4096);
+    Output      out;
+    CHECK(run(rc, out));
+    uint64_t last = 0, total = 0;
+    CHECK(rc.verify(reader_of(out.nca), out.nca.size(), [&](uint64_t d, uint64_t t) { CHECK(d >= last && d <= t); last = d; total = t; }).has_value());
+    CHECK(last == total && total > 0);
+
+    // The NCA's layout, to aim at its parts.
+    uint8_t head[NCA_HEADER];
+    std::memcpy(head, out.nca.data(), NCA_HEADER);
+    nca_header_crypt(head, HEADER_KEY, false);
+    const auto h = nca_parse_header(head, out.nca.size());
+    if (!CHECK(h.has_value())) return;
+    const uint64_t s0 = h->sections[0].start, s1 = h->sections[1].start;
+    const uint8_t* fs = h->sections[1].fs_header.data();
+    const uint64_t table_offset = le64(fs + 0x178);
+
+    auto flips = [&](const char* what, uint64_t at) {
+        Bytes bad = out.nca;
+        bad[at] ^= 0x10;
+        auto       rc2 = make(in.nca, 4096);
+        CHECK(rc2.inspect().has_value());
+        const bool refused = !rc2.verify(reader_of(bad), bad.size()).has_value();
+        if (!refused) fprintf(stderr, "not found: %s\n", what);
+        CHECK(refused);
+    };
+    flips("a byte of the header", 0x300);
+    flips("a byte of the fs header", 0x400 + 0x200 + 0x10);
+    flips("a byte of the ExeFS", s0 + 0x100);
+    flips("a byte of the compressed data", s1 + 100);
+    flips("a byte of the compressed data, late", s1 + table_offset - 40);
+    flips("a byte of the table", s1 + table_offset + 0x4000 + 0x20);
+    flips("a byte of the hash levels", s1 + table_offset + le64(fs + 0x180) + 5);
+    {   // cut short, or longer
+        Bytes cut(out.nca.begin(), out.nca.end() - 0x200);
+        auto  rc2 = make(in.nca, 4096);
+        CHECK(rc2.inspect().has_value());
+        CHECK(!rc2.verify(reader_of(cut), cut.size()).has_value());
+        CHECK(!rc2.verify(reader_of(out.nca), 0x100).has_value());
+    }
+    {   // another NCA altogether: the same program, a different RomFS
+        const Built other = program_nca(900'000, 9);
+        auto        rc3 = make(other.nca, 4096);
+        Output      out3;
+        CHECK(run(rc3, out3));
+        auto rc2 = make(in.nca, 4096);
+        CHECK(rc2.inspect().has_value());
+        CHECK(!rc2.verify(reader_of(out3.nca), out3.nca.size()).has_value());
+    }
+    {   // a cancel
+        std::atomic<bool> stop{true};
+        auto              rc2 = make(in.nca, 4096);
+        CHECK(rc2.inspect().has_value());
+        CHECK(!rc2.verify(reader_of(out.nca), out.nca.size(), {}, &stop).has_value());
+    }
+    {   // before inspect()
+        auto rc2 = make(in.nca, 4096);
+        CHECK(!rc2.verify(reader_of(out.nca), out.nca.size()).has_value());
+    }
+}
+
 void test_inspect_refusals()
 {
     auto refused = [](const char* what, const Bytes& nca, uint32_t block = 65536, NcaKeys keys = test_keys()) {
@@ -334,6 +407,7 @@ void test_stops()
 int main()
 {
     test_roundtrips();
+    test_verify();
     test_inspect_refusals();
     test_stops();
     CHECK_DONE("recompress: ok");

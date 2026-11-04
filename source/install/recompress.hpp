@@ -62,6 +62,16 @@ class ProgramRecompressor
     // its whole size.
     const std::vector<uint8_t>& new_header() const { return head; }
     uint64_t                    new_size() const { return size; }
+    // Checks an NCA made by build() against the original, reading both and
+    // trusting nothing of the first: its header parses (sizes and hashes of
+    // the file system headers), the other sections are the original's bytes
+    // decrypted, the integrity tree verifies, the compression table opens,
+    // and the RomFS it decompresses to is the original's, byte for byte.
+    // `made` reads the new NCA; why not at the first difference.
+    [[nodiscard]] Done verify(const ReadAtFn& made, uint64_t made_size,
+                              const std::function<void(uint64_t done, uint64_t total)>& progress = {},
+                              const std::atomic<bool>* cancel = nullptr);
+
     // The compression it came to.
     uint64_t                    romfs_before() const { return romfs_in; }
     uint64_t                    romfs_after() const { return romfs_out; }

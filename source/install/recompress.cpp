@@ -256,4 +256,102 @@ Done ProgramRecompressor::build(const cstore::SinkFn& body, const std::function<
     return {};
 }
 
+Done ProgramRecompressor::verify(const ReadAtFn& made, uint64_t made_size,
+                                 const std::function<void(uint64_t, uint64_t)>& progress, const std::atomic<bool>* cancel)
+{
+    if (!inspected) return fail("inspect() first");
+    if (made_size < NCA_FULL_HEADER || made_size % SECTOR != 0) return fail("a new content of a size no NCA has");
+    std::array<uint8_t, NCA_HEADER> made_head{};
+    if (!made(0, made_head)) return fail("the new content could not be read");
+    nca_header_crypt(made_head.data(), keys.header_key.data(), false);
+    const auto nh = nca_parse_header(made_head.data(), made_size);
+    if (!nh) return fail("the new content: " + nh.error());
+    if (nh->content_type != 0 || nh->program_id != orig.program_id || nh->has_rights_id() || nh->distribution != 0)
+        return fail("the new content's header differs from the original's");
+    if (nh->key_area != orig.key_area || nh->key_generation != orig.key_generation || nh->key_area_index != orig.key_area_index ||
+        nh->sdk_version != orig.sdk_version || nh->signature_key_generation != orig.signature_key_generation)
+        return fail("the new content's keys or version differ from the original's");
+    for (int i = 0; i < 4; i++)
+        if (nh->sections[i].present != orig.sections[i].present) return fail("the new content has other sections");
+    if (nh->sections[romfs].compressed() == false) return fail("the new RomFS is not stored compressed");
+    for (int i = 0; i < 4; i++)
+        if (i != romfs && nh->sections[i].compressed()) return fail("a section other than the RomFS is stored compressed");
+
+    // What is read of the new NCA, decrypted.
+    auto read_made = [&](int i, uint64_t from, std::span<uint8_t> out) {
+        const NcaSection& s = nh->sections[i];
+        if (from > s.end - s.start || out.size() > s.end - s.start - from) return false;
+        if (!made(s.start + from, out)) return false;
+        if (s.encryption == NcaEncryption::Ctr) {
+            const auto iv = nca_section_iv(s);
+            Aes128Ctr(key.data(), iv.data()).crypt(out, s.start + from);
+        }
+        return true;
+    };
+    auto stopped = [&] { return cancel && cancel->load(); };
+
+    uint64_t total = 0, done = 0;
+    for (int i = 0; i < 4; i++)
+        if (orig.sections[i].present) total += i == romfs ? ivfc::read_fs_header(orig.sections[i].fs_header.data())->size[5] : orig.sections[i].end - orig.sections[i].start;
+
+    std::vector<uint8_t> a(PIECE), b(PIECE);
+    for (int i = 0; i < 4; i++) {   // the sections carried over
+        if (!orig.sections[i].present || i == romfs) continue;
+        const uint64_t len = orig.sections[i].end - orig.sections[i].start;
+        if (nh->sections[i].end - nh->sections[i].start != len) return fail("a carried-over section changed size");
+        if (std::memcmp(orig.sections[i].fs_header.data(), nh->sections[i].fs_header.data(), 0x200) != 0) return fail("a carried-over section's header changed");
+        for (uint64_t at = 0; at < len;) {
+            if (stopped()) return fail("cancelled");
+            const size_t n = (size_t)std::min<uint64_t>(PIECE, len - at);
+            if (!read_plain(i, at, {a.data(), n}) || !read_made(i, at, {b.data(), n})) return fail("a content could not be read");
+            if (std::memcmp(a.data(), b.data(), n) != 0) return fail("a carried-over section differs from the original");
+            at += n;
+            done += n;
+            if (progress) progress(done, total);
+        }
+    }
+
+    // The RomFS: the tree, the table, the image.
+    const NcaSection& rs = nh->sections[romfs];
+    const auto        layout = ivfc::read_fs_header(rs.fs_header.data());
+    if (!layout) return fail("the new RomFS: " + layout.error());
+    if (layout->offset[5] != 0) return fail("the new RomFS data does not start its section");
+    for (size_t k = 0; k < ivfc::LEVELS; k++)
+        if (layout->offset[k] + layout->size[k] > rs.end - rs.start) return fail("a level of the new RomFS outside its section");
+    uint64_t verified = 0;
+    const Done tree = ivfc::verify(*layout, [&](uint64_t off, std::span<uint8_t> out) {
+        if (stopped()) return false;
+        verified += out.size();
+        return read_made(romfs, off, out);
+    });
+    if (stopped()) return fail("cancelled");
+    if (!tree) return fail("the new RomFS's integrity tree: " + tree.error());
+
+    const uint8_t* fs = rs.fs_header.data();
+    const uint64_t table_offset = le64(fs + FS_COMPRESSION), table_size = le64(fs + FS_COMPRESSION + 8);
+    if (le32(fs + FS_COMPRESSION + 0x10) != 0x52544b42 || le32(fs + FS_COMPRESSION + 0x14) > 1) return fail("the new RomFS's table header is not one");
+    if (table_offset % ivfc::BLOCK != 0 || table_size == 0 || table_size > (256u << 20) || table_offset + table_size != layout->size[5])
+        return fail("the new RomFS's table is not where its data ends");
+    std::vector<uint8_t> table((size_t)table_size);
+    if (!read_made(romfs, table_offset, table)) return fail("the table could not be read");
+    const auto reader = cstore::Reader::open(table, (int32_t)le32(fs + FS_COMPRESSION + 0x18), table_offset, decompress);
+    if (!reader) return fail("the new RomFS's table: " + reader.error());
+    const auto old_layout = ivfc::read_fs_header(orig.sections[romfs].fs_header.data());
+    if (reader->virtual_size() != old_layout->size[5]) return fail("the new RomFS is not the original's size");
+
+    const uint64_t image = old_layout->size[5];
+    const cstore::Reader::FetchFn fetch = [&](uint64_t off, std::span<uint8_t> out) { return read_made(romfs, off, out); };
+    for (uint64_t at = 0; at < image;) {
+        if (stopped()) return fail("cancelled");
+        const size_t n = (size_t)std::min<uint64_t>(PIECE, image - at);
+        if (!read_plain(romfs, old_layout->offset[5] + at, {a.data(), n})) return fail("the original could not be read");
+        if (!reader->read(at, {b.data(), n}, fetch)) return fail("the new RomFS could not be read back");
+        if (std::memcmp(a.data(), b.data(), n) != 0) return fail("the new RomFS differs from the original");
+        at += n;
+        done += n;
+        if (progress) progress(done, total);
+    }
+    return {};
+}
+
 }   // namespace install
