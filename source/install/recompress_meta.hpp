@@ -41,4 +41,21 @@ ContentId content_id_of(const std::array<uint8_t, 32>& sha256);
 [[nodiscard]] Parsed<std::vector<uint8_t>> meta_nca_with_cnmt(std::span<const uint8_t> nca, std::span<const uint8_t> cnmt,
                                                                const NcaKeys& keys);
 
+// The contents an installed record (what ncm keeps) lists, the .cnmt.nca's own
+// first; the record has no hashes. Why not when it is cut short.
+[[nodiscard]] Parsed<std::vector<ContentInfo>> record_contents(std::span<const uint8_t> record);
+
+// The record with some contents described otherwise (their id and size; the
+// attributes and type stay), and, for an application or patch, a required
+// system version below 12.0.0 raised to it. Same length. Why not when a
+// content to replace is not in it, or twice.
+struct ContentReplacement
+{
+    ContentId old_id;
+    ContentId new_id;
+    uint64_t  new_size = 0;
+};
+[[nodiscard]] Parsed<std::vector<uint8_t>> record_with_contents(std::span<const uint8_t> record, MetaType type,
+                                                                 const std::vector<ContentReplacement>& replacements);
+
 }   // namespace install

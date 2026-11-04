@@ -124,6 +124,29 @@ Result core_placeholder_register(const u8 id[16])
     return std::rename(placeholder(id).c_str(), content(id).c_str()) == 0 ? 0 : FAIL;
 }
 
+Result core_placeholder_register_as(const u8 ph[16], const u8 id[16])
+{
+    if (exists(content(id))) return FAIL;
+    return std::rename(placeholder(ph).c_str(), content(id).c_str()) == 0 ? 0 : FAIL;
+}
+
+Result core_content_size(const u8 id[16], u64* out)
+{
+    struct stat st;
+    if (::stat(content(id).c_str(), &st) != 0) return FAIL;
+    *out = (u64)st.st_size;
+    return 0;
+}
+
+Result core_content_read(const u8 id[16], u64 offset, void* buf, size_t size)
+{
+    FILE* f = std::fopen(content(id).c_str(), "rb");
+    if (!f) return FAIL;
+    const bool ok = std::fseek(f, (long)offset, SEEK_SET) == 0 && std::fread(buf, 1, size, f) == size;
+    std::fclose(f);
+    return ok ? 0 : FAIL;
+}
+
 void core_placeholder_delete(const u8 id[16]) { std::remove(placeholder(id).c_str()); }
 
 Result core_placeholder_has(const u8 id[16], bool* out)

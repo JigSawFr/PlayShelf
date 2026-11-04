@@ -64,6 +64,23 @@ Done CoreConsole::register_placeholder(const ContentId& id)
     return check(core_placeholder_register(id.data()), "registering a content");
 }
 
+Done CoreConsole::register_placeholder_as(const ContentId& placeholder, const ContentId& content)
+{
+    return check(core_placeholder_register_as(placeholder.data(), content.data()), "registering a content");
+}
+
+std::optional<uint64_t> CoreConsole::content_size(const ContentId& id)
+{
+    u64 size = 0;
+    if (R_FAILED(core_content_size(id.data(), &size))) return std::nullopt;
+    return size;
+}
+
+Done CoreConsole::read_content(const ContentId& id, uint64_t offset, std::span<uint8_t> out)
+{
+    return check(core_content_read(id.data(), offset, out.data(), out.size()), "reading a content");
+}
+
 bool CoreConsole::has_placeholder(const ContentId& id)
 {
     bool has = false;

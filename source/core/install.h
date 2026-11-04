@@ -40,6 +40,12 @@ Result core_content_has(const u8 id[16], bool *out);
 Result core_placeholder_create(const u8 id[16], u64 size);
 Result core_placeholder_write(const u8 id[16], u64 offset, const void *data, size_t size);
 Result core_placeholder_register(const u8 id[16]);
+// The same, a placeholder registered as another content (an id known only
+// once its bytes are all written).
+Result core_placeholder_register_as(const u8 placeholder[16], const u8 content[16]);
+// A registered content's size, and `size` bytes of it from `offset`.
+Result core_content_size(const u8 id[16], u64 *out);
+Result core_content_read(const u8 id[16], u64 offset, void *buf, size_t size);
 void   core_placeholder_delete(const u8 id[16]);
 Result core_placeholder_has(const u8 id[16], bool *out);
 // The storage's placeholders, up to `max` ids into `out`, how many in *count.

@@ -25,6 +25,7 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -56,6 +57,17 @@ class Console
     [[nodiscard]] virtual Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) = 0;
     [[nodiscard]] virtual Done register_placeholder(const ContentId& id) = 0;
     virtual bool     has_placeholder(const ContentId& id) = 0;
+    // The same, a placeholder registered as another content (its id known
+    // only once the bytes are all written). A console that cannot says so.
+    [[nodiscard]] virtual Done register_placeholder_as(const ContentId& placeholder, const ContentId& content)
+    {
+        if (placeholder == content) return register_placeholder(content);
+        return fail("registering under another id is not supported");
+    }
+    // A registered content's size and bytes (recompressing an installed
+    // title reads them). A console that cannot says so.
+    virtual std::optional<uint64_t> content_size(const ContentId&) { return std::nullopt; }
+    [[nodiscard]] virtual Done read_content(const ContentId&, uint64_t, std::span<uint8_t>) { return fail("reading a content is not supported"); }
     virtual void     delete_placeholder(const ContentId& id) = 0;
     // Every placeholder of the storage (an install's left behind by a
     // restart, or another installer's).

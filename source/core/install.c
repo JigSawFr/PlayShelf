@@ -136,6 +136,28 @@ Result core_placeholder_register(const u8 id[16])
     return ncmContentStorageRegister(&s_storage, &c, &p);
 }
 
+Result core_placeholder_register_as(const u8 placeholder[16], const u8 content[16])
+{
+    const NcmContentId     c = as_content(content);
+    const NcmPlaceHolderId p = as_placeholder(placeholder);
+    return ncmContentStorageRegister(&s_storage, &c, &p);
+}
+
+Result core_content_size(const u8 id[16], u64 *out)
+{
+    const NcmContentId c = as_content(id);
+    s64                size = 0;
+    const Result       rc = ncmContentStorageGetSizeFromContentId(&s_storage, &size, &c);
+    if (R_SUCCEEDED(rc)) *out = (u64)size;
+    return rc;
+}
+
+Result core_content_read(const u8 id[16], u64 offset, void *buf, size_t size)
+{
+    const NcmContentId c = as_content(id);
+    return ncmContentStorageReadContentIdFile(&s_storage, buf, size, &c, (s64)offset);
+}
+
 void core_placeholder_delete(const u8 id[16])
 {
     const NcmPlaceHolderId p = as_placeholder(id);

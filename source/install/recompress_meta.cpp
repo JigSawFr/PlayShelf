@@ -15,6 +15,7 @@ namespace install
 namespace
 {
 constexpr size_t   HEADER = 0x20, INFO = 0x38;
+constexpr size_t   RECORD_HEADER = 8, RECORD_INFO = 0x18;
 constexpr uint64_t MAX_META_SECTION = 4u << 20;
 
 std::array<uint8_t, 32> sha(std::span<const uint8_t> b)
@@ -124,6 +125,52 @@ Parsed<std::vector<uint8_t>> meta_nca_with_cnmt(std::span<const uint8_t> nca, st
     std::memcpy(head + 0x280, fs_hash.data(), 32);
     std::memcpy(head + 0x400, fs.data(), 0x200);
     nca_header_crypt(head, keys.header_key.data(), true);
+    return out;
+}
+
+Parsed<std::vector<ContentInfo>> record_contents(std::span<const uint8_t> r)
+{
+    if (r.size() < RECORD_HEADER) return fail("a content meta record cut short");
+    const size_t ext = le16(r.data()), count = le16(r.data() + 2);
+    if (r.size() - RECORD_HEADER < ext || (r.size() - RECORD_HEADER - ext) / RECORD_INFO < count)
+        return fail("a content meta record cut short");
+    std::vector<ContentInfo> out;
+    for (size_t i = 0; i < count; i++) {
+        const uint8_t* p = r.data() + RECORD_HEADER + ext + i * RECORD_INFO;
+        ContentInfo    c;
+        std::memcpy(c.id.data(), p, 16);
+        c.size = (uint64_t)le32(p + 16) | (uint64_t)p[20] << 32;
+        c.attributes = p[21];
+        c.type = (ContentType)p[22];
+        c.id_offset = p[23];
+        out.push_back(c);
+    }
+    return out;
+}
+
+Parsed<std::vector<uint8_t>> record_with_contents(std::span<const uint8_t> r, MetaType type,
+                                                  const std::vector<ContentReplacement>& replacements)
+{
+    if (!record_contents(r)) return fail("a content meta record cut short");
+    const size_t ext = le16(r.data()), count = le16(r.data() + 2);
+    std::vector<uint8_t> out(r.begin(), r.end());
+    for (const ContentReplacement& rep : replacements) {
+        bool found = false;
+        for (size_t i = 0; i < count; i++) {
+            uint8_t* p = out.data() + RECORD_HEADER + ext + i * RECORD_INFO;
+            if (std::memcmp(p, rep.old_id.data(), 16) != 0) continue;
+            if (found) return fail("a content listed twice in the record");
+            found = true;
+            std::memcpy(p, rep.new_id.data(), 16);
+            put_le32(p + 16, (uint32_t)rep.new_size);
+            p[20] = (uint8_t)(rep.new_size >> 32);
+        }
+        if (!found) return fail("a content to replace is not in the record");
+    }
+    if ((type == MetaType::Application || type == MetaType::Patch) && ext >= 12) {
+        uint8_t* v = out.data() + RECORD_HEADER + 8;
+        if (le32(v) < SYSTEM_VERSION_12_0_0) put_le32(v, SYSTEM_VERSION_12_0_0);
+    }
     return out;
 }
 

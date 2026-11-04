@@ -204,6 +204,50 @@ void test_meta_nca()
         CHECK(edit([](uint8_t* fs) { fs[3] = 3; }));
     }
 }
+void test_record()
+{
+    ContentInfo meta_content;
+    meta_content.id = id_of(0x44);
+    meta_content.size = 0x8000;
+    meta_content.type = ContentType::Meta;
+    const auto packaged = packaged_cnmt(MetaType::Application, 0x0100000000010000ull, 0, contents());
+    const auto meta = cnmt_parse(packaged);
+    if (!CHECK(meta.has_value())) return;
+    const auto record = cnmt_install_record(*meta, meta_content);
+
+    auto infos = record_contents(record);
+    if (!CHECK(infos.has_value())) return;
+    CHECK(infos->size() == 3);
+    CHECK((*infos)[0].id == id_of(0x44) && (*infos)[0].type == ContentType::Meta && (*infos)[0].size == 0x8000);
+    CHECK((*infos)[1].id == id_of(0x11) && (*infos)[1].type == ContentType::Program && (*infos)[1].size == 0x1234567);
+    CHECK((*infos)[2].id == id_of(0x22) && (*infos)[2].type == ContentType::Control);
+
+    auto out = record_with_contents(record, MetaType::Application, {{id_of(0x11), id_of(0x99), 0x2'0000'1000ull}, {id_of(0x44), id_of(0x98), 0x8000}});
+    if (!CHECK(out.has_value())) return;
+    CHECK(out->size() == record.size());
+    auto now_infos = record_contents(*out);
+    if (!CHECK(now_infos.has_value())) return;
+    CHECK((*now_infos)[0].id == id_of(0x98) && (*now_infos)[0].type == ContentType::Meta);
+    CHECK((*now_infos)[1].id == id_of(0x99) && (*now_infos)[1].size == 0x2'0000'1000ull && (*now_infos)[1].type == ContentType::Program);
+    CHECK((*now_infos)[2] .id == id_of(0x22));
+    CHECK(le32(out->data() + 8 + 8) == SYSTEM_VERSION_12_0_0);
+    // The record the new content meta would give is the same bytes (the infos there are the new ones).
+    {
+        ContentInfo np;
+        np = now();
+        ContentInfo nm = meta_content;
+        nm.id = id_of(0x98);
+        auto patched = cnmt_with_program(packaged, id_of(0x11), np);
+        auto pm = cnmt_parse(*patched);
+        if (CHECK(pm.has_value())) CHECK(cnmt_install_record(*pm, nm) == record_with_contents(record, MetaType::Application, {{id_of(0x11), np.id, np.size}, {id_of(0x44), nm.id, nm.size}}).value());
+    }
+    CHECK(!record_with_contents(record, MetaType::Application, {{id_of(0x77), id_of(0x99), 1}}).has_value());
+    CHECK(!record_contents(std::span<const uint8_t>(record.data(), 5)).has_value());
+    CHECK(!record_contents(std::span<const uint8_t>(record.data(), 20)).has_value());
+    // Other types keep their version.
+    auto add = record_with_contents(record, MetaType::AddOnContent, {{id_of(0x11), id_of(0x99), 1}});
+    if (CHECK(add.has_value())) CHECK(le32(add->data() + 16) == le32(record.data() + 16));
+}
 }   // namespace
 
 int main()
@@ -211,5 +255,6 @@ int main()
     test_content_ids();
     test_cnmt();
     test_meta_nca();
+    test_record();
     CHECK_DONE("recompress_meta: ok");
 }
