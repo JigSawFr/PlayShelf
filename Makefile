@@ -163,6 +163,10 @@ install_stream_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp test
 install_stream_LIBS := -lzstd
 # The integrity tree of a RomFS section.
 ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
+# The compression layer of an NCA section (blocks and bucket tree); liblz4 from
+# the system (liblz4-dev), the layer's codec is the caller's.
+compressed_storage_SRC  := source/install/compressed_storage.cpp tests/compressed_storage/test.cpp
+compressed_storage_LIBS := -llz4
 # A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
@@ -375,6 +379,7 @@ config_FUZZ_CSRC   := $(CALENDAR_C)
 install_pfs_FUZZ  := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_pfs/fuzz.cpp
 install_cnmt_FUZZ := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_cnmt/fuzz.cpp
 install_nca_FUZZ  := $(filter-out tests/%,$(install_SRC)) tests/fuzz/install_nca/fuzz.cpp
+compressed_storage_FUZZ := $(filter-out tests/%,$(compressed_storage_SRC)) tests/fuzz/compressed_storage/fuzz.cpp
 install_stream_FUZZ      := $(filter-out tests/%,$(install_stream_SRC)) tests/fuzz/install_stream/fuzz.cpp
 install_stream_FUZZ_LIBS := -lzstd
 install_package_FUZZ      := $(filter-out tests/%,$(install_txn_SRC)) tests/fuzz/install_package/fuzz.cpp
