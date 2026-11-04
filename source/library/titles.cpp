@@ -184,6 +184,16 @@ bool is_installed(const Item& item, const std::map<uint64_t, uint32_t>& installe
     return it != installed.end() && it->second >= item.version;
 }
 
+namespace
+{
+std::set<uint64_t> s_rebuilt;
+}
+
+void set_rebuilt(std::set<uint64_t> base_ids)
+{
+    s_rebuilt = std::move(base_ids);
+}
+
 TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint64_t, uint32_t>& installed)
 {
     TitleState st;
@@ -195,7 +205,8 @@ TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint6
     const auto update = installed.find(t.id | 0x800);
     if (update != installed.end() && update->second > st.version) st.version = update->second;
     const long latest = latest_update(t);
-    st.update_available = latest >= 0 && catalog.items[(size_t)latest].version > st.version;
+    st.rebuilt = s_rebuilt.contains(t.id);
+    st.update_available = !st.rebuilt && latest >= 0 && catalog.items[(size_t)latest].version > st.version;
     for (size_t i : t.dlcs)
         if (!is_installed(catalog.items[i], installed)) st.dlcs_missing++;
     return st;

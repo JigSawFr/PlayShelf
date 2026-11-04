@@ -139,8 +139,9 @@ struct FakeConsole : Console
 
 struct Run
 {
-    bool        prepared = false, ok = false;
+    bool        prepared = false, ok = false, stopped_compressed = false;
     std::string why;
+    std::map<uint64_t, bool> programs;
 };
 
 Run install(FakeConsole& console, const Bytes& package, InstallOptions options = {SignaturePolicy::Off, false},
@@ -161,6 +162,8 @@ Run install(FakeConsole& console, const Bytes& package, InstallOptions options =
         const Done ran = inst.run();
         r.ok = ran.has_value();
         r.why = error_of(ran);
+        r.stopped_compressed = inst.stopped_at_compressed();
+        r.programs = inst.programs();
     }
     return r;
 }
@@ -281,6 +284,28 @@ void test_signatures()
     FakeConsole c3;
     CHECK(!install(c3, nsp(t), {SignaturePolicy::Ask, false}, no).ok);
     CHECK(c3.contents.empty());
+}
+
+// A program stored compressed and not signed by Nintendo is a rebuilt game: said
+// when the install stops at it, and noted by base game once installed. A plain
+// unsigned one is not; official compressed ones (signed) are not either, which
+// the tests' signing key cannot make, so the line is the signature's.
+void test_rebuilt()
+{
+    const uint64_t base = 0x0100000000010000ull;
+    const Title    packed = application(false, 0x0c000000, true), plain = application();
+    FakeConsole    c1;
+    Run            r = install(c1, nsp(packed), {SignaturePolicy::Require, false});
+    CHECK(!r.ok && r.stopped_compressed && r.why.find("not signed by Nintendo") != std::string::npos);
+    FakeConsole c2;
+    r = install(c2, nsp(plain), {SignaturePolicy::Require, false});
+    CHECK(!r.ok && !r.stopped_compressed);
+    FakeConsole c3;
+    r = install(c3, nsp(packed), {SignaturePolicy::Off, false});
+    CHECK(r.ok && r.programs.size() == 1 && r.programs.at(base));
+    FakeConsole c4;
+    r = install(c4, nsp(plain), {SignaturePolicy::Off, false});
+    CHECK(r.ok && r.programs.size() == 1 && !r.programs.at(base));
 }
 
 void test_undo()
@@ -476,6 +501,7 @@ int main()
     test_packages();
     test_prepare_refuses();
     test_signatures();
+    test_rebuilt();
     test_undo();
     test_pause_resume();
     CHECK_DONE("install transaction: NSP, NSZ and XCI installed; refusals before writing; every failure undone; paused, resumed, cancelled passed");

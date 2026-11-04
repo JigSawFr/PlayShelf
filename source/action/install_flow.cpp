@@ -5,11 +5,13 @@
 #include <atomic>
 #include <format>
 #include <aurore.hpp>
+#include <map>
 #include <memory>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
 
+#include "action/rebuilt.hpp"
 #include "install/console_core.hpp"
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
@@ -138,6 +140,8 @@ struct Outcome
 {
     bool        ok = false;
     bool        unsigned_content = false;   // stopped by SignaturePolicy::Require
+    bool        compressed_content = false; // ... at a content stored compressed (a rebuilt game)
+    std::map<uint64_t, bool> programs;      // the program NCAs written, by base game: true for a rebuilt one
     std::string why;
     std::string titles;    // "0100…0000, 0100…0800"
     uint64_t    written = 0;
@@ -182,6 +186,8 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
     out.ok = ran.has_value();
     if (!ran) out.why = ran.error();
     out.unsigned_content = !out.ok && out.why.contains("not signed by Nintendo");
+    out.compressed_content = out.unsigned_content && inst.stopped_at_compressed();
+    if (out.ok) out.programs = inst.programs();
     out.written = inst.bytes_to_write();
     return out;
 }
@@ -196,6 +202,7 @@ void run(const std::vector<Package>& packages, size_t first, install::SignatureP
         size_t   i = first;
         Outcome  o;
         uint64_t written = 0;
+        std::map<uint64_t, bool> programs;
         for (; i < count; i++) {
             const std::string name = packages[i].name;
             const std::string step = count > 1 ? aurore::getStr("playshelf/install/step", i + 1, count) : "";
@@ -204,18 +211,24 @@ void run(const std::vector<Package>& packages, size_t first, install::SignatureP
             o = install_one(packages[i], policy, *progress);
             if (!o.ok) break;
             written += o.written;
+            programs.insert(o.programs.begin(), o.programs.end());
             aurore::Logger::info("install: {} installed ({} bytes)", name, o.written);
         }
-        aurore::sync([packages, first, i, count, o, written, progress, after]() {
+        aurore::sync([packages, first, i, count, o, written, programs, progress, after]() {
             const bool cancelled = progress->was_cancelled();
             progress->close();
             if (i >= count) {
+                rebuilt::note(programs);
                 if (count == 1) ui::info(aurore::getStr("playshelf/install/done", packages[0].name, o.titles, mb_text(written)));
                 else ui::info(aurore::getStr("playshelf/install/done_many", count, mb_text(written)));
             } else if (cancelled) {
                 ui::notify("playshelf/install/cancelled"_i18n);
             } else if (o.unsigned_content) {
-                ui::confirm(aurore::getStr("playshelf/install/unsigned_body", o.why), "playshelf/install/unsigned_confirm"_i18n,
+                // A content stored compressed and not signed by Nintendo is a game rebuilt
+                // for the console's own compression: the body says what that costs.
+                ui::confirm(o.compressed_content ? aurore::getStr("playshelf/install/rebuilt_body", o.why)
+                                                 : aurore::getStr("playshelf/install/unsigned_body", o.why),
+                            "playshelf/install/unsigned_confirm"_i18n,
                             [packages, i, after]() { run(packages, i, install::SignaturePolicy::Off, after); });
             } else {
                 aurore::Logger::warning("install: {} failed: {}", packages[i].name, o.why);

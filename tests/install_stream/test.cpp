@@ -428,11 +428,35 @@ void test_resume()
 
 }   // namespace
 
+// NXPress's extensions NCZSECT2 and NCZSECT3 (7th byte of the magic other than N):
+// refused at once, said as such, never written as a plain NCA that fails its hash.
+void test_nxpress_extensions()
+{
+    const Built b = build();
+    const auto  hash = sha(b.nca);
+    for (const char last : {'2', '3'}) {
+        Bytes ext = ncz_stream(b);
+        ext[NCA_FULL_HEADER + 7] = (uint8_t)last;
+        write_seed(last == '2' ? "ncz_sect2" : "ncz_sect3", ext);
+        const Result r = run(ext, hash, b.nca.size());
+        CHECK(!r.ok && r.error.find("NXPress") != std::string::npos);
+        CHECK(r.out.size() <= NCA_FULL_HEADER);   // the header at most, none of the body
+        for (const auto& sizes : std::vector<std::vector<size_t>>{{1}, {7, 3}})
+            CHECK(!run(ext, hash, b.nca.size(), sizes).ok);
+    }
+    // Another magic is still a plain NCA's body, and fails on its hash.
+    Bytes other = b.nca;
+    other[NCA_FULL_HEADER] = 'X';
+    const Result r = run(other, hash, b.nca.size());
+    CHECK(!r.ok && r.error.find("NXPress") == std::string::npos);
+}
+
 int main()
 {
     test_plain();
     test_resume();
     test_game_card();
     test_ncz();
+    test_nxpress_extensions();
     CHECK_DONE("content stream: NCA, NCZ (stream and blocks), game card header, a .nca taken up again, refusals passed");
 }

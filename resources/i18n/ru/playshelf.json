@@ -606,6 +606,7 @@
         "failed": "Не удалось установить {}",
         "cancelled": "Установка отменена: на консоли от неё ничего не осталось.",
         "unsigned_body": "{}.\n\nСодержимое могло быть изменено или повреждено. Всё равно установить?",
+        "rebuilt_body": "{}.\n\nThis game is stored with the console's own compression and was rebuilt outside Nintendo's tools. It runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in: Nintendo's updates cannot be installed over it. Install it anyway?",
         "unsigned_confirm": "Всё равно установить",
         "step": "{} из {}",
         "done_many": "Установлено пакетов: {}, записано {} МБ."

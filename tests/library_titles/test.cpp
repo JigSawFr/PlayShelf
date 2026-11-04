@@ -232,6 +232,14 @@ void test_state()
     CHECK(!is_installed(c.items[1], installed));
     CHECK(is_installed(c.items[3], installed));
 
+    // A game rebuilt outside Nintendo's tools has its update inside it: none offered.
+    set_rebuilt({0x0100000000010000});
+    st = state_of(t, c, installed);
+    CHECK(st.rebuilt && !st.update_available && st.dlcs_missing == 1);
+    set_rebuilt({});
+    st = state_of(t, c, installed);
+    CHECK(!st.rebuilt && st.update_available);
+
     installed[0x0100000000010800] = 196608;   // newer than the server's
     st = state_of(t, c, installed);
     CHECK(st.version == 196608 && !st.update_available);

@@ -13,6 +13,7 @@
 #include <sys/statvfs.h>
 
 #include "action/library_flow.hpp"
+#include "action/rebuilt.hpp"
 #include "core/awake.h"
 #include "core/sim_env.h"
 #include "download/recovery.hpp"
@@ -48,6 +49,7 @@ struct Outcome
     bool             undone = false;   // failed in the install: what every run did undone, the journal of no use
     std::string      why;
     uint64_t         total = 0;
+    std::map<uint64_t, bool> programs;   // the program NCAs written, by base game: true for a rebuilt one
 };
 
 // A package's source whose transfer, cut short (the network, a busy
@@ -268,6 +270,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     const Done ran = inst.run();
     o.ok = ran.has_value();
     if (!ran) o.why = ran.error();
+    if (o.ok) o.programs = inst.programs();
     // The transfer cut, the user not pausing: a failure to try again, the
     // journal kept.
     if (!o.ok && inst.paused() && ctl->cut && !ctl->stop) {
@@ -448,6 +451,7 @@ void finished(const std::string& id, const Outcome& o)
         std::erase_if(s_jobs, [&](const download::Job& x) { return x.id == id; });
     } else if (j && o.ok) {
         aurore::Logger::info("downloads: {} installed", j->name);
+        rebuilt::note(o.programs);
         j->state = download::State::Done;
         j->journal.reset();
         j->done = j->total;

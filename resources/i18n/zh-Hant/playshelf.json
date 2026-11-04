@@ -606,6 +606,7 @@
         "failed": "無法安裝 {}",
         "cancelled": "已取消安裝：主機上沒有留下任何內容。",
         "unsigned_body": "{}。\n\n內容可能已被修改或損壞。仍要安裝嗎？",
+        "rebuilt_body": "{}.\n\nThis game is stored with the console's own compression and was rebuilt outside Nintendo's tools. It runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in: Nintendo's updates cannot be installed over it. Install it anyway?",
         "unsigned_confirm": "仍要安裝",
         "step": "{} / {}",
         "done_many": "已安裝 {} 個軟體包：已寫入 {} MB。"
