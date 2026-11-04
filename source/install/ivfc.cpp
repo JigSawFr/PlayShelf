@@ -13,6 +13,7 @@ namespace
 constexpr uint32_t MAGIC = 0x43465649;   // "IVFC"
 constexpr uint32_t VERSION = 0x20000;
 constexpr uint32_t MAX_LAYERS = 7;
+constexpr uint32_t MIN_ORDER = 9, MAX_ORDER = 24;   // block sizes from 512 bytes to 16 MiB
 
 // A level of `size` bytes padded: up to the next multiple of BLOCK, a whole
 // extra block when it already is one.
@@ -37,7 +38,9 @@ void Builder::add(std::span<const uint8_t> data)
     total += data.size();
     if (!partial.empty()) {
         const size_t take = std::min<size_t>(BLOCK - partial.size(), data.size());
-        partial.insert(partial.end(), data.begin(), data.begin() + (long)take);
+        const size_t have = partial.size();
+        partial.resize(have + take);
+        if (take) std::memcpy(partial.data() + have, data.data(), take);
         data = data.subspan(take);
         if (partial.size() < BLOCK) return;
         block(partial);
@@ -47,7 +50,8 @@ void Builder::add(std::span<const uint8_t> data)
         block(data.first(BLOCK));
         data = data.subspan(BLOCK);
     }
-    partial.assign(data.begin(), data.end());
+    partial.resize(data.size());
+    if (!data.empty()) std::memcpy(partial.data(), data.data(), data.size());
 }
 
 Result Builder::finish()
@@ -123,7 +127,7 @@ Parsed<Layout> read_fs_header(const uint8_t* fs)
         l.offset[i] = le64(e);
         l.size[i] = le64(e + 8);
         l.order[i] = le32(e + 0x10);
-        if (l.order[i] < 9 || l.order[i] > 24) return fail("an IVFC block size that is not supported");
+        if (l.order[i] < MIN_ORDER || l.order[i] > MAX_ORDER) return fail("an IVFC block size that is not supported");
         if (l.offset[i] > (1ull << 50) || l.size[i] > (1ull << 50)) return fail("an IVFC level out of range");
     }
     std::memcpy(l.master.data(), fs + 0xc8, HASH);
@@ -138,7 +142,9 @@ Done verify(const Layout& l, const ReadFn& read)
 
     std::vector<uint8_t> block, want;
     for (size_t i = 0; i < 5; i++) {
-        const uint64_t bs = 1ull << l.order[i + 1], n = (l.size[i + 1] + bs - 1) / bs;
+        if (l.order[i + 1] < MIN_ORDER || l.order[i + 1] > MAX_ORDER) return fail("an IVFC block size that is not supported");
+        const size_t   bs = (size_t)1 << l.order[i + 1];
+        const uint64_t n = (l.size[i + 1] + bs - 1) / bs;
         if (n * HASH > l.size[i]) return fail("a hash level too small for the level it covers");
         block.resize(bs);
         for (uint64_t j = 0; j < n; j++) {
