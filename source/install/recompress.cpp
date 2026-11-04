@@ -37,7 +37,8 @@ struct ProgramRecompressor::Stream
     {
         if (b.empty()) return true;
         if (hashed && tree) tree->add(b);
-        scratch.assign(b.begin(), b.end());
+        scratch.resize(b.size());
+        std::memcpy(scratch.data(), b.data(), b.size());
         if (ctr) ctr->crypt(scratch, pos);
         if (!sink(scratch)) return false;
         pos += b.size();

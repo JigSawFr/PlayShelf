@@ -161,6 +161,8 @@ install_SRC := $(INSTALL_FORMATS) tests/install/test.cpp
 # from the system (libzstd-dev), compression too, for the NCZ it builds.
 install_stream_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp tests/install_stream/test.cpp
 install_stream_LIBS := -lzstd
+# The integrity tree of a RomFS section.
+ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
 # The compression layer of an NCA section (blocks and bucket tree); liblz4 from
 # the system (liblz4-dev), the layer's codec is the caller's.
 compressed_storage_SRC  := source/install/compressed_storage.cpp tests/compressed_storage/test.cpp

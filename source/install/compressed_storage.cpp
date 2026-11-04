@@ -89,7 +89,9 @@ bool Builder::add(std::span<const uint8_t> bytes)
             continue;
         }
         const size_t take = std::min<size_t>(block_size - pending.size(), bytes.size());
-        pending.insert(pending.end(), bytes.begin(), bytes.begin() + (long)take);
+        const size_t have = pending.size();
+        pending.resize(have + take);
+        if (take) std::memcpy(pending.data() + have, bytes.data(), take);
         bytes = bytes.subspan(take);
         if (pending.size() == block_size) {
             if (!block(pending)) return false;
