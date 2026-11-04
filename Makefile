@@ -171,6 +171,8 @@ ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
 recompress_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/recompress.cpp \
                    tests/recompress/test.cpp
 recompress_LIBS := -llz4
+# The content meta of a recompressed program, and the .cnmt.nca that holds it.
+recompress_meta_SRC := $(INSTALL_FORMATS) source/install/recompress_meta.cpp tests/recompress_meta/test.cpp
 # A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
