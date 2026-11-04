@@ -428,16 +428,16 @@ void test_resume()
 
 }   // namespace
 
-// NXPress's extensions NCZSECT2 and NCZSECT3 (7th byte of the magic other than N):
+// NXPress's NCZSECT3 and any later NCZSECT… (7th byte of the magic other than N or 2):
 // refused at once, said as such, never written as a plain NCA that fails its hash.
 void test_nxpress_extensions()
 {
     const Built b = build();
     const auto  hash = sha(b.nca);
-    for (const char last : {'2', '3'}) {
+    for (const char last : {'3', 'A'}) {
         Bytes ext = ncz_stream(b);
         ext[NCA_FULL_HEADER + 7] = (uint8_t)last;
-        write_seed(last == '2' ? "ncz_sect2" : "ncz_sect3", ext);
+        if (last == '3') write_seed("ncz_sect3", ext);
         const Result r = run(ext, hash, b.nca.size());
         CHECK(!r.ok && r.error.find("NXPress") != std::string::npos);
         CHECK(r.out.size() <= NCA_FULL_HEADER);   // the header at most, none of the body
@@ -451,6 +451,64 @@ void test_nxpress_extensions()
     CHECK(!r.ok && r.error.find("NXPress") == std::string::npos);
 }
 
+namespace
+{
+// NCZSECT2 (NXPress): the entry's +0x18 is the counter offset of a CTR section, added to a
+// byte's position to find its counter (a sparse base's pieces were encrypted at their
+// virtual position, not where they are stored).
+Bytes ncz_sect2(const Built& b, const int64_t offsets[3])
+{
+    Bytes z = ncz_stream(b);
+    put_le64(z.data() + NCA_FULL_HEADER, 0x32544345535a434eull);   // "NCZSECT2"
+    for (int i = 0; i < 3; i++)
+        put_le64(z.data() + NCA_FULL_HEADER + 16 + 0x40 * i + 0x18, (uint64_t)offsets[i]);
+    return z;
+}
+
+// What the NCA is once section 1's CTR is taken at `offset` more than its position.
+Bytes shifted(const Built& b, int64_t offset)
+{
+    Bytes nca = b.nca;
+    std::copy(b.plain.begin() + (long)(b.s1 - NCA_FULL_HEADER), b.plain.begin() + (long)(b.s1 - NCA_FULL_HEADER + b.s1_size),
+              nca.begin() + (long)b.s1);
+    Aes128Ctr(SECTION_KEY, iv_of(CTR1).data()).crypt(std::span(nca).subspan(b.s1, b.s1_size), (uint64_t)((int64_t)b.s1 + offset));
+    return nca;
+}
+}   // namespace
+
+void test_ncz_sect2()
+{
+    const Built b = build();
+    for (const int64_t off : {(int64_t)0x2000, (int64_t)-0x3000, (int64_t)0x10}) {
+        const int64_t offsets[3] = {0, off, 0};
+        const Bytes   z = ncz_sect2(b, offsets);
+        const Bytes   want = shifted(b, off);
+        CHECK(want != b.nca);
+        if (off == 0x2000) write_seed("ncz_sect2", z);
+        for (const auto& sizes : std::vector<std::vector<size_t>>{{0}, {1}, {3, 1000, 17}, {0x4000, 8, 0xc0, 4}}) {
+            const Result r = run(z, sha(want), want.size(), sizes);
+            CHECK(r.ok && r.compressed && r.out == want);
+        }
+        // The published hash is the one the NCA had with the counter at its position: a wrong
+        // offset is caught by the hash, never installed.
+        CHECK(!run(z, sha(b.nca), b.nca.size()).ok);
+    }
+    // All zero: the same NCA as NCZSECTN gives.
+    const int64_t none[3] = {0, 0, 0};
+    const Result  same = run(ncz_sect2(b, none), sha(b.nca), b.nca.size());
+    CHECK(same.ok && same.out == b.nca);
+    // NCZSECTN ignores the field (nsz writes it as padding).
+    Bytes plain = ncz_stream(b);
+    put_le64(plain.data() + NCA_FULL_HEADER + 16 + 0x18, 0x1230);
+    CHECK(run(plain, sha(b.nca), b.nca.size()).out == b.nca);
+    // Refused: not a multiple of 16; on a section that is not CTR; before the NCA's start.
+    for (const auto& bad : {std::array<int64_t, 3>{0, 8, 0}, {0, 0, 0x10}, {-0x4010, 0, 0}, {0, (int64_t)1 << 62, 0},
+                            {0, -((int64_t)b.s1 + 0x10), 0}}) {
+        const Result r = run(ncz_sect2(b, bad.data()), sha(b.nca), b.nca.size());
+        CHECK(!r.ok && r.error.find("counter offset") != std::string::npos);
+    }
+}
+
 int main()
 {
     test_plain();
@@ -458,5 +516,6 @@ int main()
     test_game_card();
     test_ncz();
     test_nxpress_extensions();
+    test_ncz_sect2();
     CHECK_DONE("content stream: NCA, NCZ (stream and blocks), game card header, a .nca taken up again, refusals passed");
 }

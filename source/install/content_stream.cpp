@@ -14,7 +14,8 @@ namespace install
 namespace
 {
 constexpr uint64_t MAGIC_SECTN = 0x4e544345535a434eull;   // "NCZSECTN"
-constexpr uint64_t MAGIC_SECT_MASK = 0x00ffffffffffffffull;   // its first seven bytes, "NCZSECT"
+constexpr uint64_t MAGIC_SECT2 = 0x32544345535a434eull;   // "NCZSECT2": NXPress's NCZ with a counter offset per section
+constexpr uint64_t MAGIC_SECT_MASK = 0x00ffffffffffffffull;   // their first seven bytes, "NCZSECT"
 constexpr uint64_t MAGIC_BLOCK = 0x4b434f4c425a434eull;   // "NCZBLOCK"
 constexpr uint32_t MAGIC_ZSTD = 0xfd2fb528u;
 constexpr uint64_t MAX_SECTIONS = 64;           // an NCA has four; nsz writes no more than that
@@ -25,6 +26,7 @@ struct Section
 {
     uint64_t                   offset = 0, size = 0;
     uint8_t                    crypto = 0;
+    int64_t                    counter_offset = 0;   // NCZSECT2: added to a byte's position to find its counter (a multiple of 16)
     std::unique_ptr<Aes128Ctr> ctr;   // type 3 only
 };
 }   // namespace
@@ -45,6 +47,7 @@ struct ContentStream::Impl
     uint64_t             out = 0;   // NCA bytes written
     Sha256               sha;
     bool                 ncz = false;
+    bool                 counter_offsets = false;   // NCZSECT2: each section entry carries one
 
     std::vector<Section> sections;
     ZSTD_DCtx*           dctx = nullptr;
@@ -96,7 +99,7 @@ struct ContentStream::Impl
         for (const Section& s : sections) {
             if (!s.ctr) continue;
             const uint64_t from = std::max(out, s.offset), to = std::min(out + size, s.offset + s.size);
-            if (from < to) s.ctr->crypt({data + (from - out), (size_t)(to - from)}, from);
+            if (from < to) s.ctr->crypt({data + (from - out), (size_t)(to - from)}, (uint64_t)((int64_t)from + s.counter_offset));
         }
         return emit(data, size, why);
     }
@@ -142,6 +145,17 @@ struct ContentStream::Impl
             if (s.offset < NCA_FULL_HEADER || !add_ok(s.offset, s.size, &end) || end > nca) {
                 *why = "an NCZ section out of the NCA";
                 return false;
+            }
+            // NCZSECT2: the counter offset of the entry (+0x18), in 16-byte blocks of the NCA's
+            // counter. Only a CTR section has one (NCZSECT2 is for a sparse base's pieces).
+            if (counter_offsets) {
+                s.counter_offset = (int64_t)le64(e + 0x18);
+                if (s.counter_offset % 16 != 0 || (s.counter_offset && s.crypto != 3) ||
+                    s.counter_offset >= ((int64_t)1 << 62) || s.counter_offset <= -((int64_t)1 << 62) ||
+                    (int64_t)s.offset + s.counter_offset < 0) {
+                    *why = "an NCZ section with a counter offset that cannot be";
+                    return false;
+                }
             }
             if (s.crypto == 3) {
                 uint8_t iv[16] = {};
@@ -248,16 +262,17 @@ struct ContentStream::Impl
             case Phase::Body:
                 // A plain NCA's body, unless it starts with NCZSECTN.
                 if (!gather(buf, 8, &p, &n)) return true;
-                if (le64(buf.data()) == MAGIC_SECTN) {
+                if (le64(buf.data()) == MAGIC_SECTN || le64(buf.data()) == MAGIC_SECT2) {
                     ncz = true;
+                    counter_offsets = le64(buf.data()) == MAGIC_SECT2;
                     phase = Phase::SectionsHead;
                     break;
                 }
-                // NXPress's extensions (NCZSECT2: sparse bases; NCZSECT3: Nintendo's LZ4
-                // blocks kept decompressed) share the first seven bytes. Left to the
-                // plain NCA path they would be written whole, then fail the hash.
+                // The other NCZSECT… of NXPress (NCZSECT3: Nintendo's LZ4 blocks kept
+                // decompressed, rebuilt after the stream) is read by no installer. Left to
+                // the plain NCA path it would be written whole, then fail the hash.
                 if ((le64(buf.data()) & MAGIC_SECT_MASK) == (MAGIC_SECTN & MAGIC_SECT_MASK)) {
-                    *why = "an NCZ in an NXPress extension (NCZSECT2 or NCZSECT3) that installers do not read: "
+                    *why = "an NCZ in an NXPress extension (NCZSECT3 or later) that installers do not read: "
                            "decompress it with NXPress first";
                     return false;
                 }

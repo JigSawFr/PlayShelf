@@ -19,7 +19,11 @@
 // frame, or stored when it did not shrink). A section of crypto type 3
 // (CTR) is encrypted again with its key and its counter's upper half, as
 // the installers it comes from do; the other types are written as they
-// come.
+// come. "NCZSECT2" (NXPress) is the same table with a counter offset at +0x18
+// of each entry, a multiple of 16 added to a byte's position to find its
+// counter: the pieces of a base game stored sparse were encrypted at their
+// virtual position. Only a CTR section may have one; NCZSECT3 and later are
+// refused (nothing but NXPress reads them).
 //
 // A plain .nca can be stopped and taken up again later (an install paused,
 // or cut by a restart): checkpoint() says where its body stands (the NCA
