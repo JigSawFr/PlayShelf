@@ -161,6 +161,8 @@ install_SRC := $(INSTALL_FORMATS) tests/install/test.cpp
 # from the system (libzstd-dev), compression too, for the NCZ it builds.
 install_stream_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp tests/install_stream/test.cpp
 install_stream_LIBS := -lzstd
+# The integrity tree of a RomFS section.
+ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
 # A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
