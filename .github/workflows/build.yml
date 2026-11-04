@@ -80,7 +80,7 @@ jobs:
           ref: ${{ inputs.tag || github.ref }}
           submodules: true
       - name: Dependencies
-        run: dpkg -s zlib1g-dev libzstd-dev > /dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends zlib1g-dev libzstd-dev; }
+        run: dpkg -s zlib1g-dev libzstd-dev liblz4-dev > /dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends zlib1g-dev libzstd-dev liblz4-dev; }
       - name: Compiler messages as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
       - name: Host tests
@@ -115,7 +115,7 @@ jobs:
       - name: Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends clang libclang-rt-dev zlib1g-dev libzstd-dev
+          sudo apt-get install -y --no-install-recommends clang libclang-rt-dev zlib1g-dev libzstd-dev liblz4-dev
       - name: Host tests (clang)
         run: make test CC=clang CXX=clang++
       - name: Fuzz
