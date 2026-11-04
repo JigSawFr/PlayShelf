@@ -146,10 +146,9 @@ Done verify(const Layout& l, const ReadFn& read)
         const size_t   bs = (size_t)1 << l.order[i + 1];
         const uint64_t n = (l.size[i + 1] + bs - 1) / bs;
         if (n * HASH > l.size[i]) return fail("a hash level too small for the level it covers");
-        block.resize(bs);
         for (uint64_t j = 0; j < n; j++) {
             const uint64_t at = j * bs, have = std::min<uint64_t>(bs, l.size[i + 1] - at);
-            std::fill(block.begin(), block.end(), 0);
+            block.assign(bs, 0);   // the last block, short, is hashed as if padded with zeros
             if (!read(l.offset[i + 1] + at, {block.data(), (size_t)have})) return fail("a level could not be read");
             want.resize(HASH);
             if (!read(l.offset[i] + j * HASH, want)) return fail("a hash could not be read");
