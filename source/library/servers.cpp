@@ -214,6 +214,15 @@ bool set_password(Server& s, const std::string& password)
     return true;
 }
 
+void forget_pin(Server& s)
+{
+    s.pin.clear();
+    if (s.kept.empty()) return;
+    json kept = kept_of(s.kept);
+    kept.erase("pin");
+    s.kept = kept.empty() ? std::string() : kept.dump();
+}
+
 std::string pin_shown(const Server& s)
 {
     const std::string prefix = "sha256//";

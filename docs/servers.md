@@ -4,7 +4,7 @@ PlayShelf installs from a library server you run yourself, on a computer or a NA
 
 ## What PlayShelf reads
 
-- **AeroFoil**, and Ownfoil before its version 2, through their API (`/api/remote`, else `/api/shop`): the server's sections, its games with their sizes, versions and icons, and its message of the day. PlayShelf asks for the whole catalogue: AeroFoil otherwise stops its *All* section at a few hundred games. An account AeroFoil has frozen is said as such.
+- **AeroFoil**, and Ownfoil before its version 2, through their API (`/api/shop/sections`, else CyberFoil's `/api/remote/sections` and the older `/api/shop` and `/api/remote`): the server's sections, its games with their sizes, versions and icons, and its message of the day. PlayShelf asks for the whole catalogue: AeroFoil otherwise stops its *All* section at a few hundred games. An account AeroFoil has frozen is said as such.
 - **Ownfoil 2**, through its GraphQL API (`/api/graphql`, a page of games at a time) and its handshake (its name and message of the day).
 - **A JSON index** on any web server: an object with `files`, `directories`, `titledb` or `success`.
 

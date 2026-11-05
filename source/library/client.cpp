@@ -170,10 +170,10 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
     const auto        headers = auth_headers(server.username, password);
 
     // A first request, to the API or to the index: a LAN server's own
-    // certificate shows up there. The newer /sections path is tried first,
+    // certificate shows up there. AeroFoil's /sections path is tried first,
     // so it is what carries the TLS test.
     const std::string limit = "?limit=" + std::to_string(SECTIONS_LIMIT);
-    const std::string first_url = server.format == Format::Index ? endpoint : endpoint + "/api/remote/sections" + limit;
+    const std::string first_url = server.format == Format::Index ? endpoint : endpoint + "/api/shop/sections" + limit;
     const Answer      first = t.get(first_url, headers, pin);
     if (first.tls_failed) {
         if (!on_lan) return failed("the server's certificate is not one a recognized authority vouches for");
@@ -198,10 +198,12 @@ Fetch fetch(const Server& server, const std::string& password, Transport& t)
     f.endpoint = endpoint;
     f.on_lan = on_lan;
     if (server.format != Format::Index) {
-        // The API paths, newest first (AeroFoil/Ownfoil's /sections, as
-        // Tinfoil and CyberFoil ask for them), then the older ones. The
-        // first answer is the TLS carrier above, so it is not asked twice.
-        static const char* const api_paths[] = {"/api/remote/sections", "/api/shop/sections", "/api/remote",
+        // The API paths: AeroFoil's /api/shop/sections, the one a server
+        // really serves; CyberFoil's own /api/remote/sections (no AeroFoil
+        // branch serves it, and Ownfoil 2 serves neither, only GraphQL);
+        // then the older plain ones. The first answer is the TLS carrier
+        // above, so it is not asked twice.
+        static const char* const api_paths[] = {"/api/shop/sections", "/api/remote/sections", "/api/remote",
                                                  "/api/shop"};
         std::string not_api;   // a 200 that was no catalogue: why
         for (size_t i = 0; i < sizeof api_paths / sizeof *api_paths; i++) {

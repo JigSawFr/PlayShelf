@@ -542,6 +542,8 @@
         "hint": "Lingua e tema"
     },
     "notices": {
+        "newer_files": "Files from a newer PlayShelf",
+        "newer_files_detail": "Left as they are, not read: {}. Update PlayShelf to use them.",
         "installed": "PlayShelf {} installato",
         "installed_detail": "Si è avviato bene. La build precedente, {}, è conservata: gli strumenti per sviluppatori possono tornarci.",
         "updated_from": "Aggiornato da {}.",

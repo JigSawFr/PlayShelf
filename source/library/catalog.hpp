@@ -1,5 +1,6 @@
 // catalog — what a library server offers, from its answer: the AeroFoil and
-// older Ownfoil API (/api/remote, or /api/shop on older servers: sections of
+// CyberFoil API (/api/shop/sections or /api/remote/sections, or the older
+// /api/shop and /api/remote: sections of
 // items, each with its address, size, title id, version, type and icon),
 // Ownfoil 2's GraphQL API (its owned apps, a page at a time, and the
 // server's handshake: its name, message of the day and features) and

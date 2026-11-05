@@ -542,6 +542,8 @@
         "hint": "Sprache & Design"
     },
     "notices": {
+        "newer_files": "Files from a newer PlayShelf",
+        "newer_files_detail": "Left as they are, not read: {}. Update PlayShelf to use them.",
         "installed": "PlayShelf {} installiert",
         "installed_detail": "Es ist gut gestartet. Der vorherige Build, {}, bleibt erhalten: Die Entwicklerwerkzeuge können zu ihm zurück.",
         "updated_from": "Aktualisiert von {}.",

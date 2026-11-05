@@ -106,7 +106,7 @@ void ServerActivity::onContentAvailable()
     pin->registerClickAction([this](aurore::View*) {
         if (this->server.pin.empty()) return true;
         ui::confirm("playshelf/library/forget_pin_body"_i18n, "playshelf/library/forget_pin"_i18n, [this]() {
-            this->server.pin.clear();
+            forget_pin(this->server);
             this->show();
         });
         return true;
@@ -151,7 +151,7 @@ void ServerActivity::ask_url(std::string* url)
             return;
         }
         // Another server on this network: the key trusted was the other's.
-        if (url == &this->server.lan_url && value != *url) this->server.pin.clear();
+        if (url == &this->server.lan_url && value != *url) forget_pin(this->server);
         *url = value;
         this->show();
     });

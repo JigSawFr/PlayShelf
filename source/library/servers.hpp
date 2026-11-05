@@ -45,6 +45,11 @@ bool set_password(Server& s, const std::string& password);
 // ("AB:CD:…", pin_short()); "" when none is.
 std::string pin_shown(const Server& s);
 
+// The server no longer trusts a key: its pin, and one of a format this build
+// cannot read (kept as it was in the file until now), are both dropped, so a
+// newer build does not trust the old key for another address.
+void forget_pin(Server& s);
+
 // The server of this id in `servers`, nullptr when there is none.
 const Server* find_server(const std::vector<Server>& servers, const std::string& id);
 

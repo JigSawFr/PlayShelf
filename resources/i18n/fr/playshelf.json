@@ -542,6 +542,8 @@
         "hint": "Langue et thème"
     },
     "notices": {
+        "newer_files": "Fichiers d'un PlayShelf plus récent",
+        "newer_files_detail": "Laissés tels quels, sans être lus : {}. Mettez PlayShelf à jour pour les retrouver.",
         "installed": "PlayShelf {} installé",
         "installed_detail": "Il a bien démarré. La version précédente, {}, est gardée : les outils de développement peuvent y revenir.",
         "updated_from": "Mis à jour depuis {}.",
