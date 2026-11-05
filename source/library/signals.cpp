@@ -92,7 +92,7 @@ bool SignalBook::from_json(const std::string& text)
             g.steam.ccu = number_at<uint32_t>(*steam, "ccu");
             if (!g.steam.app) g.steam = SteamAudience{};
         }
-        // [rating 0..100, count], once PlayInsights has IGDB's keys.
+        // [rating 0..100, count], once Atlas has IGDB's keys.
         const auto igdb = value.find("igdb_rating");
         if (igdb != value.end() && igdb->is_array() && igdb->size() >= 2 && (*igdb)[0].is_number() &&
             (*igdb)[1].is_number_unsigned()) {

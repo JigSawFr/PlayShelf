@@ -1,7 +1,7 @@
 // recommend — the games of the servers to suggest, from many signals at
 // once, each with the reason that weighed most:
 //
-// - like a game the console plays (PlayInsights' similar.json), the more it
+// - like a game the console plays (Atlas' similar.json), the more it
 //   was played and the more lately, the more it counts;
 // - in a series, or by a developer, of the console's games (games.json);
 // - in the genres the console's games have, weighed by their play time;
@@ -43,7 +43,7 @@ struct Candidate
     uint64_t                 id = 0;
     uint32_t                 release_date = 0;   // YYYYMMDD, 0 when unknown
     std::vector<std::string> genres;             // Nlib API's, in English
-    Renown                   renown;             // PlayInsights' popularity and critics
+    Renown                   renown;             // Atlas' popularity and critics
 };
 
 struct Reason

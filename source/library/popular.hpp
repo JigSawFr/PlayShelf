@@ -1,6 +1,6 @@
 // popular — how well known each game is, whether it is talked about more
 // these days and what critics gave it, from popular.json (made every week by
-// PlayInsights, https://github.com/JigSawFr/PlayInsights, from Wikidata and
+// Atlas, https://github.com/JigSawFr/Atlas, from Wikidata and
 // Wikipedia's pageviews): Home's "Popular on your servers" and "Trending"
 // rows, a game page's critics' score. A score from 0 to 100, the change of its
 // readers last month in percent, and the critics' score (0 to 100).

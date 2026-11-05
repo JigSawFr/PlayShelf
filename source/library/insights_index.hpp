@@ -1,4 +1,4 @@
-// insights_index — PlayInsights' index.json (schema 1): each file it
+// insights_index — Atlas' index.json (schema 1): each file it
 // publishes, the day it was made, its size and the first 16 hex digits of the
 // SHA-256 of its bytes. PlayShelf fetches it once a day and downloads a file
 // only when its cached copy's hash differs. Plain C++ for the host tests
