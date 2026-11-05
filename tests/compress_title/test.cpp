@@ -171,6 +171,7 @@ const MetaKey KEY{0x0100000000020000ull, 0, MetaType::Application};
 struct Title
 {
     Mem   mem;
+    Mem   start;   // the title as installed: what 'as it was' is compared with (mem is the one the engine changes)
     Bytes program;
     Bytes record;
     Built built;
@@ -218,6 +219,7 @@ Title install_title(size_t image_size, uint32_t seed, bool rights = false, bool 
     const auto parsed = cnmt_parse(cnmt);
     t.record = cnmt_install_record(*parsed, meta_content);
     t.mem.metas[tk(KEY)] = t.record;
+    t.start = t.mem;
     return t;
 }
 
@@ -230,7 +232,7 @@ TitleCompressor make(Mem& mem, MemJournal& j, CompressOptions o = {}, CompressCa
 // The title as it was: record, contents byte for byte, nothing else.
 bool is_baseline(const Mem& m, const Title& t)
 {
-    return m.metas == t.mem.metas && m.pending.empty() && m.removed.empty() && m.contents == t.mem.contents && m.pholders.empty();
+    return m.metas == t.start.metas && m.pending.empty() && m.removed.empty() && m.contents == t.start.contents && m.pholders.empty();
 }
 
 // The title as it should be after a run: the new record, the new program and
@@ -264,7 +266,7 @@ bool is_compressed(const Mem& m, const Title& t, int old)
         }
     }
     const auto old_infos = record_contents(t.record);
-    for (const auto& [id, bytes] : t.mem.contents) {
+    for (const auto& [id, bytes] : t.start.contents) {
         bool replaced = false;   // the old program and content meta
         for (const ContentInfo& i : *old_infos) replaced = replaced || (i.id == id && (i.type == ContentType::Program || i.type == ContentType::Meta));
         if (replaced && old != 1) {
@@ -404,7 +406,7 @@ void test_refusals_write_nothing()
     {   // a read that fails while measuring
         Title t = install_title(300'000, 3);
         MemJournal j;
-        t.mem.read_fault_at = 4;
+        t.mem.read_fault_at = 2;
         auto c = make(t.mem, j);
         nothing_written("read fault in prepare", t, j, c.prepare());
     }
@@ -718,6 +720,7 @@ WithUpdate install_with_update(size_t image_size, uint32_t seed)
     meta_content.type = ContentType::Meta;
     w.t.mem.contents[meta_content.id] = meta;
     w.t.mem.metas[tk(PKEY)] = cnmt_install_record(*cnmt_parse(cnmt), meta_content);
+    w.t.start = w.t.mem;
     return w;
 }
 
@@ -767,13 +770,13 @@ bool is_merged(const Mem& m, const WithUpdate& w, int old)
     if (!expected.count(id_of(0x23)) || expected.count(id_of(0x22))) return false;
     // Old contents: the game's and the update's program and content meta.
     std::set<ContentId> replaced;
-    for (const Mem* src : {&w.t.mem}) {
+    for (const Mem* src : {&w.t.start}) {
         for (const KeyT& k : {tk(KEY), tk(PKEY)})
             if (const auto old_infos = record_contents(src->metas.at(k)))
                 for (const ContentInfo& i : *old_infos)
                     if (i.type == ContentType::Program || i.type == ContentType::Meta) replaced.insert(i.id);
     }
-    for (const auto& [id, bytes] : w.t.mem.contents) {
+    for (const auto& [id, bytes] : w.t.start.contents) {
         const bool is_replaced = replaced.count(id) != 0;
         if (!is_replaced && id != id_of(0x22)) {
             if (!m.contents.count(id) || m.contents.at(id) != bytes) return false;
@@ -859,6 +862,7 @@ void test_merge_flow()
             }();
             Bytes& bytes = w.t.mem.contents[target];
             bytes[which ? bytes.size() / 2 : w.upd.patch.start + 100] ^= 1;
+            w.t.start = w.t.mem;   // the damaged title is the one that must stay as it is
             const Title baseline = w.t;
             MemJournal  j;
             auto        c = make_merge(w.t.mem, j);
