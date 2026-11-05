@@ -92,7 +92,11 @@ void check_output(const Built& in, const Output& out)
     CHECK(h->sections[0].present && h->sections[1].present && !h->sections[2].present);
     CHECK(h->sections[0].start == NCA_FULL_HEADER && h->sections[0].end == h->sections[1].start);
     CHECK(h->sections[1].end == out.nca.size());
-    CHECK(std::memcmp(out.nca.data() + NCA_HEADER, in.nca.data() + NCA_HEADER, NCA_FULL_HEADER - NCA_HEADER) == 0);
+    if (in.packed) {   // the original had a section there: the new header's padding is zeros
+        for (size_t i = NCA_HEADER; i < NCA_FULL_HEADER; i++) CHECK(out.nca[i] == 0);
+    } else {
+        CHECK(std::memcmp(out.nca.data() + NCA_HEADER, in.nca.data() + NCA_HEADER, NCA_FULL_HEADER - NCA_HEADER) == 0);
+    }
 
     // The ExeFS: the same bytes.
     const Bytes ex = plain_section(out.nca, *h, 0);
@@ -217,6 +221,24 @@ void test_verify()
     }
 }
 
+// A program packed for homebrew (sections right after the header) is made over too.
+void test_packed_original()
+{
+    const Built in = program_nca(300'000, 21, false, 0, true);
+    if (!CHECK(in.packed)) return;
+    auto        rc = make(in.nca, 16384);
+    Output      out;
+    std::string why;
+    if (!CHECK(run(rc, out, &why))) {
+        fprintf(stderr, "packed original: %s\n", why.c_str());
+        return;
+    }
+    check_output(in, out);
+    auto rc2 = make(in.nca, 16384);
+    CHECK(rc2.inspect().has_value());
+    CHECK(rc2.verify(reader_of(out.nca), out.nca.size()).has_value());
+}
+
 void test_inspect_refusals()
 {
     auto refused = [](const char* what, const Bytes& nca, uint32_t block = 65536, NcaKeys keys = test_keys()) {
@@ -295,6 +317,7 @@ int main()
 {
     test_roundtrips();
     test_verify();
+    test_packed_original();
     test_inspect_refusals();
     test_stops();
     CHECK_DONE("recompress: ok");

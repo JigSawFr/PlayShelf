@@ -33,7 +33,7 @@ struct Section
 
 struct ContentStream::Impl
 {
-    enum class Phase { Header, Body, SectionsHead, Sections, BodyKind, Zstd, BlockHead, BlockSizes, Blocks, Raw, Finished, Failed };
+    enum class Phase { Header, HeaderRest, Body, SectionsHead, Sections, BodyKind, Zstd, BlockHead, BlockSizes, Blocks, Raw, Finished, Failed };
 
     std::array<uint8_t, 32>                 header_key{};
     std::optional<std::array<uint8_t, 32>> expected_hash;
@@ -44,6 +44,8 @@ struct ContentStream::Impl
     Phase                phase = Phase::Header;
     std::vector<uint8_t> buf;   // what a phase gathers before it can go on
     uint64_t             nca = 0;   // the NCA's size, from its header
+    size_t               head_rest = 0;     // header-region bytes after the header proper (0xC00), to the first section
+    bool                 padded = false;   // the first section starts at 0x4000 or later: only then can it be a .ncz
     uint64_t             out = 0;   // NCA bytes written
     Sha256               sha;
     bool                 ncz = false;
@@ -126,6 +128,14 @@ struct ContentStream::Impl
             }
         }
         nca = h->size;
+        // Where the body begins: the system's own NCAs pad the header to
+        // NCA_FULL_HEADER, the ones packed for homebrew start the first
+        // section right after it.
+        uint64_t first = h->size;
+        for (const NcaSection& sec : h->sections)
+            if (sec.present) first = std::min(first, sec.start);
+        padded = first >= NCA_FULL_HEADER;
+        head_rest = (size_t)(std::min<uint64_t>(first, NCA_FULL_HEADER) - NCA_HEADER);
         sha.update(buf);   // as published
         if (h->distribution == 1) nca_make_download(buf.data(), header_key.data());
         return emit(buf.data(), buf.size(), why, true);
@@ -254,10 +264,17 @@ struct ContentStream::Impl
         while (n || phase == Phase::BodyKind) {
             switch (phase) {
             case Phase::Header:
-                if (!gather(buf, NCA_FULL_HEADER, &p, &n)) return true;
+                if (!gather(buf, NCA_HEADER, &p, &n)) return true;
                 if (!header(why)) return false;
                 buf.clear();
-                phase = Phase::Body;
+                phase = Phase::HeaderRest;
+                break;
+            case Phase::HeaderRest:
+                // The padding (or the start of the first section) up to where the body begins.
+                if (!gather(buf, head_rest, &p, &n)) return true;
+                if (!emit(buf.data(), buf.size(), why)) return false;
+                buf.clear();
+                phase = padded ? Phase::Body : Phase::Raw;
                 break;
             case Phase::Body:
                 // A plain NCA's body, unless it starts with NCZSECTN.
@@ -399,6 +416,10 @@ struct ContentStream::Impl
             *why = "the NCA's header cut short";
             return false;
         }
+        if (phase == Phase::HeaderRest && buf.size() < head_rest) {
+            *why = "the NCA's header cut short";
+            return false;
+        }
         if (phase == Phase::Body && !buf.empty()) {
             // A plain NCA whose body is shorter than 8 bytes.
             if (!emit(buf.data(), buf.size(), why)) return false;
@@ -482,8 +503,8 @@ std::optional<ContentStream::Checkpoint> ContentStream::checkpoint() const
 bool ContentStream::resume_at(const Checkpoint& at)
 {
     if (impl->phase != Impl::Phase::Header || !impl->buf.empty()) return false;
-    // Within the body: past the header and the 8 bytes that told it from a .ncz.
-    if (at.offset < NCA_FULL_HEADER + 8 || at.offset > at.nca_size) return false;
+    // Within the body: past the header (and, for the system's layout, the 8 bytes that told it from a .ncz).
+    if (at.offset < NCA_HEADER || at.offset > at.nca_size) return false;
     if (impl->expected_size && at.nca_size != impl->expected_size) return false;
     // The hash covers every NCA byte written (the header as published).
     uint64_t hashed = 0;

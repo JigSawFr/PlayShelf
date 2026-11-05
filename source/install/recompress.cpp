@@ -65,7 +65,7 @@ ProgramRecompressor::ProgramRecompressor(ReadAtFn original, uint64_t original_si
 
 Done ProgramRecompressor::inspect()
 {
-    if (orig_size < NCA_FULL_HEADER) return fail("a content smaller than an NCA's header");
+    if (orig_size < NCA_HEADER) return fail("a content smaller than an NCA's header");
     std::array<uint8_t, NCA_HEADER> enc{};
     if (!orig_read(0, enc)) return fail("the content could not be read");
     plain_header = enc;
@@ -77,12 +77,14 @@ Done ProgramRecompressor::inspect()
     if (orig.has_rights_id()) return fail("a program NCA sold with a ticket (its title key is not handled)");
     if (orig.compressed()) return fail("a program NCA already stored compressed");
 
-    uint64_t last = NCA_FULL_HEADER;
+    uint64_t last = NCA_HEADER;   // the system's NCAs start their sections at 0x4000, packed homebrew's right after the header
     romfs = -1;
+    first_section = ~0ull;
     for (int i = 0; i < 4; i++) {
         const NcaSection& s = orig.sections[i];
         if (!s.present) continue;
         if (s.start < last) return fail("sections out of order");
+        first_section = std::min(first_section, s.start);
         last = s.end;
         if (s.sparse()) return fail("a sparse section");
         if (s.encryption != NcaEncryption::Ctr && s.encryption != NcaEncryption::None)
@@ -250,7 +252,7 @@ Done ProgramRecompressor::build(const cstore::SinkFn& body, const std::function<
 
     head.assign(NCA_FULL_HEADER, 0);
     std::memcpy(head.data(), plain.data(), NCA_HEADER);
-    if (NCA_FULL_HEADER > NCA_HEADER) {   // the original's padding, as it was
+    if (first_section >= NCA_FULL_HEADER) {   // the original's padding, as it was (zeros where it held a section)
         if (!orig_read(NCA_HEADER, {head.data() + NCA_HEADER, NCA_FULL_HEADER - NCA_HEADER}))
             return fail("the content could not be read");
     }

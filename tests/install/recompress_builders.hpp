@@ -48,13 +48,17 @@ Bytes romfs_image(size_t n, uint32_t seed)
 struct Built
 {
     Bytes nca, exefs_plain, image;
+    bool  packed = false;
 };
 
 // An NCA with the sections at 0x4000: the ExeFS (a PFS0, CTR), the RomFS
-// (hash levels, then the data, CTR). `rights`: a rights id; `type`: content type.
-Built program_nca(size_t image_size, uint32_t seed, bool rights = false, uint8_t type = 0)
+// (hash levels, then the data, CTR). `rights`: a rights id; `type`: content type;
+// `packed`: the sections start right after the header, as the tools that pack
+// homebrew write them.
+Built program_nca(size_t image_size, uint32_t seed, bool rights = false, uint8_t type = 0, bool packed = false)
 {
     Built b;
+    b.packed = packed;
     b.image = romfs_image(image_size, seed);
     b.exefs_plain = archive(PfsKind::Pfs0, {{"main", stream(5000, "main")}, {"main.npdm", stream(900, "npdm")}});
 
@@ -78,8 +82,8 @@ Built program_nca(size_t image_size, uint32_t seed, bool rights = false, uint8_t
     l.offset[5] = prefix;
     s1.resize(((s1.size() + 0x1ff) / 0x200) * 0x200);
 
-    const uint64_t s0_start = NCA_FULL_HEADER, s1_start = s0_start + s0.size();
-    b.nca.assign(NCA_FULL_HEADER + s0.size() + s1.size(), 0);
+    const uint64_t s0_start = packed ? NCA_HEADER : NCA_FULL_HEADER, s1_start = s0_start + s0.size();
+    b.nca.assign(s0_start + s0.size() + s1.size(), 0);
     uint8_t* h = b.nca.data();
     put_le32(h + 0x200, 0x3341434e);
     h[0x204] = 1;   // game card: becomes a download NCA
@@ -114,7 +118,7 @@ Built program_nca(size_t image_size, uint32_t seed, bool rights = false, uint8_t
     std::memcpy(key_area + 0x20, SECTION_KEY, 16);
     aes128_ecb_encrypt(KAEK, key_area);
     std::memcpy(h + 0x300, key_area, 0x40);
-    for (size_t i = NCA_HEADER; i < NCA_FULL_HEADER; i++)
+    for (size_t i = NCA_HEADER; !packed && i < NCA_FULL_HEADER; i++)
         h[i] = (uint8_t)(0xc0 + i % 7);   // padding with something to carry over
 
     std::memcpy(b.nca.data() + s0_start, s0.data(), s0.size());

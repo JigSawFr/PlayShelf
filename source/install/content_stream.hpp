@@ -4,7 +4,7 @@
 // with zstd, by nsz) decompressed and encrypted again, either way with a
 // game card NCA's header made a download one's.
 //
-// The header comes first, whole: the stream decrypts it, checks it
+// The header comes first, whole (its first 0xC00 bytes): the stream decrypts it, checks it
 // (nca.hpp) and hands it to `on_header` before anything is written, which
 // may refuse it (a signature the user did not accept, no room) or make the
 // placeholder its size gives. Then every byte goes to `write`, at its offset
@@ -12,6 +12,12 @@
 // as published (the header before its distribution changed): finish()
 // compares them with the hash the content meta gives, when there is one,
 // and checks the NCA came out whole, no more, no less.
+//
+// Where the body begins depends on the NCA: the system's own pad the header to
+// 0x4000 bytes and start their first section there (what a .ncz is made from);
+// the ones packed for homebrew (hacBrewPack and the like) start the first section
+// right after the 0xC00 bytes of header, and can be smaller than 0x4000 bytes.
+// Either way the bytes in between are written as they come.
 //
 // NCZ: after the NCA's first 0x4000 bytes, "NCZSECTN" and its sections (an
 // offset, a size, a crypto type, a key and a counter each), then the rest of

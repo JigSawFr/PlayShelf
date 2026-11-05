@@ -81,7 +81,7 @@ Parsed<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size)
     std::memcpy(h.key_area.data(), d + 0x300, 0x40);
     if (h.distribution > 1) return fail("unknown distribution type");
     if (h.key_area_index > 2) return fail("unknown key area index");
-    if (h.size < NCA_FULL_HEADER) return fail("content smaller than its header");
+    if (h.size < NCA_HEADER) return fail("content smaller than its header");
     if (nca_size && h.size != nca_size) return fail("content size differs from its file's");
     for (int i = 0; i < 4; i++) {
         const uint8_t* e = d + 0x240 + 0x10 * i;
@@ -91,7 +91,7 @@ Parsed<NcaHeader> nca_parse_header(const uint8_t* d, uint64_t nca_size)
         s.present = true;
         s.start = (uint64_t)start * NCA_MEDIA;
         s.end = (uint64_t)end * NCA_MEDIA;
-        if (s.end < s.start || s.start < NCA_FULL_HEADER || s.end > h.size)
+        if (s.end < s.start || s.start < NCA_HEADER || s.end > h.size)
             return fail("a section out of the content's bounds");
         std::memcpy(s.fs_header.data(), d + 0x400 + 0x200 * i, 0x200);
         Sha256 sha;
@@ -148,7 +148,7 @@ std::array<uint8_t, 16> nca_section_iv(const NcaSection& s)
 Parsed<std::vector<uint8_t>> nca_read_cnmt(std::span<const uint8_t> nca, const NcaKeys& keys)
 {
     using Bytes = std::vector<uint8_t>;
-    if (nca.size() < NCA_FULL_HEADER) return fail("content meta NCA cut short");
+    if (nca.size() < NCA_HEADER) return fail("content meta NCA cut short");
     uint8_t head[NCA_HEADER];
     std::memcpy(head, nca.data(), NCA_HEADER);
     nca_header_crypt(head, keys.header_key.data(), false);

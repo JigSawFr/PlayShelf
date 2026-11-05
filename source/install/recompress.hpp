@@ -93,6 +93,7 @@ class ProgramRecompressor
     std::array<uint8_t, NCA_HEADER> plain_header{};
     std::array<uint8_t, 16> key{};
     int                     romfs = -1;
+    uint64_t                first_section = ~0ull;
     uint64_t                read_done = 0, read_total = 0;
     std::function<void(uint64_t, uint64_t)> progress_fn;
     const std::atomic<bool>* cancel_flag = nullptr;
