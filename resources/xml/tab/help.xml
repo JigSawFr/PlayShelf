@@ -51,6 +51,7 @@
             <aurore:DetailCell id="hp_dev_report" title="@i18n/playshelf/dev/report"/>
             <aurore:DetailCell id="hp_dev_build" title="@i18n/playshelf/dev_build/open"/>
             <aurore:DetailCell id="hp_dev_install" title="@i18n/playshelf/install/from_url"/>
+            <aurore:DetailCell id="hp_dev_compress" title="Compress an installed game"/>
 
         </aurore:Box>
 

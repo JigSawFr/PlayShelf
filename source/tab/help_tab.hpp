@@ -44,5 +44,6 @@ class HelpTab : public TabBase
     AURORE_BIND(aurore::DetailCell,  dev_clear_logs, "hp_dev_clear_logs");
     AURORE_BIND(aurore::DetailCell,  dev_report,  "hp_dev_report");
     AURORE_BIND(aurore::DetailCell,  dev_install, "hp_dev_install");
+    AURORE_BIND(aurore::DetailCell,  dev_compress, "hp_dev_compress");
     AURORE_BIND(aurore::DetailCell,  dev_build,   "hp_dev_build");
 };
