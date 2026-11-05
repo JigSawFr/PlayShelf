@@ -214,6 +214,24 @@ void test_packages()
             CHECK(c.contents.size() == 3 && c.app_records.size() == 2);
         }
     }
+    // A game card image cut short, as the tools that trim one leave it (no
+    // empty space after the last file, nor the padding that rounds it up),
+    // installs like the whole one; so does one with the card's empty space
+    // (0xFF) after the last file.
+    {
+        const Title t = application();
+        Bytes       trimmed = xci(t), padded = xci(t);
+        while (trimmed.size() > 1 && trimmed.back() == 0) trimmed.pop_back();
+        padded.resize(padded.size() + 0x5000, 0xff);
+        CHECK(trimmed.size() < padded.size());
+        for (const Bytes& pkg : {trimmed, padded}) {
+            FakeConsole c;
+            const Run   r = install(c, pkg, {SignaturePolicy::Off, false});
+            CHECK(r.prepared && r.ok);
+            if (!r.ok) fprintf(stderr, "  %s\n", r.why.c_str());
+            check_installed(c, t);
+        }
+    }
     // The package's kind.
     const Title  t = application();
     MemorySource a(nsp(t)), b(xci(t));
