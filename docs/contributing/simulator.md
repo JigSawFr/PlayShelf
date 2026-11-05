@@ -12,7 +12,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_BLANK=1` | Atmosphère blanking the serial number |
 | `PLAYSHELF_SIM_BOOT_CHOICE=a` | The answer of the start-up screen that offers the previous build after a start that did not finish (`a`: A, else B) |
 | `PLAYSHELF_SIM_CADRAN_NOGLOW=1` | Not the console: none of the glow the look draws behind its screens and its tiles (Aurore's Cadran, `library/aurore/library/lib/cadran/`), as with *Developer › Background glow* off, to weigh what it costs |
-| `PLAYSHELF_SIM_CUT_TEXT=1` | Not the console: once a second, every label the screen on top cuts short ("…") goes to `cut_text.txt` in the working directory with the screen's name (`library › dialog`, `… › picker` for one opened over it), once each (`tools/cut_text_check.py`) |
+| `PLAYSHELF_SIM_CUT_TEXT=1` | Not the console: once a second, every label the screen on top cuts short ("…") goes to `cut_text.txt` in the working directory with the screen's name (`library › dialog`, `… › picker` for one opened over it), once each |
 | `PLAYSHELF_SIM_DEV_BUILDS=<folder>` | What the GitHub API returns for *Install another build*: `releases.json` (the releases tab), `latest.json` (the latest release, for *Update in place*), `artifacts.json`, `pulls.json`; `runs.json`, and for *Find a build* `pull_<n>.json`, `commit.json`, `run_artifacts.json`; `https://<local path>` download URLs are copied from disk (`offline` for no network); `PLAYSHELF_SIM_DEV_BUILDS_DELAY=<ms>` slows each answer |
 | `PLAYSHELF_SIM_DOCKED=1` | The console on its dock: *Text size › Automatic* draws the larger text |
 | `PLAYSHELF_SIM_EMUMMC=1` | Running on emuMMC |

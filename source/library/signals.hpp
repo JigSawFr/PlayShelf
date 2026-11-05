@@ -1,4 +1,4 @@
-// signals — what PlayInsights (https://github.com/JigSawFr/PlayInsights)
+// signals — what Atlas (https://github.com/JigSawFr/Atlas)
 // knows of each game beyond its popularity, for the recommendations
 // (library/recommend) and a game's page: its name (titledb's, for a game no
 // server or title database names), its traits from Wikidata (series,
