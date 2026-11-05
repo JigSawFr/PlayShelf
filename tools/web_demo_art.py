@@ -26,7 +26,7 @@ village…) in the game's colours, as SVG rendered in Chromium; on the icon,
 framed on the scene's subject, its name in Sora (resources/font, OFL) as a
 logo; on the screenshots, a head-up display of its kind of game. Nothing of
 a real game: no name, character, logo or picture. Needs Playwright (with
-its Chromium, or CHROMIUM=<path> for another) and Pillow.
+its Chromium, or CHROMIUM=<path> for another; see chromium_path.py) and Pillow.
 
 Usage: tools/web_demo_art.py <games.json> <demo-dir>
 """
@@ -41,6 +41,7 @@ import sys
 
 from PIL import Image
 
+import chromium_path
 import web_demo_scenes as scenes
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -124,8 +125,8 @@ class Renderer:
     def __init__(self):
         from playwright.sync_api import sync_playwright
         self.pw = sync_playwright().start()
-        # CHROMIUM: a Chromium of one's own, when Playwright's is not installed.
-        self.browser = self.pw.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None)
+        # A Chromium of one's own when Playwright's is not installed (chromium_path.py).
+        self.browser = self.pw.chromium.launch(executable_path=chromium_path.executable(self.pw))
         self.pages = {}
 
     def shot(self, html, w, h):

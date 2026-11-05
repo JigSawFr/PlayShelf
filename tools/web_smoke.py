@@ -39,7 +39,7 @@ time each start took to <out-dir>/timings.json. The screens show one frozen
 moment (PLAYSHELF_SIM_NOW) with the focus glow still.
 
 Usage: tools/web_smoke.py <simulator-dir> <out-dir>   (needs Playwright for
-Python with Chromium; PLAYWRIGHT_CHROMIUM=<path> for a browser of its own)
+Python with Chromium; PLAYWRIGHT_CHROMIUM=<path> for a browser of its own, see chromium_path.py)
 """
 import base64
 import functools
@@ -53,6 +53,7 @@ import tempfile
 import threading
 import time
 
+import chromium_path
 from playwright.sync_api import sync_playwright
 
 SITE, OUT = sys.argv[1], sys.argv[2]
@@ -216,7 +217,7 @@ def run(fn):
             while browsers:
                 browsers.pop().close()
             browser = p.chromium.launch(
-                executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM") or None,
+                executable_path=chromium_path.executable(p),
                 # WebGL 2 without a GPU: SwiftShader.
                 args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
             browsers.append(browser)
