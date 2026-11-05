@@ -1,0 +1,48 @@
+# The independent reader of the compression engine's NCAs (tests/oracle/run.sh:
+# LibHac, which shares no code with PlayShelf, decrypts, checks and
+# decompresses what the engine made, and refuses a changed byte). Only when
+# the install code or the oracle changes, and by hand; not a required check.
+name: oracle
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - source/install/**
+      - source/kit/util/aes.*
+      - source/kit/util/sha256.*
+      - tests/oracle/**
+      - tests/install/**
+      - .github/workflows/oracle.yml
+  pull_request:
+    paths:
+      - source/install/**
+      - source/kit/util/aes.*
+      - source/kit/util/sha256.*
+      - tests/oracle/**
+      - tests/install/**
+      - .github/workflows/oracle.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the run on the commit it replaces.
+concurrency:
+  group: oracle-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  oracle:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # liblz4 for the engine's codec, the .NET SDK for the reader (a NuGet
+      # package, LibHac, fetched by dotnet build).
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -o Dpkg::Options::=--force-unsafe-io -y --no-install-recommends liblz4-dev dotnet-sdk-8.0
+      - name: The engine's NCAs read back by LibHac
+        run: tests/oracle/run.sh
