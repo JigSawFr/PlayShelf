@@ -44,6 +44,7 @@ struct Job
     State       state = State::Waiting;
     std::string error;       // Failed: why
     bool        unsigned_content = false;   // Failed: on a content not signed by Nintendo
+    bool        compressed_content = false; // ... a content stored compressed: a game rebuilt for the console's own compression
     bool        accept_unsigned = false;    // the user said to install it anyway
     uint64_t    done = 0, total = 0;        // the install's bytes, as last known
     std::optional<install::Journal> journal;

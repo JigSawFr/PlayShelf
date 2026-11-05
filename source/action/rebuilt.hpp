@@ -20,4 +20,10 @@ void start();
 // (install::Installer::programs).
 void note(const std::map<uint64_t, bool>& programs);
 
+// What the console has now (title id -> version): a game no longer installed
+// leaves the list, so one put back by another installer is not taken for a
+// rebuilt one. Nothing is dropped from an empty list (the read may have
+// failed), nor a game noted since this start (the read may be older).
+void prune(const std::map<uint64_t, uint32_t>& installed);
+
 }   // namespace rebuilt

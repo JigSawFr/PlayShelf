@@ -614,6 +614,7 @@
         "done_many": "{} paquets installés : {} Mo écrits."
     },
     "downloads": {
+        "rebuilt_note": "Reconstruit pour la compression de la console et non signé par Nintendo : il ne fonctionne qu'avec des correctifs de signature (sys-patch), demande le micrologiciel 12.0.0 ou plus récent et contient déjà sa mise à jour.",
         "empty_title": "Aucun téléchargement",
         "empty_text": "La fiche d'un jeu, dans la Catalogue, ajoute ici ses paquets ; ils sont installés l'un après l'autre.",
         "added": "Ajouté aux téléchargements : {}",
@@ -739,6 +740,7 @@
         "popular_online": "Jeux populaires depuis Atlas"
     },
     "game": {
+        "rebuilt": "Mise à jour intégrée",
         "screenshots": "Captures d'écran",
         "about": "À propos de ce jeu",
         "source": "Détails, bannière et captures : Nlib API",

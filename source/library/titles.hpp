@@ -83,6 +83,13 @@ struct TitleState
 // Set by action/rebuilt on the UI thread; read there too.
 void set_rebuilt(std::set<uint64_t> base_ids);
 
+// The games of `rebuilt` the console no longer has: they leave the list, but
+// nothing is dropped when `installed` is empty (what is installed may not
+// have been read) nor a game of `keep` (installed since that was read).
+// True when a game left.
+bool prune_rebuilt(std::set<uint64_t>& rebuilt, const std::map<uint64_t, uint32_t>& installed,
+                   const std::set<uint64_t>& keep);
+
 TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint64_t, uint32_t>& installed);
 
 // The item installed already, at this version or a newer one.

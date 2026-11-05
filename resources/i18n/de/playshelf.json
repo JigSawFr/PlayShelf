@@ -614,6 +614,7 @@
         "done_many": "{} Pakete installiert: {} MB geschrieben."
     },
     "downloads": {
+        "rebuilt_note": "Rebuilt for the console's own compression and not signed by Nintendo: it runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in.",
         "empty_title": "Noch kein Download",
         "empty_text": "Die Seite eines Spiels in der Katalog fügt seine Pakete hier hinzu; sie werden nacheinander installiert.",
         "added": "Zu den Downloads hinzugefügt: {}",
@@ -739,6 +740,7 @@
         "popular_online": "Beliebte Spiele von Atlas"
     },
     "game": {
+        "rebuilt": "Update built in",
         "screenshots": "Screenshots",
         "about": "Über dieses Spiel",
         "source": "Details, Banner und Screenshots: Nlib API",

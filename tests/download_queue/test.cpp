@@ -56,6 +56,7 @@ void test_file()
     Job b = job("00000000000000b2", State::Failed, "https://shelf.example/files/b.nsz");
     b.error = "not signed by Nintendo";
     b.unsigned_content = true;
+    b.compressed_content = true;
     b.accept_unsigned = true;
     std::string why;
     CHECK(save_queue({a, b}, &why));
@@ -67,7 +68,7 @@ void test_file()
     CHECK(back[0].journal && *back[0].journal == jn);
     CHECK(back[0].game == "Aster" && back[0].label == "Update v65536" && back[0].game_id == a.game_id &&
           back[0].icon_url == a.icon_url);
-    CHECK(back[1].state == State::Failed && back[1].error == b.error && back[1].unsigned_content && back[1].accept_unsigned);
+    CHECK(back[1].state == State::Failed && back[1].error == b.error && back[1].unsigned_content && back[1].compressed_content && back[1].accept_unsigned);
     CHECK(!back[1].journal);
     // Nothing secret in it: only the server's id.
     CHECK(fs::read(queue_file()).find("password") == std::string::npos);

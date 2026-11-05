@@ -240,6 +240,13 @@ void test_state()
     st = state_of(t, c, installed);
     CHECK(!st.rebuilt && st.update_available);
 
+    // A game the console no longer has leaves the list; none when what is
+    // installed is unknown (empty), nor one installed since it was read.
+    std::set<uint64_t> list = { 0x0100000000010000, 0x0100000000020000, 0x0100000000030000 };
+    CHECK(!prune_rebuilt(list, {}, {}) && list.size() == 3);
+    CHECK(prune_rebuilt(list, installed, { 0x0100000000030000 }) && list == (std::set<uint64_t>{ 0x0100000000010000, 0x0100000000030000 }));
+    CHECK(!prune_rebuilt(list, installed, { 0x0100000000030000 }));
+
     installed[0x0100000000010800] = 196608;   // newer than the server's
     st = state_of(t, c, installed);
     CHECK(st.version == 196608 && !st.update_available);
