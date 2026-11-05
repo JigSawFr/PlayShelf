@@ -38,6 +38,9 @@ KeyT tk(const MetaKey& k) { return {k.id, k.version, (uint8_t)k.type}; }
 struct Mem : Console
 {
     std::map<ContentId, Bytes> contents, pholders;
+    // ncm makes a content's folder when a placeholder is created with that content id, and registering renames the placeholder into it:
+    // a register under an id whose folder was never made fails.
+    std::set<ContentId>        folders;
     std::map<KeyT, Bytes>      metas, pending;
     std::set<KeyT>             removed;   // removals not yet committed
     uint64_t                   free = 1ull << 40;
@@ -64,6 +67,7 @@ struct Mem : Console
         if (!step()) return fail("fault");
         if (pholders.count(id)) return fail("exists");
         pholders[id] = Bytes(size);
+        folders.insert(id);   // the installer's placeholder id is its content id
         return {};
     }
     Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) override
@@ -81,6 +85,7 @@ struct Mem : Console
         if (!step()) return fail("fault");
         auto it = pholders.find(placeholder);
         if (it == pholders.end() || contents.count(content)) return fail("cannot register");
+        if (!folders.count(content)) return fail("no folder for the content (ncm)");
         contents[content] = std::move(it->second);
         pholders.erase(it);
         return {};

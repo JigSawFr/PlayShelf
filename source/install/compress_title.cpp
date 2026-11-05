@@ -514,6 +514,18 @@ Done TitleCompressor::prepare()
     return {};
 }
 
+// ncm makes a content's folder when a placeholder is created with that content id, and registering renames the placeholder into it. The
+// new content's id is only known once it is written, so a placeholder under that id is made and dropped first: the folder stays.
+static Done make_content_folder(Console& c, CompressJournal& j, JournalStore& store, const ContentId& id)
+{
+    if (c.has_placeholder(id)) c.delete_placeholder(id);
+    j.placeholders.push_back(id);   // so a crash between the two calls leaves nothing behind
+    if (!store.save(j.text())) return fail("the journal could not be kept");
+    if (auto d = c.create_placeholder(id, 0); !d) return d;
+    c.delete_placeholder(id);
+    return {};
+}
+
 Done TitleCompressor::Impl::write_new(const ContentId& placeholder, std::span<const uint8_t> bytes, ContentId* id_out)
 {
     const ContentId id = content_id_of(sha(bytes));
@@ -528,6 +540,7 @@ Done TitleCompressor::Impl::write_new(const ContentId& placeholder, std::span<co
     }
     j->contents.push_back(id);
     if (!store.save(j->text())) return fail("the journal could not be kept");
+    if (auto d = make_content_folder(console, *j, store, id); !d) return d;
     if (auto d = console.register_placeholder_as(placeholder, id); !d) return d;
     *id_out = id;
     return {};
@@ -610,6 +623,7 @@ Done TitleCompressor::run()
     if (c.has_content(new_program)) return abandon("a content with the id the new program would take is already there");
     j.contents.push_back(new_program);
     if (!m.store.save(j.text())) return abandon("the journal could not be kept");
+    if (auto d = make_content_folder(c, j, m.store, new_program); !d) return abandon("the new program's folder could not be made: " + d.error());
     if (auto d = c.register_placeholder_as(ph, new_program); !d) return abandon("the new program could not be registered: " + d.error());
 
     // Read back: the hash, then the whole of it against the original.
