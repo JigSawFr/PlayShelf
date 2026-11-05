@@ -29,6 +29,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -101,7 +102,21 @@ def have(tool):
 cmd = (["stdbuf", "-oL", "-eL"] if have("stdbuf") else []) + [APP]
 if have("dbus-run-session"):
     cmd = ["dbus-run-session", "--"] + cmd
-proc = subprocess.Popen(cmd, cwd=run_dir, env=env, stdout=log, stderr=subprocess.STDOUT)
+# In a group of its own: stopping only dbus-run-session would leave the app
+# running, so the whole group gets the signal (stop_app()).
+proc = subprocess.Popen(cmd, cwd=run_dir, env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+
+
+def stop_app(sig):
+    """Sends `sig` to the app's whole process group (dbus-run-session, the
+    app and whatever it started)."""
+    try:
+        os.killpg(proc.pid, sig)
+    except ProcessLookupError:
+        pass
+
+
+atexit.register(lambda: stop_app(signal.SIGKILL))   # whatever way the script ends
 
 
 def alive():
@@ -254,7 +269,7 @@ def fail(msg):
     print("SMOKE FAILED:", msg)
     print("\n".join(log_lines()[-60:]))
     if alive():
-        proc.kill()
+        stop_app(signal.SIGKILL)
     sys.exit(1)
 
 
@@ -272,11 +287,12 @@ def contact_sheet():
 
 
 def finish():
-    proc.terminate()
+    stop_app(signal.SIGTERM)
     try:
         proc.wait(5)
     except subprocess.TimeoutExpired:
-        proc.kill()
+        pass
+    stop_app(signal.SIGKILL)   # whatever outlived the first signal
     contact_sheet()
     print("desktop smoke test passed:", OUT)
     sys.exit(0)

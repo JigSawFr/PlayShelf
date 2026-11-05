@@ -14,7 +14,7 @@ the Library and the Downloads show it.
 
 Usage: tools/site_screenshots.py <simulator-dir> <out-dir> [language…] [--png]
 (the site's languages, site/i18n/*.json, by default; needs Playwright for
-Python with Chromium; PLAYWRIGHT_CHROMIUM=<path> for a browser of its own).
+Python with Chromium; PLAYWRIGHT_CHROMIUM=<path> for a browser of its own, see chromium_path.py).
 The languages are taken SITE_SCREENSHOT_JOBS at a time (the processors, by
 default), each in a process and a browser of its own.
 """
@@ -29,6 +29,7 @@ import sys
 import threading
 import time
 
+import chromium_path
 from playwright.sync_api import sync_playwright
 
 # The gallery's screens, in the order they are taken: each from the one before.
@@ -118,7 +119,7 @@ def run(base, lang, theme, out):
     few starts in one browser."""
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM") or None,
+            executable_path=chromium_path.executable(p),
             args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
         try:
             return take(browser, base, lang, theme, out)
