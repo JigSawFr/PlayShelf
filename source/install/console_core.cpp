@@ -146,6 +146,13 @@ Done CoreConsole::push_application_record(uint64_t application_id, const MetaKey
     return check(core_push_application_record(application_id, &k), "pushing the application record");
 }
 
+Done CoreConsole::replace_application_record(uint64_t application_id, const std::vector<MetaKey>& keys)
+{
+    std::vector<CoreMetaKey> k;
+    for (const MetaKey& m : keys) k.push_back(core_key(m));
+    return check(core_replace_application_record(application_id, k.data(), k.size()), "replacing the application record");
+}
+
 Done CoreConsole::import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate)
 {
     return check(core_import_ticket(ticket.data(), ticket.size(), certificate.data(), certificate.size()),

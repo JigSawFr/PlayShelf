@@ -62,6 +62,10 @@ Result core_meta_remove(const CoreMetaKey *key);
 Result core_meta_commit(void);
 
 Result core_push_application_record(u64 application_id, const CoreMetaKey *key);
+// The application's record made to list exactly `keys` (count >= 1): DeleteApplicationRecord, then one
+// PushApplicationRecord with them all, as the installers it comes from replace one. A delete that fails
+// leaves the record as it was; a push that fails after it leaves it empty (the caller puts it back).
+Result core_replace_application_record(u64 application_id, const CoreMetaKey *keys, size_t count);
 Result core_import_ticket(const void *ticket, size_t ticket_size, const void *cert, size_t cert_size);
 
 // The NCA header key, and one key of a header's key area decrypted with

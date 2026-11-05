@@ -41,6 +41,7 @@ class CoreConsole : public Console
     [[nodiscard]] Done remove_meta(const MetaKey& key) override;
     [[nodiscard]] Done commit_meta() override;
     [[nodiscard]] Done push_application_record(uint64_t application_id, const MetaKey& key) override;
+    [[nodiscard]] Done replace_application_record(uint64_t application_id, const std::vector<MetaKey>& keys) override;
     [[nodiscard]] Done import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate) override;
     uint32_t system_version() override;
 

@@ -81,6 +81,9 @@ class Console
     [[nodiscard]] virtual Done commit_meta() = 0;
     // ns and es.
     [[nodiscard]] virtual Done push_application_record(uint64_t application_id, const MetaKey& key) = 0;
+    // The application's record made to list exactly these keys (at least one): the old ones dropped, the new
+    // ones pushed. A failure may leave it empty: the caller puts its keys back.
+    [[nodiscard]] virtual Done replace_application_record(uint64_t, const std::vector<MetaKey>&) { return fail("replacing an application record is not supported"); }
     [[nodiscard]] virtual Done import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate) = 0;
     // The firmware's version, as hosversionGet() gives it: major << 16 | minor << 8 | micro.
     virtual uint32_t system_version() = 0;

@@ -250,6 +250,29 @@ Result core_push_application_record(u64 application_id, const CoreMetaKey *key)
                              .buffers = {{&record, sizeof record}});
 }
 
+Result core_replace_application_record(u64 application_id, const CoreMetaKey *keys, size_t count)
+{
+    enum { MAX_KEYS = 8 };
+    if (count == 0 || count > MAX_KEYS) return MAKERESULT(Module_Libnx, LibnxError_BadInput);
+    struct {
+        NcmContentMetaKey key;
+        u64               storage_id;
+    } records[MAX_KEYS];
+    for (size_t i = 0; i < count; i++) {
+        records[i].key = as_key(&keys[i]);
+        records[i].storage_id = s_storage_id;
+    }
+    // IApplicationManagerInterface 27: DeleteApplicationRecord(u64 application_id).
+    Result rc = serviceDispatchIn(&s_ns_app, 27, application_id);
+    if (R_FAILED(rc)) return rc;
+    const struct {
+        u8  last_modified_event;
+        u64 application_id;
+    } in = {CORE_RECORD_INSTALLED, application_id};
+    return serviceDispatchIn(&s_ns_app, 16, in, .buffer_attrs = {SfBufferAttr_HipcMapAlias | SfBufferAttr_In},
+                             .buffers = {{records, count * sizeof records[0]}});
+}
+
 Result core_import_ticket(const void *ticket, size_t ticket_size, const void *cert, size_t cert_size)
 {
     return serviceDispatch(&s_es, 1,

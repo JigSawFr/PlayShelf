@@ -246,6 +246,26 @@ Result core_push_application_record(u64 application_id, const CoreMetaKey* key)
     return std::fclose(f) == 0 ? 0 : FAIL;
 }
 
+Result core_replace_application_record(u64 application_id, const CoreMetaKey* keys, size_t count)
+{
+    if (count == 0) return FAIL;
+    char       id[17];
+    std::snprintf(id, sizeof id, "%016llx", (unsigned long long)application_id);
+    std::string kept;
+    if (FILE* f = std::fopen((root() + "/records.log").c_str(), "r")) {
+        char line[256];
+        while (std::fgets(line, sizeof line, f))
+            if (std::strncmp(line, id, 16) != 0) kept += line;
+        std::fclose(f);
+    }
+    for (size_t i = 0; i < count; i++) {
+        char line[160];
+        std::snprintf(line, sizeof line, "%s %s type=0x%02x\n", id, meta_name(&keys[i]).c_str(), keys[i].type);
+        kept += line;
+    }
+    return write_file(root() + "/records.log", kept.data(), kept.size()) ? 0 : FAIL;
+}
+
 Result core_import_ticket(const void* ticket, size_t ticket_size, const void* cert, size_t cert_size)
 {
     int n = 0;

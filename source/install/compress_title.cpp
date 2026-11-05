@@ -138,6 +138,16 @@ bool is_as_before(Console& c, const CompressJournal& j)
     return is_old_key(j, j.result_key()) || !c.get_meta(j.result_key());
 }
 
+// The application record to list exactly `want`; when that fails (it may have left the record empty), `fallback` is put in its place.
+Done set_app_record(Console& c, uint64_t app, const std::vector<MetaKey>& want, const std::vector<MetaKey>& fallback)
+{
+    const Done d = c.replace_application_record(app, want);
+    if (d) return d;
+    if (const Done back = c.replace_application_record(app, fallback); !back)
+        return fail(d.error() + " (and the record could not be put back: " + back.error() + ")");
+    return d;
+}
+
 Done restore(Console& c, const CompressJournal& j)
 {
     // The old records back, only if what they list is still there.
@@ -154,6 +164,11 @@ Done restore(Console& c, const CompressJournal& j)
     }
     if (auto d = c.commit_meta(); !d) return d;
     if (!is_as_before(c, j)) return fail("the original records did not come back");
+    // A merged title: ns lists the game and its update again.
+    if (j.new_key && j.patch_key) {
+        const std::vector<MetaKey> olds = {j.key, *j.patch_key};
+        if (auto d = set_app_record(c, j.key.id, olds, olds); !d) return fail("the application record could not be put back: " + d.error());
+    }
     return {};
 }
 
@@ -180,7 +195,8 @@ Done do_keep(Console& c, JournalStore& store, const CompressJournal& j)
         if (!c.has_content(id)) return fail("the new contents are missing: the old ones are kept");
     // A merged title is known to ns under its new key (said again: a restart may have come between the swap and the push).
     if (j.new_key) {
-        if (auto d = c.push_application_record(j.key.id, *j.new_key); !d) return fail("the application record could not be updated: " + d.error());
+        const std::vector<MetaKey> now = {*j.new_key};
+        if (auto d = set_app_record(c, j.key.id, now, now); !d) return fail("the application record could not be updated: " + d.error());
     }
     // From here the old contents go: a restart finishes this rather than offering to go back.
     if (j.phase != CompressJournal::Phase::Keeping) {
@@ -725,10 +741,9 @@ Done TitleCompressor::run()
     }
     for (const ContentId& id : must_exist)
         if (!c.has_content(id)) return undo("a content is missing after the swap");
-    // ns: the title's application record learns the key it is under now (the old keys are not removed from it:
-    // that takes a call this module does not make).
+    // ns: the title's application record lists the key it is under now and no other.
     if (m.merging) {
-        if (auto d = c.push_application_record(m.key.id, result); !d) return undo("the application record could not be updated: " + d.error());
+        if (auto d = set_app_record(c, m.key.id, {result}, {m.key, m.patch_key}); !d) return undo("the application record could not be updated: " + d.error());
     }
     j.phase = CompressJournal::Phase::Swapped;
     if (!m.store.save(j.text())) return undo("the journal could not be kept");

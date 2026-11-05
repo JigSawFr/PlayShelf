@@ -138,6 +138,19 @@ struct Mem : Console
         removed.clear();
         return {};
     }
+    std::vector<KeyT> app_record;   // what ns lists for the application
+    int               replaces = 0, replace_half_at = -1;   // the Nth replace drops the record, then fails
+    Done replace_application_record(uint64_t, const std::vector<MetaKey>& keys) override
+    {
+        if (!step()) return fail("fault");
+        if (replaces++ == replace_half_at) {
+            app_record.clear();
+            return fail("half done");
+        }
+        app_record.clear();
+        for (const MetaKey& k : keys) app_record.push_back(tk(k));
+        return {};
+    }
     std::vector<std::pair<uint64_t, KeyT>> pushed;
     Done push_application_record(uint64_t app, const MetaKey& k) override
     {
@@ -854,7 +867,7 @@ void test_merge_flow()
             return;
         }
         CHECK(is_merged(w.t.mem, w, 1));
-        CHECK(!w.t.mem.pushed.empty() && w.t.mem.pushed.back() == std::make_pair(KEY.id, tk(MKEY)));   // ns knows the new key
+        CHECK(w.t.mem.app_record == std::vector<KeyT>{tk(MKEY)});   // ns lists the new key and no other
         CHECK(c.keep().has_value());
         CHECK(is_merged(w.t.mem, w, 0));
         CHECK(!j.text);
@@ -866,6 +879,17 @@ void test_merge_flow()
         CHECK(c.prepare().has_value() && c.run().has_value());
         CHECK(c.revert().has_value());
         CHECK(is_baseline(w.t.mem, w.t) && !j.text);
+        CHECK(w.t.mem.app_record == (std::vector<KeyT>{tk(KEY), tk(PKEY)}));   // ns lists the game and its update again
+    }
+    {   // ns drops the record and fails to push: the old keys are put back, and the run is undone
+        WithUpdate w = install_with_update(300'000, 52);
+        MemJournal j;
+        auto       c = make_merge(w.t.mem, j);
+        CHECK(c.prepare().has_value());
+        w.t.mem.replace_half_at = 0;
+        CHECK(!c.run().has_value());
+        CHECK(is_baseline(w.t.mem, w.t) && !j.text);
+        CHECK(w.t.mem.app_record == (std::vector<KeyT>{tk(KEY), tk(PKEY)}));
     }
     {   // refusals write nothing
         WithUpdate w = install_with_update(300'000, 53);
