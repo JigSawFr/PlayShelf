@@ -612,6 +612,7 @@
         "done_many": "패키지 {}개를 설치했습니다: {} MB를 기록했습니다."
     },
     "downloads": {
+        "rebuilt_note": "Rebuilt for the console's own compression and not signed by Nintendo: it runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in.",
         "empty_title": "아직 다운로드가 없습니다",
         "empty_text": "카탈로그의 게임 정보 화면에서 패키지를 여기에 추가하며, 하나씩 차례로 설치됩니다.",
         "added": "다운로드에 추가됨: {}",
@@ -737,6 +738,7 @@
         "popular_online": "Atlas 인기 게임"
     },
     "game": {
+        "rebuilt": "Update built in",
         "screenshots": "스크린샷",
         "about": "이 게임에 대하여",
         "source": "세부 정보, 배너, 스크린샷: Nlib API",

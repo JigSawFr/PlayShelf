@@ -194,6 +194,13 @@ void set_rebuilt(std::set<uint64_t> base_ids)
     s_rebuilt = std::move(base_ids);
 }
 
+bool prune_rebuilt(std::set<uint64_t>& rebuilt, const std::map<uint64_t, uint32_t>& installed,
+                   const std::set<uint64_t>& keep)
+{
+    if (installed.empty()) return false;
+    return std::erase_if(rebuilt, [&](uint64_t id) { return !installed.contains(id) && !keep.contains(id); }) > 0;
+}
+
 TitleState state_of(const Title& t, const Catalog& catalog, const std::map<uint64_t, uint32_t>& installed)
 {
     TitleState st;

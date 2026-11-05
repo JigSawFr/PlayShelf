@@ -45,7 +45,7 @@ struct Control
 
 struct Outcome
 {
-    bool             ok = false, paused = false, cancelled = false, unsigned_content = false;
+    bool             ok = false, paused = false, cancelled = false, unsigned_content = false, compressed_content = false;
     bool             undone = false;   // failed in the install: what every run did undone, the journal of no use
     std::string      why;
     uint64_t         total = 0;
@@ -280,6 +280,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     if (!o.ok && (inst.paused() || ctl->cancel)) return stopped();
     o.undone = !o.ok;
     o.unsigned_content = !o.ok && o.why.contains("not signed by Nintendo");
+    o.compressed_content = o.unsigned_content && inst.stopped_at_compressed();
     return o;
 }
 
@@ -464,6 +465,7 @@ void finished(const std::string& id, const Outcome& o)
         j->state = download::State::Failed;
         j->error = o.why;
         j->unsigned_content = o.unsigned_content;
+        j->compressed_content = o.compressed_content;
         // The install undid what its runs did: nothing left to take up.
         if (o.undone) j->journal.reset();
         const auto delay = download::retry_delay(download::cause_of(o.why, o.unsigned_content), j->attempts);
@@ -488,6 +490,7 @@ void run(download::Job& job)
     job.state = download::State::Running;
     job.error.clear();
     job.unsigned_content = false;
+    job.compressed_content = false;
     s_running = job.id;
     s_control = std::make_shared<Control>();
     s_live = Live{};

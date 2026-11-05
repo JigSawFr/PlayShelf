@@ -471,7 +471,8 @@ void DownloadsTab::open_job(const std::string& job_id)
     std::string subtitle;
     if (j->state == download::State::Failed) {
         const download::Cause c = download::cause_of(j->error, j->unsigned_content);
-        subtitle = c == download::Cause::Unsigned ? "playshelf/downloads/unsigned_note"_i18n
+        subtitle = c == download::Cause::Unsigned ? (j->compressed_content ? "playshelf/downloads/rebuilt_note"_i18n
+                                                                             : "playshelf/downloads/unsigned_note"_i18n)
                  : c == download::Cause::Other    ? j->error
                                                   : aurore::getStr(std::string("playshelf/downloads/help/") + download::cause_name(c));
         if (c != download::Cause::Other && c != download::Cause::Unsigned && !j->error.empty()) subtitle += "\n" + j->error;

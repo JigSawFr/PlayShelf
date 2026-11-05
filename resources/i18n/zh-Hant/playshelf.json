@@ -612,6 +612,7 @@
         "done_many": "已安裝 {} 個軟體包：已寫入 {} MB。"
     },
     "downloads": {
+        "rebuilt_note": "Rebuilt for the console's own compression and not signed by Nintendo: it runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in.",
         "empty_title": "還沒有下載",
         "empty_text": "目錄中遊戲的詳細資料頁會把它的軟體包加入這裡；它們會依序安裝。",
         "added": "已加入下載：{}",
@@ -737,6 +738,7 @@
         "popular_online": "來自 Atlas 的熱門遊戲"
     },
     "game": {
+        "rebuilt": "Update built in",
         "screenshots": "截圖",
         "about": "關於此遊戲",
         "source": "詳情、橫幅和截圖：Nlib API",

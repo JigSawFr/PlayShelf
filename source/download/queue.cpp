@@ -146,6 +146,7 @@ std::string queue_to_json(const std::vector<Job>& jobs, const std::string& previ
         j["state"] = STATES[std::to_underlying(job.state)];
         put(j, "error", !job.error.empty(), job.error);
         put(j, "unsigned", job.unsigned_content, true);
+        put(j, "compressed", job.compressed_content, true);
         put(j, "accept_unsigned", job.accept_unsigned, true);
         j["done"] = job.done;
         j["total"] = job.total;
@@ -192,6 +193,7 @@ std::vector<Job> queue_from_json(const std::string& text)
         if (job.state == State::Running) job.state = State::Paused;
         job.error = str(j, "error", 512);
         job.unsigned_content = flag(j, "unsigned");
+        job.compressed_content = flag(j, "compressed");
         job.accept_unsigned = flag(j, "accept_unsigned");
         job.done = u64(j, "done");
         job.total = u64(j, "total");

@@ -9,6 +9,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/rebuilt.hpp"
 #include "action/titledb_flow.hpp"
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
@@ -62,6 +63,7 @@ void fetched(const library::Server& server, const std::shared_ptr<Loaded>& l, st
 {
     s_loading = false;
     s_installed = std::move(now);
+    rebuilt::prune(*s_installed);
     const library::Fetch& f = l->fetch;
     if (f.status == library::FetchStatus::Ok) {
         s_loaded[server.id] = l;
@@ -247,6 +249,7 @@ void reread_installed(const std::function<void()>& after)
         const auto now = read_installed();
         aurore::sync([now, after]() {
             s_installed = now;
+            rebuilt::prune(*now);
             if (after) after();
         });
     });
@@ -409,6 +412,8 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     out.installed_version = st.base ? st.version : 0;
     out.facts = t.id ? std::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
     if (st.base) out.facts += " · " + aurore::getStr("playshelf/library/installed_version", st.version);
+    // Installed from a package rebuilt for the console's own compression: Nintendo's updates do not go over it.
+    if (st.rebuilt) out.facts += " · " + aurore::getStr("playshelf/game/rebuilt");
     return out;
 }
 

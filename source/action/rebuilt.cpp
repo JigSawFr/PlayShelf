@@ -21,6 +21,7 @@ namespace
 constexpr size_t MAX_GAMES = 2000;
 
 std::set<uint64_t> s_games;
+std::set<uint64_t> s_noted;   // noted since this start: never pruned by an older read
 bool               s_newer = false;   // the file is a newer build's: never written over
 
 std::string file()
@@ -51,10 +52,16 @@ void note(const std::map<uint64_t, bool>& programs)
 {
     bool changed = false;
     for (const auto& [base, is_rebuilt] : programs) {
+        s_noted.insert(base);
         if (is_rebuilt) changed |= s_games.size() < MAX_GAMES && s_games.insert(base).second;
         else changed |= s_games.erase(base) > 0;
     }
     if (changed) keep();
+}
+
+void prune(const std::map<uint64_t, uint32_t>& installed)
+{
+    if (library::prune_rebuilt(s_games, installed, s_noted)) keep();
 }
 
 }   // namespace rebuilt

@@ -1,4 +1,4 @@
-<!-- translated from docs/getting-started.md, sha256 c5463646f09e -->
+<!-- translated from docs/getting-started.md, sha256 de5e4a285024 -->
 # Prise en main
 
 PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et en installe vos propres sauvegardes et homebrews : le jeu de base, ses mises à jour et ses contenus additionnels, en NSP, NSZ, XCI ou XCZ, en HTTPS. Cette page va de la carte SD au premier jeu installé.
@@ -52,6 +52,8 @@ Le **Catalogue** montre les jeux du serveur en jaquettes, avec leur taille et le
 | ![Le Catalogue](../../images/screenshots/catalogue.png) | ![La fiche d'un jeu](../../images/screenshots/game_sheet.png) |
 
 Ⓐ sur un jeu ouvre sa fiche : **Tout installer**, ou son jeu de base, l'une de ses mises à jour ou l'un de ses contenus additionnels. Chacun part dans les **Téléchargements**. La fiche a des onglets (Ⓐ sur l'un d'eux, ou Ⓛ et Ⓡ) : **Aperçu**, **Mises à jour** (la version installée et la plus récente, la plus récente d'un coup, chaque mise à jour), **Contenus additionnels** (combien la console en a, les manquants d'un coup, chacun) et **Détails** (ses identifiants, ses tailles, son éditeur, son développeur, sa date de sortie, ses genres, ses joueurs, ses langues, sa classification, et sa page eShop en QR code pour un téléphone). Quand la console est en ligne, elle montre ce que [Nlib API](https://api.nlib.cc/nx/) sait du jeu dans la langue de PlayShelf : sa bannière en haut avec le nom du jeu par-dessus, son éditeur et son année, ses genres, ses joueurs et s'il est dans votre langue en pastilles, un résumé, ses captures d'écran (Ⓐ en affiche une en plein écran, ◀ ▶ les autres), sa description, puis d'autres jeux du catalogue du même éditeur et du même genre. Détails dit aussi combien de temps la console y a joué, combien de fois elle l'a lancé et quand elle y a joué pour la dernière fois. **Disponible sur** nomme les serveurs qui ont le jeu ; Détails dit ce que chacun en a (le jeu de base, combien de mises à jour et la plus récente, combien de contenus additionnels). La Bibliothèque ouvre la même fiche pour un jeu de la console.
+
+Un jeu stocké avec la compression propre à la console et reconstruit hors des outils de Nintendo (hacBrewPackLZ et consorts) ne s'installe qu'après un avertissement : il ne fonctionne qu'avec des correctifs de signature (sys-patch), demande le micrologiciel 12.0.0 ou plus récent et contient déjà sa mise à jour, si bien que celles de Nintendo ne peuvent pas s'installer par-dessus. PlayShelf n'en propose aucune et écrit *Mise à jour intégrée* sur sa fiche ; un téléchargement arrêté sur l'un d'eux le dit sur sa carte, et **Installer quand même** continue. Un jeu que la console n'a plus quitte la liste que PlayShelf en tient.
 
 ## Suivre les téléchargements
 

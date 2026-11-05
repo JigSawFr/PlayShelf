@@ -612,6 +612,7 @@
         "done_many": "{} pacotes instalados: {} MB escritos."
     },
     "downloads": {
+        "rebuilt_note": "Rebuilt for the console's own compression and not signed by Nintendo: it runs only with signature patches (sys-patch), needs firmware 12.0.0 or later, and has its update built in.",
         "empty_title": "Ainda não há transferências",
         "empty_text": "A ficha de um jogo, na Catálogo, adiciona aqui os seus pacotes; são instalados um após o outro.",
         "added": "Adicionado às transferências: {}",
@@ -737,6 +738,7 @@
         "popular_online": "Jogos populares do Atlas"
     },
     "game": {
+        "rebuilt": "Update built in",
         "screenshots": "Capturas de ecrã",
         "about": "Sobre este jogo",
         "source": "Detalhes, banner e capturas: Nlib API",
