@@ -542,6 +542,8 @@
         "hint": "语言和主题"
     },
     "notices": {
+        "newer_files": "Files from a newer PlayShelf",
+        "newer_files_detail": "Left as they are, not read: {}. Update PlayShelf to use them.",
         "installed": "已安装 PlayShelf {}",
         "installed_detail": "启动正常。之前的版本 {} 已保留：可在开发者工具中退回。",
         "updated_from": "从 {} 更新而来。",

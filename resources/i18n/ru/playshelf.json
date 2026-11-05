@@ -542,6 +542,8 @@
         "hint": "Язык и тема"
     },
     "notices": {
+        "newer_files": "Files from a newer PlayShelf",
+        "newer_files_detail": "Left as they are, not read: {}. Update PlayShelf to use them.",
         "installed": "PlayShelf {} установлен",
         "installed_detail": "Запуск прошёл успешно. Предыдущая сборка, {}, сохранена: инструменты разработчика могут к ней вернуться.",
         "updated_from": "Обновлено с {}.",

@@ -139,7 +139,7 @@ void test_lan_pin()
     Script w;
     Answer bad;
     bad.tls_failed = true;
-    w.answers["https://shelf.example.org/api/remote/sections" + LIMIT] = bad;
+    w.answers["https://shelf.example.org/api/shop/sections" + LIMIT] = bad;
     f = fetch(shelf(), "", w);
     CHECK(f.status == FetchStatus::Failed && f.why.find("recognized authority") != std::string::npos);
     // Lan only: the LAN address even when it does not answer the probe.
@@ -153,7 +153,7 @@ void test_lan_pin()
 
 void test_fallbacks()
 {
-    // The newer /sections paths, each on its own.
+    // The /sections paths, each on its own: CyberFoil's, then AeroFoil's.
     Script sec;
     sec.answers["https://shelf.example.org/api/remote/sections" + LIMIT] = ok(API);
     Fetch f = fetch(shelf(), "", sec);
@@ -274,7 +274,7 @@ void test_ownfoil()
 void test_aerofoil()
 {
     Script t;
-    t.answers["https://shelf.example.org/api/remote/sections" + LIMIT] =
+    t.answers["https://shelf.example.org/api/shop/sections" + LIMIT] =
         ok(R"({"sections":[{"id":"all","title":"All","truncated":true,"items":[{"url":"/api/get_game/7#Seven.nsp","size":7}]}]})");
     Fetch f = fetch(shelf(), "", t);
     CHECK(f.status == FetchStatus::Ok && f.dialect == Dialect::Sections && f.catalog.truncated);
@@ -282,7 +282,7 @@ void test_aerofoil()
     old.answers["https://shelf.example.org/api/shop"] = ok(API);
     CHECK(fetch(shelf(), "", old).dialect == Dialect::Shop);
     Script frozen;
-    frozen.answers["https://shelf.example.org/api/remote/sections" + LIMIT] =
+    frozen.answers["https://shelf.example.org/api/shop/sections" + LIMIT] =
         ok(R"({"sections":[{"id":"new","items":[{"name":"Account frozen","url":"/api/frozen/notice#frozen.txt","size":1}]}]})");
     f = fetch(shelf(), "", frozen);
     CHECK(f.status == FetchStatus::Failed && f.why.find("frozen") != std::string::npos);
@@ -341,6 +341,21 @@ void test_store()
         e.pin = CERT_EC_PIN;
         const std::string now = servers_to_json({e});
         CHECK(now.find("\"plain\"") == std::string::npos && now.find("md5//x") == std::string::npos);
+    }
+    {
+        // Forgetting the key trusted drops a pin of another kind too, and
+        // keeps the rest of what the file held.
+        const auto other = servers_from_json(R"({"servers":[
+            {"id":"a3","wan_url":"https://w","pin":"md5//x","shelf":"top"}]})");
+        if (CHECK(other.size() == 1 && other[0].pin.empty())) {
+            Server f = other[0];
+            forget_pin(f);
+            const std::string now = servers_to_json({f});
+            CHECK(now.find("md5//x") == std::string::npos && now.find("\"shelf\"") != std::string::npos);
+            f.pin = CERT_EC_PIN;
+            forget_pin(f);
+            CHECK(f.pin.empty() && pin_shown(f).empty());
+        }
     }
     CHECK(servers_from_json("not json").empty());
     CHECK(new_server_id().size() == 16 && new_server_id() != new_server_id());

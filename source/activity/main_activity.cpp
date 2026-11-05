@@ -4,6 +4,7 @@
 #include "action/changes_flow.hpp"
 #include "action/download_flow.hpp"
 #include "action/insights.hpp"
+#include "action/newer_files.hpp"
 #include "action/notices.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
@@ -126,6 +127,7 @@ void MainActivity::onContentAvailable()
     }
     // What the other Boréale homebrews read of PlayShelf: its entry in their
     // registry and its bell, once per start (then at each change of the bell).
+    newer_files::notify();   // files a newer PlayShelf wrote, left as they are
     notices::publish();
 
     // A newer version (daily when opted in, and while one is known and not

@@ -1,9 +1,10 @@
 // client — a library server's catalogue fetched for a profile (Server): its
 // address chosen (the LAN one when it answers, by the profile's
 // connection), the credentials sent (HTTP Basic, over TLS only), the API
-// asked (/api/remote/sections and /api/shop/sections, the whole catalogue
-// rather than AeroFoil's first few hundred games, then the older
-// /api/remote and /api/shop; Ownfoil 2's GraphQL API, a page at a time,
+// asked (/api/shop/sections, then CyberFoil's /api/remote/sections, the
+// whole catalogue rather than AeroFoil's first few hundred games, then the
+// older /api/remote and /api/shop; Ownfoil 2 serves none of them: its
+// GraphQL API, a page at a time,
 // and its handshake) or the address read as a JSON index (its
 // "directories" followed, a few levels down), the answer parsed
 // (catalog.hpp).

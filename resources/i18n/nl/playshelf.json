@@ -542,6 +542,8 @@
         "hint": "Taal en thema"
     },
     "notices": {
+        "newer_files": "Files from a newer PlayShelf",
+        "newer_files_detail": "Left as they are, not read: {}. Update PlayShelf to use them.",
         "installed": "PlayShelf {} geïnstalleerd",
         "installed_detail": "Het is goed gestart. De vorige build, {}, blijft bewaard: de ontwikkelaarstools kunnen ernaar terug.",
         "updated_from": "Bijgewerkt vanaf {}.",
