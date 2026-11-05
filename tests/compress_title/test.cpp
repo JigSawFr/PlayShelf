@@ -406,7 +406,7 @@ void test_refusals_write_nothing()
     {   // a read that fails while measuring
         Title t = install_title(300'000, 3);
         MemJournal j;
-        t.mem.read_fault_at = 2;
+        t.mem.read_fault_at = 1;
         auto c = make(t.mem, j);
         nothing_written("read fault in prepare", t, j, c.prepare());
     }
@@ -861,7 +861,15 @@ void test_merge_flow()
                 return ContentId{};
             }();
             Bytes& bytes = w.t.mem.contents[target];
-            bytes[which ? bytes.size() / 2 : w.upd.patch.start + 100] ^= 1;
+            size_t at = w.upd.patch.start + 100;   // inside the update's patch data
+            if (which) {   // the start of the game's RomFS data, which the update keeps
+                uint8_t head[NCA_HEADER];
+                std::memcpy(head, bytes.data(), NCA_HEADER);
+                nca_header_crypt(head, HEADER_KEY, false);
+                const NcaSection s1 = nca_parse_header(head, bytes.size())->sections[1];
+                at = s1.start + ivfc::read_fs_header(s1.fs_header.data())->offset[5] + 100;
+            }
+            bytes[at] ^= 1;
             w.t.start = w.t.mem;   // the damaged title is the one that must stay as it is
             const Title baseline = w.t;
             MemJournal  j;

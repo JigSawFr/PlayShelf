@@ -178,6 +178,12 @@ Done do_keep(Console& c, JournalStore& store, const CompressJournal& j)
     if (!cur || j.new_record.empty() || *cur != j.new_record) return fail("the title is not the compressed one: nothing to keep");
     for (const ContentId& id : j.contents)
         if (!c.has_content(id)) return fail("the new contents are missing: the old ones are kept");
+    // From here the old contents go: a restart finishes this rather than offering to go back.
+    if (j.phase != CompressJournal::Phase::Keeping) {
+        CompressJournal k = j;
+        k.phase = CompressJournal::Phase::Keeping;
+        if (!store.save(k.text())) return fail("the journal could not be kept: nothing was deleted");
+    }
     std::vector<ContentId> old_ids = {j.old_program, j.old_meta};
     if (j.patch_key) {
         old_ids.push_back(j.old_patch_program);
@@ -227,7 +233,7 @@ std::string CompressJournal::text() const
     std::snprintf(b, sizeof b, "%016llx:%u:%02x", (unsigned long long)key.id, (unsigned)key.version, (unsigned)std::to_underlying(key.type));
     std::ostringstream out;
     out << "schema=1\n";
-    out << "phase=" << (phase == Phase::Writing ? "writing" : "swapped") << "\n";
+    out << "phase=" << (phase == Phase::Writing ? "writing" : phase == Phase::Swapped ? "swapped" : "keeping") << "\n";
     out << "key=" << b << "\n";
     out << "old_record=" << hex_of(old_record) << "\n";
     out << "new_record=" << hex_of(new_record) << "\n";
@@ -273,6 +279,7 @@ std::optional<CompressJournal> CompressJournal::parse(const std::string& text)
         } else if (k == "phase") {
             if (v == "writing") j.phase = Phase::Writing;
             else if (v == "swapped") j.phase = Phase::Swapped;
+            else if (v == "keeping") j.phase = Phase::Keeping;
             else return std::nullopt;
             phase_ok = true;
         } else if (k == "key" || k == "new_key" || k == "patch_key") {
@@ -731,6 +738,11 @@ Parsed<TitleCompressor::Left> TitleCompressor::recover(Console& c, JournalStore&
     const auto j = CompressJournal::parse(*text);
     if (!j) return Left{};   // another version's: not read, not touched
     const auto cur = c.get_meta(j->result_key());
+    if (cur && !j->new_record.empty() && *cur == j->new_record && j->phase == CompressJournal::Phase::Keeping) {
+        // The user had kept it: finish deleting the old contents.
+        (void)do_keep(c, store, *j);
+        return Left{};
+    }
     if (cur && !j->new_record.empty() && *cur == j->new_record) {
         Left l;
         l.found = Found::AwaitingDecision;

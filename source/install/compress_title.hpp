@@ -56,7 +56,7 @@ namespace install
 // (`schema`), read by the program that wrote it.
 struct CompressJournal
 {
-    enum class Phase { Writing, Swapped };
+    enum class Phase { Writing, Swapped, Keeping };   // Keeping: the user kept the result, the old contents are being deleted
     Phase                  phase = Phase::Writing;
     MetaKey                key;               // the game's record
     std::vector<uint8_t>   old_record, new_record;   // new_record: empty until it is known
