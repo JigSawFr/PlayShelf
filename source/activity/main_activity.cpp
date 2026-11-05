@@ -15,6 +15,7 @@
 #include "action/support_flow.hpp"
 #include "action/update_flow.hpp"
 #include "action/not_interested.hpp"
+#include "action/compress_flow.hpp"
 #include "action/rebuilt.hpp"
 #include "action/wishlist.hpp"
 #include "activity/insight_notices.hpp"
@@ -43,6 +44,7 @@ void MainActivity::onContentAvailable()
     wishlist::start();
     not_interested::start();
     rebuilt::start();
+    compress_flow::recover_at_start();
     download_flow::init();
     this->update_title();
     // The frame after the design boards.

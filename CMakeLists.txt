@@ -156,6 +156,14 @@ else ()
     list(APPEND PLAYSHELF_INCLUDES ${ZSTD_INCLUDE_DIR} ${WEBP_INCLUDE_DIR})
 endif ()
 
+# LZ4 (BSD-2, third_party/lz4, kept in the repository): the compressor of the
+# developer tool that compresses an installed game (install/compress_title).
+# One copy for every platform; no portlib or system library to find.
+add_library(playshelf_lz4 STATIC third_party/lz4/lz4.c third_party/lz4/lz4hc.c)
+target_include_directories(playshelf_lz4 PUBLIC third_party/lz4)
+target_compile_options(playshelf_lz4 PRIVATE -w)
+list(APPEND PLAYSHELF_LIBS playshelf_lz4)
+
 # Sources: UI (C++) + service layer. The real service layer (source/core/*.c)
 # talks to libnx and is Switch-only; the desktop build swaps in the simulated
 # backend from source/kit/sim/ so the UI can be run and screenshotted on a PC.

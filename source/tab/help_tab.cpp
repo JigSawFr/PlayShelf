@@ -9,6 +9,7 @@
 #include "action/dev_build_flow.hpp"
 #include "action/frame_stats_flow.hpp"
 #include "action/github_login_flow.hpp"
+#include "action/compress_flow.hpp"
 #include "action/install_flow.hpp"
 #include "action/log_prune_flow.hpp"
 #include "action/upload_flow.hpp"
@@ -170,6 +171,10 @@ HelpTab::HelpTab()
         install_flow::from_url();
         return true;
     });
+    dev_compress->registerClickAction([](aurore::View*) {
+        compress_flow::open();
+        return true;
+    });
     // A report as a tile, an icon per line (the screen's
     // skin would dress it without).
     cadran::List list(this, true);
@@ -180,7 +185,7 @@ HelpTab::HelpTab()
                  { "hp_dev_frame_stats", "activity" }, { "hp_dev_glow", "sparkle" },
                  { "hp_dev_clear_cache", "trash" }, { "hp_dev_clear_logs", "trash" },
                  { "hp_dev_report", "file" }, { "hp_dev_build", "download" },
-                 { "hp_dev_install", "save" } });
+                 { "hp_dev_install", "save" }, { "hp_dev_compress", "save" } });
 }
 
 void HelpTab::refresh()
