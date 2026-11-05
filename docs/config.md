@@ -8,8 +8,10 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `language` | `system` or a language code (`en-US`, `fr`, `fr-CA`, `de`, `es`, `es-419`, `it`, `nl`, `pt`, `pt-BR`, `ru`, `ja`, `ko`, `zh-Hans`, `zh-Hant`) | `system` | *Preferences › Language*: the console's own, or one forced |
 | `theme` | `system`, `light`, `dark` | `dark` | *Preferences › Theme* |
 | `theme_file` | `""`, `builtin:<preset>` (`high-contrast-dark`, `high-contrast-light`, `ocean`, `amethyst`, `sand`, a season such as `halloween`, or `seasonal`, which follows the calendar) or the path of a theme file | `""` | *Preferences › Palette*: PlayShelf's own colours (`""`), one of the presets, or a file of the `themes` folder ([Themes](themes.md)). A file that styles only the light or the dark theme also sets that theme; one that cannot be read leaves PlayShelf's own colours |
-| `text_size` | `auto`, `normal`, `large` | `auto` | *Preferences › Text size*: `auto` is larger while docked |
+| `text_size` | `auto`, `normal`, `large`, `largest` | `auto` | *Preferences › Text size*: `auto` is larger while docked |
 | `effects` | `auto`, `full`, `reduced` | `auto` | *Preferences › Visual effects*: `auto` keeps the lighter effects off the dock |
+| `density` | `auto`, `comfortable`, `compact`, `dense` | `auto` | the quick settings' *Density*: how close the screens' pieces stand; `auto` is dense on a compact screen |
+| `rail` | `auto`, `open`, `icons` | `auto` | the sidebar: `auto` shows only its icons while a tab has the focus |
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
 | `start_tab` | `home`, `library`, `catalogue`, `preferences`, `about` | `home` | *Preferences › Start on* |
 | `look_shared` | `true`, `false` | `true` | the language, the theme, the text size and the visual effects shared with the other Boréale homebrews (`config/boreale/prefs.conf`): taken at start-up, written at each change |
