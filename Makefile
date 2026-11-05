@@ -169,6 +169,9 @@ compressed_storage_SRC  := source/install/compressed_storage.cpp tests/compresse
 compressed_storage_LIBS := -llz4
 # The integrity tree of a RomFS section.
 ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
+# An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
+bktr_SRC  := $(INSTALL_FORMATS) source/install/bktr.cpp source/install/ivfc.cpp tests/bktr/test.cpp
+bktr_LIBS := -llz4
 # A Program NCA made over with its RomFS compressed (liblz4 from the system).
 recompress_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/recompress.cpp \
                    tests/recompress/test.cpp
