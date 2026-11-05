@@ -297,6 +297,32 @@ void test_cnmt()
 
 // ---------------------------------------------------------------- NCA
 
+// cnmt_serialize is cnmt_parse's inverse: the packaged bytes come back as they were.
+void test_cnmt_serialize()
+{
+    const auto contents = some_contents();
+    for (const MetaType type : {MetaType::Application, MetaType::Patch, MetaType::AddOnContent}) {
+        const Bytes ext_data = type == MetaType::Patch ? stream(20, "ext") : Bytes();
+        Bytes       packaged = packaged_cnmt(type, 0x0100000000010800ull, 65536, contents, ext_data);
+        for (size_t i = packaged.size() - 32; i < packaged.size(); i++) packaged[i] = (uint8_t)(i * 3 + 1);   // a digest
+        const auto meta = cnmt_parse(packaged);
+        if (!CHECK(meta.has_value())) continue;
+        std::array<uint8_t, 32> digest;
+        std::copy(packaged.end() - 32, packaged.end(), digest.begin());
+        CHECK(cnmt_serialize(*meta, digest) == packaged);
+        // And once changed: parsed back as changed.
+        ContentMeta changed = *meta;
+        changed.version = 99;
+        changed.contents.pop_back();
+        changed.contents[0].size = 0x2'0000'0001ull;
+        const auto back = cnmt_parse(cnmt_serialize(changed, digest));
+        if (CHECK(back.has_value())) {
+            CHECK(back->version == 99 && back->contents.size() == contents.size() - 1 && back->contents[0].size == 0x2'0000'0001ull);
+            CHECK(back->contents[0].id == contents[0].id && back->type == type);
+        }
+    }
+}
+
 void test_nca()
 {
     const Bytes  cnmt = packaged_cnmt(MetaType::Application, 0x0100000000010000ull, 0, some_contents());
@@ -406,6 +432,7 @@ int main()
     test_pfs();
     test_xci();
     test_cnmt();
+    test_cnmt_serialize();
     test_nca();
     CHECK_DONE("install formats: crypto, PFS0/HFS0, XCI, CNMT and NCA checks passed");
 }

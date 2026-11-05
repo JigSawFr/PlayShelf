@@ -34,10 +34,13 @@ ContentId content_id_of(const std::array<uint8_t, 32>& sha256);
 [[nodiscard]] Parsed<std::vector<uint8_t>> cnmt_with_program(std::span<const uint8_t> cnmt, const ContentId& old_id,
                                                               const ContentInfo& now);
 
-// A whole .cnmt.nca with its content meta replaced by one of the same length:
-// the same NCA (same size, same sections) with the partition's hash table, the
-// file system header's master hash and the NCA header's hash of it made
-// again. Its signature is left as it was (it no longer matches).
+// A whole .cnmt.nca with its content meta replaced. Of the same length: the same
+// NCA (same size, same sections) with the partition's hash table, the file
+// system header's master hash and the NCA header's hash of it made again. Of
+// another length: the partition, its hash table and the section made again
+// (the layout the packing tools use: the table first, the partition at the next
+// 0x200) and the NCA with them, which must hold the content meta alone. Its
+// signature is left as it was (it no longer matches).
 [[nodiscard]] Parsed<std::vector<uint8_t>> meta_nca_with_cnmt(std::span<const uint8_t> nca, std::span<const uint8_t> cnmt,
                                                                const NcaKeys& keys);
 

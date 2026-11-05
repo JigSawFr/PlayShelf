@@ -107,6 +107,40 @@ Parsed<ContentMeta> cnmt_parse(std::span<const uint8_t> data)
     return m;
 }
 
+std::vector<uint8_t> cnmt_serialize(const ContentMeta& meta, const std::array<uint8_t, 32>& digest)
+{
+    std::vector<uint8_t> out(HEADER + meta.extended_header.size() + meta.contents.size() * PACKAGED_INFO + meta.metas.size() * META_INFO +
+                             meta.extended_data.size() + DIGEST);
+    uint8_t* p = out.data();
+    put_le64(p, meta.title_id);
+    put_le32(p + 8, meta.version);
+    p[0xc] = std::to_underlying(meta.type);
+    put_le16(p + 0xe, (uint16_t)meta.extended_header.size());
+    put_le16(p + 0x10, (uint16_t)meta.contents.size());
+    put_le16(p + 0x12, (uint16_t)meta.metas.size());
+    p[0x14] = meta.attributes;
+    put_le32(p + 0x18, meta.required_download_system_version);
+    p += HEADER;
+    if (!meta.extended_header.empty()) std::memcpy(p, meta.extended_header.data(), meta.extended_header.size());
+    p += meta.extended_header.size();
+    for (const ContentInfo& c : meta.contents) {
+        std::memcpy(p, c.hash.data(), 32);
+        put_info(p + 32, c);
+        p += PACKAGED_INFO;
+    }
+    for (const MetaInfo& mi : meta.metas) {
+        put_le64(p, mi.id);
+        put_le32(p + 8, mi.version);
+        p[12] = mi.type;
+        p[13] = mi.attributes;
+        p += META_INFO;
+    }
+    if (!meta.extended_data.empty()) std::memcpy(p, meta.extended_data.data(), meta.extended_data.size());
+    p += meta.extended_data.size();
+    std::memcpy(p, digest.data(), DIGEST);
+    return out;
+}
+
 std::vector<uint8_t> cnmt_install_record(const ContentMeta& meta, const ContentInfo& meta_content,
                                          bool ignore_required_system_version)
 {

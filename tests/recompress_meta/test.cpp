@@ -87,13 +87,41 @@ void test_meta_nca()
         // The hash table, from scratch: the NCA built around the new content meta is the same bytes.
         CHECK(*out == meta_nca(patched, block));
     }
+    // Another length: the NCA is made again, the same as one built around the new content meta.
+    {
+        auto more = contents();
+        ContentInfo extra;
+        extra.id = id_of(0x66);
+        extra.size = 1234;
+        extra.type = ContentType::Data;
+        more.push_back(extra);
+        more.push_back(extra);
+        const Bytes longer = packaged_cnmt(MetaType::Application, 0x0100000000010000ull, 0, more);
+        const Bytes shorter = packaged_cnmt(MetaType::Application, 0x0100000000010000ull, 0, {contents()[0]});
+        for (const Bytes* c : {&longer, &shorter}) {
+            for (uint32_t block : {0x200u, 0x1000u}) {
+                const Bytes nca = meta_nca(cnmt, block);
+                auto        out = meta_nca_with_cnmt(nca, *c, test_keys());
+                if (!CHECK(out.has_value())) continue;
+                CHECK(*out == meta_nca(*c, block));
+                auto read = nca_read_cnmt(*out, test_keys());
+                if (CHECK(read.has_value())) CHECK(*read == *c);
+            }
+        }
+        // A section other than the first: not a content meta NCA this can rebuild.
+        Bytes two = meta_nca(cnmt);
+        nca_header_crypt(two.data(), HEADER_KEY, false);
+        put_le32(two.data() + 0x250, 0x50);
+        put_le32(two.data() + 0x254, 0x60);
+        nca_header_crypt(two.data(), HEADER_KEY, true);
+        CHECK(!meta_nca_with_cnmt(two, longer, test_keys()).has_value());
+    }
     // A game card one stays as it is (the distribution is not this module's).
     {
         auto out = meta_nca_with_cnmt(meta_nca(cnmt, 0x1000, 1), patched, test_keys());
         CHECK(out.has_value());
     }
     // Refusals.
-    CHECK(!meta_nca_with_cnmt(meta_nca(cnmt), Bytes(patched.begin(), patched.end() - 1), test_keys()).has_value());
     CHECK(!meta_nca_with_cnmt(Bytes(100), patched, test_keys()).has_value());
     NcaKeys wrong = test_keys();
     wrong.header_key[3] ^= 1;
