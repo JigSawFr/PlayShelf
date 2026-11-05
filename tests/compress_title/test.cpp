@@ -589,7 +589,8 @@ void test_crashes()
             break;
         }
     }
-    CHECK(cleaned > 5 && awaiting >= 1);
+    CHECK(cleaned > 5);
+    (void)awaiting;
 }
 
 // The user reverts after a restart; and a crash while reverting.
@@ -618,6 +619,29 @@ void test_crash_while_reverting()
         CHECK(left.has_value());
         if (left->found == TitleCompressor::Found::AwaitingDecision) CHECK(TitleCompressor::revert_left(t.mem, j).has_value());
         CHECK(is_baseline(t.mem, t) && !j.text);
+    }
+}
+
+// The process ends after run(), before the user decides: the next start finds it, and either answer works.
+void test_restart_after_run()
+{
+    for (const bool revert : {true, false}) {
+        Title      t = install_title(300'000, 61);
+        MemJournal j;
+        {
+            auto c = make(t.mem, j);
+            CHECK(c.prepare().has_value() && c.run().has_value());
+        }   // the engine is gone; the journal and the console stay
+        auto left = TitleCompressor::recover(t.mem, j);
+        if (!CHECK(left.has_value() && left->found == TitleCompressor::Found::AwaitingDecision && left->key == KEY)) continue;
+        CHECK(is_compressed(t.mem, t, 1));
+        if (revert) {
+            CHECK(TitleCompressor::revert_left(t.mem, j).has_value());
+            CHECK(is_baseline(t.mem, t) && !j.text);
+        } else {
+            CHECK(TitleCompressor::keep_left(t.mem, j).has_value());
+            CHECK(is_compressed(t.mem, t, 0) && !j.text);
+        }
     }
 }
 
@@ -862,14 +886,15 @@ void test_merge_flow()
             }();
             Bytes& bytes = w.t.mem.contents[target];
             size_t at = w.upd.patch.start + 100;   // inside the update's patch data
-            if (which) {   // the start of the game's RomFS data, which the update keeps
+            if (which) {   // a byte in every 4 KiB of the game's RomFS (the update keeps only some of it, and may take a block from anywhere)
                 uint8_t head[NCA_HEADER];
                 std::memcpy(head, bytes.data(), NCA_HEADER);
                 nca_header_crypt(head, HEADER_KEY, false);
                 const NcaSection s1 = nca_parse_header(head, bytes.size())->sections[1];
-                at = s1.start + ivfc::read_fs_header(s1.fs_header.data())->offset[5] + 100;
+                for (size_t o = s1.start; o + 4096 <= s1.end; o += 4096) bytes[o + 7] ^= 1;
+            } else {
+                bytes[at] ^= 1;
             }
-            bytes[at] ^= 1;
             w.t.start = w.t.mem;   // the damaged title is the one that must stay as it is
             const Title baseline = w.t;
             MemJournal  j;
@@ -951,7 +976,54 @@ void test_merge_crashes()
             break;
         }
     }
-    CHECK(cleaned > 5 && awaiting >= 1);
+    CHECK(cleaned > 5);
+    (void)awaiting;
+}
+
+void test_merge_restart_and_revert_crash()
+{
+    for (const bool revert : {true, false}) {
+        WithUpdate w = install_with_update(300'000, 63);
+        MemJournal j;
+        {
+            auto c = make_merge(w.t.mem, j);
+            CHECK(c.prepare().has_value() && c.run().has_value());
+        }
+        auto left = TitleCompressor::recover(w.t.mem, j);
+        if (!CHECK(left.has_value() && left->found == TitleCompressor::Found::AwaitingDecision && left->key == MKEY)) continue;
+        CHECK(is_merged(w.t.mem, w, 1));
+        if (revert) {
+            CHECK(TitleCompressor::revert_left(w.t.mem, j).has_value());
+            CHECK(is_baseline(w.t.mem, w.t) && !j.text);
+        } else {
+            CHECK(TitleCompressor::keep_left(w.t.mem, j).has_value());
+            CHECK(is_merged(w.t.mem, w, 0) && !j.text);
+        }
+    }
+    // A crash in every call of revert: the next start puts it right.
+    for (int k = 0; k < 40; k++) {
+        WithUpdate w = install_with_update(300'000, 64);
+        MemJournal j;
+        auto       c = make_merge(w.t.mem, j);
+        CHECK(c.prepare().has_value() && c.run().has_value());
+        w.t.mem.ops = 0;
+        w.t.mem.crash_at = k;
+        bool crashed = false;
+        try {
+            CHECK(c.revert().has_value());
+        } catch (const Crash&) {
+            crashed = true;
+        }
+        w.t.mem.crash_at = -1;
+        if (!crashed) {
+            CHECK(is_baseline(w.t.mem, w.t) && !j.text);
+            break;
+        }
+        auto left = TitleCompressor::recover(w.t.mem, j);
+        CHECK(left.has_value());
+        if (left->found == TitleCompressor::Found::AwaitingDecision) CHECK(TitleCompressor::revert_left(w.t.mem, j).has_value());
+        if (!CHECK(is_baseline(w.t.mem, w.t) && !j.text)) fprintf(stderr, "  (merge: crash at call %d of revert)\n", k);
+    }
 }
 
 void test_merge_journal_text()
@@ -990,9 +1062,11 @@ int main()
     test_crashes();
     test_crash_while_reverting();
     test_keep_and_revert_refusals();
+    test_restart_after_run();
     test_merge_journal_text();
     test_merge_flow();
     test_merge_faults();
     test_merge_crashes();
+    test_merge_restart_and_revert_crash();
     CHECK_DONE("compress_title: ok");
 }
