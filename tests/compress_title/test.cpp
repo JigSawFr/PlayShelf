@@ -927,7 +927,14 @@ void test_merge_faults()
         const Done ran = c.run();
         if (ran) {
             CHECK(is_merged(w.t.mem, w, 1));
-            CHECK(c.keep().has_value() && is_merged(w.t.mem, w, 0));
+            const bool injected_in_keep = w.t.mem.ops > k;   // the fault is still to come (keep() tells ns again)
+            Done kept = c.keep();
+            if (!kept) {   // it failed on the injected fault: nothing was deleted, and it works on the next try
+                CHECK(injected_in_keep && is_merged(w.t.mem, w, 1) && j.text.has_value());
+                w.t.mem.fault_at = -1;
+                kept = c.keep();
+            }
+            CHECK(kept.has_value() && is_merged(w.t.mem, w, 0));
             if (w.t.mem.ops <= k) break;
             continue;
         }
