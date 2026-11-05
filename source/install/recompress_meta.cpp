@@ -24,6 +24,23 @@ std::array<uint8_t, 32> sha(std::span<const uint8_t> b)
     h.update(b);
     return h.digest();
 }
+
+// A PFS0 of one file, its string table padded to 0x20 as the packing tools do.
+std::vector<uint8_t> pfs_archive_of(const std::string& name, std::span<const uint8_t> data)
+{
+    std::string names = name;
+    names += '\0';
+    while (names.size() % 0x20) names += '\0';
+    std::vector<uint8_t> out(PFS_BASE_HEADER + 0x18 + names.size() + data.size());
+    put_le32(out.data(), 0x30534650);
+    put_le32(out.data() + 4, 1);
+    put_le32(out.data() + 8, (uint32_t)names.size());
+    put_le64(out.data() + PFS_BASE_HEADER, 0);
+    put_le64(out.data() + PFS_BASE_HEADER + 8, data.size());
+    std::memcpy(out.data() + PFS_BASE_HEADER + 0x18, names.data(), names.size());
+    std::memcpy(out.data() + PFS_BASE_HEADER + 0x18 + names.size(), data.data(), data.size());
+    return out;
+}
 }   // namespace
 
 ContentId content_id_of(const std::array<uint8_t, 32>& h)
@@ -105,7 +122,39 @@ Parsed<std::vector<uint8_t>> meta_nca_with_cnmt(std::span<const uint8_t> nca, st
     if (!p) return fail(p.error());
     const auto files = p->ending_with(".cnmt");
     if (files.size() != 1) return fail("not exactly one .cnmt in the partition");
-    if (files[0]->size != cnmt.size()) return fail("a content meta of another length");
+    if (files[0]->size != cnmt.size()) {
+        // Another length: the partition, its hash table and the section made again, the NCA with them.
+        if (p->entries.size() != 1) return fail("a partition with other files than the content meta");
+        for (int i = 1; i < 4; i++)
+            if (h->sections[i].present) return fail("a content meta NCA with more than one section");
+        Bytes arch = pfs_archive_of(files[0]->name, cnmt);
+        const uint64_t new_table = (arch.size() + block - 1) / block * 32, new_pfs_at = (new_table + 0x1ff) / 0x200 * 0x200;
+        const uint64_t new_len = (new_pfs_at + arch.size() + 0x1ff) / 0x200 * 0x200;
+        Bytes          body(new_len, 0);
+        std::memcpy(body.data() + new_pfs_at, arch.data(), arch.size());
+        for (uint64_t i = 0; i < new_table / 32; i++) {
+            const auto d = sha({body.data() + new_pfs_at + i * block, (size_t)std::min<uint64_t>(block, arch.size() - i * block)});
+            std::memcpy(body.data() + i * 32, d.data(), 32);
+        }
+        const auto new_master = sha({body.data(), (size_t)new_table});
+        std::memcpy(fs.data() + 0x08, new_master.data(), 32);
+        put_le64(fs.data() + 0x30, 0);
+        put_le64(fs.data() + 0x38, new_table);
+        put_le64(fs.data() + 0x40, new_pfs_at);
+        put_le64(fs.data() + 0x48, arch.size());
+        if (ctr) ctr->crypt(body, s.start);
+        Bytes grown(s.start + new_len, 0);
+        std::memcpy(grown.data(), out.data(), s.start);   // the header (decrypted, below) and its padding
+        std::memcpy(grown.data() + s.start, body.data(), body.size());
+        uint8_t* gh = grown.data();
+        put_le64(gh + 0x208, grown.size());
+        put_le32(gh + 0x244, (uint32_t)(grown.size() / NCA_MEDIA));
+        const auto new_fs_hash = sha(fs);
+        std::memcpy(gh + 0x280, new_fs_hash.data(), 32);
+        std::memcpy(gh + 0x400, fs.data(), 0x200);
+        nca_header_crypt(gh, keys.header_key.data(), true);
+        return grown;
+    }
     std::memcpy(plain.data() + pfs_at + files[0]->offset, cnmt.data(), cnmt.size());
 
     // The partition's hash table, over blocks of `block` bytes (the last one

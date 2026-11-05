@@ -87,6 +87,10 @@ struct ContentMeta
 
 [[nodiscard]] Parsed<ContentMeta> cnmt_parse(std::span<const uint8_t> data);
 
+// The packaged form of a content meta (cnmt_parse's inverse): its header, extended
+// header, content infos, meta infos, extended data, then `digest`.
+std::vector<uint8_t> cnmt_serialize(const ContentMeta& meta, const std::array<uint8_t, 32>& digest);
+
 // The record ncm keeps: NcmContentMetaHeader, the extended header, the
 // content infos (the .cnmt.nca's own first, as `meta_content`, then the
 // installable ones), the meta infos, the extended data.
