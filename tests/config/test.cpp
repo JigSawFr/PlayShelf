@@ -116,13 +116,14 @@ static void test_damaged()
 // its default (sanitize).
 static void test_fields()
 {
-    write_config(R"({"language": "fr", "theme": 3, "text_size": "large", "effects": "reduced", "dev_mode": "yes",
+    write_config(R"({"language": "fr", "theme": 3, "text_size": "largest", "effects": "reduced", "density": "dense", "rail": "icons", "dev_mode": "yes",
                     "frame_stats": true, "intro": false, "start_tab": "about", "logs_keep": 5, "logs_keep_days": 7,
                     "logs_keep_mb": "20", "update_daily": true, "update_via": "sphaira", "connections": 8, "prefetch": 2})");
     config::load();
     const auto& c = config::get();
     CHECK(config::loaded() == config::Loaded::Read);
-    CHECK(c.look.language == "fr" && c.look.theme == "dark" && c.look.text_size == "large" && c.look.effects == "reduced");
+    CHECK(c.look.language == "fr" && c.look.theme == "dark" && c.look.text_size == "largest" && c.look.effects == "reduced");
+    CHECK(c.look.density == "dense" && c.look.rail == "icons");
     CHECK(!c.dev_mode && c.frame_stats && !c.intro && c.start_tab == "about");
     CHECK(c.logs_keep == 5 && c.logs_keep_days == 7 && c.logs_keep_mb == 0);
     CHECK(c.update_daily && c.update_via == "sphaira" && c.connections == 8 && c.prefetch == 2);
@@ -132,7 +133,7 @@ static void test_fields()
     CHECK(c.nlib_api && c.popular_online);
 
     // Out of range: back to the default, one field at a time.
-    write_config(R"({"language": "xx", "theme": "blue", "text_size": "huge", "effects": "wild",
+    write_config(R"({"language": "xx", "theme": "blue", "text_size": "huge", "effects": "wild", "density": "tight", "rail": "gone",
                     "start_tab": "dashboard", "logs_keep": 7, "logs_keep_days": 2, "logs_keep_mb": 3,
                     "update_via": "ftp", "dev_builds_order": "random", "library_view": "wall", "update_checked": "yesterday",
                     "update_snooze_version": "1.2.0", "update_snooze_until": "soon",
@@ -141,6 +142,7 @@ static void test_fields()
                     "title_sources": ["http://a/m.json", "https://b/m.json", 4, "https://b/m.json", "https://c/m.json"]})");
     config::load();
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
+    CHECK(c.look.density == "auto" && c.look.rail == "auto");
     CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.dev_builds_order == "newest" && c.library_view == "grid" && c.update_checked.empty());
     CHECK(c.update_snooze_version.empty() && c.update_snooze_until.empty());
@@ -168,6 +170,8 @@ static void test_round_trip()
     c.look.theme_file = "builtin:ocean";
     c.look.text_size = "normal";
     c.look.effects = "full";
+    c.look.density = "compact";
+    c.look.rail = "open";
     c.dev_mode = true;
     c.frame_stats = true;
     c.look.glow = false;
@@ -198,6 +202,7 @@ static void test_round_trip()
     c = config::Config{};
     config::load();
     CHECK(c.look.language == before.look.language && c.look.theme == before.look.theme && c.look.text_size == before.look.text_size);
+    CHECK(c.look.density == "compact" && c.look.rail == "open");
     CHECK(c.look.effects == before.look.effects && c.dev_mode && c.frame_stats && !c.look.glow);
     CHECK(c.look.theme_file == "builtin:ocean");
     CHECK(c.update_via == "inplace" && c.update_daily && c.update_checked == "2026-10-24");
