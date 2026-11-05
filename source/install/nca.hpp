@@ -26,7 +26,7 @@ namespace install
 {
 
 constexpr size_t   NCA_HEADER = 0xc00;
-constexpr size_t   NCA_FULL_HEADER = 0x4000;   // what an installer writes before the body (header and padding)
+constexpr size_t   NCA_FULL_HEADER = 0x4000;   // where the system's own NCAs start their first section (the header, then padding)
 constexpr uint64_t NCA_MEDIA = 0x200;          // a section's start and end are counted in these
 
 struct NcaKeys

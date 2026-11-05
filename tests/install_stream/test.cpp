@@ -106,6 +106,52 @@ Built build(uint8_t distribution = 0)
     return b;
 }
 
+// An NCA as the tools that pack homebrew make it: the first section starts right
+// after the 0xC00 bytes of header, no padding to 0x4000. `tiny`: one section of
+// 0x400 bytes, the whole NCA under 0x4000 (a .cnmt.nca of such a package).
+Built build_packed(uint8_t distribution = 0, bool tiny = false)
+{
+    Built b;
+    b.s0 = NCA_HEADER;
+    b.s0_size = tiny ? 0x400 : 0x2e00;
+    b.s1 = b.s0 + b.s0_size;
+    b.s1_size = tiny ? 0 : 0x6200;
+    const uint64_t size = b.s1 + b.s1_size;
+    b.plain.resize(size - NCA_HEADER);
+    for (size_t i = 0; i < b.plain.size(); i++)
+        b.plain[i] = i < b.s0_size ? (uint8_t)("packed content "[i % 15]) : (uint8_t)(i * 7 + (i >> 8));
+
+    b.nca.assign(size, 0);
+    uint8_t* h = b.nca.data();
+    put_le32(h + 0x200, 0x3341434e);
+    h[0x204] = distribution;
+    h[0x205] = 0;
+    h[0x220] = 3;
+    put_le64(h + 0x208, size);
+    put_le64(h + 0x210, 0x0100000000010000ull);
+    const uint64_t at[2] = {b.s0, b.s1}, len[2] = {b.s0_size, b.s1_size};
+    const uint64_t ctr[2] = {CTR0, CTR1};
+    for (int i = 0; i < (tiny ? 1 : 2); i++) {
+        put_le32(h + 0x240 + 0x10 * i, (uint32_t)(at[i] / 0x200));
+        put_le32(h + 0x244 + 0x10 * i, (uint32_t)((at[i] + len[i]) / 0x200));
+        uint8_t* fs = h + 0x400 + 0x200 * i;
+        put_le16(fs, 2);
+        fs[2] = 0;
+        fs[3] = 3;
+        fs[4] = 3;
+        put_le64(fs + 0x140, ctr[i]);
+        Sha256 s;
+        s.update({fs, 0x200});
+        const auto d = s.digest();
+        std::memcpy(h + 0x280 + 0x20 * i, d.data(), 32);
+    }
+    nca_header_crypt(h, HEADER_KEY, true);
+    std::copy(b.plain.begin(), b.plain.end(), b.nca.begin() + NCA_HEADER);
+    Aes128Ctr(SECTION_KEY, iv_of(CTR0).data()).crypt(std::span(b.nca).subspan(b.s0, b.s0_size), b.s0);
+    if (!tiny) Aes128Ctr(SECTION_KEY, iv_of(CTR1).data()).crypt(std::span(b.nca).subspan(b.s1, b.s1_size), b.s1);
+    return b;
+}
+
 // The NCZSECTN header of `b`'s sections.
 Bytes sections(const Built& b)
 {
@@ -426,6 +472,77 @@ void test_resume()
     CHECK(!z.checkpoint());
 }
 
+// The NCAs packed for homebrew put the first section right after the header: they
+// come through as they are, whole or in pieces of every size, however small they
+// are, a game card one made a download one, and one can be taken up again.
+void test_packed_layout()
+{
+    for (const bool tiny : {false, true}) {
+        const Built b = build_packed(0, tiny);
+        const auto  hash = sha(b.nca);
+        CHECK(tiny == (b.nca.size() < NCA_FULL_HEADER));
+        for (const auto& sizes : std::vector<std::vector<size_t>>{{0}, {1}, {7, 4093, 1}, {0xc00}, {0xbff, 9}}) {
+            const Result r = run(b.nca, hash, b.nca.size(), sizes);
+            if (!CHECK(r.ok)) fprintf(stderr, "packed (tiny %d): %s\n", (int)tiny, r.error.c_str());
+            CHECK(r.out == b.nca);
+            CHECK(!r.compressed && r.headers == 1);
+        }
+        // Cut short anywhere in the header region, or the body; a byte too many; a wrong hash.
+        for (const size_t cut : {(size_t)0x10, (size_t)NCA_HEADER - 1, (size_t)NCA_HEADER, (size_t)NCA_HEADER + 1, b.nca.size() - 1})
+            CHECK(!run(Bytes(b.nca.begin(), b.nca.begin() + (long)cut), hash, 0).ok);
+        Bytes longer = b.nca;
+        longer.push_back(0);
+        CHECK(!run(longer, std::nullopt, 0).ok);
+        auto wrong = hash;
+        wrong[3] ^= 1;
+        CHECK(!run(b.nca, wrong, 0).ok);
+
+        // A game card one is made a download one, and the hash is the published one's.
+        const Built  card = build_packed(1, tiny);
+        const Result r = run(card.nca, sha(card.nca), 0);
+        if (CHECK(r.ok)) {
+            uint8_t head[NCA_HEADER];
+            std::memcpy(head, r.out.data(), NCA_HEADER);
+            nca_header_crypt(head, HEADER_KEY, false);
+            CHECK(head[0x204] == 0);
+            CHECK(std::equal(r.out.begin() + NCA_HEADER, r.out.end(), card.nca.begin() + NCA_HEADER));
+        }
+
+        // Taken up again from inside the body (the header region is behind it).
+        const Result whole = run(b.nca, hash, b.nca.size());
+        for (const size_t cut : {(size_t)NCA_HEADER, (size_t)NCA_HEADER + 3, b.nca.size() - 1, b.nca.size()}) {
+            if (cut > b.nca.size()) continue;
+            Bytes out(b.nca.size());
+            auto  write = [&](uint64_t offset, const uint8_t* data, size_t size) {
+                std::memcpy(out.data() + offset, data, size);
+                return true;
+            };
+            ContentStream first(HEADER_KEY, hash, b.nca.size(), nullptr, write);
+            CHECK(first.feed(std::span(b.nca).first(cut)));
+            const auto at = first.checkpoint();
+            if (!at) continue;   // right after the header: no body byte yet
+            CHECK(at->offset == cut);
+            ContentStream again(HEADER_KEY, hash, b.nca.size(), nullptr, write);
+            CHECK(again.resume_at(*at));
+            CHECK(again.feed(std::span(b.nca).subspan(cut)));
+            CHECK(again.finish());
+            CHECK(out == whole.out);
+        }
+    }
+    write_seed("nca_packed", build_packed().nca);
+    write_seed("nca_packed_tiny", build_packed(0, true).nca);
+}
+
+// A header that says a section starts inside the header itself is still refused.
+void test_section_inside_header()
+{
+    Built b = build_packed();
+    nca_header_crypt(b.nca.data(), HEADER_KEY, false);
+    put_le32(b.nca.data() + 0x240, (uint32_t)(0xa00 / 0x200));
+    nca_header_crypt(b.nca.data(), HEADER_KEY, true);
+    CHECK(!run(b.nca, std::nullopt, 0).ok);
+}
+
 }   // namespace
 
 // NXPress's NCZSECT3 and any later NCZSECT… (7th byte of the magic other than N or 2):
@@ -517,5 +634,7 @@ int main()
     test_ncz();
     test_nxpress_extensions();
     test_ncz_sect2();
+    test_packed_layout();
+    test_section_inside_header();
     CHECK_DONE("content stream: NCA, NCZ (stream and blocks), game card header, a .nca taken up again, refusals passed");
 }
