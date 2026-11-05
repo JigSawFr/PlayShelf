@@ -133,7 +133,13 @@ struct Mem : Console
         removed.clear();
         return {};
     }
-    Done     push_application_record(uint64_t, const MetaKey&) override { return {}; }
+    std::vector<std::pair<uint64_t, KeyT>> pushed;
+    Done push_application_record(uint64_t app, const MetaKey& k) override
+    {
+        if (!step()) return fail("fault");
+        pushed.push_back({app, tk(k)});
+        return {};
+    }
     Done     import_ticket(const std::vector<uint8_t>&, const std::vector<uint8_t>&) override { return {}; }
     uint32_t system_version() override { return fw; }
     std::optional<uint64_t> content_size(const ContentId& id) override
@@ -635,6 +641,7 @@ void test_restart_after_run()
         auto left = TitleCompressor::recover(t.mem, j);
         if (!CHECK(left.has_value() && left->found == TitleCompressor::Found::AwaitingDecision && left->key == KEY)) continue;
         CHECK(is_compressed(t.mem, t, 1));
+        CHECK(t.mem.pushed.empty());   // the key did not change: ns is not told anything
         if (revert) {
             CHECK(TitleCompressor::revert_left(t.mem, j).has_value());
             CHECK(is_baseline(t.mem, t) && !j.text);
@@ -842,6 +849,7 @@ void test_merge_flow()
             return;
         }
         CHECK(is_merged(w.t.mem, w, 1));
+        CHECK(!w.t.mem.pushed.empty() && w.t.mem.pushed.back() == std::make_pair(KEY.id, tk(MKEY)));   // ns knows the new key
         CHECK(c.keep().has_value());
         CHECK(is_merged(w.t.mem, w, 0));
         CHECK(!j.text);

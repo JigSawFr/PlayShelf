@@ -178,6 +178,10 @@ Done do_keep(Console& c, JournalStore& store, const CompressJournal& j)
     if (!cur || j.new_record.empty() || *cur != j.new_record) return fail("the title is not the compressed one: nothing to keep");
     for (const ContentId& id : j.contents)
         if (!c.has_content(id)) return fail("the new contents are missing: the old ones are kept");
+    // A merged title is known to ns under its new key (said again: a restart may have come between the swap and the push).
+    if (j.new_key) {
+        if (auto d = c.push_application_record(j.key.id, *j.new_key); !d) return fail("the application record could not be updated: " + d.error());
+    }
     // From here the old contents go: a restart finishes this rather than offering to go back.
     if (j.phase != CompressJournal::Phase::Keeping) {
         CompressJournal k = j;
@@ -707,6 +711,11 @@ Done TitleCompressor::run()
     }
     for (const ContentId& id : must_exist)
         if (!c.has_content(id)) return undo("a content is missing after the swap");
+    // ns: the title's application record learns the key it is under now (the old keys are not removed from it:
+    // that takes a call this module does not make).
+    if (m.merging) {
+        if (auto d = c.push_application_record(m.key.id, result); !d) return undo("the application record could not be updated: " + d.error());
+    }
     j.phase = CompressJournal::Phase::Swapped;
     if (!m.store.save(j.text())) return undo("the journal could not be kept");
     m.swapped = true;
