@@ -1,0 +1,17 @@
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.csproj.AssemblyReference.cache
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.GeneratedMSBuildEditorConfig.editorconfig
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.AssemblyInfoInputs.cache
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.AssemblyInfo.cs
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.csproj.CoreCompileInputs.cache
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.sourcelink.json
+/home/user/PlayShelf/build/oracle/ncadump/ncadump
+/home/user/PlayShelf/build/oracle/ncadump/ncadump.deps.json
+/home/user/PlayShelf/build/oracle/ncadump/ncadump.runtimeconfig.json
+/home/user/PlayShelf/build/oracle/ncadump/ncadump.dll
+/home/user/PlayShelf/build/oracle/ncadump/ncadump.pdb
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.csproj.CopyComplete
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.dll
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/refint/ncadump.dll
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.pdb
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ncadump.genruntimeconfig.cache
+/home/user/PlayShelf/tests/oracle/ncadump/obj/Release/net8.0/ref/ncadump.dll
