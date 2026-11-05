@@ -38,11 +38,19 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # liblz4 for the engine's codec, the .NET SDK for the reader (a NuGet
-      # package, LibHac, fetched by dotnet build).
+      # liblz4 for the engine's codec; the .NET SDK (any recent one: the reader
+      # targets net8.0 and runs on the newer runtime, DOTNET_ROLL_FORWARD) is the
+      # runner image's, else Ubuntu's; LibHac, a NuGet package, is fetched by
+      # dotnet build.
       - name: Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -o Dpkg::Options::=--force-unsafe-io -y --no-install-recommends liblz4-dev dotnet-sdk-8.0
+          sudo apt-get install -o Dpkg::Options::=--force-unsafe-io -y --no-install-recommends liblz4-dev
+          dotnet --list-sdks || sudo apt-get install -o Dpkg::Options::=--force-unsafe-io -y --no-install-recommends dotnet-sdk-10.0
+          dotnet --list-sdks
       - name: The engine's NCAs read back by LibHac
+        env:
+          DOTNET_ROLL_FORWARD: Major
+          DOTNET_NOLOGO: '1'
+          DOTNET_CLI_TELEMETRY_OPTOUT: '1'
         run: tests/oracle/run.sh
