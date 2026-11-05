@@ -29,9 +29,11 @@
 #include <atomic>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <span>
 #include <vector>
 
+#include "install/bktr.hpp"
 #include "install/compressed_storage.hpp"
 #include "install/nca.hpp"
 
@@ -47,10 +49,27 @@ class ProgramRecompressor
     ProgramRecompressor(ReadAtFn original, uint64_t original_size, NcaKeys keys, cstore::CompressFn compress,
                         cstore::DecompressFn decompress, uint32_t block_size = cstore::MAX_BLOCK);
 
+    // Before inspect(), to merge the title's update into the program: the
+    // update's program NCA (an installed update, same keys), whose ExeFS and
+    // other sections take the place of the game's and whose RomFS patch is
+    // applied to the game's RomFS (bktr.hpp). The result is the program the
+    // game runs with the update on, as one NCA of the base game's; it keeps
+    // the game's key area and takes the update's SDK version. This object must
+    // not move once inspect() has run.
+    void with_update(ReadAtFn update, uint64_t update_size);
+    bool merges_update() const { return merging; }
+
     // Reads the header and checks the NCA can be made over; why not, with
     // nothing made.
     [[nodiscard]] Done inspect();
     const NcaHeader&   header() const { return orig; }
+
+    // Checks the RomFS the program is made from against its own integrity tree
+    // (the original's, or the update's patched over the game's): a game already
+    // damaged, or a patch read wrong, is found here, before anything is made.
+    // Reads all of it.
+    [[nodiscard]] Done check_source(const std::function<void(uint64_t done, uint64_t total)>& progress = {},
+                                    const std::atomic<bool>* cancel = nullptr);
 
     // Makes the body. `progress` is given the bytes of the original read
     // and its total. Why not when it failed, was cancelled or a read or the
@@ -80,7 +99,17 @@ class ProgramRecompressor
     struct Stream;
     [[nodiscard]] Done copy_section(int i, Stream& out);
     [[nodiscard]] Done rebuild_romfs(int i, Stream& out, std::array<uint8_t, 0x200>& fs_header);
-    bool               read_plain(int i, uint64_t from, std::span<uint8_t> out);
+    // Where a section of the new program comes from: a section of the game, of
+    // the update, or the update's patch over the game's RomFS.
+    struct Src
+    {
+        bool                                present = false;
+        bool                                update = false;   // its bytes are in the update's NCA
+        NcaSection                          meta;             // as it will stand: its fs header, counter and encryption
+        std::unique_ptr<bktr::PatchedSection> patch;          // its bytes are the patched section
+    };
+    bool read_src(int i, uint64_t from, std::span<uint8_t> out);
+    [[nodiscard]] Done plan_update();
 
     ReadAtFn                orig_read;
     uint64_t                orig_size;
@@ -88,6 +117,14 @@ class ProgramRecompressor
     cstore::CompressFn      compress;
     cstore::DecompressFn    decompress;
     uint32_t                block_size;
+
+    ReadAtFn                upd_read;
+    uint64_t                upd_size = 0;
+    bool                    merging = false;
+    NcaHeader               upd;
+    std::array<uint8_t, 16> upd_key{};
+    std::array<Src, 4>      src;
+    uint32_t                expect_sdk = 0;
 
     NcaHeader               orig;
     std::array<uint8_t, NCA_HEADER> plain_header{};

@@ -11,7 +11,7 @@
 #include <cstring>
 #include <random>
 
-#include "../install/recompress_builders.hpp"
+#include "../install/patch_builders.hpp"
 #include "check.h"
 #include "install/aes.hpp"
 #include "install/ivfc.hpp"
@@ -239,6 +239,135 @@ void test_packed_original()
     CHECK(rc2.verify(reader_of(out.nca), out.nca.size()).has_value());
 }
 
+// The update merged into the game: the program the game runs with it on.
+void test_merge()
+{
+    for (const size_t image_size : {size_t(250'000), size_t(900'000)}) {
+        const Built     base = program_nca(image_size, (uint32_t)image_size + 1);
+        const UpdateNca upd = update_nca(base, 5);
+        CHECK(upd.patch.patched_image != base.image);
+
+        auto rc = make(base.nca, 16384);
+        rc.with_update(reader_of(upd.nca), upd.nca.size());
+        std::string why;
+        if (!CHECK(rc.inspect().has_value())) continue;
+        CHECK(rc.merges_update());
+        uint64_t last = 0, total = 0;
+        const Done src = rc.check_source([&](uint64_t d, uint64_t t) { CHECK(d <= t); last = d; total = t; });
+        if (!CHECK(src.has_value())) {
+            fprintf(stderr, "check_source: %s\n", src.error().c_str());
+            continue;
+        }
+        CHECK(last == total && total > 0);
+
+        Bytes body;
+        CHECK(rc.build([&](std::span<const uint8_t> b) { body.insert(body.end(), b.begin(), b.end()); return true; }).has_value());
+        Output out;
+        out.nca = rc.new_header();
+        out.nca.insert(out.nca.end(), body.begin(), body.end());
+
+        // What the game runs with the update on: the update's ExeFS and the patched RomFS, under the game's id and key.
+        Built expect = base;
+        expect.exefs_plain = upd.exefs_plain;
+        expect.image = upd.patch.patched_image;
+        check_output(expect, out);
+        uint8_t head[NCA_HEADER];
+        std::memcpy(head, out.nca.data(), NCA_HEADER);
+        nca_header_crypt(head, HEADER_KEY, false);
+        CHECK(le32(head + 0x21c) == 0x00abcdef);
+        CHECK(le64(head + 0x210) == 0x0100000000020000ull);
+
+        auto again = make(base.nca, 16384);
+        again.with_update(reader_of(upd.nca), upd.nca.size());
+        CHECK(again.inspect().has_value());
+        CHECK(again.verify(reader_of(out.nca), out.nca.size()).has_value());
+        // The same output checked against the game alone: it is not the game's.
+        auto alone = make(base.nca, 16384);
+        CHECK(alone.inspect().has_value());
+        CHECK(!alone.verify(reader_of(out.nca), out.nca.size()).has_value());
+    }
+}
+
+// The source is checked against its integrity tree before anything is made.
+void test_check_source()
+{
+    const Built base = program_nca(250'000, 31);
+    {   // a game alone
+        auto rc = make(base.nca, 16384);
+        CHECK(rc.inspect().has_value() && rc.check_source().has_value());
+        Bytes bad = base.nca;
+        const NcaSection s1 = [&] {
+            uint8_t head[NCA_HEADER];
+            std::memcpy(head, bad.data(), NCA_HEADER);
+            nca_header_crypt(head, HEADER_KEY, false);
+            return nca_parse_header(head, bad.size())->sections[1];
+        }();
+        bad[s1.start + (s1.end - s1.start) / 2] ^= 1;   // inside the RomFS data
+        auto rb = make(bad, 16384);
+        CHECK(rb.inspect().has_value());
+        const Done d = rb.check_source();
+        CHECK(!d.has_value() && d.error().find("integrity tree") != std::string::npos);
+        std::atomic<bool> stop{true};
+        auto              rs = make(base.nca, 16384);
+        CHECK(rs.inspect().has_value() && !rs.check_source({}, &stop).has_value());
+    }
+    {   // an update: a damaged patch, a damaged game
+        const UpdateNca upd = update_nca(base, 6);
+        Bytes           bad = upd.nca;
+        bad[upd.patch.start + 100] ^= 1;   // inside the update's patch data
+        auto rc = make(base.nca, 16384);
+        rc.with_update(reader_of(bad), bad.size());
+        const Done opened = rc.inspect();
+        if (opened) CHECK(!rc.check_source().has_value());   // a table damaged is refused at inspect(), data at check_source()
+        Bytes bad_base = base.nca;
+        {
+            uint8_t head[NCA_HEADER];
+            std::memcpy(head, bad_base.data(), NCA_HEADER);
+            nca_header_crypt(head, HEADER_KEY, false);
+            const NcaSection s1 = nca_parse_header(head, bad_base.size())->sections[1];
+            bad_base[s1.start + ivfc::read_fs_header(s1.fs_header.data())->offset[5] + 100] ^= 1;   // the start of the game's RomFS data, which the update keeps
+        }
+        auto rb = make(bad_base, 16384);
+        rb.with_update(reader_of(upd.nca), upd.nca.size());
+        CHECK(rb.inspect().has_value());
+        CHECK(!rb.check_source().has_value());
+    }
+}
+
+void test_merge_refusals()
+{
+    const Built base = program_nca(250'000, 41);
+    auto        refuses = [&](const char* what, const UpdateNca& upd) {
+        auto rc = make(base.nca, 16384);
+        rc.with_update(reader_of(upd.nca), upd.nca.size());
+        const bool r = !rc.inspect().has_value();
+        if (!r) fprintf(stderr, "not refused: %s\n", what);
+        CHECK(r);
+    };
+    refuses("another game's update", update_nca(base, 7, false, 0x0100000000030800ull));
+    refuses("the base's own id", update_nca(base, 7, false, 0x0100000000020000ull));
+    refuses("an update with a ticket", update_nca(base, 7, true));
+    {   // not an NCA
+        auto rc = make(base.nca, 16384);
+        const Bytes junk(0x5000, 0x11);
+        rc.with_update(reader_of(junk), junk.size());
+        CHECK(!rc.inspect().has_value());
+    }
+    {   // too small
+        auto rc = make(base.nca, 16384);
+        const Bytes tiny(0x100);
+        rc.with_update(reader_of(tiny), tiny.size());
+        CHECK(!rc.inspect().has_value());
+    }
+    {   // a patch that points past the game's section: reading fails, not a garbage output
+        const UpdateNca upd = update_nca(base, 8);
+        const Built     small_base = program_nca(60'000, 9);
+        auto            rc = make(small_base.nca, 16384);
+        rc.with_update(reader_of(upd.nca), upd.nca.size());
+        if (rc.inspect()) CHECK(!rc.check_source().has_value());
+    }
+}
+
 void test_inspect_refusals()
 {
     auto refused = [](const char* what, const Bytes& nca, uint32_t block = 65536, NcaKeys keys = test_keys()) {
@@ -318,6 +447,9 @@ int main()
     test_roundtrips();
     test_verify();
     test_packed_original();
+    test_merge();
+    test_check_source();
+    test_merge_refusals();
     test_inspect_refusals();
     test_stops();
     CHECK_DONE("recompress: ok");

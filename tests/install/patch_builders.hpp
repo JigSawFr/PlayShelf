@@ -65,7 +65,7 @@ inline Bytes ivfc_section(const Bytes& image, ivfc::Layout* layout)
 
 // `base_image` patched: a stretch changed, a stretch moved from elsewhere, some
 // added at the end. `start`: where the update's section stands in its NCA.
-inline Update make_update(const Bytes& base_image, uint64_t start, uint32_t seed)
+inline Update make_update(const Bytes& base_image, uint64_t start, uint32_t seed, const uint8_t* key = SECTION_KEY)
 {
     Update u;
     u.start = start;
@@ -150,14 +150,14 @@ inline Update make_update(const Bytes& base_image, uint64_t start, uint32_t seed
         NcaSection s;
         s.ctr = (uint64_t)secure << 32 | subs[i].gen;
         const auto iv = nca_section_iv(s);
-        Aes128Ctr(SECTION_KEY, iv.data()).crypt(std::span(body).subspan(from, to - from), start + from);
+        Aes128Ctr(key, iv.data()).crypt(std::span(body).subspan(from, to - from), start + from);
     }
     Bytes aes_enc = aes_table;
     {
         NcaSection s;
         s.ctr = u.upper_iv;
         const auto iv = nca_section_iv(s);
-        Aes128Ctr(SECTION_KEY, iv.data()).crypt(aes_enc, start + aes_offset);
+        Aes128Ctr(key, iv.data()).crypt(aes_enc, start + aes_offset);
     }
     u.section = body;
     u.section.insert(u.section.end(), aes_enc.begin(), aes_enc.end());
@@ -180,6 +180,72 @@ inline Update make_update(const Bytes& base_image, uint64_t start, uint32_t seed
     put_le32(fs + bktr::PATCH_INFO_AT + 0x34, 1);
     put_le32(fs + bktr::PATCH_INFO_AT + 0x38, (uint32_t)sub_entries.size());
     put_le64(fs + 0x140, u.upper_iv);
+    return u;
+}
+
+// A different section key for an update (the key area is still wrapped with KAEK).
+inline const uint8_t SECTION_KEY_UPDATE[16] = {0x7a, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+
+struct UpdateNca
+{
+    Bytes  nca, exefs_plain;
+    Update patch;
+};
+
+// The program NCA of an update for `base` (made by program_nca): its ExeFS
+// (other bytes), its RomFS section a patch over the base game's, its own section
+// key, a program id 0x800 above the base's, another SDK version.
+inline UpdateNca update_nca(const Built& base, uint32_t seed, bool rights = false, uint64_t program_id = 0x0100000000020800ull)
+{
+    UpdateNca u;
+    u.exefs_plain = archive(PfsKind::Pfs0, {{"main", stream(7000, "main v2")}, {"main.npdm", stream(1100, "npdm v2")}});
+    const size_t hash_table = 0x20;
+    Bytes        s0(((hash_table + u.exefs_plain.size() + 0x1ff) / 0x200) * 0x200);
+    std::memcpy(s0.data() + hash_table, u.exefs_plain.data(), u.exefs_plain.size());
+
+    const uint64_t s0_start = NCA_FULL_HEADER, s1_start = s0_start + s0.size();
+    u.patch = make_update(base.image, s1_start, seed, SECTION_KEY_UPDATE);
+    u.nca.assign(s1_start + u.patch.section.size(), 0);
+    uint8_t* h = u.nca.data();
+    put_le32(h + 0x200, 0x3341434e);
+    h[0x204] = 0;
+    h[0x205] = 0;
+    h[0x206] = 2;
+    h[0x220] = 3;
+    put_le64(h + 0x208, u.nca.size());
+    put_le64(h + 0x210, program_id);
+    put_le32(h + 0x21c, 0x00abcdef);
+    if (rights) h[0x230] = 0x55;
+
+    uint8_t fs0[0x200] = {};
+    put_le16(fs0, 2); fs0[2] = 1; fs0[3] = 2; fs0[4] = 3;
+    put_le64(fs0 + 0x40, hash_table);
+    put_le64(fs0 + 0x48, u.exefs_plain.size());
+    put_le64(fs0 + 0x140, 0x0000000700000000ull);
+    put_le32(h + 0x240, (uint32_t)(s0_start / 0x200));
+    put_le32(h + 0x244, (uint32_t)(s1_start / 0x200));
+    put_le32(h + 0x250, (uint32_t)(s1_start / 0x200));
+    put_le32(h + 0x254, (uint32_t)(u.nca.size() / 0x200));
+    std::memcpy(h + 0x400, fs0, 0x200);
+    std::memcpy(h + 0x600, u.patch.fs_header.data(), 0x200);
+    for (int i = 0; i < 2; i++) {
+        Sha256 sh;
+        sh.update({h + 0x400 + 0x200 * i, 0x200});
+        const auto d = sh.digest();
+        std::memcpy(h + 0x280 + 0x20 * i, d.data(), 32);
+    }
+    uint8_t key_area[0x40] = {};
+    std::memcpy(key_area + 0x20, SECTION_KEY_UPDATE, 16);
+    aes128_ecb_encrypt(KAEK, key_area);
+    std::memcpy(h + 0x300, key_area, 0x40);
+
+    std::memcpy(u.nca.data() + s0_start, s0.data(), s0.size());
+    NcaSection n0;
+    n0.ctr = le64(fs0 + 0x140);
+    const auto iv0 = nca_section_iv(n0);
+    Aes128Ctr(SECTION_KEY_UPDATE, iv0.data()).crypt(std::span(u.nca).subspan(s0_start, s0.size()), s0_start);
+    std::memcpy(u.nca.data() + s1_start, u.patch.section.data(), u.patch.section.size());
+    nca_header_crypt(h, HEADER_KEY, true);
     return u;
 }
 
