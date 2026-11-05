@@ -4,12 +4,14 @@
 // can be taken back until the user has seen the game run.
 //
 //   prepare()  nothing is written. The title is read (its record, its content
-//              meta, its program), the program is made over once to measure
+//              meta, its program), the RomFS it is made from is checked against
+//              its own integrity tree, the program is made over once to measure
 //              what it comes to, and the preconditions are checked: the
 //              firmware reads the layer, the title is an application with no
-//              update installed, nothing sold with a ticket, room for the new
-//              copy beside the old one, a gain that is worth it. The caller
-//              shows the numbers; confirm() decides.
+//              update installed (or one to merge, CompressOptions::merge_update),
+//              nothing sold with a ticket, room for the new copy beside the old
+//              one, a gain that is worth it. The caller shows the numbers;
+//              confirm() decides.
 //   run()      the journal is saved first (the old record, the ids this will
 //              make); the program is made over again into a placeholder and
 //              registered under the id its hash gives (the second pass must
@@ -56,9 +58,16 @@ struct CompressJournal
 {
     enum class Phase { Writing, Swapped };
     Phase                  phase = Phase::Writing;
-    MetaKey                key;
+    MetaKey                key;               // the game's record
     std::vector<uint8_t>   old_record, new_record;   // new_record: empty until it is known
     ContentId              old_program{}, old_meta{};
+    // Merging an update: the new record's key (the update's version), and the
+    // update's record and contents, which the merged game replaces.
+    std::optional<MetaKey> new_key;
+    std::optional<MetaKey> patch_key;
+    std::vector<uint8_t>   patch_record;
+    ContentId              old_patch_program{}, old_patch_meta{};
+    MetaKey                result_key() const { return new_key ? *new_key : key; }
     std::vector<ContentId> placeholders;   // made by this run
     std::vector<ContentId> contents;       // registered by this run
 
@@ -82,7 +91,13 @@ struct CompressOptions
     uint64_t free_margin = 256ull << 20;   // room left after the new copy
     uint32_t min_saving_percent = 5;       // below it, not worth losing official updates
     uint32_t min_system_version = 12u << 16;
-    bool     update_installed = false;     // the caller knows: an update is installed
+    bool     update_installed = false;     // the caller knows: an update is installed (refused)
+    // The update installed over the game, to merge into it (its key: the game's
+    // id + 0x800, type Patch). The game then becomes one title at the update's
+    // version, with the update's program, control data and the like, and its
+    // two records are replaced by one. An official update cannot be installed
+    // over it afterwards.
+    std::optional<MetaKey> merge_update;
 };
 
 enum class CompressStage { Measuring, Writing, Checking };

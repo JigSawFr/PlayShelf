@@ -67,15 +67,21 @@ bool in_record(const std::vector<uint8_t>& record, const ContentId& id)
     return false;
 }
 
+// Used by what the title was before this run (the game's record, the update's).
+bool in_olds(const CompressJournal& j, const ContentId& id)
+{
+    return in_record(j.old_record, id) || (j.patch_key && in_record(j.patch_record, id));
+}
+
 // What this run made and nothing uses: deleted.
 void delete_ours(Console& c, const CompressJournal& j)
 {
-    const auto current = c.get_meta(j.key);
+    const auto current = c.get_meta(j.result_key());
     for (const ContentId& p : j.placeholders)
         if (c.has_placeholder(p)) c.delete_placeholder(p);
     for (const ContentId& id : j.contents) {
         if (current && in_record(*current, id)) continue;
-        if (in_record(j.old_record, id)) continue;
+        if (in_olds(j, id)) continue;
         if (c.has_content(id)) c.delete_content(id);
     }
 }
@@ -107,28 +113,58 @@ struct Cached
     }
 };
 
+// The records the title had, with their keys.
+std::vector<std::pair<MetaKey, const std::vector<uint8_t>*>> olds_of(const CompressJournal& j)
+{
+    std::vector<std::pair<MetaKey, const std::vector<uint8_t>*>> v = {{j.key, &j.old_record}};
+    if (j.patch_key) v.push_back({*j.patch_key, &j.patch_record});
+    return v;
+}
+
+bool is_old_key(const CompressJournal& j, const MetaKey& k)
+{
+    for (const auto& o : olds_of(j))
+        if (o.first == k) return true;
+    return false;
+}
+
+// The title as it was: every old record at its key, and the new key (when it is none of them) gone.
+bool is_as_before(Console& c, const CompressJournal& j)
+{
+    for (const auto& o : olds_of(j)) {
+        const auto r = c.get_meta(o.first);
+        if (!r || *r != *o.second) return false;
+    }
+    return is_old_key(j, j.result_key()) || !c.get_meta(j.result_key());
+}
+
 Done restore(Console& c, const CompressJournal& j)
 {
-    // The old record back, only if what it lists is still there.
-    const auto infos = record_contents(j.old_record);
-    if (!infos) return fail("the original record cannot be read");
-    for (const ContentInfo& i : *infos)
-        if (!c.has_content(i.id)) return fail("the original contents are gone: the old record cannot be put back");
-    if (auto d = c.set_meta(j.key, j.old_record); !d) return d;
+    // The old records back, only if what they list is still there.
+    for (const auto& o : olds_of(j)) {
+        const auto infos = record_contents(*o.second);
+        if (!infos) return fail("an original record cannot be read");
+        for (const ContentInfo& i : *infos)
+            if (!c.has_content(i.id)) return fail("the original contents are gone: the old records cannot be put back");
+    }
+    for (const auto& o : olds_of(j))
+        if (auto d = c.set_meta(o.first, *o.second); !d) return d;
+    if (!is_old_key(j, j.result_key())) {
+        if (auto d = c.remove_meta(j.result_key()); !d) return d;
+    }
     if (auto d = c.commit_meta(); !d) return d;
-    const auto back = c.get_meta(j.key);
-    if (!back || *back != j.old_record) return fail("the original record did not come back");
+    if (!is_as_before(c, j)) return fail("the original records did not come back");
     return {};
 }
 
 Done do_revert(Console& c, JournalStore& store, const CompressJournal& j)
 {
-    const auto cur = c.get_meta(j.key);
-    if (cur && *cur == j.old_record) {
+    if (is_as_before(c, j)) {
         delete_ours(c, j);
         store.clear();
         return {};
     }
+    const auto cur = c.get_meta(j.result_key());
     if (!cur || j.new_record.empty() || *cur != j.new_record) return fail("the title changed since: left as it is");
     if (auto d = restore(c, j); !d) return d;
     delete_ours(c, j);
@@ -138,14 +174,48 @@ Done do_revert(Console& c, JournalStore& store, const CompressJournal& j)
 
 Done do_keep(Console& c, JournalStore& store, const CompressJournal& j)
 {
-    const auto cur = c.get_meta(j.key);
+    const auto cur = c.get_meta(j.result_key());
     if (!cur || j.new_record.empty() || *cur != j.new_record) return fail("the title is not the compressed one: nothing to keep");
     for (const ContentId& id : j.contents)
         if (!c.has_content(id)) return fail("the new contents are missing: the old ones are kept");
-    for (const ContentId& id : {j.old_program, j.old_meta})
+    std::vector<ContentId> old_ids = {j.old_program, j.old_meta};
+    if (j.patch_key) {
+        old_ids.push_back(j.old_patch_program);
+        old_ids.push_back(j.old_patch_meta);
+    }
+    for (const ContentId& id : old_ids)
         if (!in_record(*cur, id) && c.has_content(id)) c.delete_content(id);
     store.clear();
     return {};
+}
+
+// The content meta of the game with its update merged in: the game's, at the
+// update's version, requiring the firmware that reads the layer and the update's
+// own requirement; its contents the update's where the update has some of a type
+// (control data, legal text, documents, data) and the game's otherwise, and the
+// merged program.
+ContentMeta merged_meta(const ContentMeta& base, const ContentMeta& patch, const ContentInfo& program)
+{
+    ContentMeta m = base;
+    m.version = patch.version;
+    m.required_download_system_version = std::max(base.required_download_system_version, patch.required_download_system_version);
+    if (m.extended_header.size() >= 12) {
+        const uint32_t req = std::max({le32(m.extended_header.data() + 8), patch.required_system_version(), SYSTEM_VERSION_12_0_0});
+        put_le32(m.extended_header.data() + 8, req);
+    }
+    m.extended_data.clear();
+    m.contents.clear();
+    m.contents.push_back(program);
+    for (const ContentType t : {ContentType::Data, ContentType::Control, ContentType::HtmlDocument, ContentType::LegalInformation}) {
+        std::vector<ContentInfo> from_patch, from_base;
+        for (const ContentInfo& i : patch.contents)
+            if (i.type == t) from_patch.push_back(i);
+        for (const ContentInfo& i : base.contents)
+            if (i.type == t) from_base.push_back(i);
+        const auto& chosen = from_patch.empty() ? from_base : from_patch;
+        m.contents.insert(m.contents.end(), chosen.begin(), chosen.end());
+    }
+    return m;
 }
 }   // namespace
 
@@ -163,6 +233,18 @@ std::string CompressJournal::text() const
     out << "new_record=" << hex_of(new_record) << "\n";
     out << "old_program=" << hex_of(old_program) << "\n";
     out << "old_meta=" << hex_of(old_meta) << "\n";
+    auto key_text = [](const MetaKey& k) {
+        char t[40];
+        std::snprintf(t, sizeof t, "%016llx:%u:%02x", (unsigned long long)k.id, (unsigned)k.version, (unsigned)std::to_underlying(k.type));
+        return std::string(t);
+    };
+    if (new_key) out << "new_key=" << key_text(*new_key) << "\n";
+    if (patch_key) {
+        out << "patch_key=" << key_text(*patch_key) << "\n";
+        out << "patch_record=" << hex_of(patch_record) << "\n";
+        out << "old_patch_program=" << hex_of(old_patch_program) << "\n";
+        out << "old_patch_meta=" << hex_of(old_patch_meta) << "\n";
+    }
     for (const ContentId& p : placeholders) out << "placeholder=" << hex_of(p) << "\n";
     for (const ContentId& c : contents) out << "content=" << hex_of(c) << "\n";
     return out.str();
@@ -193,12 +275,23 @@ std::optional<CompressJournal> CompressJournal::parse(const std::string& text)
             else if (v == "swapped") j.phase = Phase::Swapped;
             else return std::nullopt;
             phase_ok = true;
-        } else if (k == "key") {
+        } else if (k == "key" || k == "new_key" || k == "patch_key") {
             unsigned long long id;
             unsigned           version, type;
             if (std::sscanf(v.c_str(), "%16llx:%u:%2x", &id, &version, &type) != 3) return std::nullopt;
-            j.key = MetaKey{id, version, (MetaType)type};
-            key_ok = true;
+            const MetaKey mk{id, version, (MetaType)type};
+            if (k == "key") {
+                j.key = mk;
+                key_ok = true;
+            } else if (k == "new_key") {
+                j.new_key = mk;
+            } else {
+                j.patch_key = mk;
+            }
+        } else if (k == "patch_record") {
+            const auto b = bytes_of(v);
+            if (!b || b->empty()) return std::nullopt;
+            j.patch_record = *b;
         } else if (k == "old_record") {
             const auto b = bytes_of(v);
             if (!b || b->empty()) return std::nullopt;
@@ -208,10 +301,10 @@ std::optional<CompressJournal> CompressJournal::parse(const std::string& text)
             const auto b = bytes_of(v);
             if (!b) return std::nullopt;
             j.new_record = *b;
-        } else if (k == "old_program" || k == "old_meta") {
+        } else if (k == "old_program" || k == "old_meta" || k == "old_patch_program" || k == "old_patch_meta") {
             const auto id = id_of_hex(v);
             if (!id) return std::nullopt;
-            (k == "old_program" ? j.old_program : j.old_meta) = *id;
+            (k == "old_program" ? j.old_program : k == "old_meta" ? j.old_meta : k == "old_patch_program" ? j.old_patch_program : j.old_patch_meta) = *id;
         } else if (k == "placeholder" || k == "content") {
             const auto id = id_of_hex(v);
             if (!id) return std::nullopt;
@@ -219,6 +312,7 @@ std::optional<CompressJournal> CompressJournal::parse(const std::string& text)
         }
     }
     if (!schema_ok || !phase_ok || !key_ok || !old_ok) return std::nullopt;
+    if (j.patch_key && j.patch_record.empty()) return std::nullopt;
     return j;
 }
 
@@ -240,6 +334,12 @@ struct TitleCompressor::Impl
     std::vector<uint8_t>                 record;
     ContentInfo                          program, meta;   // as the record lists them
     std::vector<uint8_t>                 cnmt, meta_nca;
+    // Merging an update: its record, contents and content meta.
+    bool                                 merging = false;
+    MetaKey                              patch_key;
+    std::vector<uint8_t>                 patch_record, patch_cnmt;
+    ContentInfo                          patch_program, patch_meta;
+    ContentMeta                          base_parsed, patch_parsed;
     std::unique_ptr<ProgramRecompressor> rc;
     std::vector<uint8_t>                 header;   // the new program's first bytes
     uint64_t                             new_size = 0, body_size = 0, rep_needed = 0;
@@ -278,8 +378,9 @@ Done TitleCompressor::prepare()
 {
     Impl& m = *impl;
     Console& c = m.console;
-    if (m.options.update_installed) return fail("an update is installed: it would not install over the compressed game");
+    if (m.options.update_installed && !m.options.merge_update) return fail("an update is installed: it would not install over the compressed game");
     if (m.key.type != MetaType::Application) return fail("only a base game is compressed");
+    m.merging = m.options.merge_update.has_value();
     if (c.system_version() < m.options.min_system_version) return fail("the firmware is older than 12.0.0: it does not read compressed games");
 
     const auto rec = c.get_meta(m.key);
@@ -312,15 +413,65 @@ Done TitleCompressor::prepare()
     bool listed = false;
     for (const ContentInfo& i : parsed->contents) listed = listed || (i.id == m.program.id && i.type == ContentType::Program);
     if (!listed) return fail("the program is not in the title's content meta");
+    m.base_parsed = *parsed;
+
+    // The update to merge: its record, its content meta, its program.
+    uint64_t patch_program_size = 0;
+    if (m.merging) {
+        m.patch_key = *m.options.merge_update;
+        if (m.patch_key.type != MetaType::Patch || (m.patch_key.id & ~0x1fffull) != (m.key.id & ~0x1fffull) || m.patch_key.id == m.key.id)
+            return fail("not this game's update");
+        const auto prec = c.get_meta(m.patch_key);
+        if (!prec) return fail("the update is not installed here");
+        m.patch_record = *prec;
+        const auto pinfos = record_contents(m.patch_record);
+        if (!pinfos) return fail(pinfos.error());
+        int pprograms = 0, pmetas = 0;
+        for (const ContentInfo& i : *pinfos) {
+            if (i.type == ContentType::Program) {
+                m.patch_program = i;
+                pprograms++;
+            } else if (i.type == ContentType::Meta) {
+                m.patch_meta = i;
+                pmetas++;
+            }
+        }
+        if (pprograms != 1 || pmetas != 1) return fail("an update with other than one program and one content meta");
+        const auto psize = c.content_size(m.patch_meta.id);
+        if (!psize || *psize > MAX_META_NCA || *psize != m.patch_meta.size) return fail("the update's content meta NCA is not what its record says");
+        std::vector<uint8_t> pnca((size_t)*psize);
+        if (auto d = c.read_content(m.patch_meta.id, 0, pnca); !d) return fail("the update's content meta NCA could not be read: " + d.error());
+        const auto pcnmt = nca_read_cnmt(pnca, m.keys);
+        if (!pcnmt) return fail("the update's content meta: " + pcnmt.error());
+        m.patch_cnmt = *pcnmt;
+        const auto pparsed = cnmt_parse(m.patch_cnmt);
+        if (!pparsed || pparsed->type != MetaType::Patch) return fail("the update's content meta is not a patch's");
+        m.patch_parsed = *pparsed;
+        bool plisted = false;
+        for (const ContentInfo& i : pparsed->contents) plisted = plisted || (i.id == m.patch_program.id && i.type == ContentType::Program);
+        if (!plisted) return fail("the update's program is not in its content meta");
+        if (m.patch_key.version != pparsed->version) return fail("the update's record and content meta disagree on its version");
+        const auto pps = c.content_size(m.patch_program.id);
+        if (!pps || *pps != m.patch_program.size) return fail("the update's program NCA is not what its record says");
+        patch_program_size = *pps;
+    }
 
     // The program, made over once to see what it comes to.
     const auto prog_size = c.content_size(m.program.id);
     if (!prog_size || *prog_size != m.program.size) return fail("the program NCA is not what the record says");
     const ContentId prog_id = m.program.id;
+    auto            game = std::make_shared<Cached>(Cached{c, prog_id, {}, ~0ull, *prog_size});
     m.rc = std::make_unique<ProgramRecompressor>(
-        [&c, prog_id](uint64_t off, std::span<uint8_t> out) { return c.read_content(prog_id, off, out).has_value(); }, *prog_size,
-        m.keys, m.compress, m.decompress, m.options.block_size);
+        [game](uint64_t off, std::span<uint8_t> out) { return game->read(off, out); }, *prog_size, m.keys, m.compress, m.decompress,
+        m.options.block_size);
+    if (m.merging) {
+        auto upd = std::make_shared<Cached>(Cached{c, m.patch_program.id, {}, ~0ull, patch_program_size});
+        m.rc->with_update([upd](uint64_t off, std::span<uint8_t> out) { return upd->read(off, out); }, patch_program_size);
+    }
     if (auto d = m.rc->inspect(); !d) return fail("this title cannot be compressed: " + d.error());
+    // The RomFS to make the program from, against its own integrity tree: a damaged game, or an update read wrong, stops here.
+    if (const Done src = m.rc->check_source([&](uint64_t d, uint64_t t) { m.progress(CompressStage::Measuring, d, t * 2); }, m.cb.cancel); !src)
+        return fail(m.cancelled() ? "cancelled" : src.error());
 
     Sha256   body;
     uint64_t counted = 0;
@@ -330,7 +481,7 @@ Done TitleCompressor::prepare()
             counted += b.size();
             return true;
         },
-        [&](uint64_t d, uint64_t t) { m.progress(CompressStage::Measuring, d, t); }, m.cb.cancel);
+        [&](uint64_t d, uint64_t t) { m.progress(CompressStage::Measuring, t + d, t * 2); }, m.cb.cancel);
     if (!measured) return fail(m.cancelled() ? "cancelled" : measured.error());
     m.header = m.rc->new_header();
     m.new_size = m.rc->new_size();
@@ -339,7 +490,7 @@ Done TitleCompressor::prepare()
     if (m.new_size != NCA_FULL_HEADER + counted) return fail("the measured size is not the size made");
 
     rep = {};
-    rep.program_before = *prog_size;
+    rep.program_before = *prog_size + patch_program_size;   // what keeping the result frees
     rep.program_after = m.new_size;
     rep.free_space = c.free_space();
     rep.needed = m.new_size + m.meta.size + m.options.free_margin;
@@ -380,6 +531,10 @@ Done TitleCompressor::run()
 
     // Nothing changed since prepare() looked.
     if (const auto now_record = c.get_meta(m.key); !now_record || *now_record != m.record) return fail("the title changed since it was measured");
+    if (m.merging) {
+        const auto now_patch = c.get_meta(m.patch_key);
+        if (!now_patch || *now_patch != m.patch_record) return fail("the update changed since it was measured");
+    }
     if (c.free_space() < m.rep_needed) return fail("not enough free space for the new copy beside the old one");
 
     // The journal first: with it, whatever happens next can be undone.
@@ -390,6 +545,13 @@ Done TitleCompressor::run()
     j.old_record = m.record;
     j.old_program = m.program.id;
     j.old_meta = m.meta.id;
+    if (m.merging) {
+        j.new_key = MetaKey{m.key.id, m.patch_parsed.version, MetaType::Application};
+        j.patch_key = m.patch_key;
+        j.patch_record = m.patch_record;
+        j.old_patch_program = m.patch_program.id;
+        j.old_patch_meta = m.patch_meta.id;
+    }
     if (!m.store.save(j.text())) {
         m.j.reset();
         return fail("the journal could not be kept: nothing was written");
@@ -466,9 +628,20 @@ Done TitleCompressor::run()
     now.id = new_program;
     now.size = m.new_size;
     now.type = ContentType::Program;
-    const auto new_cnmt = cnmt_with_program(m.cnmt, m.program.id, now);
-    if (!new_cnmt) return abandon("the new content meta: " + new_cnmt.error());
-    const auto new_meta_nca = meta_nca_with_cnmt(m.meta_nca, *new_cnmt, m.keys);
+    std::vector<uint8_t> new_cnmt_bytes;
+    ContentMeta          merged;
+    if (m.merging) {
+        merged = merged_meta(m.base_parsed, m.patch_parsed, now);
+        std::array<uint8_t, 32> digest{};
+        std::copy(m.cnmt.end() - 32, m.cnmt.end(), digest.begin());
+        new_cnmt_bytes = cnmt_serialize(merged, digest);
+        if (!cnmt_parse(new_cnmt_bytes)) return abandon("the merged content meta cannot be read back");
+    } else {
+        const auto new_cnmt = cnmt_with_program(m.cnmt, m.program.id, now);
+        if (!new_cnmt) return abandon("the new content meta: " + new_cnmt.error());
+        new_cnmt_bytes = *new_cnmt;
+    }
+    const auto new_meta_nca = meta_nca_with_cnmt(m.meta_nca, new_cnmt_bytes, m.keys);
     if (!new_meta_nca) return abandon("the new content meta NCA: " + new_meta_nca.error());
     ContentId new_meta{};
     if (auto d = m.write_new(placeholder_for(m.meta.id, 'm'), *new_meta_nca, &new_meta); !d) return abandon("the new content meta could not be written: " + d.error());
@@ -478,14 +651,24 @@ Done TitleCompressor::run()
         if (!back_size || *back_size != back.size() || !c.read_content(new_meta, 0, back) || back != *new_meta_nca)
             return abandon("the new content meta does not read back as it was written");
         const auto cnmt_back = nca_read_cnmt(back, m.keys);
-        if (!cnmt_back || *cnmt_back != *new_cnmt) return abandon("the new content meta NCA does not hold the new content meta");
+        if (!cnmt_back || *cnmt_back != new_cnmt_bytes) return abandon("the new content meta NCA does not hold the new content meta");
     }
 
-    // The record: the old one with the two contents replaced.
-    const auto record = record_with_contents(m.record, m.key.type, {{m.program.id, new_program, m.new_size}, {m.meta.id, new_meta, new_meta_nca->size()}});
-    if (!record) return abandon("the new record: " + record.error());
+    // The record: the old one with the two contents replaced; for a merge, the one the merged content meta gives.
+    std::vector<uint8_t> record;
+    if (m.merging) {
+        ContentInfo meta_content;
+        meta_content.id = new_meta;
+        meta_content.size = new_meta_nca->size();
+        meta_content.type = ContentType::Meta;
+        record = cnmt_install_record(*cnmt_parse(new_cnmt_bytes), meta_content);
+    } else {
+        const auto rec = record_with_contents(m.record, m.key.type, {{m.program.id, new_program, m.new_size}, {m.meta.id, new_meta, new_meta_nca->size()}});
+        if (!rec) return abandon("the new record: " + rec.error());
+        record = *rec;
+    }
     if (stopped()) return abandon("cancelled");
-    j.new_record = *record;
+    j.new_record = record;
     if (!m.store.save(j.text())) return abandon("the journal could not be kept");
 
     // The swap. From here a failure puts the old record back.
@@ -497,11 +680,25 @@ Done TitleCompressor::run()
         m.j.reset();
         return fail(why);
     };
-    if (auto d = c.set_meta(m.key, *record); !d) return undo("the record could not be replaced: " + d.error());
+    const MetaKey result = j.result_key();
+    if (auto d = c.set_meta(result, record); !d) return undo("the record could not be replaced: " + d.error());
+    if (m.merging) {   // one title now, at the update's version
+        if (auto d = c.remove_meta(m.key); !d) return undo("the game's old record could not be removed: " + d.error());
+        if (auto d = c.remove_meta(m.patch_key); !d) return undo("the update's record could not be removed: " + d.error());
+    }
     if (auto d = c.commit_meta(); !d) return undo("the record could not be committed: " + d.error());
-    const auto after = c.get_meta(m.key);
-    if (!after || *after != *record) return undo("the record does not read back as it was written");
-    for (const ContentId& id : {new_program, new_meta, m.program.id, m.meta.id})
+    const auto after = c.get_meta(result);
+    if (!after || *after != record) return undo("the record does not read back as it was written");
+    if (m.merging && (c.get_meta(m.key) || c.get_meta(m.patch_key))) return undo("the old records are still there after the swap");
+    std::vector<ContentId> must_exist = {new_program, new_meta, m.program.id, m.meta.id};
+    if (m.merging) {
+        must_exist.push_back(m.patch_program.id);
+        must_exist.push_back(m.patch_meta.id);
+        for (const auto* r : {&m.record, &m.patch_record, &record})
+            if (const auto infos = record_contents(*r))
+                for (const ContentInfo& i : *infos) must_exist.push_back(i.id);
+    }
+    for (const ContentId& id : must_exist)
         if (!c.has_content(id)) return undo("a content is missing after the swap");
     j.phase = CompressJournal::Phase::Swapped;
     if (!m.store.save(j.text())) return undo("the journal could not be kept");
@@ -533,11 +730,11 @@ Parsed<TitleCompressor::Left> TitleCompressor::recover(Console& c, JournalStore&
     if (!text) return Left{};
     const auto j = CompressJournal::parse(*text);
     if (!j) return Left{};   // another version's: not read, not touched
-    const auto cur = c.get_meta(j->key);
+    const auto cur = c.get_meta(j->result_key());
     if (cur && !j->new_record.empty() && *cur == j->new_record) {
         Left l;
         l.found = Found::AwaitingDecision;
-        l.key = j->key;
+        l.key = j->result_key();
         return l;
     }
     // The record is not ours (still the old one, or changed since): whatever

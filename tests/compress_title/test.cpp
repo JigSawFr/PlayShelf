@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <tuple>
 
-#include "../install/recompress_builders.hpp"
+#include "../install/patch_builders.hpp"
 #include "check.h"
 #include "install/compress_title.hpp"
 #include "install/recompress_meta.hpp"
@@ -39,6 +39,7 @@ struct Mem : Console
 {
     std::map<ContentId, Bytes> contents, pholders;
     std::map<KeyT, Bytes>      metas, pending;
+    std::set<KeyT>             removed;   // removals not yet committed
     uint64_t                   free = 1ull << 40;
     uint32_t                   fw = 15u << 16;
     // Fault injection: the Nth mutating call fails (fault_at), or the process
@@ -51,6 +52,7 @@ struct Mem : Console
         const int n = ops++;
         if (n == crash_at) {
             pending.clear();   // the service's uncommitted edits die with the process
+            removed.clear();
             throw Crash();
         }
         return n != fault_at;
@@ -103,6 +105,7 @@ struct Mem : Console
     uint64_t free_space() override { return free; }
     std::optional<std::vector<uint8_t>> get_meta(const MetaKey& k) override
     {
+        if (removed.count(tk(k))) return std::nullopt;
         if (auto p = pending.find(tk(k)); p != pending.end()) return p->second;
         if (auto m = metas.find(tk(k)); m != metas.end()) return m->second;
         return std::nullopt;
@@ -111,14 +114,23 @@ struct Mem : Console
     {
         if (!step()) return fail("fault");
         pending[tk(k)] = r;
+        removed.erase(tk(k));
         return {};
     }
-    Done remove_meta(const MetaKey&) override { return fail("unused"); }
+    Done remove_meta(const MetaKey& k) override
+    {
+        if (!step()) return fail("fault");
+        pending.erase(tk(k));
+        removed.insert(tk(k));
+        return {};
+    }
     Done commit_meta() override
     {
         if (!step()) return fail("fault");
         for (auto& [k, v] : pending) metas[k] = v;
+        for (const KeyT& k : removed) metas.erase(k);
         pending.clear();
+        removed.clear();
         return {};
     }
     Done     push_application_record(uint64_t, const MetaKey&) override { return {}; }
@@ -218,7 +230,7 @@ TitleCompressor make(Mem& mem, MemJournal& j, CompressOptions o = {}, CompressCa
 // The title as it was: record, contents byte for byte, nothing else.
 bool is_baseline(const Mem& m, const Title& t)
 {
-    return m.metas.count(tk(KEY)) && m.metas.at(tk(KEY)) == t.record && m.pending.empty() && m.contents == t.mem.contents && m.pholders.empty();
+    return m.metas == t.mem.metas && m.pending.empty() && m.removed.empty() && m.contents == t.mem.contents && m.pholders.empty();
 }
 
 // The title as it should be after a run: the new record, the new program and
@@ -658,6 +670,299 @@ void test_keep_and_revert_refusals()
     CHECK(!c.revert().has_value());
     CHECK(t.mem.contents == before.contents && t.mem.metas == before.metas && j.text.has_value());
 }
+
+// ------------------------------------------------------------- merging an update
+
+const MetaKey PKEY{0x0100000000020800ull, 65536, MetaType::Patch};
+const MetaKey MKEY{0x0100000000020000ull, 65536, MetaType::Application};   // the merged title: the update's version
+
+struct WithUpdate
+{
+    Title     t;
+    UpdateNca upd;
+};
+
+// A game with its update installed: two programs, two content metas, two records.
+WithUpdate install_with_update(size_t image_size, uint32_t seed)
+{
+    WithUpdate w;
+    w.t = install_title(image_size, seed);
+    w.upd = update_nca(w.t.built, seed + 1);
+
+    ContentInfo prog;
+    {
+        Sha256 h;
+        h.update(w.upd.nca);
+        prog.hash = h.digest();
+    }
+    prog.id = content_id_of(prog.hash);
+    prog.size = w.upd.nca.size();
+    prog.type = ContentType::Program;
+    ContentInfo control;
+    control.id = id_of(0x23);   // the update's own control data
+    control.size = 2500;
+    control.type = ContentType::Control;
+    control.hash.fill(0xcc);
+    w.t.mem.contents[control.id] = stream(2500, "control v2");
+    w.t.mem.contents[prog.id] = w.upd.nca;
+
+    const Bytes cnmt = packaged_cnmt(MetaType::Patch, PKEY.id, PKEY.version, {prog, control});
+    const Bytes meta = meta_nca(cnmt);
+    ContentInfo meta_content;
+    {
+        Sha256 h;
+        h.update(meta);
+        meta_content.id = content_id_of(h.digest());
+    }
+    meta_content.size = meta.size();
+    meta_content.type = ContentType::Meta;
+    w.t.mem.contents[meta_content.id] = meta;
+    w.t.mem.metas[tk(PKEY)] = cnmt_install_record(*cnmt_parse(cnmt), meta_content);
+    return w;
+}
+
+TitleCompressor make_merge(Mem& mem, MemJournal& j, CompressCallbacks cb = {})
+{
+    CompressOptions o;
+    o.block_size = 16384;
+    o.merge_update = PKEY;
+    return TitleCompressor(mem, test_keys(), j, lz4_compress, lz4_decompress, KEY, o, std::move(cb));
+}
+
+// The merged title: the one record at the update's version, the old two gone; its program is the game's with the
+// update's ExeFS and the patched RomFS (checked here, apart from the engine); the old contents kept or gone.
+bool is_merged(const Mem& m, const WithUpdate& w, int old)
+{
+    if (!m.pending.empty() || !m.removed.empty() || !m.pholders.empty()) return false;
+    if (m.metas.count(tk(KEY)) || m.metas.count(tk(PKEY)) || !m.metas.count(tk(MKEY))) return false;
+    const auto infos = record_contents(m.metas.at(tk(MKEY)));
+    if (!infos) return false;
+    std::set<ContentId> expected;
+    bool                program_seen = false;
+    for (const ContentInfo& i : *infos) {
+        if (!m.contents.count(i.id)) return false;
+        expected.insert(i.id);
+        if (i.type != ContentType::Program) continue;
+        program_seen = true;
+        ProgramRecompressor rc([&w](uint64_t off, std::span<uint8_t> out) {
+            std::memcpy(out.data(), w.t.program.data() + off, out.size());
+            return true;
+        }, w.t.program.size(), test_keys(), lz4_compress, lz4_decompress, 16384);
+        rc.with_update([&w](uint64_t off, std::span<uint8_t> out) {
+            std::memcpy(out.data(), w.upd.nca.data() + off, out.size());
+            return true;
+        }, w.upd.nca.size());
+        if (!rc.inspect()) return false;
+        const Bytes& made = m.contents.at(i.id);
+        if (i.size != made.size()) return false;
+        if (!rc.verify([&made](uint64_t off, std::span<uint8_t> out) {
+                if (off > made.size() || out.size() > made.size() - off) return false;
+                std::memcpy(out.data(), made.data() + off, out.size());
+                return true;
+            }, made.size()))
+            return false;
+    }
+    if (!program_seen) return false;
+    // The update's control data is the merged title's; the game's own is not listed.
+    if (!expected.count(id_of(0x23)) || expected.count(id_of(0x22))) return false;
+    // Old contents: the game's and the update's program and content meta.
+    std::set<ContentId> replaced;
+    for (const Mem* src : {&w.t.mem}) {
+        for (const KeyT& k : {tk(KEY), tk(PKEY)})
+            if (const auto old_infos = record_contents(src->metas.at(k)))
+                for (const ContentInfo& i : *old_infos)
+                    if (i.type == ContentType::Program || i.type == ContentType::Meta) replaced.insert(i.id);
+    }
+    for (const auto& [id, bytes] : w.t.mem.contents) {
+        const bool is_replaced = replaced.count(id) != 0;
+        if (!is_replaced && id != id_of(0x22)) {
+            if (!m.contents.count(id) || m.contents.at(id) != bytes) return false;
+            expected.insert(id);
+        } else if (id == id_of(0x22)) {
+            // The game's own control data: unreferenced now, kept (shared storage is not ours to delete).
+            if (!m.contents.count(id)) return false;
+            expected.insert(id);
+        } else if (old == 1) {
+            if (!m.contents.count(id) || m.contents.at(id) != bytes) return false;
+            expected.insert(id);
+        } else if (old == 0) {
+            if (m.contents.count(id)) return false;
+        } else if (m.contents.count(id)) {
+            expected.insert(id);
+        }
+    }
+    for (const auto& [id, _] : m.contents)
+        if (!expected.count(id)) return false;
+    return true;
+}
+
+void test_merge_flow()
+{
+    {   // keep
+        WithUpdate w = install_with_update(300'000, 51);
+        MemJournal j;
+        auto       c = make_merge(w.t.mem, j);
+        const Done p = c.prepare();
+        if (!CHECK(p.has_value())) {
+            fprintf(stderr, "prepare: %s\n", p.error().c_str());
+            return;
+        }
+        CHECK(c.report().program_before == w.t.program.size() + w.upd.nca.size());
+        CHECK(w.t.mem.ops == 0 && !j.text && is_baseline(w.t.mem, w.t));
+        const Done ran = c.run();
+        if (!CHECK(ran.has_value())) {
+            fprintf(stderr, "run: %s\n", ran.error().c_str());
+            return;
+        }
+        CHECK(is_merged(w.t.mem, w, 1));
+        CHECK(c.keep().has_value());
+        CHECK(is_merged(w.t.mem, w, 0));
+        CHECK(!j.text);
+    }
+    {   // revert
+        WithUpdate w = install_with_update(300'000, 52);
+        MemJournal j;
+        auto       c = make_merge(w.t.mem, j);
+        CHECK(c.prepare().has_value() && c.run().has_value());
+        CHECK(c.revert().has_value());
+        CHECK(is_baseline(w.t.mem, w.t) && !j.text);
+    }
+    {   // refusals write nothing
+        WithUpdate w = install_with_update(300'000, 53);
+        MemJournal j;
+        CompressOptions o;
+        o.block_size = 16384;
+        o.merge_update = MetaKey{PKEY.id + 0x1000, 65536, MetaType::Patch};   // another game's
+        TitleCompressor other(w.t.mem, test_keys(), j, lz4_compress, lz4_decompress, KEY, o);
+        CHECK(!other.prepare().has_value());
+        o.merge_update = MetaKey{PKEY.id, 1, MetaType::Patch};   // an update that is not installed
+        TitleCompressor none(w.t.mem, test_keys(), j, lz4_compress, lz4_decompress, KEY, o);
+        CHECK(!none.prepare().has_value());
+        o.merge_update = MKEY;   // not a patch's key
+        TitleCompressor notpatch(w.t.mem, test_keys(), j, lz4_compress, lz4_decompress, KEY, o);
+        CHECK(!notpatch.prepare().has_value());
+        // An update installed and no merge asked: refused as before.
+        CompressOptions refuse;
+        refuse.update_installed = true;
+        TitleCompressor r(w.t.mem, test_keys(), j, lz4_compress, lz4_decompress, KEY, refuse);
+        CHECK(!r.prepare().has_value());
+        CHECK(w.t.mem.ops == 0 && !j.text && is_baseline(w.t.mem, w.t));
+    }
+    {   // a damaged update or game is found before anything is written
+        for (int which = 0; which < 2; which++) {
+            WithUpdate w = install_with_update(300'000, 54);
+            const ContentId target = [&] {
+                const auto infos = record_contents(w.t.mem.metas.at(tk(which ? KEY : PKEY)));
+                for (const ContentInfo& i : *infos)
+                    if (i.type == ContentType::Program) return i.id;
+                return ContentId{};
+            }();
+            Bytes& bytes = w.t.mem.contents[target];
+            bytes[which ? bytes.size() / 2 : w.upd.patch.start + 100] ^= 1;
+            const Title baseline = w.t;
+            MemJournal  j;
+            auto        c = make_merge(w.t.mem, j);
+            const Done  p = c.prepare();
+            CHECK(!p.has_value());
+            CHECK(w.t.mem.ops == 0 && !j.text && is_baseline(w.t.mem, baseline));
+        }
+    }
+}
+
+void test_merge_faults()
+{
+    const WithUpdate base = install_with_update(300'000, 55);
+    for (int k = 0; k < 600; k++) {
+        WithUpdate w = base;
+        MemJournal j;
+        w.t.mem.fault_at = k;
+        auto c = make_merge(w.t.mem, j);
+        CHECK(c.prepare().has_value());
+        w.t.mem.ops = 0;
+        const Done ran = c.run();
+        if (ran) {
+            CHECK(is_merged(w.t.mem, w, 1));
+            CHECK(c.keep().has_value() && is_merged(w.t.mem, w, 0));
+            if (w.t.mem.ops <= k) break;
+            continue;
+        }
+        const bool clean = is_baseline(w.t.mem, w.t) && !j.text;
+        if (!clean) fprintf(stderr, "merge: fault at call %d left the title not as it was (%s)\n", k, ran.error().c_str());
+        CHECK(clean);
+    }
+}
+
+void test_merge_crashes()
+{
+    const WithUpdate base = install_with_update(300'000, 56);
+    int              cleaned = 0, awaiting = 0;
+    for (int k = 0; k < 600; k++) {
+        WithUpdate w = base;
+        MemJournal j;
+        w.t.mem.crash_at = k;
+        bool crashed = false;
+        try {
+            auto c = make_merge(w.t.mem, j);
+            CHECK(c.prepare().has_value());
+            w.t.mem.ops = 0;
+            CHECK(c.run().has_value());
+            CHECK(c.keep().has_value());
+        } catch (const Crash&) {
+            crashed = true;
+        }
+        w.t.mem.crash_at = -1;
+        if (!crashed) {
+            CHECK(is_merged(w.t.mem, w, 0));
+            break;
+        }
+        auto left = TitleCompressor::recover(w.t.mem, j);
+        if (!CHECK(left.has_value())) continue;
+        switch (left->found) {
+        case TitleCompressor::Found::Nothing:
+            CHECK(is_baseline(w.t.mem, w.t) || is_merged(w.t.mem, w, 0));
+            break;
+        case TitleCompressor::Found::CleanedUp:
+            cleaned++;
+            if (!CHECK(is_baseline(w.t.mem, w.t) && !j.text)) fprintf(stderr, "  (merge: crash at call %d, cleaned up)\n", k);
+            break;
+        case TitleCompressor::Found::AwaitingDecision:
+            awaiting++;
+            CHECK(left->key == MKEY);
+            CHECK(is_merged(w.t.mem, w, -1));
+            if (k % 2) {
+                CHECK(TitleCompressor::revert_left(w.t.mem, j).has_value());
+                if (!CHECK(is_baseline(w.t.mem, w.t) && !j.text)) fprintf(stderr, "  (merge: crash at call %d, then revert)\n", k);
+            } else {
+                CHECK(TitleCompressor::keep_left(w.t.mem, j).has_value());
+                if (!CHECK(is_merged(w.t.mem, w, 0) && !j.text)) fprintf(stderr, "  (merge: crash at call %d, then keep)\n", k);
+            }
+            break;
+        }
+    }
+    CHECK(cleaned > 5 && awaiting >= 1);
+}
+
+void test_merge_journal_text()
+{
+    CompressJournal j;
+    j.phase = CompressJournal::Phase::Swapped;
+    j.key = KEY;
+    j.old_record = {1, 2, 3};
+    j.new_record = {4};
+    j.new_key = MKEY;
+    j.patch_key = PKEY;
+    j.patch_record = {9, 9};
+    j.old_patch_program = id_of(0x71);
+    j.old_patch_meta = id_of(0x72);
+    const auto back = CompressJournal::parse(j.text());
+    if (!CHECK(back.has_value())) return;
+    CHECK(back->new_key == MKEY && back->patch_key == PKEY && back->patch_record == j.patch_record);
+    CHECK(back->old_patch_program == j.old_patch_program && back->old_patch_meta == j.old_patch_meta && back->result_key() == MKEY);
+    // A journal without a patch record for a patch key is not one.
+    std::string broken = j.text();
+    broken.replace(broken.find("patch_record="), 15, "patch_record=\n#");
+    CHECK(!CompressJournal::parse(broken).has_value());
+}
 }   // namespace
 
 int main()
@@ -673,5 +978,9 @@ int main()
     test_crashes();
     test_crash_while_reverting();
     test_keep_and_revert_refusals();
+    test_merge_journal_text();
+    test_merge_flow();
+    test_merge_faults();
+    test_merge_crashes();
     CHECK_DONE("compress_title: ok");
 }
