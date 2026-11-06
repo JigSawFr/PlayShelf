@@ -13,6 +13,8 @@
 #include <string>
 #include <string_view>
 
+#include "util/crypto_backend.hpp"
+
 class Sha256
 {
   public:
@@ -31,8 +33,16 @@ class Sha256
     std::array<uint8_t, STATE_SIZE> save() const;
     bool                            restore(std::span<const uint8_t> state);
 
+    // Whether an engine (util/crypto_backend) compresses blocks the way the
+    // portable code does: "abc", then runs of blocks of random bytes.
+    static bool verify_engine(const crypto::Engine& engine);
+
   private:
-    void block(const uint8_t* p);
+    // The portable compression of one block, and of a run (on the engine of
+    // util/crypto_backend when there is one).
+    void        block(const uint8_t* p);
+    void        blocks(const uint8_t* p, size_t count);
+    static void compress(uint32_t h[8], const uint8_t* p);
 
     std::array<uint32_t, 8> h;
     uint8_t                 buf[64];

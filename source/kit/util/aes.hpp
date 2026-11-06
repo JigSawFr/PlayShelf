@@ -1,7 +1,10 @@
 // aes — AES-128 (FIPS 197) and three modes: XTS with Nintendo's tweak (an
 // NCA's header), CTR (an NCA's sections, an NCZ's re-encryption, the
 // secrets util/secret_box seals) and ECB (an NCA's key area). Plain C++, no
-// libnx: the host tests and the fuzzers run it as the console does.
+// libnx: the host tests and the fuzzers run it as the console does. The
+// modes hand whole runs of blocks to the engine of util/crypto_backend when
+// there is one (the console's CPU has AES instructions); the portable code
+// below it is what answers otherwise, and what the engine is checked against.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -9,6 +12,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+
+#include "util/crypto_backend.hpp"
 
 namespace aes
 {
@@ -19,10 +24,17 @@ class Aes128
     explicit Aes128(const uint8_t key[16]);
     void encrypt_block(const uint8_t in[16], uint8_t out[16]) const;
     void decrypt_block(const uint8_t in[16], uint8_t out[16]) const;
+    // The key schedule, as an engine takes it (crypto::Engine).
+    const uint32_t* round_keys() const { return rk.data(); }
 
   private:
     std::array<uint32_t, 44> rk;   // the round keys, 11 of 4 words
 };
+
+// Whether an engine (util/crypto_backend) answers like the portable code
+// does: the FIPS 197 vector, then blocks of random bytes under several keys,
+// in both directions. crypto::offer_engine() asks it; false, never use it.
+bool verify_engine(const crypto::Engine& engine);
 
 // ECB: each 16-byte block on its own. data's size is a multiple of 16.
 void aes128_ecb_decrypt(const uint8_t key[16], std::span<uint8_t> data);

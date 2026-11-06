@@ -25,7 +25,19 @@ Sha256::Sha256()
 {
 }
 
-void Sha256::block(const uint8_t* p)
+void Sha256::block(const uint8_t* p) { blocks(p, 1); }
+
+void Sha256::blocks(const uint8_t* p, size_t count)
+{
+    if (const crypto::Engine* e = crypto::sha_engine()) {
+        e->sha256_blocks(h.data(), p, count);
+        return;
+    }
+    for (size_t i = 0; i < count; i++)
+        compress(h.data(), p + 64 * i);
+}
+
+void Sha256::compress(uint32_t h[8], const uint8_t* p)
 {
     uint32_t w[64];
     for (int i = 0; i < 16; i++)
@@ -91,6 +103,13 @@ void Sha256::update(std::span<const uint8_t> bytes)
     const uint8_t* p = bytes.data();
     size_t         size = bytes.size();
     total += size;
+    // Whole blocks straight from the input when nothing is waiting: the engine takes a run at once.
+    if (used == 0 && size >= sizeof(buf)) {
+        const size_t whole = size / sizeof(buf);
+        blocks(p, whole);
+        p += whole * sizeof(buf);
+        size -= whole * sizeof(buf);
+    }
     while (size > 0) {
         const size_t n = std::min(size, sizeof(buf) - used);
         std::memcpy(buf + used, p, n);
@@ -159,4 +178,39 @@ std::array<uint8_t, 32> hmac_sha256(std::span<const uint8_t> key, std::span<cons
 std::array<uint8_t, 32> hmac_sha256(std::span<const uint8_t> key, std::string_view msg)
 {
     return hmac_sha256(key, {reinterpret_cast<const uint8_t*>(msg.data()), msg.size()});
+}
+
+bool Sha256::verify_engine(const crypto::Engine& e)
+{
+    if (!e.sha256_blocks) return true;
+    static const uint32_t INIT[8] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
+    // "abc" padded to one block: ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad (FIPS 180-4).
+    uint8_t abc[64] = { 'a', 'b', 'c', 0x80 };
+    abc[63] = 24;
+    uint32_t h[8];
+    std::memcpy(h, INIT, sizeof(h));
+    e.sha256_blocks(h, abc, 1);
+    static const uint32_t ABC[8] = { 0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223, 0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad };
+    if (std::memcmp(h, ABC, sizeof(h)) != 0) return false;
+    // Runs of 1 to 9 blocks, in one call and block by block, against the portable code.
+    uint32_t seed = 0x1b873593;
+    uint8_t  data[9 * 64];
+    for (uint8_t& b : data) {
+        seed = seed * 1664525u + 1013904223u;
+        b = (uint8_t)(seed >> 24);
+    }
+    for (size_t count = 1; count <= 9; count += 2) {
+        uint32_t soft[8], hard[8];
+        std::memcpy(soft, INIT, sizeof(soft));
+        std::memcpy(hard, INIT, sizeof(hard));
+        for (size_t i = 0; i < count; i++)
+            compress(soft, data + 64 * i);
+        e.sha256_blocks(hard, data, count);
+        if (std::memcmp(soft, hard, sizeof(soft)) != 0) return false;
+        std::memcpy(hard, INIT, sizeof(hard));
+        for (size_t i = 0; i < count; i++)
+            e.sha256_blocks(hard, data + 64 * i, 1);
+        if (std::memcmp(soft, hard, sizeof(soft)) != 0) return false;
+    }
+    return true;
 }

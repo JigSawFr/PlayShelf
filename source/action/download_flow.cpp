@@ -24,6 +24,7 @@
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "util/crypto_backend.hpp"
 #include "util/http.hpp"
 #include "util/listeners.hpp"
 #include "util/paths.hpp"
@@ -267,7 +268,13 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         return ctl->stop ? stopped() : o;
     }
     o.total = inst.bytes_to_write();
+    const auto  began = std::chrono::steady_clock::now();
     const Done ran = inst.run();
+    const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - began).count();
+    // The pace of the install, with what it ran on (Developer › Encryption), to compare settings.
+    if (ran.has_value() && seconds > 0.5)
+        aurore::Logger::info("downloads: {} written: {} bytes in {:.1f} s, {:.1f} MB/s; {}", job.name, o.total, seconds,
+                             (double)o.total / seconds / 1e6, crypto::status());
     o.ok = ran.has_value();
     if (!ran) o.why = ran.error();
     if (o.ok) o.programs = inst.programs();

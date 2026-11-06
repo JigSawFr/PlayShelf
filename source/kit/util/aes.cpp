@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "util/aes.hpp"
 
+#include <algorithm>
 #include <cstring>
 
 namespace aes
@@ -153,39 +154,89 @@ void Aes128::decrypt_block(const uint8_t in[16], uint8_t out[16]) const
     std::memcpy(out, s, 16);
 }
 
+namespace
+{
+// Blocks in or out of place, on the engine when it has the primitive.
+void encrypt_blocks(const Aes128& key, const crypto::Engine* e, uint8_t* p, size_t blocks)
+{
+    if (e && e->aes_encrypt) {
+        e->aes_encrypt(key.round_keys(), p, p, blocks);
+        return;
+    }
+    for (size_t i = 0; i < blocks; i++)
+        key.encrypt_block(p + 16 * i, p + 16 * i);
+}
+
+void decrypt_blocks(const Aes128& key, const crypto::Engine* e, uint8_t* p, size_t blocks)
+{
+    if (e && e->aes_decrypt) {
+        e->aes_decrypt(key.round_keys(), p, p, blocks);
+        return;
+    }
+    for (size_t i = 0; i < blocks; i++)
+        key.decrypt_block(p + 16 * i, p + 16 * i);
+}
+
+// iv + block, as a 128-bit big-endian number.
+void counter_block(const uint8_t iv[16], uint64_t block, uint8_t ctr[16])
+{
+    uint64_t lo = 0, hi = 0;
+    for (int i = 0; i < 8; i++) {
+        hi = hi << 8 | iv[i];
+        lo = lo << 8 | iv[8 + i];
+    }
+    const uint64_t sum = lo + block;
+    if (sum < lo) hi++;
+    for (int i = 0; i < 8; i++) {
+        ctr[7 - i] = (uint8_t)(hi >> (8 * i));
+        ctr[15 - i] = (uint8_t)(sum >> (8 * i));
+    }
+}
+
+// How many blocks go to the engine at once: enough to keep its pipeline
+// full, few enough for the stack.
+constexpr size_t BATCH = 32;
+}   // namespace
+
 void aes128_ecb_decrypt(const uint8_t key[16], std::span<uint8_t> data)
 {
     const Aes128 aes(key);
-    for (size_t i = 0; i + 16 <= data.size(); i += 16)
-        aes.decrypt_block(&data[i], &data[i]);
+    decrypt_blocks(aes, crypto::aes_engine(), data.data(), data.size() / 16);
 }
 
 void aes128_ecb_encrypt(const uint8_t key[16], std::span<uint8_t> data)
 {
     const Aes128 aes(key);
-    for (size_t i = 0; i + 16 <= data.size(); i += 16)
-        aes.encrypt_block(&data[i], &data[i]);
+    encrypt_blocks(aes, crypto::aes_engine(), data.data(), data.size() / 16);
 }
 
 void aes128_xts_nintendo(const uint8_t key[32], std::span<uint8_t> data, uint64_t sector, size_t sector_size, bool encrypt)
 {
-    const Aes128 data_key(key), tweak_key(key + 16);
+    const crypto::Engine* e = crypto::aes_engine();
+    const Aes128          data_key(key), tweak_key(key + 16);
     for (size_t at = 0; at + sector_size <= data.size(); at += sector_size, sector++) {
         uint8_t tweak[16] = {};
         for (int i = 0; i < 8; i++)
             tweak[15 - i] = (uint8_t)(sector >> (8 * i));
-        tweak_key.encrypt_block(tweak, tweak);
-        for (size_t b = 0; b + 16 <= sector_size; b += 16) {
-            uint8_t* p = &data[at + b];
-            for (int i = 0; i < 16; i++)
-                p[i] ^= tweak[i];
+        encrypt_blocks(tweak_key, e, tweak, 1);
+        for (size_t b = 0; b + 16 <= sector_size;) {
+            const size_t n = std::min(BATCH, (sector_size - b) / 16);
+            uint8_t      tweaks[BATCH][16];
+            uint8_t*     p = &data[at + b];
+            for (size_t k = 0; k < n; k++) {
+                std::memcpy(tweaks[k], tweak, 16);
+                for (int i = 0; i < 16; i++)
+                    p[16 * k + i] ^= tweak[i];
+                gf_double(tweak);
+            }
             if (encrypt)
-                data_key.encrypt_block(p, p);
+                encrypt_blocks(data_key, e, p, n);
             else
-                data_key.decrypt_block(p, p);
-            for (int i = 0; i < 16; i++)
-                p[i] ^= tweak[i];
-            gf_double(tweak);
+                decrypt_blocks(data_key, e, p, n);
+            for (size_t k = 0; k < n; k++)
+                for (int i = 0; i < 16; i++)
+                    p[16 * k + i] ^= tweaks[k][i];
+            b += 16 * n;
         }
     }
 }
@@ -197,30 +248,66 @@ Aes128Ctr::Aes128Ctr(const uint8_t key[16], const uint8_t iv_[16]) : aes(key)
 
 void Aes128Ctr::crypt(std::span<uint8_t> data, uint64_t offset) const
 {
-    uint64_t block = offset / 16;
-    size_t   skip = (size_t)(offset % 16);
-    size_t   done = 0;
+    const crypto::Engine* e = crypto::aes_engine();
+    uint64_t              block = offset / 16;
+    size_t                skip = (size_t)(offset % 16);
+    size_t                done = 0;
     while (done < data.size()) {
-        // iv + block, as a 128-bit big-endian number.
-        uint8_t  ctr[16];
-        uint64_t lo = 0, hi = 0;
-        for (int i = 0; i < 8; i++) {
-            hi = hi << 8 | iv[i];
-            lo = lo << 8 | iv[8 + i];
+        // The counter blocks of this run, encrypted into the key stream.
+        const size_t n = std::min(BATCH, (skip + data.size() - done + 15) / 16);
+        uint8_t      ks[BATCH][16];
+        for (size_t k = 0; k < n; k++)
+            counter_block(iv.data(), block + k, ks[k]);
+        encrypt_blocks(aes, e, ks[0], n);
+        for (size_t k = 0; k < n; k++) {
+            for (size_t i = skip; i < 16 && done < data.size(); i++)
+                data[done++] ^= ks[k][i];
+            skip = 0;
         }
-        const uint64_t sum = lo + block;
-        if (sum < lo) hi++;
-        for (int i = 0; i < 8; i++) {
-            ctr[7 - i] = (uint8_t)(hi >> (8 * i));
-            ctr[15 - i] = (uint8_t)(sum >> (8 * i));
-        }
-        uint8_t ks[16];
-        aes.encrypt_block(ctr, ks);
-        for (size_t i = skip; i < 16 && done < data.size(); i++)
-            data[done++] ^= ks[i];
-        skip = 0;
-        block++;
+        block += n;
     }
+}
+
+bool verify_engine(const crypto::Engine& e)
+{
+    // FIPS 197, appendix C.1: key 00..0f, plaintext 00112233..ff.
+    uint8_t plain[16], want[16] = { 0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a };
+    for (int i = 0; i < 16; i++)
+        plain[i] = (uint8_t)(i * 0x11);
+    // Then runs of 1 to 37 blocks, under keys from a fixed generator, against the portable code.
+    uint32_t seed = 0x2545f491;
+    auto     next = [&seed]() {
+        seed = seed * 1664525u + 1013904223u;
+        return (uint8_t)(seed >> 24);
+    };
+    for (int round = -1; round < 8; round++) {
+        uint8_t k[16];
+        for (uint8_t& b : k)
+            b = round < 0 ? (uint8_t)(&b - k) : next();   // round -1: key 00..0f
+        const Aes128 aes(k);
+        const size_t blocks = round < 0 ? 1 : (size_t)(1 + (round * 5) % 37);
+        uint8_t      in[37 * 16], soft[37 * 16], hard[37 * 16];
+        for (size_t i = 0; i < blocks * 16; i++)
+            in[i] = round < 0 ? plain[i] : next();
+        for (size_t b = 0; b < blocks; b++)
+            aes.encrypt_block(in + 16 * b, soft + 16 * b);
+        if (round < 0 && std::memcmp(soft, want, 16) != 0) return false;   // the portable code itself
+        if (e.aes_encrypt) {
+            e.aes_encrypt(aes.round_keys(), in, hard, blocks);
+            if (std::memcmp(soft, hard, blocks * 16) != 0) return false;
+            std::memcpy(hard, in, blocks * 16);
+            e.aes_encrypt(aes.round_keys(), hard, hard, blocks);   // in place
+            if (std::memcmp(soft, hard, blocks * 16) != 0) return false;
+        }
+        if (e.aes_decrypt) {
+            uint8_t want_back[37 * 16];
+            for (size_t b = 0; b < blocks; b++)
+                aes.decrypt_block(in + 16 * b, want_back + 16 * b);
+            e.aes_decrypt(aes.round_keys(), in, hard, blocks);
+            if (std::memcmp(want_back, hard, blocks * 16) != 0) return false;
+        }
+    }
+    return true;
 }
 
 }   // namespace aes
