@@ -116,6 +116,7 @@ void sanitize(Config& c)
     if (!keep_ok) c.logs_keep_mb = 0;
     if (c.connections < 1 || c.connections > 8) c.connections = 4;
     if (c.prefetch < 0 || c.prefetch > 2) c.prefetch = 0;
+    if (c.screen_off_minutes < 0 || c.screen_off_minutes > 30) c.screen_off_minutes = 0;
     std::vector<std::string> sources;
     for (const std::string& u : c.title_sources)
         if (u.starts_with("https://") && u.size() <= 512 && sources.size() < MAX_TITLE_SOURCES &&
@@ -205,6 +206,7 @@ static void load_shared()
     read_bool(j, "keep_awake", c.keep_awake);
     read_int(j, "connections", c.connections);
     read_int(j, "prefetch", c.prefetch);
+    read_int(j, "screen_off_minutes", c.screen_off_minutes);
     read_strings(j, "title_sources", c.title_sources);
     read_bool(j, "nlib_api", c.nlib_api);
     read_bool(j, "popular_online", c.popular_online);
@@ -267,6 +269,7 @@ bool snapshot(Snapshot& snap)
     j["keep_awake"] = s_config.keep_awake;
     j["connections"] = s_config.connections;
     j["prefetch"] = s_config.prefetch;
+    j["screen_off_minutes"] = s_config.screen_off_minutes;
     j["title_sources"] = s_config.title_sources;
     j["nlib_api"] = s_config.nlib_api;
     j["popular_online"] = s_config.popular_online;

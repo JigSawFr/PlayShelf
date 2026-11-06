@@ -146,8 +146,8 @@ simulated console as it starts, and fetches the title database
   **Pad** shows an on-screen controller (by default on a touch screen):
   under the screen in portrait, on either side of it in landscape. **Full
   screen** shows only the screen and the pad. Added to a phone's home screen,
-  it is "PlayShelf" in a window of its own; the icons come from
-  `tools/render_branding.mjs` (`images/`).
+  it is "PlayShelf" in a window of its own; the icons (`images/`) come
+  from Boréale's brand kit.
 - **Screenshot** saves the screen as it is (1280×720); **Record** saves a
   video of it (WebM) until **Stop**; **Log** shows what PlayShelf logs.
 - **Steps**: from the first screen on, the page notes each button pressed,

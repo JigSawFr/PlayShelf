@@ -9,6 +9,7 @@
 #include <aurore/cadran/ui/guarded.hpp>
 
 #include "action/download_flow.hpp"
+#include "action/screen_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
 #include "install/split_stream.hpp"
@@ -125,6 +126,32 @@ DownloadsTab::DownloadsTab()
     });
     card->addView(prefetch);
     cadran::List::row(prefetch, "folder");
+    screen_off = new aurore::DetailCell();
+    screen_off->setText("playshelf/downloads/screen_off"_i18n);
+    auto screen_off_text = [](int n) {
+        return n <= 0 ? "playshelf/downloads/screen_off_never"_i18n : aurore::getStr("playshelf/downloads/screen_off_minutes", n);
+    };
+    ui::set_detail(screen_off, screen_off_text(config::get().screen_off_minutes));
+    screen_off->registerClickAction([this, screen_off_text](aurore::View*) {
+        const int options[] = { 0, 2, 5, 10, 15, 30 };
+        std::vector<std::string> values;
+        int selected = 2;
+        for (size_t k = 0; k < std::size(options); k++) {
+            values.push_back(screen_off_text(options[k]));
+            if (options[k] == config::get().screen_off_minutes) selected = (int)k;
+        }
+        ui::pick("playshelf/downloads/screen_off"_i18n, values, selected,
+                 ui::guarded(this->alive, [this, screen_off_text, options](int i) {
+                     config::get().screen_off_minutes = options[i];
+                     ui::save_config();
+                     ui::set_detail(this->screen_off, screen_off_text(options[i]));
+                     screen_flow::changed();
+                 }),
+                 true, { "playshelf/downloads/screen_off_note"_i18n, "", "", "", "", "" });
+        return true;
+    });
+    card->addView(screen_off);
+    cadran::List::row(screen_off, "eye");
     // A tab's margins, as the other tabs' lists have them.
     const cadran::List margins(this);
     (void)margins;
