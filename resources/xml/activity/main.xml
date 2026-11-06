@@ -12,7 +12,7 @@
     <aurore:TabFrame
         id="main_tabs"
         title="@i18n/playshelf/title"
-        icon="@res/img/app_icon.jpg">
+        icon="@res/img/app_icon.png">
 
         <aurore:Tab label="@i18n/playshelf/tabs/home">
             <HomeTab/>

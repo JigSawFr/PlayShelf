@@ -11,7 +11,7 @@
 
     <ScrollView
         title="@i18n/playshelf/dev_build/open"
-        icon="@res/img/app_icon.jpg"
+        icon="@res/img/app_icon.png"
         width="auto"
         height="auto"
         axis="column"
