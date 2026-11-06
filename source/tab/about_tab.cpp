@@ -9,6 +9,7 @@
 
 #include "activity/changelog_activity.hpp"
 #include "app.hpp"
+#include "kit_text.hpp"
 #include "tab/boreale_tab.hpp"
 #include "tab/help_tab.hpp"
 #include "ui/ui.hpp"
@@ -49,7 +50,7 @@ AboutTab::AboutTab()
 
     help->setDetailText(ui::opens());
     help->registerClickAction([](aurore::View*) {
-        ui::open_screen(new HelpTab(), "playshelf/prefs/help"_i18n);
+        ui::open_screen(new HelpTab(), kit_text::str("prefs/help"));
         return true;
     });
 
@@ -133,7 +134,7 @@ void AboutTab::count_version_press()
     }
     this->version_presses = 0;
     app::set_dev_mode(true, true, "playshelf/dev/enabled"_i18n,
-                      "playshelf/dev/enabled"_i18n + " " + "playshelf/toast/config_err"_i18n);
+                      "playshelf/dev/enabled"_i18n + " " + kit_text::str("toast/config_err"));
     ui::on_mode_changed();
 }
 

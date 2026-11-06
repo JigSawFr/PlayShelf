@@ -63,10 +63,6 @@ UPWARD = re.compile(r'^\s*#\s*include\s+"((?:activity|tab)/[^"]+)"', re.M)
 # A flow that opens its own screen includes it (the flow is the screen's way
 # in); nothing else of action/ includes a screen.
 ACTION_SCREENS = {
-    "source/kit/action/dev_build_flow.cpp": {"activity/dev_build_activity.hpp",     # the development builds' screens
-                                             "activity/dev_builds_activity.hpp"},
-    "source/kit/action/support_flow.cpp": {"activity/whats_new_activity.hpp"},      # What's new
-    "source/kit/action/update_flow.cpp": {"activity/update_activity.hpp"},          # the update screen
     "source/action/library_flow.cpp": {"activity/server_activity.hpp"},             # a library server's editor
     "source/action/game_page.cpp": {"activity/game_activity.hpp"},                  # a game's page
 }
@@ -76,7 +72,7 @@ for folder in LOWER:
         for inc in UPWARD.findall(text):
             errors.append(f'{rel} includes "{inc}": {folder}/ is below the screens (ask them through ui/app_hooks.hpp)')
 seen = set()
-for folder in ("source/kit/action", "source/action"):
+for folder in ("source/action",):
     for rel, text in sources(folder):
         allowed = ACTION_SCREENS.get(rel, set())
         for inc in UPWARD.findall(text):

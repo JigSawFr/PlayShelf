@@ -9,6 +9,8 @@
 
 #include <aurore/cadran/ui/prefs.hpp>
 
+#include "kit_settings.hpp"
+
 namespace config
 {
 
@@ -23,47 +25,15 @@ constexpr const char* GHOSTLAND_TITLE_SOURCE = "https://data.ghostland.at/nx/own
 constexpr const char* DEFAULT_TITLE_SOURCES[] = { CYBERFOIL_TITLE_SOURCE, NXMETA_TITLE_SOURCE, GHOSTLAND_TITLE_SOURCE };
 constexpr size_t MAX_TITLE_SOURCES = 8;
 
-struct Config
+struct Config : kit_settings::Settings
 {
-    // The look Aurore's Cadran draws (ui::use_prefs): the language, the
-    // theme and its palette (a preset or a theme file, docs/themes.md), the text size ("auto": larger while docked), the effects ("auto":
-    // lighter off the dock) and the screens' background glow (Developer ›
-    // glow).
-    ui::Prefs look;
+    // The look, the update settings, the logs kept and the support reminder: kit_settings::Settings.
     bool dev_mode = false;             // developer tools (7 presses on About > Version)
-    std::string crypto = "auto";       // Developer › Encryption: auto, software or hardware (util/crypto_backend)
     bool cpu_boost = true;             // Developer › CPU boost while installing (util/cpu_boost)
-    bool frame_stats = false;          // Developer › frame statistics (action/frame_stats_flow)
-    // How an update is installed: "" (not chosen yet: asked on the first
-    // update), "inplace" (PlayShelf downloads it and replaces itself),
-    // "auto", "sphaira", "appstore", "manual".
-    std::string update_via;
-    bool update_daily = false;         // check for updates at start-up, once a day
-    std::string update_checked;        // "YYYY-MM-DD" of the last check, any kind
-    // The latest release the last check found ("1.2.0"): a newer one than the
-    // running version is offered at each start-up (action/update_flow) until
-    // installed or postponed. update_snooze_version / _until: "Later" on that
-    // screen, for that version until that day ("YYYY-MM-DD", 30 days at most).
-    std::string update_latest;
-    std::string update_snooze_version;
-    std::string update_snooze_until;
     std::string start_tab = "home";   // tab shown at start-up (main.xml order: START_TABS)
-    // The saved reports and the crash files kept, each folder on its own
-    // (util/log_files.hpp; 0: no limit): the newest logs_keep, those of the
-    // last logs_keep_days days, the newest that fit in logs_keep_mb MB.
-    int  logs_keep       = 20;
-    int  logs_keep_days  = 0;
-    int  logs_keep_mb    = 0;
     bool intro = true;                 // the loading screen stays 2 s at start-up (activity/loading_activity.hpp)
-    std::string dev_builds_order = "newest";   // Install another build's pull requests: "newest" or "number"
     std::string library_view = "grid";         // the Library's games: "grid" (covers) or "list" (Ⓨ switches)
 
-    // "Support PlayShelf" once a month at start-up (Preferences; off stays
-    // off, updates included), and "What's new" once after each update. See
-    // util/support.hpp. support_reminded: "YYYY-MM-DD" of the last reminder
-    // (or of when the month started); seen_version: the version whose
-    // "What's new" was handled.
-    bool        support_reminder = true;
     bool        notices_others   = true;   // the other Boréale homebrews' notices in the bell, counted on it
     bool        look_shared      = true;   // the look shared with the other Boréale homebrews (action/shared_look)
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
@@ -81,8 +51,6 @@ struct Config
     // Home's popular games: popular.json fetched again once a day (else the
     // one PlayShelf came with).
     bool popular_online = true;
-    std::string support_reminded;
-    std::string seen_version;
     // The newest crash file (logs/crashes/) already said: a newer one means
     // PlayShelf closed unexpectedly since.
     std::string crash_seen;

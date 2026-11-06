@@ -39,7 +39,7 @@
             <aurore:BooleanCell id="pf_notices_others"/>
             <aurore:Header title="@i18n/playshelf/tools/section_update" marginTop="24" marginBottom="8"/>
             <aurore:BooleanCell id="pf_update_daily"/>
-            <aurore:DetailCell id="pf_update_via" title="@i18n/playshelf/tools/update_via"/>
+            <aurore:DetailCell id="pf_update_via" title="@i18n/kit/tools/update_via"/>
             <aurore:Header title="@i18n/playshelf/titledb/section" marginTop="24" marginBottom="8"/>
             <aurore:DetailCell id="pf_titledb" title="@i18n/playshelf/titledb/row"/>
             <aurore:DetailCell id="pf_title_sources" title="@i18n/playshelf/titledb/sources"/>

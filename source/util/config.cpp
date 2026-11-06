@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <initializer_list>
 
+#include <functional>
+
 #include "util/date.hpp"
 #include "util/json_util.hpp"
 #include "util/paths.hpp"
@@ -281,3 +283,18 @@ bool snapshot(Snapshot& snap)
 }
 
 }   // namespace config
+
+// What the kit reads and writes of the settings (kit_settings.hpp).
+namespace kit_settings
+{
+
+Settings& get() { return config::get(); }
+
+std::function<bool()> snapshot()
+{
+    config::Snapshot snap;
+    if (!config::snapshot(snap)) return {};
+    return [snap]() { return config::write(snap); };
+}
+
+}   // namespace kit_settings
