@@ -261,6 +261,25 @@ void test_prepare_refuses()
     c3.space = t.program.size();
     r = install(c3, nsp(t));
     CHECK(!r.prepared && r.why.find("space") != std::string::npos);
+    // The margin: the smallest space that installs leaves SPACE_MARGIN over.
+    {
+        uint64_t lo = 0, hi = 1ull << 40;   // lo fails, hi installs
+        while (hi - lo > 1) {
+            const uint64_t mid = lo + (hi - lo) / 2;
+            FakeConsole    c;
+            c.space = mid;
+            (install(c, nsp(t)).ok ? hi : lo) = mid;
+        }
+        FakeConsole at;
+        at.space = hi;
+        CHECK(install(at, nsp(t)).ok);
+        FakeConsole below;
+        below.space = hi - 1;
+        r = install(below, nsp(t));
+        CHECK(!r.prepared && r.why.find("not enough free space") != std::string::npos);
+        CHECK(r.why.find("1 MiB more") != std::string::npos);
+        CHECK(hi > SPACE_MARGIN && hi - SPACE_MARGIN < (1u << 20) * 64);   // the package itself is small
+    }
     // A newer system than the console's: refused, unless told to ignore it.
     const Title newer = application(false, (13u << 26));
     FakeConsole c4;

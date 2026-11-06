@@ -155,6 +155,13 @@ void test_queue()
     jobs[0].journal->writing = cid(8);   // done: its placeholder is no longer of use
     const auto lost = orphans({cid(7), cid(8), cid(9)}, jobs);
     CHECK(lost == std::vector<install::ContentId>({cid(8), cid(9)}));
+
+    // A stop between create_placeholder and the first point of resume leaves
+    // a placeholder no journal names yet: it is found, and the restarted
+    // install deletes it before making its own.
+    std::vector<Job> early = {job("e", State::Running, "https://a/e.nsp")};
+    CHECK(!early[0].journal);
+    CHECK(orphans({cid(5)}, early) == std::vector<install::ContentId>({cid(5)}));
 }
 
 void test_groups()

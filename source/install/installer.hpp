@@ -106,6 +106,10 @@ struct Journal
 
 constexpr uint64_t JOURNAL_EVERY = 32u << 20;
 
+// Free space kept on the card beyond what a package takes: Horizon and the
+// card itself need room, and ncm fails near a full card.
+constexpr uint64_t SPACE_MARGIN = 512u << 20;
+
 struct InstallOptions
 {
     SignaturePolicy signatures = SignaturePolicy::Require;
