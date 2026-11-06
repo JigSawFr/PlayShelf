@@ -67,6 +67,7 @@ struct Config
     bool        look_shared      = true;   // the look shared with the other Boréale homebrews (action/shared_look)
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8
+    int         screen_off_minutes = 0; // Downloads › Turn the screen off after (action/screen_flow), 0 (never) to 30
     int         prefetch = 0;          // packages fetched ahead while one installs (action/download_flow), 0 to 2
     // The title databases' manifests (action/titledb_flow), the first that
     // knows a title naming it: HTTPS addresses, MAX_TITLE_SOURCES at most;

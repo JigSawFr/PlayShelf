@@ -156,7 +156,7 @@ static void test_fields()
                     "update_via": "ftp", "dev_builds_order": "random", "library_view": "wall", "update_checked": "yesterday",
                     "update_snooze_version": "1.2.0", "update_snooze_until": "soon",
                     "support_reminded": "2026-13", "seen_version": "1234567890123456789012345678901234567890",
-                    "connections": 9, "prefetch": 3,
+                    "connections": 9, "prefetch": 3, "screen_off_minutes": 31,
                     "title_sources": ["http://a/m.json", "https://b/m.json", 4, "https://b/m.json", "https://c/m.json"]})");
     config::load();
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
@@ -164,7 +164,7 @@ static void test_fields()
     CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
     CHECK(c.update_via.empty() && c.dev_builds_order == "newest" && c.library_view == "grid" && c.update_checked.empty());
     CHECK(c.update_snooze_version.empty() && c.update_snooze_until.empty());
-    CHECK(c.support_reminded.empty() && c.seen_version.empty() && c.connections == 4 && c.prefetch == 0);
+    CHECK(c.support_reminded.empty() && c.seen_version.empty() && c.connections == 4 && c.prefetch == 0 && c.screen_off_minutes == 0);
     // Only HTTPS, each once, in order.
     CHECK(c.title_sources == (std::vector<std::string>{ "https://b/m.json", "https://c/m.json" }));
     // An empty list stays empty: no database.
@@ -213,6 +213,7 @@ static void test_round_trip()
     c.crash_seen = "crash_20261024_101010.txt";
     c.connections = 2;
     c.prefetch = 1;
+    c.screen_off_minutes = 15;
     c.title_sources = { "https://mine.test/m.json", config::CYBERFOIL_TITLE_SOURCE };
     c.nlib_api = false;
     c.popular_online = false;
@@ -229,7 +230,7 @@ static void test_round_trip()
     CHECK(c.update_latest == "1.2.0" && c.update_snooze_version == "1.2.0" && c.update_snooze_until == "2026-11-01");
     CHECK(c.start_tab == "preferences" && c.logs_keep == 50 && c.logs_keep_days == 30 && c.logs_keep_mb == 5);
     CHECK(!c.intro && c.dev_builds_order == "number" && c.library_view == "list" && !c.support_reminder && c.support_reminded == "2026-10-01");
-    CHECK(c.seen_version == "1.1.0" && c.crash_seen == "crash_20261024_101010.txt" && c.connections == 2 && c.prefetch == 1);
+    CHECK(c.seen_version == "1.1.0" && c.crash_seen == "crash_20261024_101010.txt" && c.connections == 2 && c.prefetch == 1 && c.screen_off_minutes == 15);
     CHECK(c.title_sources == before.title_sources && !c.nlib_api && !c.popular_online);
     std::string text;
     CHECK(paths::read_file(paths::config_file(), text) && text.find("\"schema\": 1") != std::string::npos);

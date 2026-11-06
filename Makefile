@@ -170,6 +170,7 @@ compressed_storage_LIBS := -llz4
 # The integrity tree of a RomFS section.
 ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
 # An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
+screen_timer_SRC := source/util/screen_timer.cpp tests/screen_timer/test.cpp
 crypto_SRC := $(K)/util/crypto_backend.cpp $(K)/util/crypto_bench.cpp $(K)/util/crypto_hw.cpp $(K)/util/aes.cpp $(K)/util/sha256.cpp tests/crypto/test.cpp
 
 bktr_SRC  := $(INSTALL_FORMATS) source/install/bktr.cpp source/install/ivfc.cpp tests/bktr/test.cpp

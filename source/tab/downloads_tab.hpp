@@ -69,4 +69,5 @@ class DownloadsTab : public TabBase
     aurore::BooleanCell* keep_awake = nullptr;
     aurore::DetailCell*  connections = nullptr;
     aurore::DetailCell*  prefetch = nullptr;
+    aurore::DetailCell*  screen_off = nullptr;
 };
