@@ -434,6 +434,14 @@
         "presses_left": "Encore {} appuis pour activer le mode développeur.",
         "presses_left_one": "Encore 1 appui pour activer le mode développeur.",
         "report_upload": "Envoyer en ligne",
+        "report_qr": "Afficher en codes QR",
+        "qr_title": "Rapport en codes QR ({} sur {})",
+        "qr_note": "Photographiez tous les codes, dans n'importe quel ordre, puis lancez tools/decode_report.py sur les photos.",
+        "qr_prev": "Page précédente",
+        "qr_next": "Page suivante",
+        "qr_trimmed": "Rapport raccourci : le début du journal est laissé de côté.",
+        "qr_failed_title": "Codes QR",
+        "qr_failed": "Le rapport est trop gros pour tenir en codes QR. Enregistrez-le et envoyez-le en ligne.",
         "glow": "Halo d'arrière-plan"
     },
     "dev_build": {

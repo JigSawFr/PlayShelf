@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+#include "action/report_qr_flow.hpp"
 #include "action/upload_flow.hpp"
 #include "ui/ui.hpp"
 #include "util/diagnostics.hpp"
@@ -46,6 +47,10 @@ void DiagnosticActivity::onContentAvailable()
         const std::string path = diagnostic::save(this->report, &err);
         if (path.empty()) ui::error("playshelf/toast/diag_err"_i18n, err);
         else ui::notify(aurore::getStr("playshelf/toast/diag_saved", path));
+        return true;
+    });
+    this->getContentView()->registerAction("playshelf/dev/report_qr"_i18n, aurore::BUTTON_RB, [this](aurore::View*) {
+        report_qr_flow::open(this->report);
         return true;
     });
     this->getContentView()->registerAction("playshelf/dev/report_upload"_i18n, aurore::BUTTON_X, [this](aurore::View*) {

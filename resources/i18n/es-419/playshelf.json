@@ -434,6 +434,14 @@
         "presses_left": "Faltan {} pulsaciones para activar el modo desarrollador.",
         "presses_left_one": "Falta 1 pulsación para activar el modo desarrollador.",
         "report_upload": "Enviar en línea",
+        "report_qr": "Show as QR codes",
+        "qr_title": "Report as QR codes ({} of {})",
+        "qr_note": "Photograph every code, in any order, then run tools/decode_report.py on the photos.",
+        "qr_prev": "Previous page",
+        "qr_next": "Next page",
+        "qr_trimmed": "Report shortened: the start of the log is left out.",
+        "qr_failed_title": "QR codes",
+        "qr_failed": "The report is too big to fit in QR codes. Save it and send it online instead.",
         "glow": "Halo de fondo"
     },
     "dev_build": {

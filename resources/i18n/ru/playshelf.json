@@ -434,6 +434,14 @@
         "presses_left": "Осталось нажатий до режима разработчика: {}.",
         "presses_left_one": "Ещё 1 нажатие до режима разработчика.",
         "report_upload": "Отправить в интернет",
+        "report_qr": "Show as QR codes",
+        "qr_title": "Report as QR codes ({} of {})",
+        "qr_note": "Photograph every code, in any order, then run tools/decode_report.py on the photos.",
+        "qr_prev": "Previous page",
+        "qr_next": "Next page",
+        "qr_trimmed": "Report shortened: the start of the log is left out.",
+        "qr_failed_title": "QR codes",
+        "qr_failed": "The report is too big to fit in QR codes. Save it and send it online instead.",
         "glow": "Свечение фона"
     },
     "dev_build": {

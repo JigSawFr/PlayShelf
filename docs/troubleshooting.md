@@ -40,6 +40,7 @@ A game known only by its file name takes its name and icon from the title databa
 
 - **Export a diagnostic report** saves one to the SD card, to attach to a [bug report](https://github.com/JigSawFr/PlayShelf/issues/new). It never contains the console's serial number.
 - **Send a report…** puts it in a secret gist of your GitHub account and shows its link with a QR code.
+- With no network or account at all, the report can leave the console as photographs: in developer mode, *Show the diagnostic report*, then **R** shows it as QR codes (four to a page, the start of the log left out if they would be too many). Photograph every code, in any order, and run `python3 tools/decode_report.py photo1.jpg photo2.jpg …` (needs `pip install zxing-cpp pillow zstandard`) to put the report back together; attach the file it writes to the bug report.
 
 A crash is saved as a crash file, which the next start says and offers to send.
 

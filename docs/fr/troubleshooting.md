@@ -41,6 +41,7 @@ Un jeu connu seulement par son nom de fichier prend son nom et son icône dans l
 
 - **Exporter un rapport de diagnostic** en enregistre un sur la carte SD, à joindre à un [signalement de bug](https://github.com/JigSawFr/PlayShelf/issues/new). Il ne contient jamais le numéro de série de la console.
 - **Envoyer un rapport…** le met dans un gist secret de votre compte GitHub et affiche son lien avec un QR code.
+- Sans réseau ni compte, le rapport peut sortir de la console en photos : en mode développeur, *Afficher le rapport de diagnostic*, puis **R** l'affiche en codes QR (quatre par page, le début du journal laissé de côté s'ils étaient trop nombreux). Photographiez chaque code, dans n'importe quel ordre, et lancez `python3 tools/decode_report.py photo1.jpg photo2.jpg …` (demande `pip install zxing-cpp pillow zstandard`) pour reconstituer le rapport ; joignez le fichier obtenu au signalement.
 
 Un plantage est enregistré dans un fichier de plantage, que le démarrage suivant signale et propose d'envoyer.
 

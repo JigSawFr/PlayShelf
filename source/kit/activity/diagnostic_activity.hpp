@@ -1,6 +1,6 @@
 // DiagnosticActivity — developer mode: the diagnostic report (firmware, clocks,
 // every pctl query) read on the console itself; Y saves it like Help & diagnostics ›
-// Export a diagnostic report, X sends it online like Send a report online.
+// Export a diagnostic report, X sends it online like Send a report online, R shows it as QR codes.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
