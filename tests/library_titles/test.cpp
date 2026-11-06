@@ -40,9 +40,6 @@ void test_group()
     c.items.push_back(item("Aster DLC A", 0x0100000000011001, 0, 5));
     c.items.push_back(item("homebrew.nsp", 0, 0, 7));
     c.items.push_back(item("Comet Update [0100000000020800][v65536].nsz", 0x0100000000020800, 65536, 3));
-    c.items[1].icon_url = "https://h/aster.jpg";
-    c.items[1].release_date = 20170303;
-    c.titles[0x0100000000020000] = {"Super Comet", 65536};
 
     const std::vector<Title> titles = group_titles(c);
     CHECK(titles.size() == 3);
@@ -54,13 +51,11 @@ void test_group()
     CHECK(latest_update(*aster) == 2);
     CHECK(aster->dlcs == std::vector<size_t>({4, 3}));
     CHECK(aster->size == 1040);
-    CHECK(aster->icon_url == "https://h/aster.jpg");
-    CHECK(aster->release_date == 20170303);
     CHECK(aster->sections == std::vector<std::string>({"updates", "s"}));
 
     const Title* comet = find(titles, 0x0100000000020000);
     if (!CHECK(comet)) return;
-    CHECK(comet->name == "Super Comet");   // the titledb's
+    CHECK(comet->name == "Comet Update");   // the first item's, without the file's tags
     CHECK(comet->base == -1);
     CHECK(latest_update(*comet) == 6);
 
@@ -105,14 +100,14 @@ void test_select()
     std::vector<Title> t(4);
     t[0].name = "Bravo";
     t[0].size = 10;
-    t[0].release_date = 20200101;
+    t[0].id = 0x0100000000010000;
     t[0].sections = {"a"};
     t[1].name = "alpha";
     t[1].size = 30;
     t[1].sections = {"b"};
     t[2].name = "Écho";
     t[2].size = 20;
-    t[2].release_date = 20220101;
+    t[2].id = 0x0100000000030000;
     t[2].sections = {"a", "b"};
     t[3].name = "Delta";
     t[3].id = 0x01006F8002326000;
@@ -121,7 +116,14 @@ void test_select()
 
     CHECK(select_titles(t, "", Sort::Name) == std::vector<size_t>({1, 0, 3, 2}));
     CHECK(select_titles(t, "", Sort::Largest) == std::vector<size_t>({1, 3, 2, 0}));
-    CHECK(select_titles(t, "", Sort::Newest) == std::vector<size_t>({2, 0, 1, 3}));
+    Selection dated;
+    dated.facts = [&](uint64_t id) {
+        Facts f;
+        if (id == t[0].id) f.release_date = 20200101;
+        if (id == t[2].id) f.release_date = 20220101;
+        return f;
+    };
+    CHECK(select_titles(t, "", Sort::Newest, "", dated) == std::vector<size_t>({2, 0, 1, 3}));
     CHECK(select_titles(t, "ECHO", Sort::Name) == std::vector<size_t>({2}));
     CHECK(select_titles(t, "a", Sort::Name, "a") == std::vector<size_t>({0}));
     CHECK(select_titles(t, "", Sort::Name, "b") == std::vector<size_t>({1, 3, 2}));
@@ -183,7 +185,7 @@ void test_filter()
     // catalogue has none.
     sel.filter = Filter();
     CHECK(pick(Sort::Publisher) == std::vector<size_t>({ 1, 2, 0, 3 }));
-    t[1].release_date = 20250101;
+    known[t[1].id].release_date = 20250101;
     CHECK(pick(Sort::Newest) == std::vector<size_t>({ 1, 0, 2, 3 }));
 
     // What the console has: applied when the list says.
