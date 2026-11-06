@@ -14,6 +14,7 @@
 
 #include "action/library_flow.hpp"
 #include "action/rebuilt.hpp"
+#include "action/screen_flow.hpp"
 #include "core/awake.h"
 #include "core/sim_env.h"
 #include "download/recovery.hpp"
@@ -164,6 +165,7 @@ void save()
 void awake(bool on)
 {
     core_keep_awake(on && config::get().keep_awake);
+    screen_flow::active(on && config::get().keep_awake);
 }
 
 // The request headers and the pin for `url`, from its server's profile:
