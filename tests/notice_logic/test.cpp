@@ -72,10 +72,22 @@ void test_keys()
 }
 }   // namespace
 
+static void test_routes()
+{
+    // Each entry to the tab where it is dealt with: a tab of the main screen.
+    CHECK(notice_logic::route_of("updates") == "library" && notice_logic::route_of("dlcs") == "library");
+    CHECK(notice_logic::route_of("wish.0100000000010000") == "catalogue");
+    CHECK(notice_logic::route_of("out.0100000000010000.20261102") == "catalogue");
+    CHECK(notice_logic::route_of("atlas_new.0100000000010000.20261102") == "catalogue");
+    CHECK(notice_logic::route_of("downloads_failed") == "downloads" && notice_logic::route_of("kit.update") == "about");
+    CHECK(notice_logic::route_of("storage") == "home");
+}
+
 int main()
 {
     test_order();
     test_dismiss();
     test_keys();
+    test_routes();
     CHECK_DONE("notice_logic");
 }
