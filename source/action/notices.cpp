@@ -55,7 +55,7 @@ void write_shared_bell()
 {
     std::vector<shared_bell_logic::Entry> entries;
     for (const notice_logic::Item& i : s_store.visible())
-        entries.push_back({ i.id, i.level == Level::Action, i.title, i.detail, shared_bell_logic::route_of(i.id) });
+        entries.push_back({ i.id, i.level == Level::Action, i.title, i.detail, notice_logic::route_of(i.id) });
     const std::string lang = aurore::Application::getLocale(), nro = app::self_path();
     write_shared("shared bell", shared_bell_logic::file(paths::sd_root()), [entries, lang, nro](const std::string& before) {
         return shared_bell_logic::text(entries, lang, nro, before, (int64_t)std::time(nullptr));

@@ -171,4 +171,14 @@ std::vector<std::string> keys_of(const std::string& text)
     return out;
 }
 
+std::string route_of(const std::string& id)
+{
+    const auto starts = [&id](const char* p) { return id.rfind(p, 0) == 0; };
+    if (id == "updates" || id == "dlcs" || id == "missing_updates") return "library";
+    if (id == "new_games" || starts("wish.") || starts("out.") || starts("atlas_new.") || starts("trend.")) return "catalogue";
+    if (starts("downloads_")) return "downloads";
+    if (starts("kit.")) return "about";
+    return "home";
+}
+
 }   // namespace notice_logic

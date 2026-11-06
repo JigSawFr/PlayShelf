@@ -88,4 +88,8 @@ std::string              keys_text(const std::vector<std::string>& keys);
 std::vector<std::string> keys_of(const std::string& text);
 bool                     keys_newer(const std::string& text);
 
+// The tab where the entry `id` is dealt with, as a route (one of the main
+// screen's tabs: tabs::position_of("tab/" + route)); "home" for the rest.
+std::string route_of(const std::string& id);
+
 }   // namespace notice_logic
