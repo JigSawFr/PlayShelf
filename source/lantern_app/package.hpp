@@ -1,13 +1,14 @@
 // A package fetched whole into a file on the SD card by the Lantern client
-// (SPEC.md § 6.6): signed requests, the file's size and SHA-256 checked as it
-// is written, resumed from what a file already holds. Only a file that is
-// whole and verified is ever installed.
+// (SPEC.md § 6.6), for the downloads fetched ahead: signed requests, the
+// file's size and SHA-256 checked as it is written, resumed from what a file
+// already holds.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
 #include <atomic>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 
 #include "lantern_app/platform.hpp"
@@ -29,6 +30,12 @@ struct PackageResult
     bool        stopped = false;   // `stop` was set: the file keeps what was written
     std::string why;
 };
+
+// A client of `server` for a package at `url`: made, handshaken, signed in;
+// null with `why` when the url is not the server's, it is not the one that
+// was paired, or the client could not be made.
+std::unique_ptr<lantern::Client> open_client(Platform& platform, const library::Server& server, const std::string& url,
+                                             std::string* why);
 
 // Fetches `request` from `server` into `path` (created, or taken up where it
 // stands: its bytes are hashed again first). `progress(bytes)` is told as the

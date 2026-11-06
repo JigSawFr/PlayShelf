@@ -171,6 +171,12 @@ lantern_session_SRC   := source/lantern_app/session.cpp source/lantern_app/catal
 lantern_session_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_session_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_session: $(LANTERN_LIB)
+# A package read by signed ranges, over a scripted network.
+lantern_range_SRC   := source/lantern_app/range_source.cpp source/lantern_app/session.cpp source/lantern_app/catalog_map.cpp source/library/catalog.cpp \
+                       source/library/server.cpp source/library/servers.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_range/test.cpp
+lantern_range_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_range_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_range: $(LANTERN_LIB)
 # The system under the Lantern client: random bytes, the time, the discovery socket.
 lantern_system_SRC   := source/lantern_app/system.cpp tests/lantern_system/test.cpp
 lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)

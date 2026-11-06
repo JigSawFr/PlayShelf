@@ -22,6 +22,7 @@
 #include "install/installer.hpp"
 #include "install/prefix_source.hpp"
 #include "lantern_app/package.hpp"
+#include "lantern_app/range_source.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -205,41 +206,28 @@ Outcome run_job(const download::Job& job, const library::Server& server, const s
         return o;
     };
     std::string cut_why;
-    // The package whole on the SD card first, fetched and checked by the
-    // Lantern client (a file already there, partly or whole, is taken up).
+    // What a fetch ahead left on the SD card (checked by the Lantern client as
+    // it was written) is read from the file; the rest of the package is read
+    // from the server where the installer asks, a signed range at a time.
     const std::string path = ahead_path(job.id);
     if (job.size == 0 || job.sha256.empty()) {
         o.why = "the catalogue gave no size or checksum for this package: read the server again";
         return o;
     }
-    if (file_size(path) != job.size) {
-        paths::ensure_dir(ahead_dir());
-        lantern_app::Platform platform;
-        auto                  last = std::chrono::steady_clock::now();
-        const std::string     id = job.id;
-        const uint64_t        total = job.size;
-        const auto            got = lantern_app::fetch_package(
-            platform, server, {job.url, job.size, job.sha256}, path, &ctl->stop, [&](uint64_t n) {
-                const auto t = std::chrono::steady_clock::now();
-                if (t - last < std::chrono::milliseconds(500) && n < total) return;
-                last = t;
-                aurore::sync([id, n, total]() {
-                    if (s_running != id) return;
-                    if (n > s_live.done) s_last_byte = now_seconds();
-                    s_live.done = n;
-                    s_live.total = total;
-                    s_rate.add(n, now_seconds());
-                    changed();
-                });
-            });
-        if (got.stopped) return stopped();
-        if (!got.ok) {
-            o.why = got.why;
+    const uint64_t        have = std::min(file_size(path), job.size);
+    lantern_app::Platform platform;
+    std::unique_ptr<lantern_app::RangeSource> remote;
+    if (have < job.size) {
+        std::string why;
+        auto        client = lantern_app::open_client(platform, server, job.url, &why);
+        if (!client) {
+            o.why = why;
             return ctl->stop ? stopped() : o;
         }
+        remote = std::make_unique<lantern_app::RangeSource>(std::move(client), lantern_app::PackageRequest{job.url, job.size, job.sha256});
     }
     LocalOnly    local(job.size);
-    PrefixSource prefixed(path, job.size, local);
+    PrefixSource prefixed(path, have, remote ? static_cast<install::Source&>(*remote) : local);
     CutSource    src(prefixed, *ctl, &cut_why);
     const auto pkg = package_open(src);
     if (!pkg) {

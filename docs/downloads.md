@@ -1,6 +1,6 @@
 # Downloads
 
-A game's page in the *Catalogue* adds its packages to the **Downloads**: its base game, its updates and its add-ons, each a package. They are installed one after the other. Each package is first written whole to the SD card, where the Lantern client checks its size and its SHA-256 against what the server announced, then installed from that file, which is deleted once it is. It takes the package's size on the SD card, on top of its install.
+A game's page in the *Catalogue* adds its packages to the **Downloads**: its base game, its updates and its add-ons, each a package. They are installed one after the other. Each package is installed as it arrives, read from the server by signed ranges (the Lantern client's `Range` requests): nothing is written to the SD card first, so it takes no room beyond its install. A package fetched ahead (see below) is read from its file on the SD card, which the client checked against the server's size and SHA-256 as it was written, and which is deleted once the package is installed.
 
 ## The queue
 
