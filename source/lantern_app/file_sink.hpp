@@ -30,8 +30,8 @@ inline FILE* open_private(const std::string& path, bool append)
 class FileSink final : public lantern::DownloadSink
 {
   public:
-    FileSink(FILE* f, const std::atomic<bool>* stop, std::function<void(uint64_t)> progress, uint64_t at)
-        : file(f), stop(stop), progress(std::move(progress)), written(at)
+    FileSink(FILE* f, const std::atomic<bool>* stop_, std::function<void(uint64_t)> progress_, uint64_t at)
+        : file(f), stop(stop_), progress(std::move(progress_)), written(at)
     {
     }
 

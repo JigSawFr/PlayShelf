@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "lantern_app/system.hpp"
 
+#include <algorithm>
 #include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
@@ -11,7 +12,7 @@
 #include <unistd.h>
 #ifdef __SWITCH__
 #include <switch.h>
-#else
+#elif !defined(__EMSCRIPTEN__)
 #include <sys/random.h>
 #endif
 
@@ -23,6 +24,12 @@ lantern::Result<void> SystemRandom::fill(std::span<std::uint8_t> out)
 #ifdef __SWITCH__
     if (R_FAILED(csrngInitialize()) || R_FAILED(csrngGetRandomBytes(out.data(), out.size())))
         return lantern::fail(lantern::Category::storage, "the console's random generator failed");
+    return {};
+#elif defined(__EMSCRIPTEN__)
+    // getentropy() takes at most 256 bytes at a time.
+    for (size_t at = 0; at < out.size(); at += 256)
+        if (::getentropy(out.data() + at, std::min<size_t>(256, out.size() - at)) != 0)
+            return lantern::fail(lantern::Category::storage, "the system's random generator failed");
     return {};
 #else
     size_t at = 0;

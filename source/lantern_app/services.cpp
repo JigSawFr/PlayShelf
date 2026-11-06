@@ -59,9 +59,16 @@ bool parse_id(const std::string& text, uint64_t* out)
 // "2026-11-06T10:20:30Z" as POSIX time, 0 when it is not that.
 int64_t posix_time(const std::string& iso)
 {
-    std::tm tm{};
-    const char* end = ::strptime(iso.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
-    return end ? (int64_t)::timegm(&tm) : 0;
+    int y, mo, d, h, mi, s;
+    if (std::sscanf(iso.c_str(), "%4d-%2d-%2dT%2d:%2d:%2d", &y, &mo, &d, &h, &mi, &s) != 6 || mo < 1 || mo > 12 || d < 1 || d > 31)
+        return 0;
+    // Days since 1970-01-01 of the proleptic Gregorian date (Hinnant's algorithm).
+    y -= mo <= 2;
+    const int64_t era = (y >= 0 ? y : y - 399) / 400;
+    const int64_t yoe = y - era * 400;
+    const int64_t doy = (153 * (mo + (mo > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+    const int64_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return ((era * 146097 + doe - 719468) * 24 + h) * 3600 + mi * 60 + s;
 }
 
 std::string hex_of(const lantern::Digest& d)
