@@ -184,6 +184,7 @@ static void load_shared()
     read_bool(j, "dev_mode", c.dev_mode);
     read_string(j, "crypto", c.crypto);
     read_bool(j, "frame_stats", c.frame_stats);
+    read_bool(j, "cpu_boost", c.cpu_boost);
     read_bool(j, "cadran_glow", c.look.glow);
     read_string(j, "update_via", c.update_via);
     read_bool(j, "update_daily", c.update_daily);
@@ -245,6 +246,7 @@ bool snapshot(Snapshot& snap)
     j["dev_mode"]        = s_config.dev_mode;
     j["crypto"]          = s_config.crypto;
     j["frame_stats"]     = s_config.frame_stats;
+    j["cpu_boost"]       = s_config.cpu_boost;
     j["cadran_glow"]     = s_config.look.glow;
     j["update_via"]      = s_config.update_via;
     j["update_daily"]    = s_config.update_daily;
