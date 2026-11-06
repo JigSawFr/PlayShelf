@@ -11,12 +11,16 @@ Errors:
 - an include going up the layers: ui/, view/ and util/ (the kit's and the
   app's) never include activity/ or tab/; a flow of action/ includes only
   the screens it opens itself, listed below with why;
+- library/aurore pointing at a commit that is no `vX.Y.Z` tag of Aurore (an
+  app follows a release, never a commit of main). Skipped, with a note, when
+  the tags cannot be listed (no network);
 
 Usage: tools/check_sources.py [repo-root]
 """
 import glob
 import os
 import re
+import subprocess
 import sys
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
@@ -91,6 +95,36 @@ def read(path):
         errors.append(f"{path} not found")
         return ""
 
+
+# ------------------------------------------------------------ aurore's tag
+def git(*args):
+    return subprocess.run(["git", "-C", ROOT, *args], capture_output=True, text=True, timeout=60)
+
+
+def check_aurore_tag():
+    pin = git("ls-tree", "HEAD", "library/aurore")
+    fields = pin.stdout.split()
+    if pin.returncode != 0 or len(fields) < 3 or fields[0] != "160000":
+        return  # not a git checkout, or no such submodule
+    sha = fields[2]
+    url = git("config", "-f", ".gitmodules", "--get", "submodule.library/aurore.url").stdout.strip()
+    if not url:
+        errors.append(".gitmodules has no submodule.library/aurore.url")
+        return
+    try:
+        tags = subprocess.run(["git", "ls-remote", "--tags", url], capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        tags = None
+    if tags is None or tags.returncode != 0:
+        print("sources check: Aurore's tags could not be listed, library/aurore's pin not checked")
+        return
+    release = re.compile(r"^refs/tags/v\d+\.\d+\.\d+(\^\{\})?$")
+    if not any(line.split()[0] == sha for line in tags.stdout.splitlines() if release.match(line.split()[1])):
+        errors.append(f"library/aurore points at {sha[:12]}, which is no vX.Y.Z tag of Aurore: "
+                      "an app follows a release of Aurore, never a commit of main")
+
+
+check_aurore_tag()
 
 for e in errors:
     print("ERROR:", e)
