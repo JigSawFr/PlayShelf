@@ -13,3 +13,7 @@
 [submodule "library/boreale-kit"]
 	path = library/boreale-kit
 	url = https://github.com/JigSawFr/boreale-kit.git
+[submodule "library/lantern-sdk"]
+	path = library/lantern-sdk
+	url = https://github.com/JigSawFr/lantern-sdk.git
+	branch = main
