@@ -165,6 +165,12 @@ lantern_catalog_SRC   := source/lantern/catalog_map.cpp source/library/catalog.c
 lantern_catalog_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_catalog_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_catalog: $(LANTERN_LIB)
+# A Lantern server read over a scripted network.
+lantern_session_SRC   := source/lantern/session.cpp source/lantern/catalog_map.cpp source/library/catalog.cpp source/library/server.cpp \
+                         source/library/servers.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_session/test.cpp
+lantern_session_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_session_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_session: $(LANTERN_LIB)
 
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.

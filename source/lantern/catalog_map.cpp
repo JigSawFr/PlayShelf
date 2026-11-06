@@ -38,7 +38,7 @@ void add_apps(library::Catalog& catalog, AppIndex& index, std::span<const lanter
         }
         library::Item item;
         const std::string url = library::resolve(origin, std::string(app.file));
-        if (url.empty() || !hex16(std::string(app.title_id), &item.title_id)) {
+        if (url.empty() || !hex16(std::string(app.app_id), &item.title_id)) {
             catalog.skipped++;
             continue;
         }

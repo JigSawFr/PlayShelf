@@ -13,7 +13,7 @@ lantern::App app(const char* id, const char* title, const char* type, uint64_t v
 {
     lantern::App a;
     a.id = id;
-    a.title_id = title;
+    a.app_id = title;
     a.type = type;
     a.version_code = version;
     a.name = "Tide Runner";

@@ -1,8 +1,9 @@
-// servers — the library servers the user set up, in
+// servers — the Lantern servers the user set up, in
 // sd:/config/playshelf/servers.json (written whole, atomically): apart from
-// config.json, which "Send a report online" sends. A password is kept
-// sealed for this console (util/secret_box), never as it is; the LAN
-// server's pin once trusted.
+// config.json, which "Send a report online" sends. A server is its name,
+// its addresses and its `uid`, learned when it paired; the token, the device
+// key and the pinned server key are in lantern.json (lantern/credential_store),
+// by that uid.
 //
 // to_json / from_json are plain C++ for the host tests; a file that cannot
 // be read keeps nothing of it (the next save writes what the app has).
@@ -14,20 +15,37 @@
 #include <string>
 #include <vector>
 
-#include "library/client.hpp"
+#include "library/server.hpp"
 
 namespace library
 {
 
+struct Server
+{
+    std::string id;     // 16 hex digits, made once
+    std::string name;
+    std::string lan_url, wan_url;   // https:// each, one at least
+    Connection  connection = Connection::Auto;
+    std::string uid;    // the server's own (its handshake); "" until it paired
+    std::string kept;   // keys this build does not know, as JSON, written back
+};
+
 constexpr size_t MAX_SERVERS = 16;
 // servers.json's format: one more when a key changes meaning.
-constexpr int SERVERS_SCHEMA = 1;
+constexpr int SERVERS_SCHEMA = 2;
+// Schema 1's, read once to carry the servers over to Lantern (their
+// credentials for the other protocols are not kept). Delete this with
+// servers_old() and its use in load_servers() on 2027-03-01, or two releases
+// after the one that brings Lantern, whichever is later.
+constexpr int OLD_SERVERS_SCHEMA = 1;
 
 // `previous`: the file's text before, whose other keys are written back.
 std::string         servers_to_json(const std::vector<Server>& servers, const std::string& previous = "");
 std::vector<Server> servers_from_json(const std::string& text);
 // Whether servers.json's text is of a newer schema than this build's.
 bool                servers_newer(const std::string& text);
+// Whether it is schema 1's (to be written again as schema 2).
+bool                servers_old(const std::string& text);
 
 std::string         servers_file();
 std::vector<Server> load_servers();
@@ -35,20 +53,6 @@ bool                save_servers(const std::vector<Server>& servers, std::string
 
 // A new server's id: 16 random hex digits.
 std::string new_server_id();
-// The password, opened; "" when there is none or it is another console's.
-std::string password_of(const Server& s);
-// Sealed into s.password_box (an empty one clears it); false when the
-// console's key cannot be had.
-bool set_password(Server& s, const std::string& password);
-
-// The key trusted for its own certificate, for a person to compare
-// ("AB:CD:…", pin_short()); "" when none is.
-std::string pin_shown(const Server& s);
-
-// The server no longer trusts a key: its pin, and one of a format this build
-// cannot read (kept as it was in the file until now), are both dropped, so a
-// newer build does not trust the old key for another address.
-void forget_pin(Server& s);
 
 // The server of this id in `servers`, nullptr when there is none.
 const Server* find_server(const std::vector<Server>& servers, const std::string& id);
