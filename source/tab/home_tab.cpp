@@ -76,8 +76,7 @@ std::string greeting()
 
 uint32_t date_of(const library::Title& t)
 {
-    const uint32_t known = nlib_flow::facts(t.id).release_date;
-    return known ? known : t.release_date;
+    return nlib_flow::facts(t.id).release_date;
 }
 
 // "12 November 2026": a day, in the language's words.
@@ -460,10 +459,7 @@ void HomeTab::show_icon(const Pick& pick, uint64_t game_id)
         if (pic && held && *held && gen == this->generation && at < this->tiles.size())
             this->tiles[at]->set_icon(pic->rgba.data(), pic->width, pic->height);
     };
-    if (pick.data && !pick.title().icon_url.empty())
-        library_icons::get(pick.data, library::password_of(pick.data->server), pick.title().icon_url, shown, game_id);
-    else
-        library_icons::local(game_id, shown);
+    library_icons::local(game_id, shown);
 }
 
 void HomeTab::add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,

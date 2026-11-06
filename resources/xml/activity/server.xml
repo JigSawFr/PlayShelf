@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Library › a server, added or changed: its name and addresses (on this
-     network, over the Internet), which one to use and how it answers, the
-     account it asks for, the key trusted for its own certificate; Save and
-     Delete. Filled by source/activity/server_activity.cpp. -->
+     network, over the Internet), which one to use, whether this console is
+     paired with it; Save and Delete. Filled by source/activity/server_activity.cpp. -->
 
 <aurore:AppletFrame
     iconInterpolation="linear">
@@ -27,16 +26,8 @@
             <aurore:DetailCell id="sv_lan" title="@i18n/playshelf/library/lan_url"/>
             <aurore:DetailCell id="sv_wan" title="@i18n/playshelf/library/wan_url"/>
             <aurore:DetailCell id="sv_connection" title="@i18n/playshelf/library/connection"/>
-            <aurore:DetailCell id="sv_format" title="@i18n/playshelf/library/format"/>
-            <aurore:Header title="@i18n/playshelf/library/section_account" marginTop="24" marginBottom="8"/>
-            <aurore:DetailCell id="sv_user" title="@i18n/playshelf/library/username"/>
-            <aurore:DetailCell id="sv_password" title="@i18n/playshelf/library/password"/>
-            <aurore:Header title="@i18n/playshelf/library/section_security" marginTop="24" marginBottom="8"/>
-            <aurore:DetailCell id="sv_pin" title="@i18n/playshelf/library/pin"/>
-            <aurore:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="8">
-                <aurore:Label id="sv_pin_note" text="@i18n/playshelf/library/pin_note" fontSize="16.5"
-                    textColor="@theme/cadran/text3"/>
-            </aurore:Box>
+            <aurore:Header title="@i18n/playshelf/pairing/section" marginTop="24" marginBottom="8"/>
+            <aurore:DetailCell id="sv_pairing" title="@i18n/playshelf/pairing/state"/>
             <aurore:DetailCell id="sv_save" title="@i18n/playshelf/library/save" marginTop="24"/>
             <aurore:DetailCell id="sv_delete" title="@i18n/playshelf/library/delete" marginTop="12"/>
 

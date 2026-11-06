@@ -47,6 +47,7 @@ void add_apps(library::Catalog& catalog, AppIndex& index, std::span<const lanter
         item.size        = app.size;
         item.version     = app.version_code > UINT32_MAX ? UINT32_MAX : (uint32_t)app.version_code;
         item.has_version = true;
+        item.sha256      = std::string(lantern::to_hex(app.sha256).data(), 64);
         item.kind        = kind_of(std::string(app.type), item.title_id);
         index[std::string(app.id)] = catalog.items.size();
         catalog.items.push_back(std::move(item));

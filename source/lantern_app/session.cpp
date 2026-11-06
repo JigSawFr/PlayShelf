@@ -61,51 +61,75 @@ std::string choose(const library::Server& server, Env& env, lantern::CredentialS
     }));
 }
 
+Connected connect(const library::Server& server, Env& env, lantern::CredentialStore& store)
+{
+    Connected c;
+    c.endpoint = choose(server, env, store);
+    if (!c.endpoint.starts_with("https://")) {
+        c.why = "the server has no https:// address";
+        return c;
+    }
+    c.on_lan = !server.lan_url.empty() && c.endpoint == without_slash(server.lan_url);
+
+    prepare_trust(env, server.uid, store);
+    auto created = lantern::Client::create(env.transport, config_of(env, c.endpoint));
+    if (!created) {
+        c.why = describe(created.error());
+        return c;
+    }
+    c.client.emplace(std::move(*created));
+    const auto shake = c.client->handshake();
+    if (!shake) {
+        c.why = describe(shake.error());
+        c.client.reset();
+        return c;
+    }
+    if (!*shake) {
+        c.why = "the server speaks a newer version of Lantern than this one reads";
+        c.client.reset();
+        return c;
+    }
+    const lantern::Handshake& hs = **shake;
+    c.name = library::display_text(std::string(hs.name), 128);
+    c.uid  = std::string(hs.uid);
+    if (!server.uid.empty() && c.uid != server.uid) {
+        c.why = "this is another server than the one that was paired";
+        c.client.reset();
+        return c;
+    }
+    const auto signed_in = c.client->sign_in(store);
+    if (!signed_in) {
+        c.why = describe(signed_in.error());
+        c.client.reset();
+        return c;
+    }
+    if (!*signed_in) {
+        c.status = Status::NotPaired;
+        c.why    = "this console is not paired with the server";
+        c.client.reset();
+        return c;
+    }
+    c.status = Status::Ok;
+    return c;
+}
+
 Fetched fetch(const library::Server& server, Env& env, lantern::CredentialStore& store)
 {
     Fetched f;
-    f.endpoint = choose(server, env, store);
-    if (!f.endpoint.starts_with("https://")) {
-        f.why = "the server has no https:// address";
-        return f;
-    }
-    f.on_lan = !server.lan_url.empty() && f.endpoint == without_slash(server.lan_url);
-
-    prepare_trust(env, server.uid, store);
-    auto created = lantern::Client::create(env.transport, config_of(env, f.endpoint));
-    if (!created) {
-        f.why = describe(created.error());
-        return f;
-    }
-    lantern::Client& client = *created;
-    const auto       shake  = client.handshake();
-    if (!shake) {
-        f.why = describe(shake.error());
-        return f;
-    }
-    if (!*shake) {
-        f.why = "the server speaks a newer version of Lantern than this one reads";
-        return f;
-    }
-    const lantern::Handshake& hs = **shake;
-    f.name = library::display_text(std::string(hs.name), 128);
-    f.uid  = std::string(hs.uid);
-    f.catalog.motd = library::display_text(std::string(hs.motd), 512);
-    if (!server.uid.empty() && f.uid != server.uid) {
-        f.why = "this is another server than the one that was paired";
-        return f;
-    }
-
-    const auto signed_in = client.sign_in(store);
-    if (!signed_in) {
-        f.why = describe(signed_in.error());
-        return f;
-    }
-    if (!*signed_in) {
-        f.status = Status::NotPaired;
-        f.why    = "this console is not paired with the server";
-        return f;
-    }
+    Connected c = connect(server, env, store);
+    f.status   = c.status;
+    f.why      = c.why;
+    f.endpoint = c.endpoint;
+    f.on_lan   = c.on_lan;
+    f.name     = c.name;
+    f.uid      = c.uid;
+    if (c.status != Status::Ok) return f;
+    f.status = Status::Failed;
+    lantern::Client& client = *c.client;
+    f.catalog.motd = library::display_text(std::string(client.server()->motd), 512);
+    f.cheats   = client.offers(lantern::Family::cheats) > 0;
+    f.saves    = client.offers(lantern::Family::saves) > 0;
+    f.requests = client.offers(lantern::Family::requests) > 0;
 
     AppIndex index;
     lantern::AppsQuery query;

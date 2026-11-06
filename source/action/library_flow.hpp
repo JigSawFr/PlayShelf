@@ -17,7 +17,8 @@
 #include <string>
 #include <vector>
 
-#include "library/client.hpp"
+#include "lantern_app/session.hpp"
+#include "library/servers.hpp"
 #include "library/titles.hpp"
 #include "ui/ui.hpp"
 
@@ -27,7 +28,7 @@ namespace library_flow
 struct Loaded
 {
     library::Server              server;   // as it was fetched with
-    library::Fetch               fetch;
+    lantern_app::Fetched         fetch;
     std::vector<library::Title>  titles;
 };
 

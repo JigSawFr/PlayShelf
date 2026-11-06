@@ -77,7 +77,6 @@ class CatalogueTab : public TabBase
     std::vector<GameTile*> tiles;     // the covers built
     std::vector<size_t> tile_titles;  // theirs, as indexes in shown_data->titles
     int         generation = 0;       // the covers' build: an icon arriving for an older one is freed
-    std::string password;             // the server's, for its icons
     // What the grid was built for.
     const void* built_data = nullptr;
     std::string built_key;

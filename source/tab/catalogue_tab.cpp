@@ -265,7 +265,7 @@ void CatalogueTab::show_status()
         text = aurore::getStr("playshelf/library/failed", this->why_failed);
         color = "cadran/coral";
     } else if (this->shown_data) {
-        const library::Fetch& f = this->shown_data->fetch;
+        const lantern_app::Fetched& f = this->shown_data->fetch;
         text = aurore::getStr(f.on_lan ? "playshelf/library/count_lan" : "playshelf/library/count_wan",
                             this->selection.size(), this->shown_data->titles.size());
         if (f.catalog.truncated) text += "\n" + "playshelf/library/truncated"_i18n;
@@ -320,7 +320,6 @@ void CatalogueTab::build_grid(bool force)
     // finds its cover gone (the generation changed) and is dropped.
     library_icons::drop_pending();
     this->generation++;
-    this->password = data ? library::password_of(data->server) : "";
     this->grid_row = nullptr;
     this->built = 0;
     // The covers centred in the tab's room; a shelf scrolls across it all.
@@ -410,8 +409,7 @@ GameTile* CatalogueTab::make_tile(size_t index)
             this->tiles[at]->set_icon(p->rgba.data(), p->width, p->height);
     };
     // The server's icon, else the title database's, else Nlib API's.
-    if (!t.icon_url.empty()) library_icons::get(this->shown_data, this->password, t.icon_url, shown, t.id);
-    else library_icons::local(t.id, shown);
+    library_icons::local(t.id, shown);
     return tile;
 }
 
@@ -512,14 +510,17 @@ void CatalogueTab::server_sheet()
                              "refresh", "", "playshelf/library/group_this"_i18n);
         choices.emplace_back("playshelf/library/edit_server"_i18n, [copy, saved]() { library_flow::edit(copy, saved); },
                              "pencil", "", "playshelf/library/group_this"_i18n);
-        // An AeroFoil server's services, once its catalogue is read.
+        // The server's services, once its catalogue is read.
         if (const auto data = this->shown_data; data && services_flow::offered(*data)) {
-            choices.emplace_back("playshelf/services/cheats"_i18n, [data]() { services_flow::cheats(data); }, "code", "",
-                                 "playshelf/library/group_this"_i18n);
-            choices.emplace_back("playshelf/services/saves"_i18n, [data]() { services_flow::saves(data); }, "save", "",
-                                 "playshelf/library/group_this"_i18n);
-            choices.emplace_back("playshelf/services/requests"_i18n, [data]() { services_flow::requests(data); }, "plus", "",
-                                 "playshelf/library/group_this"_i18n);
+            if (data->fetch.cheats)
+                choices.emplace_back("playshelf/services/cheats"_i18n, [data]() { services_flow::cheats(data); }, "code", "",
+                                     "playshelf/library/group_this"_i18n);
+            if (data->fetch.saves)
+                choices.emplace_back("playshelf/services/saves"_i18n, [data]() { services_flow::saves(data); }, "save", "",
+                                     "playshelf/library/group_this"_i18n);
+            if (data->fetch.requests)
+                choices.emplace_back("playshelf/services/requests"_i18n, [data]() { services_flow::requests(data); }, "plus", "",
+                                     "playshelf/library/group_this"_i18n);
         }
     }
     if (this->servers.size() < library::MAX_SERVERS) {

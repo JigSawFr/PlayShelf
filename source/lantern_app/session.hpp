@@ -6,6 +6,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <lantern/lantern.hpp>
@@ -39,6 +40,7 @@ struct Fetched
     bool            on_lan = false;
     std::string     name;       // the server's own (handshake)
     std::string     uid;
+    bool            cheats = false, saves = false, requests = false;   // what the server offers besides packages
 };
 
 // "category: detail" of an SDK error, for a person.
@@ -47,6 +49,21 @@ std::string describe(const lantern::Error& e);
 // The address to use: the one set, or in Auto the LAN one when its
 // handshake answers, else the WAN one. "" when there is none.
 std::string choose(const library::Server& server, Env& env, lantern::CredentialStore& store);
+
+// A client for `server`, signed in: its address chosen, the key pinned at
+// pairing trusted, its handshake read (the uid must be the paired one) and
+// this console's token loaded. `fetched` tells why not: NotPaired when no
+// token is kept for its uid.
+struct Connected
+{
+    Status                       status = Status::Failed;
+    std::string                  why;
+    std::optional<lantern::Client> client;
+    std::string                  endpoint;
+    bool                         on_lan = false;
+    std::string                  name, uid;
+};
+Connected connect(const library::Server& server, Env& env, lantern::CredentialStore& store);
 
 // The apps and sections of a paired server. NotPaired when no token is kept
 // for its uid (it was never paired, or the credentials were erased).
