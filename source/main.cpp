@@ -50,6 +50,7 @@
 #include "tab/preferences_tab.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "util/cpu_boost.hpp"
 #include "util/crash_dump.h"
 #include "util/crash_report.hpp"
 #include "util/diagnostics.hpp"
@@ -285,6 +286,7 @@ void shut_down()
     http::abort_all();
     ui::finish_background(std::chrono::seconds(3));
     frame_stats_flow::stop();
+    cpu_boost::release_all();
     app::shutdown();
     http::cleanup();
     aurore::Logger::info("quit: after {} s", session_log::uptime_s());

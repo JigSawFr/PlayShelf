@@ -22,6 +22,8 @@
 #include "install/compress_title.hpp"
 #include "install/console_core.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
+#include "util/cpu_boost.hpp"
 #include "util/paths.hpp"
 #include "util/title_id.hpp"
 
@@ -216,6 +218,7 @@ void run_session(const std::shared_ptr<Session>& s)
     s->percent = -1;
     s->dialog = std::make_shared<Progress>("Compressing", s->name, &s->cancel);
     ui::in_background("compress-run", [s]() {
+        cpu_boost::Guard boost(config::get().cpu_boost);
         const Done d = s->engine->run();
         aurore::sync([s, d]() {
             const bool cancelled = s->cancel.load();
