@@ -171,6 +171,11 @@ lantern_session_SRC   := source/lantern/session.cpp source/lantern/catalog_map.c
 lantern_session_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_session_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_session: $(LANTERN_LIB)
+# The system under the Lantern client: random bytes, the time, the discovery socket.
+lantern_system_SRC   := source/lantern/system.cpp tests/lantern_system/test.cpp
+lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_system_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_system: $(LANTERN_LIB)
 
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
