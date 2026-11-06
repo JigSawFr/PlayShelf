@@ -46,6 +46,16 @@ int main()
         t.tick(20 * MIN + WARN_MS, 0, false, 5, true);
         CHECK(t.tick(21 * MIN, 0, false, 0, true) == Action::PanelOn);
     }
+    // After a wake-up the idle clock starts again, though the screen saw no input (it was blocked).
+    {
+        Timer t;
+        t.tick(5 * MIN, 0, false, 5, true);
+        t.tick(5 * MIN + WARN_MS, 0, false, 5, true);
+        CHECK(t.tick(20 * MIN, 0, true, 5, true) == Action::PanelOn);
+        CHECK(t.tick(20 * MIN + 1000, 0, false, 5, true) == Action::None && t.phase() == Phase::Awake);
+        CHECK(t.tick(25 * MIN - 1, 0, false, 5, true) == Action::None);
+        CHECK(t.tick(25 * MIN, 0, false, 5, true) == Action::ShowWarning);
+    }
     // A button held at the moment the minutes are up keeps the screen on.
     {
         Timer t;

@@ -30,5 +30,6 @@ public:
 private:
     Phase   state = Phase::Awake;
     int64_t since = 0;   // when the warning showed
+    int64_t woke = 0;    // when the panel last came back on
 };
 }   // namespace screen_timer
