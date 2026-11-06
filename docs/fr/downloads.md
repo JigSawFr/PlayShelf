@@ -1,7 +1,7 @@
-<!-- translated from docs/downloads.md, sha256 7d7056579f59 -->
+<!-- translated from docs/downloads.md, sha256 bc7d1d598764 -->
 # Téléchargements
 
-La fiche d'un jeu dans le *Catalogue* ajoute ses paquets aux **Téléchargements** : son jeu de base, ses mises à jour et ses contenus additionnels, chacun étant un paquet. Ils sont installés l'un après l'autre, directement du serveur vers la console : rien n'est d'abord enregistré en entier sur la carte SD.
+La fiche d'un jeu dans le *Catalogue* ajoute ses paquets aux **Téléchargements** : son jeu de base, ses mises à jour et ses contenus additionnels, chacun étant un paquet. Ils sont installés l'un après l'autre. Chaque paquet est d'abord écrit en entier sur la carte SD, où le client Lantern vérifie sa taille et son SHA-256 d'après ce que le serveur a annoncé, puis installé depuis ce fichier, supprimé une fois l'installation faite. Il prend la taille du paquet sur la carte SD, en plus de son installation.
 
 ## La file
 
@@ -33,7 +33,7 @@ Un contenu qui n'est pas signé par Nintendo arrête son paquet : il a peut-êtr
 Sous la file, et dans [`config.json`](../config.md) :
 
 - **Rester éveillé pendant les téléchargements** : la console ne se met pas en veille d'elle-même pendant les téléchargements (activé par défaut).
-- **Connexions par téléchargement**, de 1 à 8 (4 par défaut) : combien de requêtes un téléchargement fait à la fois, chacune pour un morceau de 4 Mo du paquet. Plus de connexions aident avec un serveur qui sert chaque connexion lentement.
+- **Connexions par téléchargement**, de 1 à 8 (4 par défaut) : combien de requêtes fait à la fois *Installer depuis une URL* (*À propos › Aide et diagnostic*), chacune pour un morceau de 4 Mo du paquet. Les paquets d'un serveur de bibliothèque arrivent par une seule connexion, reprise là où elle s'était arrêtée.
 - **Télécharger à l'avance** : pendant qu'un paquet s'installe, le suivant ou les deux suivants sont récupérés sur la carte SD, quand elle a la place pour eux et pour leur installation ; leur installation part alors du fichier. Chacun occupe deux fois sa taille sur la carte SD jusqu'à son installation (désactivé par défaut).
 
 ## Avant la première installation
