@@ -118,7 +118,8 @@ if (PLATFORM_SWITCH)
 elseif (PLAYSHELF_WEB)
     # No libcurl in a browser (source/sim/web_http.cpp answers instead);
     # zstd and libwebp, which Emscripten has no port of, built from their
-    # releases' decoders (the app only reads .ncz contents and WebP icons).
+    # releases: zstd's decoder for the .ncz contents and its encoder for the
+    # report as QR codes (util/report_qr), WebP's decoder for the icons.
     include(FetchContent)
     FetchContent_Declare(zstd
         URL https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz
@@ -127,7 +128,8 @@ elseif (PLAYSHELF_WEB)
     if (NOT zstd_POPULATED)
         FetchContent_Populate(zstd)
     endif ()
-    file(GLOB PLAYSHELF_ZSTD_SRC ${zstd_SOURCE_DIR}/lib/common/*.c ${zstd_SOURCE_DIR}/lib/decompress/*.c)
+    file(GLOB PLAYSHELF_ZSTD_SRC ${zstd_SOURCE_DIR}/lib/common/*.c ${zstd_SOURCE_DIR}/lib/decompress/*.c
+                              ${zstd_SOURCE_DIR}/lib/compress/*.c)
     add_library(playshelf_zstd STATIC ${PLAYSHELF_ZSTD_SRC})
     target_include_directories(playshelf_zstd PUBLIC ${zstd_SOURCE_DIR}/lib)
     target_compile_definitions(playshelf_zstd PRIVATE ZSTD_DISABLE_ASM ZSTD_MULTITHREAD=0)

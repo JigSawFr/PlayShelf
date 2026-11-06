@@ -170,6 +170,8 @@ compressed_storage_LIBS := -llz4
 # The integrity tree of a RomFS section.
 ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
 # An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
+report_qr_SRC  := $(K)/util/report_qr.cpp tests/report_qr/test.cpp
+report_qr_LIBS := -lzstd
 screen_timer_SRC := source/util/screen_timer.cpp tests/screen_timer/test.cpp
 cpu_boost_SRC := source/util/cpu_boost.cpp tests/cpu_boost/test.cpp
 crypto_SRC := $(K)/util/crypto_backend.cpp $(K)/util/crypto_bench.cpp $(K)/util/crypto_hw.cpp $(K)/util/aes.cpp $(K)/util/sha256.cpp tests/crypto/test.cpp
@@ -391,6 +393,8 @@ FUZZ_CC      ?= clang
 FUZZ_CXX     ?= clang++
 FUZZ_SAN     := -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer -g -O1
 FUZZ_CFLAGS  := -Wall -Wextra -Wshadow -Werror -D_GLIBCXX_ASSERTIONS $(FUZZ_SAN) -Itests/fuzz -Isource -Isource/kit -isystem library/aurore/library/include
+report_qr_FUZZ    := $(filter-out tests/%,$(report_qr_SRC)) tests/fuzz/report_qr/fuzz.cpp
+report_qr_FUZZ_LIBS := -lzstd
 zip_read_FUZZ      := source/kit/util/zip_read.cpp tests/fuzz/zip_read/fuzz.cpp
 zip_read_FUZZ_LIBS := -lz
 changelog_FUZZ     := $(filter-out tests/%,$(changelog_SRC)) tests/fuzz/changelog/fuzz.cpp
@@ -448,6 +452,8 @@ check: test
 	python3 tools/check_resources.py .
 	python3 tools/check_sources.py .
 	python3 tools/gen_compat.py . $(BUILD)/compat.json
+	REPORT_QR_FIXTURE=$(BUILD)/report_qr.fixture $(BUILD)/host-tests/report_qr >/dev/null
+	python3 tests/decode_report/test.py $(BUILD)/report_qr.fixture
 
 clean:
 	@echo clean ...
