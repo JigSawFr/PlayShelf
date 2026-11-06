@@ -126,6 +126,9 @@
     "applet": {
       "label": "애플릿 모드(앨범에서 실행)"
     },
+    "from_forwarder": {
+      "label": "Started from a forwarder's icon (the kit reads it)"
+    },
     "background": {
       "label": "PlayShelf가 백그라운드에 있음"
     },
