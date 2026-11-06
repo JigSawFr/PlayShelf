@@ -36,6 +36,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `dev_mode` | `true`, `false` | `false` | The developer tools (seven presses of Ⓨ on *About › Version*) |
 | `frame_stats` | `true`, `false` | `false` | *Developer › Frame statistics* |
 | `crypto` | `auto`, `software`, `hardware` | `auto` | *Developer › Encryption (AES, SHA-256)*: what installs decrypt and hash with. The console's CPU has instructions for both: `auto` and `hardware` use them once they have answered known test values the way the portable code does (a CPU that fails them is left aside, said in the log); `software` never does. *Encryption benchmark* measures both in MB/s. Each install writes its pace to the log. |
+| `cpu_boost` | `true`, `false` | `true` | *Developer › CPU boost while installing*: the console's CPU is raised (libnx's fast-load mode) while an install or a compression runs, and put back after, on any way out. Each install writes its pace to the log, to compare. |
 | `cadran_glow` | `true`, `false` | `true` | *Developer › Background glow* |
 | `library_view` | `grid`, `list` | `grid` | *Library*, Ⓨ: the games as covers or as a list |
 | `dev_builds_order` | `newest`, `number` | `newest` | The order of the pull requests in *Install another build* |

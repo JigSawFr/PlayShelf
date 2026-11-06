@@ -25,6 +25,7 @@
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "util/cpu_boost.hpp"
 #include "util/crypto_backend.hpp"
 #include "util/http.hpp"
 #include "util/listeners.hpp"
@@ -271,6 +272,7 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
     }
     o.total = inst.bytes_to_write();
     const auto  began = std::chrono::steady_clock::now();
+    cpu_boost::Guard boost(config::get().cpu_boost);
     const Done ran = inst.run();
     const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - began).count();
     // The pace of the install, with what it ran on (Developer › Encryption), to compare settings.
