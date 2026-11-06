@@ -150,6 +150,11 @@ HelpTab::HelpTab()
         config::get().look.glow = on;
         ui::save_config();
     });
+    // Raised while an install or a compression runs; English like the cells beside it.
+    dev_cpu_boost->init("CPU boost while installing", config::get().cpu_boost, [](bool on) {
+        config::get().cpu_boost = on;
+        ui::save_config();
+    });
     this->stats_timer.setPeriod(1000);
     this->stats_timer.setCallback([this]() { this->update_frame_stats(); });
     dev_crypto->registerClickAction([this](aurore::View*) {
@@ -191,7 +196,7 @@ HelpTab::HelpTab()
     list.apply({ { "hp_export", "file" }, { "hp_github", "user" }, { "hp_mode", "gamepad" }, { "hp_data", "folder" },
                  { "hp_logs_keep", "folder" }, { "hp_logs_keep_days", "calendar" },
                  { "hp_logs_keep_mb", "save" }, { "hp_dev_mode", "code" }, { "hp_dev_read_only", "eye" },
-                 { "hp_dev_frame_stats", "activity" }, { "hp_dev_glow", "sparkle" },
+                 { "hp_dev_frame_stats", "activity" }, { "hp_dev_glow", "sparkle" }, { "hp_dev_cpu_boost", "bolt" },
                  { "hp_dev_crypto", "lock" }, { "hp_dev_crypto_bench", "activity" },
                  { "hp_dev_clear_cache", "trash" }, { "hp_dev_clear_logs", "trash" },
                  { "hp_dev_report", "file" }, { "hp_dev_build", "download" },
@@ -215,6 +220,7 @@ void HelpTab::refresh()
     dev_read_only->setOn(ro, false);
     dev_frame_stats->setOn(cfg.frame_stats, false);
     dev_glow->setOn(cfg.look.glow, false);
+    dev_cpu_boost->setOn(cfg.cpu_boost, false);
     dev_crypto->setDetailText(crypto_flow::text());
     this->update_frame_stats();
     const bool signed_in = !github_auth::token().empty();
@@ -226,6 +232,7 @@ void HelpTab::refresh()
                           { dev_frame_stats_note.getView(), dev },
                           { dev_frame_stats_last.getView(), dev && frame_stats_flow::running() },
                           { dev_glow.getView(), dev },
+                          { dev_cpu_boost.getView(), dev },
                           { dev_crypto.getView(), dev },
                           { dev_crypto_bench.getView(), dev },
                           { dev_clear_cache.getView(), dev },

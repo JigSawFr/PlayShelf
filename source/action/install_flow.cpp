@@ -16,6 +16,8 @@
 #include "install/http_source.hpp"
 #include "install/installer.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
+#include "util/cpu_boost.hpp"
 #include "util/title_id.hpp"
 
 using namespace aurore::literals;
@@ -182,6 +184,7 @@ Outcome install_one(const Package& p, install::SignaturePolicy policy, Progress&
     for (const TitlePlan& t : inst.plan())
         out.titles += (out.titles.empty() ? "" : ", ") + title_id::text(t.meta.title_id);
     progress.written(0, inst.bytes_to_write());
+    cpu_boost::Guard boost(config::get().cpu_boost);
     const Done ran = inst.run();
     out.ok = ran.has_value();
     if (!ran) out.why = ran.error();

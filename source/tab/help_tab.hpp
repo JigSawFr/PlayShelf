@@ -38,6 +38,7 @@ class HelpTab : public TabBase
     AURORE_BIND(aurore::BooleanCell, dev_read_only, "hp_dev_read_only");
     AURORE_BIND(aurore::BooleanCell, dev_frame_stats, "hp_dev_frame_stats");
     AURORE_BIND(aurore::BooleanCell, dev_glow, "hp_dev_glow");
+    AURORE_BIND(aurore::BooleanCell, dev_cpu_boost, "hp_dev_cpu_boost");
     AURORE_BIND(aurore::Label,       dev_frame_stats_note, "hp_dev_frame_stats_note");
     AURORE_BIND(aurore::Label,       dev_frame_stats_last, "hp_dev_frame_stats_last");
     AURORE_BIND(aurore::DetailCell,  dev_crypto,  "hp_dev_crypto");

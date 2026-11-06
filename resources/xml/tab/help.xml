@@ -46,6 +46,7 @@
             <aurore:Label id="hp_dev_frame_stats_note" text="@i18n/playshelf/dev/frame_stats_note" fontSize="20" marginTop="10" marginBottom="6" textColor="@theme/cadran/text3"/>
             <aurore:Label id="hp_dev_frame_stats_last" fontSize="18" marginBottom="10" textColor="@theme/cadran/text3"/>
             <aurore:BooleanCell id="hp_dev_glow"/>
+            <aurore:BooleanCell id="hp_dev_cpu_boost"/>
             <aurore:DetailCell id="hp_dev_crypto" title="Encryption (AES, SHA-256)"/>
             <aurore:DetailCell id="hp_dev_crypto_bench" title="Encryption benchmark"/>
             <aurore:DetailCell id="hp_dev_clear_cache" title="@i18n/playshelf/dev/clear_cache"/>
