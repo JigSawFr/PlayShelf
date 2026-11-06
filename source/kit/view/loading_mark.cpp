@@ -42,6 +42,34 @@ int icon_texture(NVGcontext* vg)
     }
     return texture;
 }
+// The aurora's three curtains (branding/aurora-loader.svg of boreale, the loader
+// of the brand's other screens) swaying behind the mark: a 3 s loop, the
+// curtains a third of a loop apart, the gradient from teal to violet.
+constexpr float CURTAIN_LOOP_S = 3.0f;
+
+void draw_curtains(NVGcontext* vg, float cx, float cy, float size, double seconds, float alpha)
+{
+    const float half = size * 1.3f;                    // wider than the mark: they show at its sides
+    const float x0 = cx - half, x1 = cx + half, w = 2.0f * half;
+    const float sway = size * 0.16f;
+    const float gap = size * 0.094f;
+    const float opacity[3] = { 0.45f, 0.8f, 0.45f };
+    for (int k = 0; k < 3; ++k) {
+        const float phase = (float)std::fmod(seconds / CURTAIN_LOOP_S + k / 3.0, 1.0);
+        const float s = sway * std::cos(phase * 2.0f * PI);
+        const float y = cy + (k - 1) * gap;
+        const NVGpaint paint = nvgLinearGradient(vg, x0, cy, x1, cy, with_alpha(AURORA_TEAL, opacity[k] * alpha),
+                                                 with_alpha(AURORA_VIOLET, opacity[k] * alpha));
+        nvgBeginPath(vg);
+        nvgMoveTo(vg, x0, y);
+        nvgBezierTo(vg, x0 + w * 0.195f, y - s, x0 + w * 0.352f, y + s, cx, y);
+        nvgBezierTo(vg, x0 + w * 0.648f, y - s, x0 + w * 0.805f, y - s, x1, y);
+        nvgStrokeWidth(vg, size * 0.086f);
+        nvgLineCap(vg, NVG_ROUND);
+        nvgStrokePaint(vg, paint);
+        nvgStroke(vg);
+    }
+}
 }   // namespace
 
 LoadingMark::LoadingMark()
@@ -77,6 +105,8 @@ void LoadingMark::draw(NVGcontext* vg, float x, float y, float width, float heig
         nvgFillPaint(vg, glow);
         nvgFill(vg);
     }
+    // The curtains too, where the screen moves (the smoke test's stands still).
+    if (!this->still) draw_curtains(vg, cx, cy, size, (double)aurore::getCPUTimeUsec() / 1e6, this->getAlpha());
 
     // The theme's logo when it has one (`logo =`, loaded), fitted in the
     // icon's square as Cadran fits it in its mark; asked at each frame, so
