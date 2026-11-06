@@ -91,19 +91,21 @@ class DemoTransport final : public lantern::Transport
     {
         uint64_t size = 0;
         if (!size_of(path, &size)) return answer(h, 404, "{\"status\": 404}", "application/problem+json");
-        uint64_t from = 0;
+        uint64_t from = 0, to = size ? size - 1 : 0;   // inclusive
         bool     ranged = false;
         const std::string range = header_of(r, "Range");
         if (range.starts_with("bytes=")) {
-            from = std::strtoull(range.c_str() + 6, nullptr, 10);
+            char* dash = nullptr;
+            from = std::strtoull(range.c_str() + 6, &dash, 10);
+            if (dash && *dash == '-' && dash[1] != '\0') to = std::min<uint64_t>(std::strtoull(dash + 1, nullptr, 10), to);
             ranged = true;
         }
         if (from >= size && size > 0) return answer(h, 416, "{\"status\": 416}", "application/problem+json");
         if (!h.on_status(ranged ? 206 : 200)) return {};
         if (!h.on_header("Content-Type", "application/octet-stream") || !h.on_header("Accept-Ranges", "bytes") ||
-            !h.on_header("Content-Length", std::to_string(size - from)) || !h.on_header("ETag", "\"demo\"")) return {};
+            !h.on_header("Content-Length", std::to_string(to - from + 1)) || !h.on_header("ETag", "\"demo\"")) return {};
         if (ranged &&
-            !h.on_header("Content-Range", "bytes " + std::to_string(from) + "-" + std::to_string(size - 1) + "/" + std::to_string(size)))
+            !h.on_header("Content-Range", "bytes " + std::to_string(from) + "-" + std::to_string(to) + "/" + std::to_string(size)))
             return {};
         FILE* f = std::fopen(path.c_str(), "rb");
         if (!f || std::fseek(f, (long)from, SEEK_SET) != 0) {
@@ -111,7 +113,7 @@ class DemoTransport final : public lantern::Transport
             return lantern::fail(lantern::Category::transport, "the file could not be read");
         }
         std::vector<std::byte> buf(SLICE);
-        uint64_t left = size - from;
+        uint64_t left = size ? to - from + 1 : 0;
         while (left > 0) {
             const size_t n = std::fread(buf.data(), 1, (size_t)std::min<uint64_t>(SLICE, left), f);
             if (n == 0) break;

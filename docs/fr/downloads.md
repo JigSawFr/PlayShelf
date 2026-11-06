@@ -1,7 +1,7 @@
-<!-- translated from docs/downloads.md, sha256 bc7d1d598764 -->
+<!-- translated from docs/downloads.md, sha256 432ffe63f4c5 -->
 # Téléchargements
 
-La fiche d'un jeu dans le *Catalogue* ajoute ses paquets aux **Téléchargements** : son jeu de base, ses mises à jour et ses contenus additionnels, chacun étant un paquet. Ils sont installés l'un après l'autre. Chaque paquet est d'abord écrit en entier sur la carte SD, où le client Lantern vérifie sa taille et son SHA-256 d'après ce que le serveur a annoncé, puis installé depuis ce fichier, supprimé une fois l'installation faite. Il prend la taille du paquet sur la carte SD, en plus de son installation.
+La fiche d'un jeu dans le *Catalogue* ajoute ses paquets aux **Téléchargements** : son jeu de base, ses mises à jour et ses contenus additionnels, chacun étant un paquet. Ils sont installés l'un après l'autre. Chaque paquet est installé à mesure qu'il arrive, lu sur le serveur par plages signées (les requêtes `Range` du client Lantern) : rien n'est écrit d'abord sur la carte SD, il ne prend donc pas de place en plus de son installation. Un paquet récupéré à l'avance (voir plus bas) est lu depuis son fichier sur la carte SD, que le client a vérifié d'après la taille et le SHA-256 du serveur à mesure qu'il s'écrivait, et qui est supprimé une fois le paquet installé.
 
 ## La file
 
