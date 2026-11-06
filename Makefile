@@ -222,13 +222,11 @@ compress_title_LIBS := -llz4
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
 install_txn_LIBS := -lzstd
-# The library client's formats (source/library/: catalogues, addresses,
-# discovery, endpoints, certificate pins), with the kit's SHA-256.
-LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp $(KIT)/util/sha256.cpp
+# The library's neutral parts (source/library/: addresses, endpoints, title ids).
+LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp
 library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
-# A server's catalogue fetched (a scripted network) and the servers' file.
-library_client_SRC := $(filter-out $(KIT)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
-                      $(SECRET_BOX) $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/library_client/test.cpp
+# The servers' file: its schema, the carry-over of schema 1.
+library_servers_SRC := source/library/servers.cpp source/library/server.cpp $(KIT)/util/paths.cpp tests/library_servers/test.cpp
 library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp tests/library_titles/test.cpp
 # What is known of the games beyond their catalogue (Nlib API's), kept on
 # the SD card.
@@ -242,9 +240,8 @@ library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
 save_archive_SRC  := source/saves/archive.cpp $(KIT)/util/zip_write.cpp $(KIT)/util/paths.cpp tests/save_archive/test.cpp
 save_archive_LIBS := -lz
-# AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
-library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(KIT)/util/paths.cpp \
-                        tests/library_services/test.cpp
+# The cheat files on the SD card: build ids, their paths, those installed.
+library_services_SRC := source/library/services.cpp $(KIT)/util/paths.cpp tests/library_services/test.cpp
 # What Atlas knows of each game beyond its popularity (games.json,
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
@@ -399,11 +396,8 @@ install_package_FUZZ_LIBS := -lzstd
 install_bktr_FUZZ       := $(filter-out tests/%,$(bktr_SRC)) tests/fuzz/install_bktr/fuzz.cpp
 install_ivfc_FUZZ       := $(filter-out tests/%,$(ivfc_SRC)) tests/fuzz/install_ivfc/fuzz.cpp
 install_recompress_FUZZ := $(filter-out tests/%,$(recompress_SRC)) tests/fuzz/install_recompress/fuzz.cpp
-library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
-library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
 save_archive_FUZZ      := source/saves/archive.cpp tests/fuzz/save_archive/fuzz.cpp
 save_archive_FUZZ_LIBS := -lz
-library_services_FUZZ  := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp tests/fuzz/library_services/fuzz.cpp
 titledb_FUZZ           := $(filter-out tests/%,$(titledb_SRC)) tests/fuzz/titledb/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))
