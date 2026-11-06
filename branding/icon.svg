@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <!-- PlayShelf's icon: a shelf of games under Aurore's aurora, its shelves lit by it. Full-bleed: the console, the stores and the phones round its corners; <image href="icon.svg"> elsewhere rounds them itself. -->
+  <!-- PlayShelf's icon, written by tools/brand.py: its mark's frame in the aurora's colours around a night sky, the aurora, its drawing in snow. Full-bleed: the consoles, the stores and the phones round its corners; <image href="icon.svg"> elsewhere rounds them itself. -->
   <defs>
     <linearGradient id="i-night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0A1020"/><stop offset="1" stop-color="#16203A"/></linearGradient>
     <linearGradient id="i-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B1430"/><stop offset="1" stop-color="#132A44"/></linearGradient>
@@ -23,12 +23,7 @@
     <g mask="url(#i-fade)"><rect x="20" y="20" width="216" height="200" fill="url(#i-colour)" mask="url(#i-curtain-mask)"/></g>
     <path d="M40 120 C 80 92, 110 128, 148 100 S 196 74, 220 84" fill="none" stroke="url(#i-colour)" stroke-width="6" filter="url(#i-line-glow)"/>
     <path d="M40 120 C 80 92, 110 128, 148 100 S 196 74, 220 84" fill="none" stroke="url(#i-colour)" stroke-width="3" stroke-linecap="round"/>
-    <g fill="#0A1020" stroke="#2A3F66" stroke-width="2">
-      <rect x="62" y="74" width="26" height="40" rx="5"/><rect x="94" y="84" width="22" height="30" rx="5"/><rect x="150" y="70" width="28" height="44" rx="5"/>
-      <rect x="70" y="134" width="30" height="44" rx="5"/><rect x="126" y="142" width="22" height="36" rx="5"/><rect x="154" y="132" width="26" height="46" rx="5"/>
-    </g>
-    <path d="M52 118 L 204 118 M52 182 L 204 182" stroke="url(#i-colour)" stroke-width="9" stroke-linecap="round" filter="url(#i-line-glow)" opacity="0.8"/>
-    <path d="M52 118 L 204 118 M52 182 L 204 182" stroke="url(#i-colour)" stroke-width="7" stroke-linecap="round"/>
+    <g fill="#0A1020" stroke="#2A3F66" stroke-width="2"><rect x="62" y="74" width="26" height="40" rx="5"/><rect x="94" y="84" width="22" height="30" rx="5"/><rect x="150" y="70" width="28" height="44" rx="5"/><rect x="70" y="134" width="30" height="44" rx="5"/><rect x="126" y="142" width="22" height="36" rx="5"/><rect x="154" y="132" width="26" height="46" rx="5"/></g><path d="M52 118 L 204 118 M52 182 L 204 182" stroke="url(#i-colour)" stroke-width="9" stroke-linecap="round" filter="url(#i-line-glow)" opacity="0.8"/><path d="M52 118 L 204 118 M52 182 L 204 182" stroke="url(#i-colour)" stroke-width="7" stroke-linecap="round"/>
   </g>
   <path d="M58 40 L 198 40 Q 214 40 214 56 L 214 200 Q 214 216 198 216 L 58 216 Q 42 216 42 200 L 42 56 Q 42 40 58 40 Z" fill="none" stroke="url(#i-frame-colour)" stroke-width="10" stroke-linejoin="round" filter="url(#i-glow)" opacity="0.6"/>
   <path d="M58 40 L 198 40 Q 214 40 214 56 L 214 200 Q 214 216 198 216 L 58 216 Q 42 216 42 200 L 42 56 Q 42 40 58 40 Z" fill="none" stroke="url(#i-frame-colour)" stroke-width="8" stroke-linejoin="round"/>
