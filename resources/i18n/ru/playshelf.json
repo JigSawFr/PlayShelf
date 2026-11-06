@@ -270,6 +270,7 @@
         "source": "Исходный код",
         "update": "Проверить обновления",
         "update_daily": "Проверять обновления ежедневно",
+        "sphaira_entry": "Запись в меню GitHub в sphaira",
         "update_last": "Проверено: {}",
         "flag_read_only": "только чтение",
         "flag_dev": "разработчик",

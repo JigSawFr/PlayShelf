@@ -270,6 +270,7 @@
         "source": "原始碼",
         "update": "檢查更新",
         "update_daily": "每天檢查更新",
+        "sphaira_entry": "在 sphaira 的 GitHub 選單中顯示",
         "update_last": "上次檢查：{}",
         "flag_read_only": "唯讀",
         "flag_dev": "開發者",

@@ -270,6 +270,7 @@
         "source": "Source code",
         "update": "Check for updates",
         "update_daily": "Check for updates every day",
+        "sphaira_entry": "Entry in sphaira's GitHub menu",
         "update_last": "Last checked {}",
         "flag_read_only": "read-only",
         "flag_dev": "developer",
