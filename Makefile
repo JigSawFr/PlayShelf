@@ -165,7 +165,6 @@ ivfc_SRC := source/install/ivfc.cpp $(KIT)/util/sha256.cpp tests/ivfc/test.cpp
 # An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
 report_qr_SRC  := $(K)/util/report_qr.cpp tests/report_qr/test.cpp
 report_qr_LIBS := -lzstd
-screen_timer_SRC := source/util/screen_timer.cpp tests/screen_timer/test.cpp
 cpu_boost_SRC := source/util/cpu_boost.cpp tests/cpu_boost/test.cpp
 
 bktr_SRC  := $(INSTALL_FORMATS) source/install/bktr.cpp source/install/ivfc.cpp tests/bktr/test.cpp
