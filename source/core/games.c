@@ -5,7 +5,7 @@
 #include <string.h>
 #include <switch.h>
 
-#include "kit/core/nacp.h"
+#include "core/nacp.h"
 
 // NacpStruct's display_version: 0x10 bytes at 0x3060.
 #define NACP_DISPLAY_VERSION      0x3060

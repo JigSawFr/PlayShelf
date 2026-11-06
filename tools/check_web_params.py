@@ -48,7 +48,9 @@ def main():
     errors, warnings = [], []
 
     read, once = set(), set()
-    for folder, _, files in os.walk(os.path.join(root, "source")):
+    # The app's sources and the kit's (library/boreale-kit, a submodule).
+    walk = [entry for base in ("source", "library/boreale-kit/source") for entry in os.walk(os.path.join(root, base))]
+    for folder, _, files in walk:
         for name in files:
             if name.endswith((".c", ".cpp", ".h", ".hpp")):
                 with open(os.path.join(folder, name), encoding="utf-8", errors="replace") as f:

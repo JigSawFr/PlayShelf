@@ -3,26 +3,22 @@
 
 #include "core/nx_types.h"
 
-#include <iterator>
-
 namespace error_hint_logic
 {
 
 const char* hint_key(uint32_t rc)
 {
     if (NXM_IS_APP_RESULT(rc)) {
-        // By description: NXM_RC_READ_ONLY is 1.
-        static const char* const OWN[] = {
-            "",                   // 0: not used
-            "read_only",          // NXM_RC_READ_ONLY
-            "not_confirmed",      // NXM_RC_NOT_CONFIRMED
-            "invalid_argument",   // NXM_RC_INVALID_ARGUMENT
-            "fw_unsupported",     // NXM_RC_FW_UNSUPPORTED
-            "not_saved",          // NXM_RC_NOT_SAVED
-            "cancelled",          // NXM_RC_CANCELLED
-        };
-        const uint32_t desc = NXM_RESULT_DESC(rc);
-        return desc < std::size(OWN) ? OWN[desc] : "";
+        // By description, whatever the number: the kit's NXM_RC_* are shared with other apps.
+        switch (NXM_RESULT_DESC(rc)) {
+            case NXM_RESULT_DESC(NXM_RC_READ_ONLY):        return "read_only";
+            case NXM_RESULT_DESC(NXM_RC_NOT_CONFIRMED):    return "not_confirmed";
+            case NXM_RESULT_DESC(NXM_RC_INVALID_ARGUMENT): return "invalid_argument";
+            case NXM_RESULT_DESC(NXM_RC_FW_UNSUPPORTED):   return "fw_unsupported";
+            case NXM_RESULT_DESC(NXM_RC_NOT_SAVED):        return "not_saved";
+            case NXM_RESULT_DESC(NXM_RC_CANCELLED):        return "cancelled";
+            default: return "";
+        }
     }
     switch (rc) {
         case 0xF601: return "session_closed";   // 2001-0123 SessionClosed

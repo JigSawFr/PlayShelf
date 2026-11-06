@@ -126,6 +126,9 @@
     "applet": {
       "label": "Режим апплета (из альбома)"
     },
+    "from_forwarder": {
+      "label": "Started from a forwarder's icon (the kit reads it)"
+    },
     "background": {
       "label": "PlayShelf в фоне"
     },

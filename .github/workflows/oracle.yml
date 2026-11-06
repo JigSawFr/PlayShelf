@@ -9,16 +9,14 @@ on:
     branches: [ main ]
     paths:
       - source/install/**
-      - source/kit/util/aes.*
-      - source/kit/util/sha256.*
+      - library/boreale-kit
       - tests/oracle/**
       - tests/install/**
       - .github/workflows/oracle.yml
   pull_request:
     paths:
       - source/install/**
-      - source/kit/util/aes.*
-      - source/kit/util/sha256.*
+      - library/boreale-kit
       - tests/oracle/**
       - tests/install/**
       - .github/workflows/oracle.yml
@@ -38,6 +36,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # AES and SHA-256 are the kit's (library/boreale-kit).
+          submodules: true
       # liblz4 for the engine's codec; the .NET SDK (any recent one: the reader
       # targets net8.0 and runs on the newer runtime, DOTNET_ROLL_FORWARD) is the
       # runner image's, else Ubuntu's; LibHac, a NuGet package, is fetched by

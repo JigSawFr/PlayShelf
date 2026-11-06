@@ -11,11 +11,6 @@ Errors:
 - an include going up the layers: ui/, view/ and util/ (the kit's and the
   app's) never include activity/ or tab/; a flow of action/ includes only
   the screens it opens itself, listed below with why;
-- a C file of source/kit/core that needs no console service (every one but
-  the CONSOLE_ONLY ones below) missing from the desktop build's list
-  (CMakeLists.txt, which leaves source/kit/core/*.c out and adds those back
-  by hand: the simulator shares them) or from the host tests' sources
-  (Makefile); a name below that is no file any more.
 
 Usage: tools/check_sources.py [repo-root]
 """
@@ -41,7 +36,9 @@ def sources(folder):
 # and its settings. Everything else of the app reaches the kit through
 # ui::hooks.
 APP_CONTRACT = {"app.hpp", "app_id.h", "util/config.hpp"}
-kit_files = {rel[len("source/kit/"):] for rel, _ in sources("source/kit")}
+# The kit's other half is the submodule library/boreale-kit (its own CI checks it).
+kit_files = {rel[len("source/kit/"):] for rel, _ in sources("source/kit")} | \
+            {rel[len("library/boreale-kit/source/"):] for rel, _ in sources("library/boreale-kit/source")}
 # boreale-link (library/boreale-link), the C layer the kit stands on, as on Aurore.
 link_files = set(os.listdir(os.path.join(ROOT, "library/boreale-link/source"))) \
     if os.path.isdir(os.path.join(ROOT, "library/boreale-link/source")) else set()
@@ -60,7 +57,7 @@ for rel, text in sources("source/kit"):
 
 # --------------------------------------------------------------- layers
 # Below the screens: never activity/ nor tab/.
-LOWER = ["source/kit/ui", "source/kit/view", "source/kit/util", "source/ui", "source/view", "source/util"]
+LOWER = ["source/kit/ui", "source/kit/view", "source/ui", "source/view", "source/util"]
 UPWARD = re.compile(r'^\s*#\s*include\s+"((?:activity|tab)/[^"]+)"', re.M)
 
 # A flow that opens its own screen includes it (the flow is the screen's way
@@ -91,23 +88,6 @@ for rel, allowed in sorted(ACTION_SCREENS.items()):
     for inc in sorted(allowed - {i for r, i in seen if r == rel}):
         errors.append(f'tools/check_sources.py: ACTION_SCREENS lists "{inc}" for {rel}, which does not include it')
 
-# ------------------------------------------------------- source/kit/core
-# The console's own: the simulator stands in for them on the desktop
-# (source/kit/sim/), or the desktop has no use for them.
-CONSOLE_ONLY = {
-    "crash_handler.c": "the console's exception handler",
-    "device_key.c": "sim_device_key.cpp",
-    "local_time.c": "sim_local_time.c",
-    "nacp.c": "a homebrew's control data, read on the console only for now",
-    "nacp_read.c": "the same",
-    "platform.c": "sim_platform.cpp",
-    "startup_hook.c": "libnx's userAppInit",
-    "sysinfo.c": "sim_sysinfo.c",
-}
-# Console-free, but neither in the desktop build nor host-tested yet.
-NOT_ON_DESKTOP = {}
-
-
 def read(path):
     try:
         return open(f"{ROOT}/{path}", encoding="utf-8").read()
@@ -115,25 +95,6 @@ def read(path):
         errors.append(f"{path} not found")
         return ""
 
-
-cmake = set(re.findall(r"\$\{CMAKE_CURRENT_SOURCE_DIR\}/source/kit/core/(\w+\.c)\b", read("CMakeLists.txt")))
-make = set(re.findall(r"\b(?:source/kit|\$\(K\))/core/(\w+\.c)\b", read("Makefile")))
-core = {os.path.basename(p) for p in glob.glob(f"{ROOT}/source/kit/core/*.c")}
-if not cmake or not make or not core:
-    errors.append("no source/kit/core/*.c found in CMakeLists.txt, the Makefile or source/kit/core")
-for name in sorted(set(CONSOLE_ONLY) | set(NOT_ON_DESKTOP)):
-    if name not in core:
-        errors.append(f"tools/check_sources.py names source/kit/core/{name}, which is not there any more")
-for name in sorted(core - set(CONSOLE_ONLY)):
-    if name not in NOT_ON_DESKTOP and name not in cmake:
-        errors.append(f"source/kit/core/{name} needs no console service but the desktop build leaves it out: add "
-                      "it to CMakeLists.txt's console-free list (or, if the console needs it, to CONSOLE_ONLY in "
-                      "tools/check_sources.py)")
-    if name not in NOT_ON_DESKTOP and name not in make:
-        errors.append(f"source/kit/core/{name} needs no console service but no host test builds it (Makefile)")
-for name in sorted(cmake & set(CONSOLE_ONLY)):
-    errors.append(f"CMakeLists.txt adds source/kit/core/{name} to the desktop build, which "
-                  "tools/check_sources.py says needs the console (CONSOLE_ONLY)")
 
 for e in errors:
     print("ERROR:", e)

@@ -126,6 +126,9 @@
     "applet": {
       "label": "アプレットモード（アルバムから起動）"
     },
+    "from_forwarder": {
+      "label": "Started from a forwarder's icon (the kit reads it)"
+    },
     "background": {
       "label": "PlayShelf がバックグラウンド"
     },

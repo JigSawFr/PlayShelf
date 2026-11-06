@@ -1,5 +1,5 @@
 // Host tests for source/util/config.cpp and the ".tmp" recovery of
-// source/kit/util/paths.cpp: every field read on its own, out-of-range values
+// library/boreale-kit/source/util/paths.cpp: every field read on its own, out-of-range values
 // put back to their defaults, round trip, recovery of a save that stopped
 // between its remove and its rename, a damaged file put aside
 // (config.json.bad) before anything saves over it, a newer schema's file

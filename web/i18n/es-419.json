@@ -126,6 +126,9 @@
     "applet": {
       "label": "Modo applet (desde el álbum)"
     },
+    "from_forwarder": {
+      "label": "Started from a forwarder's icon (the kit reads it)"
+    },
     "background": {
       "label": "PlayShelf en segundo plano"
     },

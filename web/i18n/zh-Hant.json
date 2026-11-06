@@ -126,6 +126,9 @@
     "applet": {
       "label": "小程式模式（從相簿啟動）"
     },
+    "from_forwarder": {
+      "label": "Started from a forwarder's icon (the kit reads it)"
+    },
     "background": {
       "label": "PlayShelf 在背景"
     },

@@ -9,7 +9,7 @@ the sources, so they can never disagree with the build:
                      console: a newer release "supports" a firmware only once
                      it was verified there)
 
-Its "schema" is SCHEMA (update::COMPAT_SCHEMA in source/kit/util/update.hpp):
+Its "schema" is SCHEMA (update::COMPAT_SCHEMA in library/boreale-kit/source/util/update.hpp):
 one more when a field changes meaning. Each release publishes it twice:
 compat-<SCHEMA>.json, which the app fetches first, and compat.json, which
 builds from before it did read and which keeps schema 1 forever (the
@@ -53,10 +53,10 @@ def firmware(macro):
     return ".".join(m.groups())
 
 
-update_hpp = open(f"{ROOT}/source/kit/util/update.hpp", encoding="utf-8").read()
+update_hpp = open(f"{ROOT}/library/boreale-kit/source/util/update.hpp", encoding="utf-8").read()
 m = re.search(r"constexpr int COMPAT_SCHEMA = (\d+);", update_hpp)
 if not m or int(m.group(1)) != SCHEMA:
-    fail(f"update::COMPAT_SCHEMA (source/kit/util/update.hpp) is not {SCHEMA}")
+    fail(f"update::COMPAT_SCHEMA (library/boreale-kit/source/util/update.hpp) is not {SCHEMA}")
 
 compat = {
     "schema": SCHEMA,

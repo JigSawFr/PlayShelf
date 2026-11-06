@@ -40,7 +40,7 @@ jobs:
   # What is being built: the version (CMakeLists.txt) and a label for the
   # artifact names, `<version>-<ref>-<commit>`: 0.1.0-pr12-1f0a059,
   # 0.1.0-main-2bd4996, 0.1.0-release-2bd4996. Development builds are found
-  # by that name (source/kit/util/dev_builds.hpp).
+  # by that name (library/boreale-kit/source/util/dev_builds.hpp).
   meta:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
