@@ -1382,7 +1382,7 @@ def main():
     # boreale-site's: the fonts, the marks, Umami's tracker, lang.js, boreale.css and boreale.js.
     boreale.copy_assets(Path(out))
     shutil.copy(os.path.join(ROOT, "branding", "icon.svg"), os.path.join(out, "assets", "icon.svg"))
-    # An iPhone's home screen takes a PNG, not the SVG (tools/render_branding.mjs).
+    # An iPhone's home screen takes a PNG, not the SVG (Boréale's brand kit).
     touch = os.path.join(ROOT, "images", "apple-touch-icon.png")
     shutil.copy(touch, os.path.join(out, "assets", "apple-touch-icon.png"))
     # Added to a phone's home screen: "PlayShelf", not the page's whole title

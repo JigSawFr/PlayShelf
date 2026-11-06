@@ -29,6 +29,8 @@ Then a pull request with a conventional title and a scope (`fix(install): …`),
 
 The settings file: [`docs/config.md`](docs/config.md).
 
+The icon, the mark, `icon.jpg`, the loading screen's wordmarks (`resources/img/`), the simulator's icons (`images/`), the README's banner and the social preview come from Boréale's brand kit (`branding/playshelf/` in [JigSawFr/boreale](https://github.com/JigSawFr/boreale/tree/main/branding), copied by its `tools/sync_branding.py`): change them there.
+
 ## What PlayShelf will not do
 
 PlayShelf installs content you own, from a server you run. Contributions that decrypt Tinfoil indexes, imitate Tinfoil's authentication, send hardware identifiers to servers, turn TLS verification off, or target a service that distributes games without the rights to do so are not accepted.
