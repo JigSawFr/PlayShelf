@@ -160,6 +160,11 @@ lantern_store_SRC   := source/lantern/credential_store.cpp $(SECRET_BOX) $(KIT)/
 lantern_store_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_store_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_store: $(LANTERN_LIB)
+# Lantern's apps and sections as the neutral catalogue.
+lantern_catalog_SRC   := source/lantern/catalog_map.cpp source/library/catalog.cpp $(KIT)/util/sha256.cpp tests/lantern_catalog/test.cpp
+lantern_catalog_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_catalog_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_catalog: $(LANTERN_LIB)
 
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
