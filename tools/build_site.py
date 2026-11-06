@@ -37,7 +37,6 @@ import json
 import os
 import re
 import shutil
-import struct
 import subprocess
 import sys
 import tempfile
@@ -570,7 +569,7 @@ def page(t, lang, to_root, path, title, body, description=None, body_class="", f
   <meta property="og:image:alt" content="PlayShelf">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0b1424">
-  <link rel="icon" href="{to_root}assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="{to_root}assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="{to_root}assets/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="PlayShelf">
   <meta name="format-detection" content="telephone=no">
@@ -1238,14 +1237,6 @@ def redirect_page(to, canonical, html_lang):
             f'<link rel="canonical" href="{canonical}">\n<title>PlayShelf</title>\n<a href="{to}">{canonical}</a>\n')
 
 
-def favicon_ico(png):
-    """An ICO holding one PNG, which every browser reads: what a domain's
-    root is asked for without the page's <link rel="icon">."""
-    width, height = struct.unpack(">II", png[16:24])   # the PNG's IHDR
-    return (struct.pack("<HHH", 0, 1, 1)
-            + struct.pack("<BBBBHHII", width % 256, height % 256, 0, 0, 1, 32, len(png), 22) + png)
-
-
 def write(out, rel, text):
     path = os.path.join(out, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1382,6 +1373,8 @@ def main():
     # boreale-site's: the fonts, the marks, Umami's tracker, lang.js, boreale.css and boreale.js.
     boreale.copy_assets(Path(out))
     shutil.copy(os.path.join(ROOT, "branding", "icon.svg"), os.path.join(out, "assets", "icon.svg"))
+    # The tab's: the mark, which still reads at 16 px (Boréale's brand kit).
+    shutil.copy(os.path.join(ROOT, "branding", "mark.svg"), os.path.join(out, "assets", "favicon.svg"))
     # An iPhone's home screen takes a PNG, not the SVG (Boréale's brand kit).
     touch = os.path.join(ROOT, "images", "apple-touch-icon.png")
     shutil.copy(touch, os.path.join(out, "assets", "apple-touch-icon.png"))
@@ -1406,8 +1399,7 @@ def main():
     # link previews ask for there without reading the page.
     if urlsplit(SITE_URL).path == "/":
         shutil.copy(touch, os.path.join(out, "apple-touch-icon.png"))
-        with open(touch, "rb") as f, open(os.path.join(out, "favicon.ico"), "wb") as ico:
-            ico.write(favicon_ico(f.read()))
+        shutil.copy(os.path.join(ROOT, "images", "favicon.ico"), os.path.join(out, "favicon.ico"))
     for path in sorted(assets):
         os.makedirs(os.path.dirname(os.path.join(out, "assets", path)), exist_ok=True)
         if path in RELEASE_FILES:
