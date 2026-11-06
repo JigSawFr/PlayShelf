@@ -25,6 +25,8 @@
 
 TARGET  := playshelf
 BUILD   := build
+# The kit (library/boreale-kit, a submodule): its sources are built by the suites that need them; its own suites run in its repository.
+KIT     := library/boreale-kit/source
 DESKTOP := build-desktop
 WEB     := build-web
 CC      ?= gcc
@@ -76,11 +78,11 @@ dist: all
 # SVG scenes rendered in Chromium through Playwright, saved with Pillow, by
 # ART_PYTHON), into <build>/demo/: packaged with the web simulator, read from
 # there by the desktop one.
-WEB_DEMO_SOURCES := tools/web_demo.cpp source/kit/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
-                source/install/cnmt.cpp source/install/nca.cpp source/kit/util/sha256.cpp
+WEB_DEMO_SOURCES := tools/web_demo.cpp $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
+                source/install/cnmt.cpp source/install/nca.cpp $(KIT)/util/sha256.cpp
 %/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
 	@mkdir -p $*
-	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -Itests -Itests/install -isystem library/aurore/library/include \
+	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
 	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
 ART_PYTHON ?= python3
 %/demo/index.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
@@ -126,14 +128,6 @@ desktop: $(if $(DESKTOP_DEMO),$(DESKTOP)/demo/index.json)
 # passed one (CI reads both for the job summary).
 
 # C: the kit's console-free C (source/kit/core, source/kit/util).
-calendar_SRC   := source/kit/core/calendar.c tests/calendar/test.c
-calendar_FLAGS := -std=gnu11 -Isource/kit/core
-startup_SRC   := source/kit/util/startup.c tests/startup/test.c
-startup_FLAGS := -std=gnu11 -Isource/kit/util
-crash_dump_SRC   := source/kit/util/crash_dump.c tests/crash_dump/test.c
-crash_dump_FLAGS := -std=c11 -Isource/kit/util -Isource
-write_guard_SRC   := source/kit/core/write_guard.c tests/write_guard/test.c
-write_guard_FLAGS := -std=gnu11 -Isource/kit/core
 
 # C++: the UI-free helpers and flow logic (source/kit/util, source/kit/action,
 # source/util), by default with TEST_CXXFLAGS (a <name>_FLAGS only where a
@@ -142,39 +136,37 @@ write_guard_FLAGS := -std=gnu11 -Isource/kit/core
 # operators, under -Werror). util/date stands on core/calendar.c: a suite
 # that links it builds that C file too (its <name>_CSRC, without having to
 # say so).
-TEST_CXXFLAGS   := -std=c++23 -Isource -Isource/kit -Ilibrary/boreale-link/source -isystem library/aurore/library/include
-CALENDAR_C      := source/kit/core/calendar.c
-CALENDAR_CFLAGS := -std=gnu11 -Isource/kit/core
+TEST_CXXFLAGS   := -std=c++23 -Isource -Isource/kit -I$(KIT) -Ilibrary/boreale-link/source -isystem library/aurore/library/include
+CALENDAR_C      := $(KIT)/core/calendar.c
+CALENDAR_CFLAGS := -std=gnu11 -I$(KIT)/core
 K := source/kit
 # Aurore's Cadran (library/aurore): the kit's UI helpers, tested here.
 C := library/aurore/library/lib/cadran
 # A secret sealed for this console: AES and HMAC, and the console's key
 # (the desktop build's random one: sim/sim_device_key.cpp).
-SECRET_BOX := $(K)/util/secret_box.cpp $(K)/util/aes.cpp $(K)/sim/sim_device_key.cpp
-secret_box_SRC := $(SECRET_BOX) $(K)/util/sha256.cpp $(K)/util/paths.cpp tests/secret_box/test.cpp
+SECRET_BOX := $(KIT)/util/secret_box.cpp $(KIT)/util/aes.cpp $(KIT)/sim/sim_device_key.cpp
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
-INSTALL_FORMATS := $(K)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
-                   source/install/nca.cpp $(K)/util/sha256.cpp
+INSTALL_FORMATS := $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
+                   source/install/nca.cpp $(KIT)/util/sha256.cpp
 install_SRC := $(INSTALL_FORMATS) tests/install/test.cpp
 # A content (.nca or .ncz) as it arrives, made the bytes of its NCA; zstd
 # from the system (libzstd-dev), compression too, for the NCZ it builds.
 install_stream_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp tests/install_stream/test.cpp
 install_stream_LIBS := -lzstd
 # The integrity tree of a RomFS section.
-ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
+ivfc_SRC := source/install/ivfc.cpp $(KIT)/util/sha256.cpp tests/ivfc/test.cpp
 # The compression layer of an NCA section (blocks and bucket tree); liblz4 from
 # the system (liblz4-dev), the layer's codec is the caller's.
 compressed_storage_SRC  := source/install/compressed_storage.cpp tests/compressed_storage/test.cpp
 compressed_storage_LIBS := -llz4
 # The integrity tree of a RomFS section.
-ivfc_SRC := source/install/ivfc.cpp $(K)/util/sha256.cpp tests/ivfc/test.cpp
+ivfc_SRC := source/install/ivfc.cpp $(KIT)/util/sha256.cpp tests/ivfc/test.cpp
 # An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
 report_qr_SRC  := $(K)/util/report_qr.cpp tests/report_qr/test.cpp
 report_qr_LIBS := -lzstd
 screen_timer_SRC := source/util/screen_timer.cpp tests/screen_timer/test.cpp
 cpu_boost_SRC := source/util/cpu_boost.cpp tests/cpu_boost/test.cpp
-crypto_SRC := $(K)/util/crypto_backend.cpp $(K)/util/crypto_bench.cpp $(K)/util/crypto_hw.cpp $(K)/util/aes.cpp $(K)/util/sha256.cpp tests/crypto/test.cpp
 
 bktr_SRC  := $(INSTALL_FORMATS) source/install/bktr.cpp source/install/ivfc.cpp tests/bktr/test.cpp
 bktr_LIBS := -llz4
@@ -196,20 +188,20 @@ install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/
 install_txn_LIBS := -lzstd
 # The library client's formats (source/library/: catalogues, addresses,
 # discovery, endpoints, certificate pins), with the kit's SHA-256.
-LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp $(K)/util/sha256.cpp
+LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp $(KIT)/util/sha256.cpp
 library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
 # A server's catalogue fetched (a scripted network) and the servers' file.
-library_client_SRC := $(filter-out $(K)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
-                      $(SECRET_BOX) $(K)/util/sha256.cpp $(K)/util/paths.cpp tests/library_client/test.cpp
+library_client_SRC := $(filter-out $(KIT)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
+                      $(SECRET_BOX) $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/library_client/test.cpp
 library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp tests/library_titles/test.cpp
 # What is known of the games beyond their catalogue (Nlib API's), kept on
 # the SD card.
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
-shared_bell_logic_SRC   := source/action/shared_bell_logic.cpp $(K)/util/date.cpp $(K)/util/update.cpp tests/shared_bell_logic/test.cpp
+shared_bell_logic_SRC   := source/action/shared_bell_logic.cpp $(KIT)/util/date.cpp $(KIT)/util/update.cpp tests/shared_bell_logic/test.cpp
 shared_bell_logic_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_json.c library/boreale-link/source/bl_jread.c library/boreale-link/source/bl_app.c library/boreale-link/source/bl_notices.c library/boreale-link/source/bl_updates.c $(CALENDAR_C)
-shared_bell_logic_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source -Isource/kit/core
+shared_bell_logic_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source -I$(KIT)/core
 shared_look_SRC   := source/action/shared_look.cpp tests/shared_look/test.cpp
 shared_look_CSRC  := library/boreale-link/source/bl_kv.c library/boreale-link/source/bl_prefs.c
 shared_look_CFLAGS := -std=gnu11 -Ilibrary/boreale-link/source
@@ -221,10 +213,10 @@ library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 # When each game was first seen on a server; the wishlist's ids.
 library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
-save_archive_SRC  := source/saves/archive.cpp $(K)/util/zip_write.cpp $(K)/util/paths.cpp tests/save_archive/test.cpp
+save_archive_SRC  := source/saves/archive.cpp $(KIT)/util/zip_write.cpp $(KIT)/util/paths.cpp tests/save_archive/test.cpp
 save_archive_LIBS := -lz
 # AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
-library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(K)/util/paths.cpp \
+library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(KIT)/util/paths.cpp \
                         tests/library_services/test.cpp
 # What Atlas knows of each game beyond its popularity (games.json,
 # similar.json), and the recommendations made from every signal.
@@ -235,7 +227,7 @@ library_changes_SRC := source/library/signals.cpp source/library/changes.cpp tes
 library_news_SRC := source/library/signals.cpp source/library/changes.cpp source/library/seen.cpp \
                     source/library/news.cpp tests/library_news/test.cpp
 # Atlas' index.json, and which of its files to download again.
-library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(K)/util/sha256.cpp tests/library_index/test.cpp
+library_index_SRC := source/library/signals.cpp source/library/insights_index.cpp $(KIT)/util/sha256.cpp tests/library_index/test.cpp
 library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp source/library/seen.cpp \
                          source/library/recommend.cpp tests/library_recommend/test.cpp
 # The console's games by title (base game, update, add-ons) and what a
@@ -243,7 +235,7 @@ library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp s
 library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp
 # The downloads' queue (source/download/): its file, the journals in it, the
 # speed, the placeholders no job keeps.
-download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp $(K)/util/paths.cpp \
+download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp $(KIT)/util/paths.cpp \
                        tests/download_queue/test.cpp
 download_queue_LIBS := -lzstd
 # What a failed download's error means and what can be done about it.
@@ -254,46 +246,25 @@ prefix_source_SRC := source/install/prefix_source.cpp tests/prefix_source/test.c
 # CyberFoil-DB's packs (names, icons) and their manifest; a title list made a pack.
 titledb_SRC := source/titledb/pack.cpp source/titledb/manifest.cpp source/titledb/list.cpp source/titledb/nlib.cpp tests/titledb/test.cpp
 # Their folders on the SD card: updates checked by their SHA-256, the sources' order.
-titledb_store_SRC := $(filter-out tests/%,$(titledb_SRC)) source/titledb/store.cpp $(K)/util/sha256.cpp $(K)/util/paths.cpp \
+titledb_store_SRC := $(filter-out tests/%,$(titledb_SRC)) source/titledb/store.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp \
                      tests/titledb_store/test.cpp
 # A range over several connections at once, handed on in order.
 split_stream_SRC  := source/install/split_stream.cpp tests/split_stream/test.cpp
 split_stream_LIBS := -pthread
 # The desktop build's console (sim/sim_install.cpp) behind install::Console.
 install_sim_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/install/console_core.cpp source/sim/sim_install.cpp \
-                    $(K)/util/paths.cpp $(K)/sim/sim_env.cpp tests/install_sim/test.cpp
-install_sim_CSRC := $(K)/sim/sim_sysinfo.c
-install_sim_CFLAGS := -std=gnu11 -Isource/kit/core
+                    $(KIT)/util/paths.cpp $(KIT)/sim/sim_env.cpp tests/install_sim/test.cpp
+install_sim_CSRC := $(KIT)/sim/sim_sysinfo.c
+install_sim_CFLAGS := -std=gnu11 -I$(KIT)/core -Isource
 install_sim_LIBS := -lzstd
-date_SRC    := $(K)/util/date.cpp tests/date/test.cpp
 # The header-only helpers: utf8, emoji, text, json_util.
-text_util_SRC   := tests/text_util/test.cpp
-patches_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp tests/patches/test.cpp
-changelog_SRC   := $(K)/util/date.cpp $(K)/util/changelog.cpp $(K)/util/update.cpp tests/changelog/test.cpp
-support_SRC   := $(K)/util/date.cpp $(K)/util/support.cpp tests/support/test.cpp
 write_queue_logic_SRC   := $(K)/action/write_queue_logic.cpp tests/write_queue_logic/test.cpp
 write_queue_logic_LIBS  := -pthread
-worker_threads_SRC   := $(K)/util/worker_threads.cpp tests/worker_threads/test.cpp
-worker_threads_LIBS  := -pthread
-data_cleanup_SRC   := $(K)/util/data_cleanup.cpp tests/data_cleanup/test.cpp
 error_hint_logic_SRC   := $(K)/action/error_hint_logic.cpp tests/error_hint_logic/test.cpp
-http_logic_SRC   := $(K)/util/http_logic.cpp tests/http_logic/test.cpp
-update_SRC   := $(K)/util/date.cpp $(K)/util/update.cpp tests/update/test.cpp
-config_SRC   := $(K)/util/paths.cpp $(K)/util/date.cpp source/util/config.cpp tests/config/test.cpp
-launcher_SRC   := $(K)/util/paths.cpp $(K)/util/launcher.cpp tests/launcher/test.cpp
-launcher_CSRC  := $(shared_bell_logic_CSRC)
-launcher_CFLAGS := $(shared_bell_logic_CFLAGS)
-rollback_SRC   := $(K)/util/paths.cpp $(K)/util/rollback.cpp tests/rollback/test.cpp
-log_upload_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/log_upload.cpp tests/log_upload/test.cpp
-dev_builds_SRC   := $(K)/util/paths.cpp $(K)/util/sha256.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(C)/util/safe_text.cpp $(K)/util/dev_builds.cpp $(K)/util/zip_read.cpp $(K)/util/github_auth.cpp $(SECRET_BOX) tests/dev_builds/test.cpp
-dev_builds_LIBS  := -lz
+config_SRC   := $(KIT)/util/paths.cpp $(KIT)/util/date.cpp source/util/config.cpp tests/config/test.cpp
 # The download and its resume: without PLAYSHELF_SIM_DEV_BUILDS the desktop
 # build takes the console's path, here against a fake http::download and
 # http::redirect in the test (-D__SWITCH__ would reach date.cpp's switch.h).
-dev_builds_net_SRC   := $(filter-out tests/%,$(dev_builds_SRC)) $(K)/util/http_logic.cpp $(K)/util/zip_write.cpp $(K)/sim/sim_net.cpp $(K)/sim/sim_env.cpp $(K)/util/dev_builds_net.cpp tests/dev_builds_net/test.cpp
-dev_builds_net_LIBS  := -lz
-perf_SRC   := $(K)/util/perf.cpp tests/perf/test.cpp
-diagnostics_logic_SRC   := $(K)/util/paths.cpp $(K)/util/patches.cpp $(K)/util/diagnostics_logic.cpp tests/diagnostics_logic/test.cpp
 # Aurore's own string tables (core/i18n.cpp), read from other threads while
 # the language changes. A copy of the files at the submodule's commit, first
 # in the include path, made again when that commit changes (the stamp holds
@@ -319,26 +290,18 @@ i18n_threads_FLAGS := -std=c++23 -isystem $(I18N_COPY)/library/include -isystem 
                         include/aurore/extern/tinyxml2 lib/extern/tweeny/include lib/extern/yoga) \
                       -DAURORE_RESOURCES='"./"'
 i18n_threads_LIBS  := -pthread
-session_log_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp $(K)/util/session_log.cpp $(K)/util/crash_report.cpp tests/session_log/test.cpp
 # A C source a C++ suite links (clang++ refuses to build a .c as C++).
-session_log_CSRC  := $(K)/util/crash_dump.c
-session_log_CFLAGS := -std=c11 -Isource/kit/util -Isource
-frame_stats_SRC   := $(K)/util/paths.cpp $(K)/util/frame_stats.cpp tests/frame_stats/test.cpp
 # The callbacks a store tells of its changes (header only).
-listeners_SRC := tests/listeners/test.cpp
 # A whole text read as a number (header only).
-number_SRC := tests/number/test.cpp
-log_files_SRC   := $(K)/util/paths.cpp $(K)/util/log_files.cpp tests/log_files/test.cpp
 # What the eShop prices left in the data folder, removed (a migration step).
-no_prices_SRC := $(K)/util/paths.cpp source/action/notice_logic.cpp source/util/no_prices.cpp tests/no_prices/test.cpp
-migrations_SRC   := $(K)/util/paths.cpp $(K)/util/date.cpp $(K)/util/update.cpp $(K)/util/migrations.cpp tests/migrations/test.cpp
+no_prices_SRC := $(KIT)/util/paths.cpp source/action/notice_logic.cpp source/util/no_prices.cpp tests/no_prices/test.cpp
 
 TESTS := $(sort $(patsubst %_SRC,%,$(filter %_SRC,$(.VARIABLES))))
 TEST_PROGRAMS := $(addprefix $(TESTOUT)/,$(TESTS))
 TEST_OKS := $(addsuffix .ok,$(TEST_PROGRAMS))
 # Every header: a suite is rebuilt when one changes (coarse, but a suite
 # compiles in seconds and CI always starts cold).
-TEST_HEADERS := $(wildcard tests/*.h tests/*.hpp tests/*/*.h tests/*/*.hpp source/*.hpp source/*/*.h source/*/*.hpp source/kit/*/*.h source/kit/*/*.hpp)
+TEST_HEADERS := $(wildcard tests/*.h tests/*.hpp tests/*/*.h tests/*/*.hpp source/*.hpp source/*/*.h source/*/*.hpp source/kit/*/*.h source/kit/*/*.hpp $(KIT)/*.hpp $(KIT)/*/*.h $(KIT)/*/*.hpp)
 
 $(TESTOUT):
 	@mkdir -p $@
@@ -357,7 +320,7 @@ FORCE:
 # into <name>.<file>.o each and linked into a C++ suite; one that links
 # util/date.cpp gets CALENDAR_C (with CALENDAR_CFLAGS) when it names none.
 test_flags  = $(or $($1_FLAGS),$(if $(filter %.cpp,$($1_SRC)),$(TEST_CXXFLAGS)))
-test_csrc   = $(or $($1_CSRC),$(if $(filter source/kit/util/date.cpp,$($1_SRC)),$(CALENDAR_C)))
+test_csrc   = $(or $($1_CSRC),$(if $(filter $(KIT)/util/date.cpp,$($1_SRC)),$(CALENDAR_C)))
 test_cflags = $(if $($1_CSRC),$($1_CFLAGS),$(CALENDAR_CFLAGS))
 test_cobj   = $(TESTOUT)/$1.$(basename $(notdir $2)).o
 test_cobjs  = $(foreach c,$(call test_csrc,$1),$(call test_cobj,$1,$c))
@@ -392,10 +355,10 @@ FUZZ_SECONDS ?= 30
 FUZZ_CC      ?= clang
 FUZZ_CXX     ?= clang++
 FUZZ_SAN     := -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer -g -O1
-FUZZ_CFLAGS  := -Wall -Wextra -Wshadow -Werror -D_GLIBCXX_ASSERTIONS $(FUZZ_SAN) -Itests/fuzz -Isource -Isource/kit -isystem library/aurore/library/include
+FUZZ_CFLAGS  := -Wall -Wextra -Wshadow -Werror -D_GLIBCXX_ASSERTIONS $(FUZZ_SAN) -Itests/fuzz -Isource -Isource/kit -I$(KIT) -isystem library/aurore/library/include
 report_qr_FUZZ    := $(filter-out tests/%,$(report_qr_SRC)) tests/fuzz/report_qr/fuzz.cpp
 report_qr_FUZZ_LIBS := -lzstd
-zip_read_FUZZ      := source/kit/util/zip_read.cpp tests/fuzz/zip_read/fuzz.cpp
+zip_read_FUZZ      := $(KIT)/util/zip_read.cpp tests/fuzz/zip_read/fuzz.cpp
 zip_read_FUZZ_LIBS := -lz
 changelog_FUZZ     := $(filter-out tests/%,$(changelog_SRC)) tests/fuzz/changelog/fuzz.cpp
 changelog_FUZZ_CSRC := $(CALENDAR_C)
@@ -428,7 +391,7 @@ $(FUZZOUT):
 # Rebuilt when the Makefile changes too (the flags above).
 $(FUZZ_PROGRAMS): $(FUZZOUT)/%: $$($$*_FUZZ) $$($$*_FUZZ_CSRC) tests/fuzz/fuzz.h $(TEST_HEADERS) Makefile | $(FUZZOUT)
 	$(if $($*_FUZZ_CSRC),$(FUZZ_CC) -std=gnu11 $(FUZZ_CFLAGS) $($*_FUZZ_FLAGS) -c $($*_FUZZ_CSRC) -o $@.c.o)
-	$(if $(filter %.c,$(lastword $($*_FUZZ))),$(FUZZ_CC) -std=gnu11 -Isource/kit/core,$(FUZZ_CXX) -std=c++23) \
+	$(if $(filter %.c,$(lastword $($*_FUZZ))),$(FUZZ_CC) -std=gnu11 -I$(KIT)/core,$(FUZZ_CXX) -std=c++23) \
 		$(FUZZ_CFLAGS) $($*_FUZZ_FLAGS) $($*_FUZZ) $(if $($*_FUZZ_CSRC),$@.c.o) $($*_FUZZ_LIBS) -o $@
 
 # A run: its output in <name>.log, its final figures on the terminal (tagged

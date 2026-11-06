@@ -32,7 +32,7 @@ library::Server server()
 }
 
 // sys-patch on the simulated SD card, as a console that installs games has
-// (source/kit/util/patches.cpp reads it).
+// (library/boreale-kit/source/util/patches.cpp reads it).
 void sys_patch()
 {
     const std::string sd = paths::sd_root(), contents = sd + "/atmosphere/contents/420000000000000B",

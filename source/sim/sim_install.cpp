@@ -22,8 +22,8 @@
 #include "core/install.h"
 #include "install/aes.hpp"
 #include "install/cnmt.hpp"
-#include "kit/core/sim_env.h"
-#include "kit/core/sysinfo.h"
+#include "core/sim_env.h"
+#include "core/sysinfo.h"
 #include "util/paths.hpp"
 
 namespace

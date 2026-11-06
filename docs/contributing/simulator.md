@@ -2,11 +2,12 @@
 
 Part of the [contributor's guide](../../CONTRIBUTING.md).
 
-`make desktop` runs the real Aurore UI against `source/kit/sim/`, a simulated console. Environment knobs (a flag is on with any value but empty, `0`, `false`, `off` or `no`; a number out of range is brought within it):
+`make desktop` runs the real Aurore UI against `library/boreale-kit/source/sim/`, a simulated console. Environment knobs (a flag is on with any value but empty, `0`, `false`, `off` or `no`; a number out of range is brought within it):
 
 | Variable | Simulates |
 |---|---|
 | `PLAYSHELF_SIM_APPLET=1` | Applet (album) mode |
+| `PLAYSHELF_SIM_FROM_FORWARDER=1` | Started from a forwarder's HOME menu icon (the kit reads it; PlayShelf does not use it) |
 | `PLAYSHELF_SIM_BACKGROUND=1` | PlayShelf out of focus |
 | `PLAYSHELF_SIM_BATTERY=1` | The console in hand, off its dock (unset: the simulator draws the effects as on the dock, whatever `PLAYSHELF_SIM_DOCKED` says): *Visual effects › Automatic*, the default, leaves out the glow and every movement of the look (`ui/effects`, `ui/motion`) |
 | `PLAYSHELF_SIM_BLANK=1` | Atmosphère blanking the serial number |

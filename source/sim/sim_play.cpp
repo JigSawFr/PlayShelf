@@ -7,7 +7,7 @@
 #include <ctime>
 
 #include "core/play.h"
-#include "kit/core/sim_env.h"
+#include "core/sim_env.h"
 
 bool core_play_open(void)
 {

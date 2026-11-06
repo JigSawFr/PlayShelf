@@ -13,7 +13,7 @@ Releases are automated with [release-please](https://github.com/googleapis/relea
 
 ## Development builds
 
-Nothing is published for them. The developer tools install the `playshelf-<version>-<ref>-<commit>-nro` artifact of a build run: main's last commits and the newest run of each open pull request from a branch of this repository (forks are left out, their code not reviewed yet). GitHub hands artifacts to signed-in users only, hence the GitHub sign-in (device flow; the GitHub App's client ID in `source/kit/util/github_auth.hpp`). Every build but a release one (`PLAYSHELF_RELEASE=1`) shows itself as a development build in the header: an amber tag with the version and the commit.
+Nothing is published for them. The developer tools install the `playshelf-<version>-<ref>-<commit>-nro` artifact of a build run: main's last commits and the newest run of each open pull request from a branch of this repository (forks are left out, their code not reviewed yet). GitHub hands artifacts to signed-in users only, hence the GitHub sign-in (device flow; the GitHub App's client ID in `library/boreale-kit/source/util/github_auth.hpp`). Every build but a release one (`PLAYSHELF_RELEASE=1`) shows itself as a development build in the header: an amber tag with the version and the commit.
 
 ## Reproducible zips
 

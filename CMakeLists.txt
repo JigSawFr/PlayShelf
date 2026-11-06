@@ -169,20 +169,23 @@ list(APPEND PLAYSHELF_LIBS playshelf_lz4)
 # Sources: UI (C++) + service layer. The real service layer (source/core/*.c)
 # talks to libnx and is Switch-only; the desktop build swaps in the simulated
 # backend from source/kit/sim/ so the UI can be run and screenshotted on a PC.
-file(GLOB_RECURSE PLAYSHELF_SRC CONFIGURE_DEPENDS source/*.cpp source/*.c)
+# The kit (JigSawFr/boreale-kit, a submodule in library/boreale-kit) is built from
+# its sources with PlayShelf's toolchain and flags, as the sources of source/kit are.
+set(BOREALE_KIT ${CMAKE_CURRENT_SOURCE_DIR}/library/boreale-kit/source)
+file(GLOB_RECURSE PLAYSHELF_SRC CONFIGURE_DEPENDS source/*.cpp source/*.c ${BOREALE_KIT}/*.cpp ${BOREALE_KIT}/*.c)
 if (PLATFORM_SWITCH)
     list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?sim/.*")
     list(APPEND PLAYSHELF_SRC ${AURORE_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
 else ()
     list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/(kit/)?core/.*\\.c$")
     if (PLAYSHELF_WEB)
-        list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/kit/util/http\\.cpp$")
+        list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/util/http\\.cpp$")
     else ()
         list(FILTER PLAYSHELF_SRC EXCLUDE REGEX ".*/source/sim/web_.*")
     endif ()
     # The console-free parts are shared with the simulator: one implementation.
-    list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/source/kit/core/calendar.c
-                              ${CMAKE_CURRENT_SOURCE_DIR}/source/kit/core/write_guard.c)
+    list(APPEND PLAYSHELF_SRC ${BOREALE_KIT}/core/calendar.c
+                              ${BOREALE_KIT}/core/write_guard.c)
 endif ()
 
 # What the Boréale homebrews share (JigSawFr/boreale-link, a submodule in
@@ -199,13 +202,13 @@ list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen
 
 if (PLATFORM_SWITCH)
     # The console's CPU has the ARMv8 crypto extensions (util/crypto_hw): that one file asks for them, whatever the toolchain's default.
-    set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/source/kit/util/crypto_hw.cpp PROPERTIES COMPILE_OPTIONS "-march=armv8-a+crc+crypto")
+    set_source_files_properties(${BOREALE_KIT}/util/crypto_hw.cpp PROPERTIES COMPILE_OPTIONS "-march=armv8-a+crc+crypto")
 endif ()
 
 program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 
-target_include_directories(${PROJECT_NAME} PRIVATE source source/kit extern/qrcodegen library/boreale-link/source ${PLAYSHELF_INCLUDES})
+target_include_directories(${PROJECT_NAME} PRIVATE source source/kit library/boreale-kit/source extern/qrcodegen library/boreale-link/source ${PLAYSHELF_INCLUDES})
 # -ffunction-sections / -fdata-sections come from Aurore (PUBLIC) and
 # --gc-sections from libnx's switch.specs.
 # Warnings on PlayShelf's own sources (not Aurore, not the vendored

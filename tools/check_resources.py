@@ -77,6 +77,13 @@ import unicodedata
 import xml.parsers.expat
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
+
+
+def code_glob(pattern):
+    """The app's sources and the kit's (library/boreale-kit, a submodule)."""
+    return [p for base in ("source", "library/boreale-kit/source")
+            for p in glob.glob(f"{ROOT}/{base}/**/{pattern}", recursive=True)]
+
 errors = []
 warnings = []
 # Names that read the same in every language.
@@ -210,7 +217,7 @@ def check_key(key, where):
 THEME_KEYS = ("playshelf/dial/", "playshelf/cover/")
 theme_doc = open(f"{ROOT}/docs/themes.md", encoding="utf-8").read()
 
-for path in glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursive=True) + glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):
+for path in code_glob("*.[ch]pp") + code_glob("*.[ch]"):
     text = open(path, encoding="utf-8").read()
     for m in re.finditer(r'"(playshelf/[A-Za-z0-9_/{}.-]*)"', text):
         if m.group(1).startswith(THEME_KEYS):
@@ -324,7 +331,7 @@ for k in sorted(en_keys):
     if k not in used_exact and not dynamic(k):
         errors.append(f"unused i18n key playshelf/{k} (remove it from every language)")
 
-code_text = {p: read(p) for p in glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursive=True)}
+code_text = {p: read(p) for p in code_glob("*.[ch]pp")}
 
 
 # AURORE_BIND ids against the XML each class inflates. A class's XML is named in
@@ -336,7 +343,7 @@ code_text = {p: read(p) for p in glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursi
 # the last "X::f(" a definition at the start of a line opens, whichever is
 # nearer; in the header or in its .cpp.
 xml_dir = f"{ROOT}/resources/xml"
-code_files = glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursive=True)
+code_files = code_glob("*.[ch]pp")
 class_xml = {}      # class name -> the XML paths it inflates, relative to resources/xml
 class_binds = {}    # class name -> (file, [ids])
 loaded_xml = set()
@@ -351,7 +358,7 @@ def owner_at(text, pos):
 
 
 pairs = sorted({p[:-len(".hpp")] if p.endswith(".hpp") else p[:-len(".cpp")]
-                for p in glob.glob(f"{ROOT}/source/**/*.[ch]pp", recursive=True)})
+                for p in code_glob("*.[ch]pp")})
 for stem in pairs:
     for path in (stem + ".hpp", stem + ".cpp"):
         text = read(path)
@@ -449,7 +456,7 @@ for path in sorted(glob.glob(f"{ROOT}/resources/img/**/*", recursive=True)):
 
 
 def is_emoji(cp):
-    """The pictographs source/kit/util/changelog.cpp draws as images."""
+    """The pictographs library/boreale-kit/source/util/changelog.cpp draws as images."""
     return cp >= 0x1F000 or 0x2600 <= cp <= 0x27BF or 0x2B00 <= cp <= 0x2BFF or \
         0x231A <= cp <= 0x231B or 0x23E9 <= cp <= 0x23FA
 
@@ -510,8 +517,9 @@ for path, text in code_text.items():
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv|sim_net::value)\(\s*"(PLAYSHELF_SIM_\w+)"', text))
     # The shared code (app_id.h) names them APP_ENV "_SIM_<name>".
     sim_read |= {"PLAYSHELF_SIM_" + v for v in re.findall(r'(?:sim_env(?:_flag|_int)?|sim_net::value)\(\s*APP_ENV\s*"_SIM_(\w+)"', text)}
-for path in glob.glob(f"{ROOT}/source/**/*.[ch]", recursive=True):
+for path in code_glob("*.[ch]"):
     sim_read |= set(re.findall(r'(?:sim_env(?:_flag|_int)?|getenv)\(\s*"(PLAYSHELF_SIM_\w+)"', read(path)))
+    sim_read |= {"PLAYSHELF_SIM_" + v for v in re.findall(r'(?:sim_env(?:_flag|_int)?|getenv)\(\s*APP_ENV\s*"_SIM_(\w+)"', read(path))}
 # Aurore's Cadran reads its flags through ui::env_flag("NAME"), which
 # activity/screen_hooks.cpp answers with PLAYSHELF_SIM_NAME.
 for path in glob.glob(f"{ROOT}/library/aurore/library/lib/cadran/**/*.cpp", recursive=True):

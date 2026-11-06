@@ -7,9 +7,9 @@ set -eu
 cd "$(dirname "$0")/../.."
 work="${1:-build/oracle}"
 mkdir -p "$work"
-g++ -std=c++23 -Isource -Isource/kit -Itests -Wall -Wextra \
-    source/kit/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp source/install/nca.cpp \
-    source/kit/util/sha256.cpp source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/bktr.cpp \
+g++ -std=c++23 -Isource -Isource/kit -Ilibrary/boreale-kit/source -Itests -Wall -Wextra \
+    library/boreale-kit/source/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp source/install/nca.cpp \
+    library/boreale-kit/source/util/sha256.cpp source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/bktr.cpp \
     source/install/recompress.cpp tests/oracle/gen.cpp -llz4 -o "$work/gen"
 "$work/gen" "$work/cases"
 dotnet build -c Release -v q -o "$work/ncadump" tests/oracle/ncadump | tail -n 3

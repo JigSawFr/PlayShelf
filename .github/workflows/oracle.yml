@@ -9,16 +9,14 @@ on:
     branches: [ main ]
     paths:
       - source/install/**
-      - source/kit/util/aes.*
-      - source/kit/util/sha256.*
+      - library/boreale-kit
       - tests/oracle/**
       - tests/install/**
       - .github/workflows/oracle.yml
   pull_request:
     paths:
       - source/install/**
-      - source/kit/util/aes.*
-      - source/kit/util/sha256.*
+      - library/boreale-kit
       - tests/oracle/**
       - tests/install/**
       - .github/workflows/oracle.yml

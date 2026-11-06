@@ -2,13 +2,13 @@
 
 Part of the [contributor's guide](../../CONTRIBUTING.md).
 
-PlayShelf is built on the technical base of [PlayGuard](https://github.com/JigSawFr/PlayGuard). What the two apps share lives in **`source/kit/`**; what is PlayShelf's own lives beside it, in `source/`.
+PlayShelf is built on the technical base of [PlayGuard](https://github.com/JigSawFr/PlayGuard). What the apps share lives in the kit, [boreale-kit](https://github.com/JigSawFr/boreale-kit) (the submodule `library/boreale-kit/`, pinned on a release tag: its `util/`, `core/` and `sim/`), and, until they move there, in **`source/kit/`**; what is PlayShelf's own lives beside it, in `source/`.
 
 | Folder | What it holds |
 |---|---|
-| `source/kit/core/` | The C layer over libnx (platform, system information, local time, crash handler, start-up timing, the read-only switch). Each module has a plain-C header; the desktop build replaces the console's ones with `source/kit/sim/` |
-| `source/kit/sim/` | The simulated console of the desktop build, driven by `PLAYSHELF_SIM_*` variables ([the simulator](simulator.md)) |
-| `source/kit/util/` | Plain C++, most of it host-tested: HTTP (libcurl, TLS verified; byte ranges streamed), JSON, SHA-256, AES-128, secrets sealed for this console (`secret_box`, with `core/device_key.h`), zip, paths and atomic writes, migrations, session logs and crash reports, updates, development builds, GitHub sign-in, diagnostics |
+| `library/boreale-kit/source/core/` | The C layer over libnx (platform, system information, local time, crash handler, start-up timing, the read-only switch). Each module has a plain-C header; the desktop build replaces the console's ones with `library/boreale-kit/source/sim/` |
+| `library/boreale-kit/source/sim/` | The simulated console of the desktop build, driven by `PLAYSHELF_SIM_*` variables ([the simulator](simulator.md)) |
+| `library/boreale-kit/source/util/` | Plain C++, most of it host-tested: HTTP (libcurl, TLS verified; byte ranges streamed), JSON, SHA-256, AES-128, secrets sealed for this console (`secret_box`, with `core/device_key.h`), zip, paths and atomic writes, migrations, session logs and crash reports, updates, development builds, GitHub sign-in, diagnostics |
 | `source/kit/action/` | Flows: `*_logic` files are plain C++ (host-tested), `*_flow` files drive the dialogs and screens |
 | `source/kit/ui/`, `source/kit/view/` | What the kit adds to the Cadran look: the app's `ui::` helpers (background tasks, the SD card's writes, `config.json`, result codes, the console's clock and system, the read-only mode, `ui::app_hooks`) and its own views (the loading screen's mark and dial, the release notes, the funding cards, a development build's cell, Made in France). Cadran itself (the frame and its rail, dialogs and pickers, lists, palettes, icons, effects, Markdown, the language and theme changed while the app runs) is [Aurore](https://github.com/JigSawFr/Aurore)'s, in `library/aurore/library/*/cadran/` ([its guide](https://github.com/JigSawFr/Aurore/blob/main/docs/cadran.md)) |
 | `source/kit/activity/`, `source/kit/tab/` | The shared screens (loading, update, development builds, diagnostics, changelog, what's new) and the base of every tab |
@@ -29,6 +29,6 @@ The rules `tools/check_sources.py` enforces:
 
 - **The kit includes nothing of the app** but `app.hpp` and `util/config.hpp` (the app's identity and settings). It asks anything else of the app through Aurore's `ui::hooks` (`aurore/cadran/ui/hooks.hpp`: the main screen, the tabs' positions and rail icons, PlayShelf's version, logo and read-only mode, saving the look's preferences) and the kit's own `ui::app_hooks` (`source/kit/ui/app_hooks.hpp`: the notifications, a check before PlayShelf replaces itself), which `source/activity/screen_hooks.cpp` fills in at start-up. The kit can then become a library shared with PlayGuard without untangling anything.
 - `ui/`, `view/` and `util/` never include `activity/` or `tab/`; a flow includes only the screens it opens itself.
-- A C file of `source/kit/core/` that needs no console service is in the desktop build and in a host test.
+- A C file of the kit's `core/` that needs no console service is in the desktop build and in a host test (the kit's own CI checks the second).
 
 The Cadran look: a colour is always a palette key (`cadran::kit::color("cadran/teal")`, `@theme/cadran/...` in XML), never a literal; Aurore's tests check every ink on every surface in both themes.
