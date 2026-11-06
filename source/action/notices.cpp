@@ -87,8 +87,8 @@ void start()
 
     ui::app_hooks::Hooks& a = ui::app_hooks::get();
     a.notice_set = [](const std::string& id, const std::string& title, const std::string& body, const std::string& button,
-                      std::function<void()> action) {
-        set("kit." + id, Level::Info, title, body, action ? button : "", std::move(action));
+                      std::function<void()> action, bool action_needed) {
+        set("kit." + id, action_needed ? Level::Action : Level::Info, title, body, action ? button : "", std::move(action));
     };
     a.notice_clear = [](const std::string& id) { clear("kit." + id); };
 }

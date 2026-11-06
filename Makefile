@@ -163,7 +163,7 @@ compressed_storage_LIBS := -llz4
 # The integrity tree of a RomFS section.
 ivfc_SRC := source/install/ivfc.cpp $(KIT)/util/sha256.cpp tests/ivfc/test.cpp
 # An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
-report_qr_SRC  := $(K)/util/report_qr.cpp tests/report_qr/test.cpp
+report_qr_SRC  := $(KIT)/util/report_qr.cpp tests/report_qr/test.cpp
 report_qr_LIBS := -lzstd
 screen_timer_SRC := source/util/screen_timer.cpp tests/screen_timer/test.cpp
 cpu_boost_SRC := source/util/cpu_boost.cpp tests/cpu_boost/test.cpp
@@ -258,9 +258,6 @@ install_sim_CSRC := $(KIT)/sim/sim_sysinfo.c
 install_sim_CFLAGS := -std=gnu11 -I$(KIT)/core -Isource
 install_sim_LIBS := -lzstd
 # The header-only helpers: utf8, emoji, text, json_util.
-write_queue_logic_SRC   := $(K)/action/write_queue_logic.cpp tests/write_queue_logic/test.cpp
-write_queue_logic_LIBS  := -pthread
-error_hint_logic_SRC   := $(K)/action/error_hint_logic.cpp tests/error_hint_logic/test.cpp
 config_SRC   := $(KIT)/util/paths.cpp $(KIT)/util/date.cpp source/util/config.cpp tests/config/test.cpp
 # The download and its resume: without PLAYSHELF_SIM_DEV_BUILDS the desktop
 # build takes the console's path, here against a fake http::download and

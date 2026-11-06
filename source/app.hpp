@@ -17,14 +17,7 @@ bool init();
 void shutdown();
 uint32_t    init_result();   // what init() failed with, 0 when it did not
 
-// True for a published release (built from its vX.Y.Z tag), false for any
-// other build (main, a pull request, a local one): a development build.
-bool        is_release();
-// The pull request this build was made for by CI (306), 0 for any other build.
-int         pr();
-// Where the running .nro is, from the SD card root ("/switch/playshelf/playshelf.nro"),
-// as hbloader gave it in argv[0]; empty when unknown (nxlink, desktop).
-std::string self_path();
+// is_release(), pr() and self_path() (kit_app.hpp) are defined here.
 void        set_self_path(const char* argv0);
 // The tab another Boréale homebrew opened PlayShelf at (a click in its bell:
 // --open=<tab>, boreale-link's bl_open_route): one of the main screen's
@@ -34,9 +27,6 @@ void        set_open_route(int argc, char** argv);
 // A page of the user guide (docs/<page>.md), with an anchor: a release's as
 // published at its tag, main's for a development build.
 std::string doc_url(const std::string& page, const std::string& anchor = "");
-// Funding links (.github/FUNDING.yml), shown in About.
-constexpr const char* SPONSORS_URL = "https://github.com/sponsors/JigSawFr";
-constexpr const char* KOFI_URL     = "https://ko-fi.com/jigsawfr";
 
 // Read-only mode (kit_app.hpp): the tabs hide their write controls.
 // After a change, call ui::on_mode_changed() to update what is on screen.

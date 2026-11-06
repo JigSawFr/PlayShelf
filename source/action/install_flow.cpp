@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/install_flow.hpp"
+#include "kit_text.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -32,7 +33,7 @@ std::string mb_text(uint64_t bytes)
 {
     std::string text = std::format("{:.1f}", (double)bytes / (1024.0 * 1024.0));
     const size_t dot = text.find('.');
-    if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
+    if (dot != std::string::npos) text.replace(dot, 1, kit_text::str("games/decimal_mark"));
     return text;
 }
 
@@ -124,7 +125,7 @@ class Progress
         if (!this->dialog) return;
         this->body.heading->setText(this->with_step("playshelf/install/installing"_i18n));
         const float part = total ? std::min(1.0f, (float)done / (float)total) : 1.0f;
-        this->body.show(part, aurore::getStr("playshelf/dev_build/downloaded_mb", mb_text(done), mb_text(total)));
+        this->body.show(part, kit_text::str("dev_build/downloaded_mb", mb_text(done), mb_text(total)));
     }
 };
 

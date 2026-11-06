@@ -295,10 +295,8 @@ def numbers(n):
 DYNAMIC_KEYS = {
     # The code's lists (the days, months, languages, themes and text sizes
     # are Aurore's Cadran's, in its own cadran.json).
-    "error/": strings_of(re.sub(r"//[^\n]*", "", function_of("source/kit/action/error_hint_logic.cpp", "hint_key"))),
     "tabs/": array_of("source/util/config.hpp", "START_TABS"),
     "prefs/effects_values/": array_of(PREFS_HPP, "EFFECTS"),
-    "tools/update_via_values/": array_of("source/kit/action/update_flow.cpp", "METHODS"),
     "library/sort_values/": array_of("source/tab/catalogue_tab.cpp", "ORDERS"),
     "genres/": array_of("source/action/nlib_flow.hpp", "GENRES"),
     "installed/order_values/": array_of("source/tab/library_tab.cpp", "ORDERS"),

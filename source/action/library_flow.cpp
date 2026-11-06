@@ -1,5 +1,6 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "action/library_flow.hpp"
+#include "kit_text.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -133,7 +134,7 @@ std::string size_text(uint64_t bytes)
     // A decimal while the figure is small: "0,1 MB", "4,2 GB", "734 MB".
     std::string text = mb >= 1024.0 ? std::format("{:.1f}", mb / 1024.0) : mb < 10.0 ? std::format("{:.1f}", mb) : std::format("{:.0f}", mb);
     const size_t dot = text.find('.');
-    if (dot != std::string::npos) text.replace(dot, 1, "playshelf/games/decimal_mark"_i18n);
+    if (dot != std::string::npos) text.replace(dot, 1, kit_text::str("games/decimal_mark"));
     return aurore::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
 }
 

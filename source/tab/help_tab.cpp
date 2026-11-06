@@ -16,6 +16,7 @@
 #include "action/upload_flow.hpp"
 #include "activity/diagnostic_activity.hpp"
 #include "app.hpp"
+#include "kit_text.hpp"
 #include "core/sysinfo.h"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -39,7 +40,7 @@ std::string logs_days_text(int n)
 }
 std::string logs_mb_text(int n)
 {
-    return n == 0 ? "playshelf/common/no_limit"_i18n : aurore::getStr("playshelf/dev/size_mb", n);
+    return n == 0 ? "playshelf/common/no_limit"_i18n : kit_text::str("dev/size_mb", n);
 }
 
 // A picker over `values` for `field`; the limits apply at once.
@@ -72,8 +73,8 @@ HelpTab::HelpTab()
     export_cell->registerClickAction([](aurore::View*) {
         std::string err;
         std::string path = diagnostic::save(diagnostic::current_report(), &err);
-        if (path.empty()) ui::error("playshelf/toast/diag_err"_i18n, err);
-        else ui::notify(aurore::getStr("playshelf/toast/diag_saved", path));
+        if (path.empty()) ui::error(kit_text::str("toast/diag_err"), err);
+        else ui::notify(kit_text::str("toast/diag_saved", path));
         return true;
     });
 
