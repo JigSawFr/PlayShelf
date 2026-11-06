@@ -7,8 +7,8 @@ namespace lantern_app
 {
 namespace
 {
-constexpr uint32_t PAGE_SIZE = 200;
-constexpr int      MAX_PAGES = 1000;   // MAX_ITEMS at PAGE_SIZE, with room
+constexpr uint32_t APPS_PER_PAGE = 200;
+constexpr int      MAX_PAGES = 1000;   // MAX_ITEMS at APPS_PER_PAGE, with room
 
 std::string without_slash(std::string u)
 {
@@ -133,7 +133,7 @@ Fetched fetch(const library::Server& server, Env& env, lantern::CredentialStore&
 
     AppIndex index;
     lantern::AppsQuery query;
-    query.page_size = PAGE_SIZE;
+    query.page_size = APPS_PER_PAGE;
     std::string cursor;
     for (int page = 0; page < MAX_PAGES; page++) {
         query.cursor = cursor;
