@@ -191,6 +191,7 @@ static void load_shared()
     read_bool(j, "cadran_glow", c.look.glow);
     read_string(j, "update_via", c.update_via);
     read_bool(j, "update_daily", c.update_daily);
+    read_bool(j, "sphaira_entry", c.sphaira_entry);
     read_string(j, "update_checked", c.update_checked);
     read_string(j, "update_latest", c.update_latest);
     read_string(j, "update_snooze_version", c.update_snooze_version);
@@ -254,6 +255,7 @@ bool snapshot(Snapshot& snap)
     j["cadran_glow"]     = s_config.look.glow;
     j["update_via"]      = s_config.update_via;
     j["update_daily"]    = s_config.update_daily;
+    j["sphaira_entry"]   = s_config.sphaira_entry;
     j["update_checked"]  = s_config.update_checked;
     j["update_latest"]   = s_config.update_latest;
     j["update_snooze_version"] = s_config.update_snooze_version;

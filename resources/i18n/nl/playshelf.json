@@ -270,6 +270,7 @@
         "source": "Broncode",
         "update": "Op updates controleren",
         "update_daily": "Elke dag op updates controleren",
+        "sphaira_entry": "Vermelding in het GitHub-menu van sphaira",
         "update_last": "Laatst gecontroleerd op {}",
         "flag_read_only": "alleen-lezen",
         "flag_dev": "ontwikkelaar",

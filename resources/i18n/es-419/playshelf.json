@@ -270,6 +270,7 @@
         "source": "Código fuente",
         "update": "Buscar actualizaciones",
         "update_daily": "Buscar actualizaciones cada día",
+        "sphaira_entry": "Entrada en el menú GitHub de sphaira",
         "update_last": "Última búsqueda: {}",
         "flag_read_only": "solo lectura",
         "flag_dev": "desarrollador",

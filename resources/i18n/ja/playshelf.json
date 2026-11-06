@@ -270,6 +270,7 @@
         "source": "ソースコード",
         "update": "アップデートを確認",
         "update_daily": "毎日アップデートを確認",
+        "sphaira_entry": "sphairaのGitHubメニューに登録",
         "update_last": "最終確認：{}",
         "flag_read_only": "閲覧のみ",
         "flag_dev": "開発者",

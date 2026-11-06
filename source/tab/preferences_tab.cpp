@@ -147,6 +147,13 @@ PreferencesTab::PreferencesTab()
         update_flow::choose_method(this->refresher());
         return true;
     });
+    // PlayShelf's own entry in sphaira's GitHub menu (written when sphaira is
+    // there, removed when off).
+    sphaira_entry->init("playshelf/tools/sphaira_entry"_i18n, config::get().sphaira_entry, [](bool on) {
+        config::get().sphaira_entry = on;
+        ui::save_config();
+        update_flow::sync_sphaira_entry();
+    });
 
     // The title database: fetched, its sources.
     titledb->registerClickAction([this](aurore::View*) {
@@ -186,7 +193,7 @@ PreferencesTab::PreferencesTab()
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
                        { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
-                       { "pf_update_daily", "calendar" }, { "pf_update_via", "server" },
+                       { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
                        { "pf_popular_online", "bolt" }, { "pf_not_interested", "eye" } });
 }
@@ -328,6 +335,7 @@ void PreferencesTab::refresh()
     notices_others->setOn(cfg.notices_others, false);
     look_shared->setOn(cfg.look_shared, false);
     update_daily->setOn(cfg.update_daily, false);
+    sphaira_entry->setOn(cfg.sphaira_entry, false);
     nlib_api->setOn(cfg.nlib_api, false);
     popular_online->setOn(cfg.popular_online, false);
     const size_t put_away = not_interested::games().size();

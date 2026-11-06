@@ -41,7 +41,7 @@ static void test_defaults()
     CHECK(c.crypto == "auto" && c.cpu_boost);
     CHECK(c.look.theme_file.empty());   // the boards' own palette
     CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);
-    CHECK(c.update_via.empty() && c.update_latest.empty() && !c.update_daily);   // the update method: asked the first time
+    CHECK(c.update_via.empty() && c.update_latest.empty() && !c.update_daily && c.sphaira_entry);   // the update method: asked the first time
 
     CHECK(config::loaded() == config::Loaded::Missing);   // a first run: nothing to tell
     for (const char* bad : { "", "not json", "[1, 2]", "42", "{\"language\": " }) {
@@ -135,7 +135,7 @@ static void test_fields()
 {
     write_config(R"({"language": "fr", "theme": 3, "text_size": "largest", "effects": "reduced", "density": "dense", "rail": "icons", "dev_mode": "yes",
                     "frame_stats": true, "intro": false, "start_tab": "about", "logs_keep": 5, "logs_keep_days": 7,
-                    "logs_keep_mb": "20", "update_daily": true, "update_via": "sphaira", "connections": 8, "prefetch": 2, "crypto": "software"})");
+                    "logs_keep_mb": "20", "update_daily": true, "sphaira_entry": false, "update_via": "sphaira", "connections": 8, "prefetch": 2, "crypto": "software"})");
     config::load();
     const auto& c = config::get();
     CHECK(config::loaded() == config::Loaded::Read);
@@ -143,7 +143,7 @@ static void test_fields()
     CHECK(c.look.density == "dense" && c.look.rail == "icons");
     CHECK(!c.dev_mode && c.frame_stats && !c.intro && c.start_tab == "about");
     CHECK(c.logs_keep == 5 && c.logs_keep_days == 7 && c.logs_keep_mb == 0);
-    CHECK(c.update_daily && c.update_via == "sphaira" && c.connections == 8 && c.prefetch == 2);
+    CHECK(c.update_daily && !c.sphaira_entry && c.update_via == "sphaira" && c.connections == 8 && c.prefetch == 2);
     CHECK(c.crypto == "software");
     // No title_sources: CyberFoil-DB's, NXMeta's, then Ghostland's.
     CHECK(c.title_sources == (std::vector<std::string>{ config::CYBERFOIL_TITLE_SOURCE, config::NXMETA_TITLE_SOURCE,

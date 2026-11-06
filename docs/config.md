@@ -28,6 +28,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `seen_version` | a version | none | The version whose "What's new" was shown |
 | `crash_seen` | a crash file's name | none | The newest crash file already said |
 | `update_daily` | `true`, `false` | `false` | *Preferences › Check for updates every day* |
+| `sphaira_entry` | `true`, `false` | `true` | *Preferences › Entry in sphaira's GitHub menu*: with sphaira on the SD card, PlayShelf keeps `/config/sphaira/github/playshelf.json` (the entry its release zip ships, which the Homebrew App Store leaves out) at start-up, so sphaira offers each release as soon as it is on GitHub; `false` removes it |
 | `update_via` | `inplace`, `auto`, `sphaira`, `appstore`, `manual` | none | *Preferences › Update with* (none: asked at the first update) |
 | `update_checked` | `YYYY-MM-DD` | none | The day of the last check |
 | `update_latest` | a version | none | The latest release the last check found |
