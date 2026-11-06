@@ -7,6 +7,7 @@
 
 #include "action/cleanup_flow.hpp"
 #include "action/dev_build_flow.hpp"
+#include "action/crypto_flow.hpp"
 #include "action/frame_stats_flow.hpp"
 #include "action/github_login_flow.hpp"
 #include "action/compress_flow.hpp"
@@ -151,6 +152,14 @@ HelpTab::HelpTab()
     });
     this->stats_timer.setPeriod(1000);
     this->stats_timer.setCallback([this]() { this->update_frame_stats(); });
+    dev_crypto->registerClickAction([this](aurore::View*) {
+        crypto_flow::choose([this]() { this->refresh(); });
+        return true;
+    });
+    dev_crypto_bench->registerClickAction([](aurore::View*) {
+        crypto_flow::benchmark();
+        return true;
+    });
     dev_clear_cache->registerClickAction([](aurore::View*) {
         cleanup_flow::clear_cache();
         return true;
@@ -183,6 +192,7 @@ HelpTab::HelpTab()
                  { "hp_logs_keep", "folder" }, { "hp_logs_keep_days", "calendar" },
                  { "hp_logs_keep_mb", "save" }, { "hp_dev_mode", "code" }, { "hp_dev_read_only", "eye" },
                  { "hp_dev_frame_stats", "activity" }, { "hp_dev_glow", "sparkle" },
+                 { "hp_dev_crypto", "lock" }, { "hp_dev_crypto_bench", "activity" },
                  { "hp_dev_clear_cache", "trash" }, { "hp_dev_clear_logs", "trash" },
                  { "hp_dev_report", "file" }, { "hp_dev_build", "download" },
                  { "hp_dev_install", "save" }, { "hp_dev_compress", "save" } });
@@ -205,6 +215,7 @@ void HelpTab::refresh()
     dev_read_only->setOn(ro, false);
     dev_frame_stats->setOn(cfg.frame_stats, false);
     dev_glow->setOn(cfg.look.glow, false);
+    dev_crypto->setDetailText(crypto_flow::text());
     this->update_frame_stats();
     const bool signed_in = !github_auth::token().empty();
     ui::set_visible_all({ { github.getView(), dev || signed_in },
@@ -215,6 +226,8 @@ void HelpTab::refresh()
                           { dev_frame_stats_note.getView(), dev },
                           { dev_frame_stats_last.getView(), dev && frame_stats_flow::running() },
                           { dev_glow.getView(), dev },
+                          { dev_crypto.getView(), dev },
+                          { dev_crypto_bench.getView(), dev },
                           { dev_clear_cache.getView(), dev },
                           { dev_clear_logs.getView(), dev },
                           { dev_report.getView(), dev },

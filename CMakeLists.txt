@@ -195,6 +195,11 @@ list(APPEND PLAYSHELF_SRC ${BOREALE_LINK}/bl_kv.c ${BOREALE_LINK}/bl_app.c ${BOR
 # QR codes (sign-in with GitHub, funding links in About) (MIT, vendored: extern/qrcodegen).
 list(APPEND PLAYSHELF_SRC ${CMAKE_CURRENT_SOURCE_DIR}/extern/qrcodegen/qrcodegen.cpp)
 
+if (PLATFORM_SWITCH)
+    # The console's CPU has the ARMv8 crypto extensions (util/crypto_hw): that one file asks for them, whatever the toolchain's default.
+    set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/source/kit/util/crypto_hw.cpp PROPERTIES COMPILE_OPTIONS "-march=armv8-a+crc+crypto")
+endif ()
+
 program_target(${PROJECT_NAME} "${PLAYSHELF_SRC}")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 

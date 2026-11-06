@@ -31,6 +31,7 @@ struct Config
     // glow).
     ui::Prefs look;
     bool dev_mode = false;             // developer tools (7 presses on About > Version)
+    std::string crypto = "auto";       // Developer › Encryption: auto, software or hardware (util/crypto_backend)
     bool frame_stats = false;          // Developer › frame statistics (action/frame_stats_flow)
     // How an update is installed: "" (not chosen yet: asked on the first
     // update), "inplace" (PlayShelf downloads it and replaces itself),

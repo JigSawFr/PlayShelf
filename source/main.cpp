@@ -26,6 +26,7 @@
 #include <aurore/cadran/view/loading_bar.hpp>
 #include <aurore/cadran/view/scroll_view.hpp>
 
+#include "action/crypto_flow.hpp"
 #include "action/frame_stats_flow.hpp"
 #include "action/log_prune_flow.hpp"
 #include "action/notices.hpp"
@@ -184,6 +185,7 @@ std::string system_line(const SysInfo& si)
 void show_first(aurore::Activity* first)
 {
     aurore::Application::pushActivity(first, aurore::TransitionAnimation::NONE);
+    crypto_flow::apply();  // Developer › Encryption: which AES and SHA-256 the installs run on
     frame_stats_flow::apply();  // Help & diagnostics › Developer › Frame statistics, when on
     log_prune_flow::run();  // the reports and crashes past the limits of About › Help & diagnostics
     startup_mark(StartupStep_FirstScreen);

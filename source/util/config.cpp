@@ -98,6 +98,7 @@ void sanitize(Config& c)
     one_of(c.look.effects, { "auto", "full", "reduced" }, "auto");
     one_of(c.look.density, { "auto", "comfortable", "compact", "dense" }, "auto");
     one_of(c.look.rail, { "auto", "open", "icons" }, "auto");
+    one_of(c.crypto, { "auto", "software", "hardware" }, "auto");
     one_of(c.update_via, { "", "inplace", "auto", "sphaira", "appstore", "manual" }, "");
     one_of(c.dev_builds_order, { "newest", "number" }, "newest");
     one_of(c.library_view, { "grid", "list" }, "grid");
@@ -181,6 +182,7 @@ static void load_shared()
     read_string(j, "density", c.look.density);
     read_string(j, "rail", c.look.rail);
     read_bool(j, "dev_mode", c.dev_mode);
+    read_string(j, "crypto", c.crypto);
     read_bool(j, "frame_stats", c.frame_stats);
     read_bool(j, "cadran_glow", c.look.glow);
     read_string(j, "update_via", c.update_via);
@@ -241,6 +243,7 @@ bool snapshot(Snapshot& snap)
     j["density"]         = s_config.look.density;
     j["rail"]            = s_config.look.rail;
     j["dev_mode"]        = s_config.dev_mode;
+    j["crypto"]          = s_config.crypto;
     j["frame_stats"]     = s_config.frame_stats;
     j["cadran_glow"]     = s_config.look.glow;
     j["update_via"]      = s_config.update_via;
