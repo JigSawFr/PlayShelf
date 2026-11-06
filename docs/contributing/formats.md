@@ -16,7 +16,8 @@ The schema is one named constant per format, never a number repeated in the code
 | File | Schema | Its constant | Read and written by | Newer schema |
 |---|---|---|---|---|
 | `config.json` | `"schema"`, 1 | `config::SCHEMA` (`web/simulator.js`'s `CONFIG_SCHEMA` the same, `tools/check_resources.py` checks it) | `source/util/config.cpp`, `web/simulator.js` ([its keys](../config.md)) | Defaults in memory, the file not written |
-| `servers.json` | `"schema"`, 1 | `library::SERVERS_SCHEMA` | `source/library/servers.cpp` | No servers, the file not written; a password or pin of a format not known kept as it is, unused |
+| `servers.json` | `"schema"`, 2 (1 is carried over once, `library::OLD_SERVERS_SCHEMA`) | `library::SERVERS_SCHEMA` | `source/library/servers.cpp` | No servers, the file not written; the keys not known kept as they are |
+| `lantern.json` (each paired server's token, device key and pinned key, sealed) | `"schema"`, 1 | `lantern_app::CREDENTIALS_SCHEMA` | `source/lantern_app/credential_store.cpp` | Not paired, the file not written; the keys not known kept as they are |
 | `queue.json`, with each job's install journal | `"schema"`, 1 (the journal's own `"schema"`, 1) | `download::QUEUE_SCHEMA`, `download::JOURNAL_SCHEMA` | `source/download/queue.cpp` | An empty queue, the file not written; a job of a newer journal not taken up (failed, its journal kept) |
 | `seen.json` | `"schema"`, 1 | `SCHEMA` in `source/library/seen.cpp` | `source/library/seen.cpp`, `source/action/insights.cpp` | Not read, not written |
 | `news.json` (the games the bell told new or trending, from Atlas' `changes.json`) | `"schema"`, 1 | `library::TellBook::SCHEMA` | `source/library/news.cpp`, `source/activity/insight_notices.cpp` | Read as none (a game may be told again), not written |
@@ -37,4 +38,4 @@ The schema is one named constant per format, never a number repeated in the code
 | The web simulator's kept state (IndexedDB) | one database per deployment, named after the page's folder | `SimLogic.keptDatabase` | `web/simulator.js` | Each deployment its own: one never reads another's files |
 | boreale.dev's `versions.json` (the website's menu) | `"schema"`, 1 with `"projects"` | boreale-site's `VERSIONS_SCHEMA` (`library/boreale-site`) | `tools/build_site.py` (boreale-site's `latest_versions()`, `read_versions()`) | No versions in the menu |
 
-Formats that are not ours (a library server's answers, Tinfoil indexes, CyberFoil-DB's manifest, Nlib API, GitHub's) carry no schema of ours: they are read with the same care, an unknown field skipped and an unexpected shape read as nothing.
+Formats that are not ours (a Lantern server's answers, which the SDK reads, CyberFoil-DB's manifest, Nlib API, GitHub's) carry no schema of ours: they are read with the same care, an unknown field skipped and an unexpected shape read as nothing.

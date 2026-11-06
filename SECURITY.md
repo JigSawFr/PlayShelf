@@ -11,7 +11,7 @@ Expect an acknowledgement within a few days. A confirmed report is fixed in a ne
 and the advisory is published once that release is out.
 
 Include, if you can: the firmware and Atmosphère versions, the PlayShelf version, the kind
-of server (AeroFoil, Ownfoil, a JSON index), what a person gains, and the smallest sequence
+of server (and its software), what a person gains, and the smallest sequence
 of steps that shows it.
 
 ## Supported versions
