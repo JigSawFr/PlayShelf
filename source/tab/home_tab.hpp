@@ -67,7 +67,7 @@ class HomeTab : public TabBase
     GameTile* lone_tile(uint64_t id, const std::string& name, const Detail& detail);
     // A cover's icon: its catalogue's, else the title databases' or Nlib
     // API's (`tiles`' last; a picture for an older build is dropped).
-    void show_icon(const Pick& pick, uint64_t id);
+    void show_icon(uint64_t id);
 
     std::string              built_key;
     std::vector<BannerCard*> cards;

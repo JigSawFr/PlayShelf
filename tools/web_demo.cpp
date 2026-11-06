@@ -31,6 +31,7 @@
 #include <aurore/extern/nlohmann/json.hpp>
 
 #include "install/packages.hpp"
+#include "util/sha256.hpp"
 #include "library/seen.hpp"
 #include "util/text_schema.hpp"
 
@@ -321,16 +322,26 @@ int main(int argc, char** argv)
     const std::vector<Game> games = read_games(argv[2], day);
     mkdir(out.c_str(), 0755);
     mkdir((out + "/files").c_str(), 0755);
+    // The demo as a Lantern server's apps (SPEC.md § 6.1), one page: each
+    // package with the SHA-256 of the file as it is served.
     std::string items;
-    auto        item = [&items](const std::string& url, size_t size, uint64_t id, uint32_t version, const char* type,
-                         const std::string& name, const std::string& icon_url, const std::string& date) {
-        char line[1024];
+    auto        item = [&items, &out](const std::string& file, size_t size, uint64_t id, uint64_t title, uint32_t version, const char* type,
+                                 const std::string& name) {
+        std::string bytes;
+        {
+            std::ifstream in(out + "/" + file, std::ios::binary);
+            bytes.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+        }
+        Sha256 sha;
+        sha.update(std::string_view(bytes));
+        char line[1536];
         std::snprintf(line, sizeof line,
-                      "%s\n    {\"url\": %s, \"size\": %zu, \"title_id\": \"%016llX\", \"app_version\": %u, \"app_type\": \"%s\"%s%s%s%s%s}",
-                      items.empty() ? "" : ",", json_text(url).c_str(), size, (unsigned long long)id, version, type,
-                      name.empty() ? "" : ", \"name\": ", name.empty() ? "" : json_text(name).c_str(),
-                      icon_url.empty() ? "" : ", \"icon_url\": ", icon_url.empty() ? "" : json_text(icon_url).c_str(),
-                      date.empty() ? "" : (", \"release_date\": \"" + date + "\"").c_str());
+                      "%s\n    {\"id\": \"%016llX-%u\", \"platform\": \"switch\", \"title_id\": \"%016llX\", \"app_id\": \"%016llX\", "
+                      "\"type\": \"%s\", \"version_code\": %u, \"name\": %s, \"size\": %zu, \"format\": \"%s\", "
+                      "\"sha256\": \"%s\", \"file\": %s}",
+                      items.empty() ? "" : ",", (unsigned long long)id, version, (unsigned long long)title, (unsigned long long)id,
+                      type, version, json_text(name).c_str(), size, file.ends_with(".nsz") ? "nsz" : "nsp", sha.hex().c_str(),
+                      json_text("/" + file).c_str());
         items += line;
     };
     int served = 0;
@@ -344,16 +355,13 @@ int main(int argc, char** argv)
         std::snprintf(file, sizeof file, "files/%016llX.%s", (unsigned long long)base, ext);
         const Bytes b = package(MetaType::Application, base, 0, body, g.name, g.compressed);
         write(out + "/" + file, std::string(b.begin(), b.end()));
-        // Its icon: tools/web_demo_art.py's.
-        char icon_file[64];
-        std::snprintf(icon_file, sizeof icon_file, "icons/%016llX.jpg", (unsigned long long)base);
-        item(file, b.size(), base, 0, "BASE", g.name, icon_file, g.date);
+        item(file, b.size(), base, base, 0, "base", g.name);
         for (int u = g.updates; u >= 1; u--) {
             const uint32_t version = (uint32_t)u << 16;
             std::snprintf(file, sizeof file, "files/%016llX_v%u.nsp", (unsigned long long)(base | 0x800), version);
             const Bytes p = package(MetaType::Patch, base | 0x800, version, body / 4, g.name + " update", false);
             write(out + "/" + file, std::string(p.begin(), p.end()));
-            item(file, p.size(), base | 0x800, version, "UPDATE", "", "", "");
+            item(file, p.size(), base | 0x800, base, version, "update", g.name + " update");
         }
         for (int d = 1; d <= g.dlcs; d++) {
             const uint64_t id = base + 0x1000 + (uint64_t)d;
@@ -361,12 +369,19 @@ int main(int argc, char** argv)
             const Bytes p = package(MetaType::AddOnContent, id, 0, 12u << 10, g.name + " add-on", false);
             write(out + "/" + file, std::string(p.begin(), p.end()));
             const char* what[] = { " – Soundtrack", " – Extra stories", " – Season pass" };
-            item(file, p.size(), id, 0, "DLC", g.name + what[(d - 1) % 3], "", "");
+            item(file, p.size(), id, base, 0, "dlc", g.name + what[(d - 1) % 3]);
         }
         served++;
     }
-    write(out + "/index.json", "{\n  \"success\": \"Welcome to PlayShelf's demo shelf: made-up games, installed on a simulated console.\",\n"
-                               "  \"files\": [" + items + "\n  ]\n}\n");
+    mkdir((out + "/lantern").c_str(), 0755);
+    write(out + "/lantern/handshake.json",
+          "{\"schema\": 1, \"uid\": \"d0e0d0e0-0000-4000-8000-00000000d0e0\", \"name\": \"Demo shelf\", "
+          "\"motd\": \"Welcome to PlayShelf's demo shelf: made-up games, installed on a simulated console.\", "
+          "\"base\": \"/api/lantern\", \"versions\": [1], \"platforms\": [\"switch\"], "
+          "\"account\": {\"state\": \"active\", \"scopes\": [\"library\"]}, "
+          "\"features\": {\"library\": 1, \"titles\": 0, \"changes\": 0, \"sections\": 0, \"homebrew\": 0, \"saves\": 0, "
+          "\"cheats\": 0, \"requests\": 0, \"pairing\": 0}}\n");
+    write(out + "/lantern/apps.json", "{\"schema\": 1, \"items\": [" + items + "\n  ], \"next\": null}\n");
 
     // Atlas' files of every game, and the console's first ones: their
     // content meta records and names (web_demo_art.py adds their icons), and

@@ -450,7 +450,7 @@ void HomeTab::add_banners(const std::string& title, const std::vector<Pick>& pic
     }
 }
 
-void HomeTab::show_icon(const Pick& pick, uint64_t game_id)
+void HomeTab::show_icon(uint64_t game_id)
 {
     const int    gen = this->generation;
     const size_t at = this->tiles.size() - 1;
@@ -484,7 +484,7 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
         if (each) each(tile, p);
         row->addView(tile);
         this->tiles.push_back(tile);
-        this->show_icon(p, t.id);
+        this->show_icon(t.id);
     }
 }
 
@@ -495,7 +495,7 @@ GameTile* HomeTab::lone_tile(uint64_t game_id, const std::string& name, const De
     tile->set_detail(detail.text);
     tile->set_detail_color(detail.ink);
     this->tiles.push_back(tile);
-    this->show_icon({}, game_id);
+    this->show_icon(game_id);
     return tile;
 }
 
@@ -553,7 +553,7 @@ void HomeTab::add_wished(const std::vector<insights::Wished>& wished)
                 return true;
             });
             this->tiles.push_back(tile);
-            this->show_icon(w.found, w.id);
+            this->show_icon(w.id);
         } else {
             // On no server yet: A takes it off the list.
             tile = this->lone_tile(w.id, w.name, { "playshelf/home/wish_waiting"_i18n, "cadran/text3" });

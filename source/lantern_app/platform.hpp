@@ -6,6 +6,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -16,6 +17,16 @@
 namespace lantern_app
 {
 
+// The simulators' demo (sim/sim_lantern): in their place, a transport that
+// answers for the demo server and the credentials of its pairing. Set at the
+// simulator's start; never on a console.
+struct SimHooks
+{
+    std::function<std::unique_ptr<lantern::Transport>()>       transport;
+    std::function<std::unique_ptr<lantern::CredentialStore>()> store;
+};
+void set_sim(SimHooks hooks);
+
 class Platform
 {
   public:
@@ -24,7 +35,7 @@ class Platform
     Platform& operator=(const Platform&) = delete;
 
     Env&                      env() { return *env_; }
-    lantern::CredentialStore& store() { return store_; }
+    lantern::CredentialStore& store() { return sim_store_ ? *sim_store_ : store_; }
     // Why the transport could not be made ("" when it was).
     const std::string& problem() const { return problem_; }
 
@@ -33,6 +44,7 @@ class Platform
     SystemRandom                       random_;
     SystemClock                        clock_;
     FileCredentialStore                store_;
+    std::unique_ptr<lantern::CredentialStore> sim_store_;
     std::string                        ca_;   // the Switch's authorities (PEM)
     std::unique_ptr<lantern::Transport> transport_;
     std::unique_ptr<Env>               env_;

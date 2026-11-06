@@ -24,10 +24,20 @@ struct NoNetwork final : lantern::Transport
 };
 }   // namespace
 
+SimHooks s_sim;
+
+void set_sim(SimHooks hooks) { s_sim = std::move(hooks); }
+
 std::string user_agent() { return std::string("PlayShelf/") + app::version(); }
 
 Platform::Platform()
 {
+    if (s_sim.transport) {
+        transport_ = s_sim.transport();
+        if (s_sim.store) sim_store_ = s_sim.store();
+        env_ = std::make_unique<Env>(Env{ *transport_, trust_, random_, clock_, user_agent(), "switch", "" });
+        return;
+    }
 #if defined(__SWITCH__)
     if (!paths::read_file("romfs:/data/ca-bundle.pem", ca_)) problem_ = "the certificate authorities cannot be read";
     lantern::mbedtls::Options options;

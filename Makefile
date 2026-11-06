@@ -85,14 +85,14 @@ WEB_DEMO_SOURCES := tools/web_demo.cpp $(KIT)/util/aes.cpp source/install/rsa.cp
 	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
 	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
 ART_PYTHON ?= python3
-%/demo/index.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
+%/demo/lantern/apps.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
 	@rm -rf $*/demo
 	@$*/web_demo $*/demo tools/web_demo_games.json
 	@$(ART_PYTHON) tools/web_demo_art.py tools/web_demo_games.json $*/demo || { rm -rf $*/demo; exit 1; }
-.PRECIOUS: %/web_demo %/demo/index.json
+.PRECIOUS: %/web_demo %/demo/lantern/apps.json
 
 # Then PlayShelf with Emscripten.
-web: $(WEB)/demo/index.json
+web: $(WEB)/demo/lantern/apps.json
 	@emcmake cmake -B $(WEB) -S . -DCMAKE_BUILD_TYPE=Release -DPLAYSHELF_WEB_DEMO=$(abspath $(WEB))/demo $(CMAKE_ARGS)
 	@"$$(command -v cmake)" --build $(WEB) -j $(JOBS)
 
@@ -111,7 +111,7 @@ site:
 # The desktop simulator with the demo (DESKTOP_DEMO=1, the default; empty:
 # without it, and without Playwright).
 DESKTOP_DEMO ?= 1
-desktop: $(if $(DESKTOP_DEMO),$(DESKTOP)/demo/index.json)
+desktop: $(if $(DESKTOP_DEMO),$(DESKTOP)/demo/lantern/apps.json)
 	@cmake -B $(DESKTOP) -S . -DAURORE_PLATFORM=DESKTOP -DCMAKE_BUILD_TYPE=Release \
 	    -DPLAYSHELF_DESKTOP_DEMO=$(if $(DESKTOP_DEMO),$(abspath $(DESKTOP))/demo,) $(CMAKE_ARGS)
 	@cmake --build $(DESKTOP) -j $(JOBS)

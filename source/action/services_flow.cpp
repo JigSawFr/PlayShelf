@@ -465,7 +465,7 @@ void open_saves(const Loaded& l, const CoreSaveUser& user, uint64_t only)
 
 // ---------------------------------------------------------------- requests
 
-void ask_for(const Loaded& l, uint64_t id, const std::string& name)
+void ask_for(const Loaded& l, uint64_t id)
 {
     const library::Server link = l->server;
     auto                b = busy("playshelf/services/request_sending"_i18n, false);
@@ -488,11 +488,7 @@ void search_and_ask(const Loaded& l)
         if (typed) {
             const uint64_t base = library::base_of(typed);
             ui::confirm(aurore::getStr("playshelf/services/request_body", game_name(*l, base)), "playshelf/services/request"_i18n,
-                        [l, base]() {
-                            // Its name only when known: never its title id in its place.
-                            const std::string name = game_name(*l, base);
-                            ask_for(l, base, name == title_id::text(base) ? "" : name);
-                        });
+                        [l, base]() { ask_for(l, base); });
             return;
         }
         auto b = busy("playshelf/services/request_searching"_i18n, true);
@@ -512,12 +508,12 @@ void search_and_ask(const Loaded& l)
                     details.push_back(on_server.count(id) ? "playshelf/services/request_there"_i18n : title_id::text(id));
                 }
                 ui::pick("playshelf/services/request_pick"_i18n, names, 0, [l, found, on_server](int i) {
-                    const auto& [id, name] = found[(size_t)i];
+                    const uint64_t id = found[(size_t)i].first;
                     if (on_server.contains(id)) {
                         ui::info("playshelf/services/request_there_body"_i18n);
                         return;
                     }
-                    ask_for(l, id, name);
+                    ask_for(l, id);
                 }, false, details);
             });
         });
