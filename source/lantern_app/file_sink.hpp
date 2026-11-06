@@ -7,12 +7,25 @@
 #include <cstdint>
 #include <cstdio>
 #include <functional>
+#include <string>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <lantern/download.hpp>
 
 namespace lantern_app
 {
+
+// A file opened for writing, readable and writable by its owner only (SD
+// card files carry no one else's access): `append` keeps what it holds.
+inline FILE* open_private(const std::string& path, bool append)
+{
+    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | (append ? O_APPEND : O_TRUNC), 0600);
+    if (fd < 0) return nullptr;
+    FILE* f = ::fdopen(fd, append ? "ab" : "wb");
+    if (!f) ::close(fd);
+    return f;
+}
 
 class FileSink final : public lantern::DownloadSink
 {

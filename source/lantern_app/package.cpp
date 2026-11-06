@@ -112,7 +112,7 @@ PackageResult fetch_package(Platform& platform, const library::Server& server, c
     }
     if (have == 0) state.reset();
     else state.received = have;
-    FILE* f = std::fopen(path.c_str(), have ? "ab" : "wb");
+    FILE* f = open_private(path, have > 0);
     if (!f) {
         out.why = "the file could not be written";
         return out;

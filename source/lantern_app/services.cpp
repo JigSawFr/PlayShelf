@@ -217,7 +217,7 @@ bool download_save(const library::Server& server, const library::SaveBackup& bac
 {
     auto link = open(server, lantern::Family::saves, why);
     if (!link) return false;
-    FILE* f = std::fopen(zip_path.c_str(), "wb");
+    FILE* f = open_private(zip_path, false);
     if (!f) {
         *why = "the file could not be written";
         return false;
