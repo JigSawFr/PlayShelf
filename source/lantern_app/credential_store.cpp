@@ -1,5 +1,5 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
-#include "lantern/credential_store.hpp"
+#include "lantern_app/credential_store.hpp"
 
 #include <aurore/extern/nlohmann/json.hpp>
 

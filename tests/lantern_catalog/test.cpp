@@ -1,9 +1,9 @@
-// source/lantern/catalog_map.cpp: Lantern apps and sections as the neutral
+// source/lantern_app/catalog_map.cpp: Lantern apps and sections as the neutral
 // catalogue: kinds, versions, addresses made absolute and https only, an app
 // with a bad title id left out, sections over the items by app id.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
-#include "lantern/catalog_map.hpp"
+#include "lantern_app/catalog_map.hpp"
 
 using namespace lantern_app;
 

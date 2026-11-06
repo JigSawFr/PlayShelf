@@ -1,4 +1,4 @@
-// source/lantern/system.cpp: random bytes that are not all the same, a clock
+// source/lantern_app/system.cpp: random bytes that are not all the same, a clock
 // near now, and the UDP socket against a local socket that answers.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include <arpa/inet.h>
@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "check.h"
-#include "lantern/system.hpp"
+#include "lantern_app/system.hpp"
 
 using namespace lantern_app;
 

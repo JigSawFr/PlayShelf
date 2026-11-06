@@ -1,11 +1,11 @@
-// source/lantern/credential_store.cpp: what a paired server keeps (token,
+// source/lantern_app/credential_store.cpp: what a paired server keeps (token,
 // device key, pinned key) sealed in lantern.json, read back by `uid`; the
 // file absent, from a newer schema (read as absent, never written over), a
 // key this build does not know (kept), a sealed value that cannot be opened.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "fs.hpp"
-#include "lantern/credential_store.hpp"
+#include "lantern_app/credential_store.hpp"
 #include "temp_dir.hpp"
 #include "util/paths.hpp"
 

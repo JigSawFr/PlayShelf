@@ -1,7 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
-#include "lantern/session.hpp"
+#include "lantern_app/session.hpp"
 
-#include "lantern/catalog_map.hpp"
+#include "lantern_app/catalog_map.hpp"
 
 namespace lantern_app
 {

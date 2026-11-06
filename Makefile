@@ -156,26 +156,31 @@ $(LANTERN_LIB):
 	cmake -S library/lantern-sdk/cpp -B $(LANTERN_HOST) -DCMAKE_BUILD_TYPE=Release -DLANTERN_BUILD_TESTS=OFF -DLANTERN_BUILD_EXAMPLES=OFF -DLANTERN_INSTALL=OFF -DLANTERN_CURL=OFF -DLANTERN_MBEDTLS=OFF > $(LANTERN_HOST).log 2>&1 || { cat $(LANTERN_HOST).log; exit 1; }
 	cmake --build $(LANTERN_HOST) --target lantern -j$(JOBS) > $(LANTERN_HOST).log 2>&1 || { tail -n 30 $(LANTERN_HOST).log; exit 1; }
 # Lantern credentials kept on the SD card, sealed.
-lantern_store_SRC   := source/lantern/credential_store.cpp $(SECRET_BOX) $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_store/test.cpp
+lantern_store_SRC   := source/lantern_app/credential_store.cpp $(SECRET_BOX) $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_store/test.cpp
 lantern_store_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_store_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_store: $(LANTERN_LIB)
 # Lantern's apps and sections as the neutral catalogue.
-lantern_catalog_SRC   := source/lantern/catalog_map.cpp source/library/catalog.cpp $(KIT)/util/sha256.cpp tests/lantern_catalog/test.cpp
+lantern_catalog_SRC   := source/lantern_app/catalog_map.cpp source/library/catalog.cpp $(KIT)/util/sha256.cpp tests/lantern_catalog/test.cpp
 lantern_catalog_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_catalog_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_catalog: $(LANTERN_LIB)
 # A Lantern server read over a scripted network.
-lantern_session_SRC   := source/lantern/session.cpp source/lantern/catalog_map.cpp source/library/catalog.cpp source/library/server.cpp \
+lantern_session_SRC   := source/lantern_app/session.cpp source/lantern_app/catalog_map.cpp source/library/catalog.cpp source/library/server.cpp \
                          source/library/servers.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_session/test.cpp
 lantern_session_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_session_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_session: $(LANTERN_LIB)
 # The system under the Lantern client: random bytes, the time, the discovery socket.
-lantern_system_SRC   := source/lantern/system.cpp tests/lantern_system/test.cpp
+lantern_system_SRC   := source/lantern_app/system.cpp tests/lantern_system/test.cpp
 lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_system_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_system: $(LANTERN_LIB)
+# Servers found on the LAN.
+lantern_discovery_SRC   := source/lantern_app/discovery.cpp source/library/catalog.cpp $(KIT)/util/sha256.cpp tests/lantern_discovery/test.cpp
+lantern_discovery_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_discovery_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_discovery: $(LANTERN_LIB)
 
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.

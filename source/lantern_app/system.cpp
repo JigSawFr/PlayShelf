@@ -1,5 +1,5 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
-#include "lantern/system.hpp"
+#include "lantern_app/system.hpp"
 
 #include <arpa/inet.h>
 #include <cerrno>

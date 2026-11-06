@@ -1,4 +1,4 @@
-// source/lantern/session.cpp over a scripted network: the address chosen
+// source/lantern_app/session.cpp over a scripted network: the address chosen
 // (LAN, else WAN), a server not paired yet, a paired one read page by page
 // (items and sections), another server answering at a known address.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -6,7 +6,7 @@
 #include <map>
 
 #include "check.h"
-#include "lantern/session.hpp"
+#include "lantern_app/session.hpp"
 
 using namespace lantern_app;
 
