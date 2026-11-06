@@ -108,7 +108,13 @@ Done Installer::prepare()
         if (tik->size > MAX_TICKET_FILE || pkg.find(cert)->size > MAX_TICKET_FILE)
             return fail(tik->name + ": a ticket or certificate too big");
     }
-    if (total > console.free_space()) return fail("not enough free space");
+    // The margin stays free after the install: say how much to free up.
+    const uint64_t free_now = console.free_space();
+    if (total + SPACE_MARGIN > free_now) {
+        const uint64_t more = total + SPACE_MARGIN - free_now;
+        return fail("not enough free space: free " + std::to_string((more + (1u << 20) - 1) >> 20) +
+                    " MiB more on the SD card");
+    }
     return {};
 }
 
