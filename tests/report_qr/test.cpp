@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <fcntl.h>
+#include <unistd.h>
 #include <random>
 #include <string>
 
@@ -97,7 +99,9 @@ int main()
     // The pieces of a report for tests/decode_report/test.py (the other reader),
     // when REPORT_QR_FIXTURE names a file: one piece per line, the report after "---".
     if (const char* path = std::getenv("REPORT_QR_FIXTURE")) {
-        if (FILE* f = std::fopen(path, "w")) {
+        // Read and written by this process and the script after it (0600).
+        const int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+        if (FILE* f = fd >= 0 ? fdopen(fd, "w") : nullptr) {
             for (const auto& p : fixture.pieces) std::fprintf(f, "%s\n", p.c_str());
             std::fprintf(f, "---\n%s", fixture_text.c_str());
             std::fclose(f);
