@@ -780,6 +780,8 @@
         "data_failed": "De speldata van {} kon niet worden gelezen",
         "installing": "{} wordt geïnstalleerd…",
         "install_failed": "{} kon niet worden geïnstalleerd",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} is geïnstalleerd.",
         "remove_failed": "De homebrew kon niet worden verwijderd",
         "consent_body": "{} schrijft op plaatsen die het opstarten van de console kunnen veranderen:",

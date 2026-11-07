@@ -130,7 +130,7 @@ PackageResult fetch_package(Platform& platform, const library::Server& server, c
     }
     FileSink sink(f, stop, progress, have);
     const lantern::DownloadTarget target{request.url, request.size, *digest};
-    if (have == 0 && !request.peers.empty() && fetch_from_peers(*client, request, target, sink, state, stop)) {
+    if (have == 0 && !request.peers.empty() && fetch_from_peers(*client, request, target, sink, state, stop, &out.from_peer)) {
         std::fclose(f);
         out.ok = size_of(path) == request.size;
         if (!out.ok) out.why = "the file is not the size the server announced";

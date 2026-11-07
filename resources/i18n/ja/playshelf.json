@@ -780,6 +780,8 @@
         "data_failed": "{} のゲームデータを読み込めませんでした",
         "installing": "{} をインストール中…",
         "install_failed": "{} をインストールできませんでした",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} をインストールしました。",
         "remove_failed": "ホームブリューを削除できませんでした",
         "consent_body": "{} は、コンソールの起動を変えうる場所に書き込みます:",

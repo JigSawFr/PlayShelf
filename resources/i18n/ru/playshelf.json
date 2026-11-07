@@ -780,6 +780,8 @@
         "data_failed": "Не удалось прочитать данные игры для {}",
         "installing": "Установка {}…",
         "install_failed": "Не удалось установить {}",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} установлено.",
         "remove_failed": "Не удалось удалить homebrew",
         "consent_body": "{} записывает в места, которые могут изменить запуск консоли:",

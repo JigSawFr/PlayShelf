@@ -34,7 +34,7 @@ bool read_seed(const std::string& path, uint64_t left, std::vector<std::byte>* o
 // that does not hold it, or fails, or gives what does not check, is passed
 // by, and the sink emptied for the next.
 bool fetch_from_peers(lantern::Client& client, const PackageRequest& request, const lantern::DownloadTarget& target,
-                FileSink& sink, lantern::DownloadState& state, const std::atomic<bool>* stop)
+                FileSink& sink, lantern::DownloadState& state, const std::atomic<bool>* stop, std::string* from)
 {
     const auto grant = client.grant(target.sha256);
     if (!grant || !*grant) return false;
@@ -44,7 +44,10 @@ bool fetch_from_peers(lantern::Client& client, const PackageRequest& request, co
         const auto holds = client.peer_holds(where, **grant);
         if (!holds || !*holds) continue;
         state.reset();
-        if (client.download_from_peer(where, **grant, target, state, sink)) return true;
+        if (client.download_from_peer(where, **grant, target, state, sink)) {
+            if (from) *from = p.name.empty() ? p.host : p.name;
+            return true;
+        }
         (void)sink.restart();
     }
     state.reset();

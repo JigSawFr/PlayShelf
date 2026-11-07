@@ -213,14 +213,14 @@ struct World
     }
 
     // fetch_from_peers on the file, written to `out`.
-    bool from_peers()
+    bool from_peers(std::string* from = nullptr)
     {
         FILE* f = open_private(out, false);
         FileSink sink(f, nullptr, nullptr, 0);
         lantern::DownloadState state;
         state.reset();
         const lantern::DownloadTarget target{request.url, request.size, *lantern::digest_from_hex(request.sha256)};
-        const bool ok = fetch_from_peers(*client, request, target, sink, state, nullptr);
+        const bool ok = fetch_from_peers(*client, request, target, sink, state, nullptr, from);
         std::fclose(f);
         return ok;
     }
@@ -272,9 +272,11 @@ void test_from_peer()
     World w(file);
     w.request.peers = {peer("192.168.1.11", "a"), peer("192.168.1.12", "b")};
     w.network.held_by = {"192.168.1.12"};   // the first does not hold it, the second does
-    CHECK(w.from_peers());
+    std::string from;
+    CHECK(w.from_peers(&from));
     CHECK(w.written() == file);
     CHECK(w.network.server_reads == 0);   // nothing of the file came from the server
+    CHECK(from == "Lea's Switch");        // and the result says whose it was
 }
 
 void test_no_peer_holds()
