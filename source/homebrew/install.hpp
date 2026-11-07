@@ -24,6 +24,9 @@ struct Record
     std::string              id, version, platform, server_uid;
     uint64_t                 build = 0;
     std::vector<std::string> files;   // every path written, from the SD root
+    // Set while an install is under way (and kept if it was cut): `files` then
+    // holds the old version's and the new one's, so nothing is left unlisted.
+    bool                     pending = false;
 };
 
 // What is installed, by id. A file of a newer schema is read as empty and
@@ -57,11 +60,16 @@ struct Outcome
 // Asked with the paths that need the user's consent (§ 8.3); false refuses.
 using Consent = std::function<bool(const std::vector<std::string>& paths)>;
 
+// Called once the package is checked and before any file is placed, with the
+// record to write down as pending; false stops the install (nothing placed).
+using Begin = std::function<bool(const Record& pending)>;
+
 // Installs `entry` from `package_file` (fetched whole, its SHA-256 checked
 // again here) under `sd_root`; `staging` is a folder this may empty and use.
 // `old` is the record of the version being replaced, if any.
 Outcome install(const lantern::Homebrew& entry, const std::string& package_file, const std::string& sd_root,
-                const std::string& staging, const Record* old, const Consent& consent);
+                const std::string& staging, const Record* old, const Consent& consent,
+                const Begin& begin = nullptr);
 
 // What an interrupted install leaves behind, removed at startup (never while
 // one runs): the downloaded `package_file`, the `staging` folder, and the

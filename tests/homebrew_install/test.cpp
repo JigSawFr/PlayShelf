@@ -160,6 +160,46 @@ void test_book()
     CHECK(!Book().load(file));
 }
 
+void test_pending()
+{
+    TempDir     t("hb_pending");
+    const std::string sd = t.path() + "/sd", stage = t.path() + "/stage", pkg = t.path() + "/dl.zip";
+    const std::string base = "/switch/org.example.demo/";
+    const std::vector<std::pair<std::string, std::string>> v1 = { { base + "demo.nro", "one" }, { base + "old.txt", "old" } };
+    const std::string z1 = zip_of(v1);
+    fs::write(pkg, z1);
+    const auto first = install(zip_entry("1.0", v1, z1), pkg, sd, stage, nullptr, nullptr);
+    CHECK(first.ok && !first.record.pending);
+    const std::vector<std::pair<std::string, std::string>> v2 = { { base + "demo.nro", "two" }, { base + "new.txt", "n" } };
+    const std::string z2 = zip_of(v2);
+    fs::write(pkg, z2);
+    // The book is told first, before any file moves, and lists both versions' files.
+    Record seen;
+    bool   untouched = false;
+    const auto second = install(zip_entry("2.0", v2, z2), pkg, sd, stage, &first.record, nullptr, [&](const Record& p) {
+        seen = p;
+        untouched = fs::read(sd + base + "demo.nro") == "one" && !fs::exists(sd + base + "new.txt");
+        return true;
+    });
+    CHECK(second.ok && !second.record.pending);
+    CHECK(untouched && seen.pending && seen.build == second.record.build);
+    CHECK(seen.files.size() == 3);   // demo.nro, new.txt, and old.txt of the old version
+    // A book that cannot be written stops the install before it begins.
+    fs::write(pkg, z1);
+    const auto refused = install(zip_entry("1.0", v1, z1), pkg, sd, stage, &second.record, nullptr, [](const Record&) { return false; });
+    CHECK(!refused.ok && fs::read(sd + base + "demo.nro") == "two");
+    // pending survives the book file; an absent flag reads false.
+    Book b;
+    b.put(seen);
+    const std::string file = t.path() + "/homebrew.json";
+    CHECK(b.save(file));
+    Book c;
+    CHECK(c.load(file) && c.find(seen.id) && c.find(seen.id)->pending);
+    Book d;
+    fs::write(file, "{\"schema\":1,\"installed\":[{\"id\":\"x\"}]}");
+    CHECK(d.load(file) && d.find("x") && !d.find("x")->pending);
+}
+
 void test_sweep()
 {
     TempDir     t("hb_sweep");
@@ -183,6 +223,7 @@ void test_sweep()
 int main()
 {
     test_single_file();
+    test_pending();
     test_sweep();
     test_archive();
     test_book();
