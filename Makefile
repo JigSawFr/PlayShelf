@@ -177,6 +177,11 @@ lantern_range_SRC   := source/lantern_app/range_source.cpp source/lantern_app/se
 lantern_range_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_range_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_range: $(LANTERN_LIB)
+# A package put together from an older copy and the ranges that differ.
+lantern_delta_SRC   := source/lantern_app/delta.cpp source/lantern_app/session.cpp source/lantern_app/catalog_map.cpp source/library/catalog.cpp source/library/facts.cpp source/library/server.cpp source/library/servers.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_delta/test.cpp
+lantern_delta_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_delta_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_delta: $(LANTERN_LIB)
 # The system under the Lantern client: random bytes, the time, the discovery socket.
 lantern_system_SRC   := source/lantern_app/system.cpp tests/lantern_system/test.cpp
 lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)

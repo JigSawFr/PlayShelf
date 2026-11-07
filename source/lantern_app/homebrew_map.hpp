@@ -20,6 +20,7 @@ struct HomebrewItem
     lantern::Homebrew entry;
     std::string       name, author, summary, description, version;
     std::string       url;    // the chosen package's file, absolute
+    std::string       chunks_url;   // its chunk index (SPEC.md 22.1), absolute https://, or ""
     std::string       icon;   // https:// or ""
     uint64_t          size = 0;
 };

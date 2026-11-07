@@ -6,6 +6,7 @@
 
 #include <aurore.hpp>
 
+#include "lantern_app/delta.hpp"
 #include "lantern_app/package.hpp"
 #include "lantern_app/platform.hpp"
 #include "ui/ui.hpp"
@@ -98,7 +99,25 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
             request.sha256.resize(64);
             std::remove(package_file().c_str());
             std::string why;
-            const auto  got = lantern_app::fetch_package(platform, server, request, package_file(), nullptr, nullptr);
+            // An update of a single file reads the chunks the old copy
+            // already holds (SPEC.md 22.3) and asks for the rest.
+            lantern_app::DeltaResult got;
+            const auto package = lantern::pick_package(item.entry, "");
+            std::vector<std::string> seeds;
+            if (old_copy && package && !(*package)->path.empty() && (*package)->chunks) {
+                const std::string path((*package)->path);
+                for (const std::string& f : old_copy->files)
+                    if (f == path) seeds.push_back(paths::sd_root() + path);
+            }
+            if (!seeds.empty()) {
+                const auto& ch = *(*package)->chunks;
+                std::string sha(lantern::to_hex(ch.sha256).data(), 64);
+                got = lantern_app::fetch_package_delta(platform, server, request, item.chunks_url, ch.size, sha, seeds,
+                                                       package_file(), nullptr, nullptr);
+            } else {
+                static_cast<lantern_app::PackageResult&>(got) =
+                    lantern_app::fetch_package(platform, server, request, package_file(), nullptr, nullptr);
+            }
             homebrew::Outcome out;
             if (!got.ok) why = got.why;
             else {

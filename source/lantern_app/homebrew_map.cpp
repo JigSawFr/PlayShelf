@@ -36,6 +36,7 @@ void add_homebrew(HomebrewList& list, std::span<const lantern::Homebrew> entries
         HomebrewItem item;
         item.entry       = e;
         item.url         = url;
+        if ((*package)->chunks) item.chunks_url = https_or_empty(origin, (*package)->chunks->url);
         item.size        = (*package)->size;
         item.name        = library::display_text(std::string(e.name), 128);
         item.author      = library::display_text(std::string(e.author), 128);
