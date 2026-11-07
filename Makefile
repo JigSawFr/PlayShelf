@@ -152,6 +152,7 @@ LANTERN_HOST := $(BUILD)/lantern-host
 LANTERN_LIB  := $(LANTERN_HOST)/liblantern.a
 LANTERN_INC  := -isystem library/lantern-sdk/cpp/include
 $(LANTERN_LIB):
+	@mkdir -p $(BUILD)
 	@test -f library/lantern-sdk/cpp/CMakeLists.txt || { echo "the Lantern SDK is missing: run git submodule update --init"; exit 1; }
 	cmake -S library/lantern-sdk/cpp -B $(LANTERN_HOST) -DCMAKE_BUILD_TYPE=Release -DLANTERN_BUILD_TESTS=OFF -DLANTERN_BUILD_EXAMPLES=OFF -DLANTERN_INSTALL=OFF -DLANTERN_CURL=OFF -DLANTERN_MBEDTLS=OFF > $(LANTERN_HOST).log 2>&1 || { cat $(LANTERN_HOST).log; exit 1; }
 	cmake --build $(LANTERN_HOST) --target lantern -j$(JOBS) > $(LANTERN_HOST).log 2>&1 || { tail -n 30 $(LANTERN_HOST).log; exit 1; }
