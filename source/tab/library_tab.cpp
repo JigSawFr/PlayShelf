@@ -194,8 +194,7 @@ aurore::View* LibraryTab::create()
 void LibraryTab::refresh()
 {
     download_flow::show_pill();
-    kind_cell->set_value(s_homebrew ? "playshelf/tabs/homebrew"_i18n : "playshelf/library/kind_games"_i18n);
-    kind_cell->set_active(s_homebrew);
+    homebrew_kind::show(kind_cell, s_homebrew);
     ui::set_visible_all({ { summary, !s_homebrew }, { homebrew, s_homebrew }, { status, s_homebrew } });
     if (s_homebrew) {
         // The homebrew in place of the games: nothing of the games' view.
@@ -419,13 +418,12 @@ void LibraryTab::add_page()
 
 void LibraryTab::pick_kind()
 {
-    const std::vector<std::string> labels = { "playshelf/library/kind_games"_i18n, "playshelf/tabs/homebrew"_i18n };
-    ui::pick("playshelf/library/kind"_i18n, labels, s_homebrew ? 1 : 0, ui::guarded(this->alive, [this](int i) {
-                 s_homebrew = i == 1;
-                 this->refresh();
-                 // Back to the games: those already read, built again.
-                 if (!s_homebrew && this->shown_games) this->show_games(this->shown_games);
-             }));
+    homebrew_kind::pick(s_homebrew, ui::guarded(this->alive, [this](bool on) {
+                            s_homebrew = on;
+                            this->refresh();
+                            // Back to the games: those already read, built again.
+                            if (!s_homebrew && this->shown_games) this->show_games(this->shown_games);
+                        }));
 }
 
 void LibraryTab::pick_filter()

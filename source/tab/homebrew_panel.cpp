@@ -8,8 +8,25 @@
 #include "action/library_icons.hpp"
 #include "ui/ui.hpp"
 #include "view/game_tile.hpp"
+#include "view/tool_chip.hpp"
 
 using namespace aurore::literals;
+
+namespace homebrew_kind {
+
+void show(ToolChip* chip, bool homebrew)
+{
+    chip->set_value(homebrew ? "playshelf/tabs/homebrew"_i18n : "playshelf/library/kind_games"_i18n);
+    chip->set_active(homebrew);
+}
+
+void pick(bool homebrew, std::function<void(bool)> then)
+{
+    const std::vector<std::string> labels = { "playshelf/library/kind_games"_i18n, "playshelf/tabs/homebrew"_i18n };
+    ui::pick("playshelf/library/kind"_i18n, labels, homebrew ? 1 : 0, [then](int i) { then(i == 1); });
+}
+
+} // namespace homebrew_kind
 
 namespace
 {
