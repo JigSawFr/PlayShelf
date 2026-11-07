@@ -188,6 +188,12 @@ lantern_discovery_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_discovery_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_discovery: $(LANTERN_LIB)
 
+# A homebrew package written onto the SD card, and the book of what is installed.
+homebrew_install_SRC   := source/homebrew/install.cpp source/saves/archive.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp $(KIT)/util/zip_write.cpp tests/homebrew_install/test.cpp
+homebrew_install_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+homebrew_install_LIBS  := $(LANTERN_LIB) -lz
+$(TESTOUT)/homebrew_install: $(LANTERN_LIB)
+
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
 INSTALL_FORMATS := $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
