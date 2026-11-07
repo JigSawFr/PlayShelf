@@ -9,6 +9,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -20,6 +21,15 @@
 #include "library/servers.hpp"
 
 class GameTile;
+class ToolChip;
+
+// The "Show" pill both tabs carry: the games, or the homebrew, of a server.
+namespace homebrew_kind {
+// The pill in step with the choice (`homebrew`: the homebrew is shown).
+void show(ToolChip* chip, bool homebrew);
+// Asks which of the two to show; `then` gets true for the homebrew.
+void pick(bool homebrew, std::function<void(bool)> then);
+}
 
 class HomebrewPanel
 {

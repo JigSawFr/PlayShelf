@@ -217,8 +217,7 @@ void CatalogueTab::refresh()
         return;
     }
     server_cell->set_value(s->name);
-    kind_cell->set_value(s_homebrew ? "playshelf/tabs/homebrew"_i18n : "playshelf/library/kind_games"_i18n);
-    kind_cell->set_active(s_homebrew);
+    homebrew_kind::show(kind_cell, s_homebrew);
     search_cell->set_value(s_query.empty() ? "playshelf/library/search_all"_i18n : s_query);
     search_cell->set_active(!s_query.empty());
     sort_cell->set_value(order_text(s_order));
@@ -583,11 +582,10 @@ void CatalogueTab::pick_section()
 
 void CatalogueTab::pick_kind()
 {
-    const std::vector<std::string> labels = { "playshelf/library/kind_games"_i18n, "playshelf/tabs/homebrew"_i18n };
-    ui::pick("playshelf/library/kind"_i18n, labels, s_homebrew ? 1 : 0, ui::guarded(this->alive, [this](int i) {
-                 s_homebrew = i == 1;
-                 this->refresh();
-             }));
+    homebrew_kind::pick(s_homebrew, ui::guarded(this->alive, [this](bool on) {
+                            s_homebrew = on;
+                            this->refresh();
+                        }));
 }
 
 void CatalogueTab::search()
