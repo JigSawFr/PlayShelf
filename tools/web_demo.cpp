@@ -431,6 +431,7 @@ int main(int argc, char** argv)
               "{\"schema\": 1, \"items\": [\n    {\"id\": \"" + id + "\", \"platform\": \"switch\", \"kind\": \"app\", "
               "\"name\": \"Lamplight\", \"author\": \"Noor\", \"version\": \"1.3.0\", \"build\": 10300, "
               "\"license\": \"MIT\", \"language\": \"en\", "
+              "\"icon\": {\"url\": \"/icons/" + id + ".jpg\", \"width\": 256}, "
               "\"summary\": \"A pocket journal for long nights.\", "
               "\"description\": \"Write a few lines each evening; Lamplight keeps them on the SD card.\", "
               "\"updated\": \"2026-11-05T08:00:00Z\", "

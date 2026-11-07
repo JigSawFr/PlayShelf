@@ -210,6 +210,10 @@ def main():
                 json.dump(details, f, ensure_ascii=False)
         titledb[gid] = {"name": g["name"], "publisher": g["studio"], "releaseDate": release.replace("-", ""),
                         "version": 0, "size": (1 + i % 12) * 1_000_000_000}
+    # The demo's homebrew (tools/web_demo.cpp) has an icon like a game's: a
+    # lamp over its name, on a night-paper scene.
+    lamp = {"name": "Lamplight", "hues": [0.09, 0.62], "art": "paper"}
+    save(render.shot(page(lamp, 0, "icon", 512, 512, font), 512, 512), f"{out}/icons/org.example.lamplight.jpg", (256, 256))
     render.close()
     os.makedirs(f"{out}/insights", exist_ok=True)
     with open(f"{out}/insights/changes.json", "w", encoding="utf-8") as f:
