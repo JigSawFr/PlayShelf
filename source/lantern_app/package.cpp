@@ -130,6 +130,17 @@ PackageResult fetch_package(Platform& platform, const library::Server& server, c
     }
     FileSink sink(f, stop, progress, have);
     const lantern::DownloadTarget target{request.url, request.size, *digest};
+    if (have == 0 && !request.peers.empty() && fetch_from_peers(*client, request, target, sink, state, stop)) {
+        std::fclose(f);
+        out.ok = size_of(path) == request.size;
+        if (!out.ok) out.why = "the file is not the size the server announced";
+        return out;
+    }
+    if (stop && stop->load()) {
+        std::fclose(f);
+        out.stopped = true;
+        return out;
+    }
     const auto done = client->download(target, state, sink);
     std::fclose(f);
     if (done) {
@@ -181,7 +192,7 @@ DeltaResult fetch_package_delta(Platform& platform, const library::Server& serve
         out.why = why;
         return out;
     }
-    out = fetch_delta(*client, request, chunks_url, chunks_size, chunks_sha256, held, path, stop, progress);
+    out = fetch_delta(*client, request, chunks_url, chunks_size, chunks_sha256, held, path, stop, progress, request.peers);
     if (out.whole && !out.ok && !out.stopped && out.why.empty()) return whole();
     return out;
 }

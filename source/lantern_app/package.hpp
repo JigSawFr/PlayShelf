@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "lantern_app/peers.hpp"
 #include "lantern_app/platform.hpp"
 #include "library/servers.hpp"
 
@@ -23,6 +24,10 @@ struct PackageRequest
     std::string url;      // https://, an address of the server
     uint64_t    size = 0;
     std::string sha256;   // 64 hex digits
+    // Peers that may hold the file (SPEC.md 19.5): asked first, each for
+    // the whole file or the chunks it holds, then the server. What a peer
+    // gives is checked as anything else is; a peer that fails is passed by.
+    std::vector<PeerAddress> peers;
 };
 
 struct PackageResult

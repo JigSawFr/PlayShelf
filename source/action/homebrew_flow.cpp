@@ -97,6 +97,7 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
             request.size = item.size;
             request.sha256 = lantern::to_hex((*lantern::pick_package(item.entry, ""))->sha256).data();
             request.sha256.resize(64);
+            request.peers = lantern_app::peers_of(server.uid);
             std::remove(package_file().c_str());
             std::string why;
             // An update of a single file reads the chunks the old copy

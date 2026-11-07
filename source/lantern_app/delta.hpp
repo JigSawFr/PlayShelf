@@ -11,6 +11,7 @@
 
 #include <lantern/lantern.hpp>
 
+#include "lantern_app/file_sink.hpp"
 #include "lantern_app/package.hpp"
 
 namespace lantern_app
@@ -30,6 +31,14 @@ inline constexpr uint64_t MAX_SEED_BYTES = 48u << 20;
 // `file` read whole into memory, unless it is missing, empty or over `room`.
 bool read_seed(const std::string& file, uint64_t room, std::vector<std::byte>* out);
 
+// The whole file from a peer of `request.peers` that holds it, if one does:
+// each is asked with this file's grant and nothing else of the server's
+// (SPEC.md 19.1). A peer that does not hold it, fails, or gives what does
+// not check is passed by, the sink emptied for the next. False when none
+// gave it: the caller reads from the server.
+bool fetch_from_peers(lantern::Client& client, const PackageRequest& request, const lantern::DownloadTarget& target,
+                      FileSink& sink, lantern::DownloadState& state, const std::atomic<bool>* stop);
+
 // The package of `request` into `path`, from the chunks `held` has and the
 // ranges of the rest, over a client already made. `chunks_url` is the
 // package's chunk index, `chunks_size` and `chunks_sha256` its own. When the
@@ -38,6 +47,7 @@ bool read_seed(const std::string& file, uint64_t room, std::vector<std::byte>* o
 DeltaResult fetch_delta(lantern::Client& client, const PackageRequest& request, const std::string& chunks_url,
                         uint64_t chunks_size, const std::string& chunks_sha256,
                         const std::vector<std::vector<std::byte>>& held, const std::string& path,
-                        const std::atomic<bool>* stop, const std::function<void(uint64_t)>& progress);
+                        const std::atomic<bool>* stop, const std::function<void(uint64_t)>& progress,
+                        const std::vector<PeerAddress>& peers = {});
 
 }   // namespace lantern_app

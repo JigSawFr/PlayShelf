@@ -29,10 +29,33 @@ bool read_seed(const std::string& path, uint64_t left, std::vector<std::byte>* o
     return ok;
 }
 
+// The whole file from a peer that holds it, if one does: each is asked with
+// this file's grant and nothing else of the server's (SPEC.md 19.1). A peer
+// that does not hold it, or fails, or gives what does not check, is passed
+// by, and the sink emptied for the next.
+bool fetch_from_peers(lantern::Client& client, const PackageRequest& request, const lantern::DownloadTarget& target,
+                FileSink& sink, lantern::DownloadState& state, const std::atomic<bool>* stop)
+{
+    const auto grant = client.grant(target.sha256);
+    if (!grant || !*grant) return false;
+    for (const PeerAddress& p : request.peers) {
+        if (stop && stop->load()) return false;
+        const lantern::PeerEndpoint where{p.host, p.port, p.base, p.tls};
+        const auto holds = client.peer_holds(where, **grant);
+        if (!holds || !*holds) continue;
+        state.reset();
+        if (client.download_from_peer(where, **grant, target, state, sink)) return true;
+        (void)sink.restart();
+    }
+    state.reset();
+    return false;
+}
+
 DeltaResult fetch_delta(lantern::Client& client, const PackageRequest& request, const std::string& chunks_url,
                         uint64_t chunks_size, const std::string& chunks_sha256,
                         const std::vector<std::vector<std::byte>>& held, const std::string& path,
-                        const std::atomic<bool>* stop, const std::function<void(uint64_t)>& progress)
+                        const std::atomic<bool>* stop, const std::function<void(uint64_t)>& progress,
+                        const std::vector<PeerAddress>& peers)
 {
     DeltaResult out;
     const auto  digest = lantern::digest_from_hex(request.sha256);
@@ -60,7 +83,24 @@ DeltaResult fetch_delta(lantern::Client& client, const PackageRequest& request, 
         return out;
     }
     FileSink sink(f, stop, progress, 0);
-    const auto done = client.download_with_index(target, **index, seeds, sink);
+
+    // The peers that hold the file are asked first for the ranges (SPEC.md
+    // 22.3); each takes this file's grant, nothing of the server's.
+    lantern::DeltaOptions options;
+    std::vector<lantern::DeltaPeer> asked;
+    std::optional<lantern::Grant>   grant;
+    if (!peers.empty()) {
+        if (auto got = client.grant(*digest); got && *got) grant = std::move(**got);
+        if (grant)
+            for (const PeerAddress& p : peers) {
+                lantern::DeltaPeer d;
+                d.endpoint = {p.host, p.port, p.base, p.tls};
+                d.grant    = &*grant;
+                asked.push_back(d);
+            }
+        options.peers = asked;
+    }
+    const auto done = client.download_with_index(target, **index, seeds, sink, options);
     std::fclose(f);
     if (done) {
         out.ok = size_of(path) == request.size;
