@@ -28,6 +28,7 @@ class PreferencesTab : public TabBase
     void sources_sheet();
     void source_sheet(size_t index);
     void show_titledb();
+    void show_share();
 
     cadran::List list;
     int          titledb_listener = 0;

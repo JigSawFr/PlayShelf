@@ -441,6 +441,8 @@
         "clear": "インストール済みを消去",
         "keep_awake": "ダウンロード中はスリープしない",
         "share_files": "ホームブリューをネットワークで共有",
+        "share_none": "Nothing to share yet",
+        "share_held": "{} files shared",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

@@ -25,6 +25,10 @@ void note_server(const std::string& server_uid, const std::string& key_hex);
 // A file written to the SD card whole, whose size and SHA-256 were checked
 // against the server's document; `sd_path` starts at the SD root with '/'.
 void hold(const std::string& sha256_hex, uint64_t size, const std::string& sd_path);
+// How many files this console holds whole for the others (what it gives
+// while sharing is on).
+size_t held_count();
+
 // Files that are gone or changed.
 void release(const std::vector<std::string>& sd_paths);
 

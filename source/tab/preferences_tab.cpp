@@ -164,10 +164,11 @@ PreferencesTab::PreferencesTab()
     });
     // Off until turned on: this console then gives the homebrew files it
     // holds to the other consoles of the network (SPEC.md 19.4).
-    share_files->init("playshelf/downloads/share_files"_i18n, config::get().share_files, [](bool on) {
+    share_files->init("playshelf/downloads/share_files"_i18n, config::get().share_files, [this](bool on) {
         config::get().share_files = on;
         ui::save_config();
         peer_flow::apply();
+        this->show_share();
     });
     connections->registerClickAction([this](aurore::View*) {
         std::vector<std::string> values, details;
@@ -402,6 +403,18 @@ void PreferencesTab::source_sheet(size_t index)
     ui::pick_actions(source_name(url), lines, text);
 }
 
+// What the sharing line says: what this console holds for the others, while
+// it shares.
+void PreferencesTab::show_share()
+{
+    if (!config::get().share_files) {
+        share_files->setDetailText("");
+        return;
+    }
+    const size_t held = peer_flow::held_count();
+    share_files->setDetailText(held == 0 ? "playshelf/downloads/share_none"_i18n : aurore::getStr("playshelf/downloads/share_held", held));
+}
+
 void PreferencesTab::refresh()
 {
     const auto& cfg = config::get();
@@ -417,6 +430,7 @@ void PreferencesTab::refresh()
     look_shared->setOn(cfg.look_shared, false);
     keep_awake->setOn(cfg.keep_awake, false);
     share_files->setOn(cfg.share_files, false);
+    this->show_share();
     connections->setDetailText(std::to_string(cfg.connections));
     prefetch->setDetailText(prefetch_text(cfg.prefetch));
     screen_off->setDetailText(screen_off_text(cfg.screen_off_minutes));

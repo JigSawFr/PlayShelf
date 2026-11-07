@@ -441,6 +441,8 @@
         "clear": "Quitar los instalados",
         "keep_awake": "Evitar la suspensión durante las descargas",
         "share_files": "Compartir homebrews con la red",
+        "share_none": "Nothing to share yet",
+        "share_held": "{} files shared",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",
