@@ -1,4 +1,4 @@
-<!-- translated from docs/servers.md, sha256 f21ddb3c4a08 -->
+<!-- translated from docs/servers.md, sha256 91a95c604db3 -->
 # Serveurs de bibliothèque
 
 PlayShelf installe depuis un serveur de bibliothèque que vous faites tourner vous-même, sur un ordinateur ou un NAS, et qui parle [Lantern](https://lantern.boreale.dev) : il lit le catalogue du serveur, puis télécharge les paquets, chacun vérifié d'après la taille et le SHA-256 annoncés par le serveur. Jusqu'à 16 serveurs peuvent être gardés, chacun avec ses adresses.
@@ -40,7 +40,7 @@ Ce qu'une personne peut faire dépend des droits que le serveur a donnés à cet
 
 ## Téléchargements
 
-Un paquet est d'abord écrit en entier sur la carte SD, puis installé depuis elle. Le client du SDK vérifie sa taille et son SHA-256 à mesure qu'il s'écrit, et un téléchargement interrompu reprend où il s'était arrêté (le fichier est d'abord haché de nouveau). Seul un fichier entier et vérifié est installé. La place qu'il prend est la taille du paquet, en plus de son installation : PlayShelf dit quand la carte en manque.
+Un paquet est installé à mesure qu'il arrive : l'installeur demande au serveur les plages dont il a besoin, chacune une requête signée du client du SDK, de sorte que l'installation avance pendant le téléchargement et ne prend pas de place en plus d'elle-même. L'installeur vérifie le contenu à mesure qu'il le lit ; le SHA-256 du fichier entier n'est vérifié que pour un paquet récupéré à l'avance, que le client écrit sur la carte SD (un téléchargement interrompu reprend où il s'était arrêté, le fichier d'abord haché de nouveau) et qu'on installe depuis ce fichier une fois entier.
 
 ## Certificats
 

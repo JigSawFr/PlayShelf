@@ -55,22 +55,15 @@ std::string without_slash(std::string u)
 }
 }   // namespace
 
-PackageResult fetch_package(Platform& platform, const library::Server& server, const PackageRequest& request,
-                            const std::string& path, const std::atomic<bool>* stop,
-                            const std::function<void(uint64_t)>& progress)
+std::unique_ptr<lantern::Client> open_client(Platform& platform, const library::Server& server, const std::string& url,
+                                             std::string* why)
 {
-    PackageResult out;
-    const auto digest = lantern::digest_from_hex(request.sha256);
-    if (!digest || request.size == 0) {
-        out.why = "the catalogue gave no checksum for this package: read it again";
-        return out;
-    }
     // The token goes to the server's own addresses only.
-    const std::string origin = origin_of(request.url);
+    const std::string origin = origin_of(url);
     const bool        ours = origin == without_slash(origin_of(server.lan_url)) || origin == without_slash(origin_of(server.wan_url));
     if (origin.empty() || !ours || server.uid.empty()) {
-        out.why = "this package is not on a server this console is paired with";
-        return out;
+        *why = "this package is not on a server this console is paired with";
+        return nullptr;
     }
 
     Env& env = platform.env();
@@ -85,23 +78,40 @@ PackageResult fetch_package(Platform& platform, const library::Server& server, c
     config.trust      = &env.trust;
     auto client       = lantern::Client::create(env.transport, config);
     if (!client) {
-        out.why = describe(client.error());
-        return out;
+        *why = describe(client.error());
+        return nullptr;
     }
-    const auto shake = client->handshake();
+    auto link  = std::make_unique<lantern::Client>(std::move(*client));
+    const auto shake = link->handshake();
     if (!shake || !*shake) {
-        out.why = shake ? "the server speaks a newer version of Lantern than this one reads" : describe(shake.error());
-        return out;
+        *why = shake ? "the server speaks a newer version of Lantern than this one reads" : describe(shake.error());
+        return nullptr;
     }
     if (std::string((*shake)->uid) != server.uid) {
-        out.why = "this is another server than the one that was paired";
-        return out;
+        *why = "this is another server than the one that was paired";
+        return nullptr;
     }
-    const auto signed_in = client->sign_in(platform.store());
+    const auto signed_in = link->sign_in(platform.store());
     if (!signed_in || !*signed_in) {
-        out.why = signed_in ? "this console is not paired with the server" : describe(signed_in.error());
+        *why = signed_in ? "this console is not paired with the server" : describe(signed_in.error());
+        return nullptr;
+    }
+    return link;
+}
+
+
+PackageResult fetch_package(Platform& platform, const library::Server& server, const PackageRequest& request,
+                            const std::string& path, const std::atomic<bool>* stop,
+                            const std::function<void(uint64_t)>& progress)
+{
+    PackageResult out;
+    const auto digest = lantern::digest_from_hex(request.sha256);
+    if (!digest || request.size == 0) {
+        out.why = "the catalogue gave no checksum for this package: read it again";
         return out;
     }
+    const auto client = open_client(platform, server, request.url, &out.why);
+    if (!client) return out;
 
     // Where the file stands: taken up when it is a prefix of this package.
     lantern::DownloadState state;

@@ -39,7 +39,7 @@ What a person may do depends on the scopes the server gave this console when it 
 
 ## Downloads
 
-A package is first written whole to the SD card, then installed from it. The SDK's client checks its size and SHA-256 as it is written, and a download cut short resumes where it stopped (the file is hashed again first). Only a file that is whole and verified is installed. The room it takes is the package's size, on top of its install: PlayShelf says when the card is short.
+A package is installed as it arrives: the installer asks the server for the ranges it needs, each a signed request of the SDK's client, so the install goes on while the package downloads and takes no room beyond itself. The contents are checked by the installer as it reads them; the whole file's SHA-256 is checked only for a package fetched ahead, which the client writes to the SD card (a download cut short resumes where it stopped, the file hashed again first) and which is installed from that file once whole.
 
 ## Certificates
 
