@@ -46,6 +46,11 @@ bool demo_file(const std::string& url, std::string* path, bool* paced = nullptr)
     if (dir().empty()) return false;
     if (url.starts_with(insights)) rest = "/insights/" + url.substr(insights.size());
     else if (url == TITLEDB_URL) rest = "/titledb/index.json";
+    else if (url.starts_with(DEMO_ORIGIN)) {
+        // The demo server's own pictures: its homebrew's icons.
+        rest = url.substr(std::string(DEMO_ORIGIN).size());
+        if (!rest.starts_with("/icons/")) return false;
+    }
     else if (url.starts_with(nlib) && url.size() >= nlib.size() + 16) {
         // <id>?lang=<language>&fields=…, <id>/icon/<size>, <id>/banner/480p,
         // <id>/screen/<n>: the demo's details in English or French, its
