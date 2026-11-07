@@ -1,4 +1,4 @@
-<!-- translated from docs/downloads.md, sha256 432ffe63f4c5 -->
+<!-- translated from docs/downloads.md, sha256 e2ae5d28e773 -->
 # Téléchargements
 
 La fiche d'un jeu dans le *Catalogue* ajoute ses paquets aux **Téléchargements** : son jeu de base, ses mises à jour et ses contenus additionnels, chacun étant un paquet. Ils sont installés l'un après l'autre. Chaque paquet est installé à mesure qu'il arrive, lu sur le serveur par plages signées (les requêtes `Range` du client Lantern) : rien n'est écrit d'abord sur la carte SD, il ne prend donc pas de place en plus de son installation. Un paquet récupéré à l'avance (voir plus bas) est lu depuis son fichier sur la carte SD, que le client a vérifié d'après la taille et le SHA-256 du serveur à mesure qu'il s'écrivait, et qui est supprimé une fois le paquet installé.
@@ -33,6 +33,7 @@ Un contenu qui n'est pas signé par Nintendo arrête son paquet : il a peut-êtr
 Sous la file, et dans [`config.json`](../config.md) :
 
 - **Rester éveillé pendant les téléchargements** : la console ne se met pas en veille d'elle-même pendant les téléchargements (activé par défaut).
+- **Partager les homebrews avec le réseau** (désactivé par défaut) : voir [Serveurs › Homebrews](servers.md#homebrews).
 - **Connexions par téléchargement**, de 1 à 8 (4 par défaut) : combien de requêtes fait à la fois *Installer depuis une URL* (*À propos › Aide et diagnostic*), chacune pour un morceau de 4 Mo du paquet. Les paquets d'un serveur de bibliothèque arrivent par une seule connexion, reprise là où elle s'était arrêtée.
 - **Télécharger à l'avance** : pendant qu'un paquet s'installe, le suivant ou les deux suivants sont récupérés sur la carte SD, quand elle a la place pour eux et pour leur installation ; leur installation part alors du fichier. Chacun occupe deux fois sa taille sur la carte SD jusqu'à son installation (désactivé par défaut).
 

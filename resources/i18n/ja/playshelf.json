@@ -437,6 +437,7 @@
         "resume_all": "すべて再開",
         "clear": "インストール済みを消去",
         "keep_awake": "ダウンロード中はスリープしない",
+        "share_files": "ホームブリューをネットワークで共有",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

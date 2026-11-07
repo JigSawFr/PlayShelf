@@ -65,6 +65,7 @@ struct Connected
     std::string                  endpoint;
     bool                         on_lan = false;
     std::string                  name, uid;
+    std::string                  grant_key;   // the handshake's `peers.key` as 64 hex digits, "" when it gives none
 };
 Connected connect(const library::Server& server, Env& env, lantern::CredentialStore& store);
 

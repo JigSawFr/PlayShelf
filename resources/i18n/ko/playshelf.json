@@ -437,6 +437,7 @@
         "resume_all": "모두 재개",
         "clear": "설치된 항목 지우기",
         "keep_awake": "다운로드 중 절전 모드 사용 안 함",
+        "share_files": "홈브루를 네트워크와 공유",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

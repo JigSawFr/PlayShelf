@@ -116,6 +116,15 @@ Connected connect(const library::Server& server, Env& env, lantern::CredentialSt
         c.client.reset();
         return c;
     }
+    if (hs.peers) {
+        if (const auto key = lantern::grant_key_of(hs)) {
+            char hex[3];
+            for (uint8_t b : *key) {
+                std::snprintf(hex, sizeof hex, "%02x", b);
+                c.grant_key += hex;
+            }
+        }
+    }
     c.status = Status::Ok;
     return c;
 }

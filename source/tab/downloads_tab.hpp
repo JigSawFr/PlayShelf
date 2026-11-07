@@ -67,6 +67,7 @@ class DownloadsTab : public TabBase
     AURORE_BIND(aurore::Box, list,      "dl_list");
     AURORE_BIND(aurore::Box, settings,  "dl_settings");
     aurore::BooleanCell* keep_awake = nullptr;
+    aurore::BooleanCell* share_files = nullptr;
     aurore::DetailCell*  connections = nullptr;
     aurore::DetailCell*  prefetch = nullptr;
     aurore::DetailCell*  screen_off = nullptr;

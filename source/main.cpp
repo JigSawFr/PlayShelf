@@ -28,6 +28,7 @@
 
 #include "action/crypto_flow.hpp"
 #include "action/frame_stats_flow.hpp"
+#include "action/peer_flow.hpp"
 #include "action/screen_flow.hpp"
 #include "action/log_prune_flow.hpp"
 #include "action/notices.hpp"
@@ -289,6 +290,7 @@ void shut_down()
     http::abort_all();
     ui::finish_background(std::chrono::seconds(3));
     frame_stats_flow::stop();
+    peer_flow::shutdown();
     screen_flow::stop();
     cpu_boost::release_all();
     app::shutdown();
