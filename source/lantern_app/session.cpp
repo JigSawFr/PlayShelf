@@ -3,11 +3,18 @@
 
 #include "lantern_app/catalog_map.hpp"
 
+#include <algorithm>
+#include <cstdio>
+#include <string_view>
+#include <vector>
+
 namespace lantern_app
 {
 namespace
 {
 constexpr uint32_t APPS_PER_PAGE = 200;
+constexpr size_t    MAX_SHEETS = 300;   // games whose sheet is asked after the catalogue (BATCH at a time)
+constexpr size_t    BATCH = 100;        // § 7.2: ids per request
 constexpr int      MAX_PAGES = 1000;   // MAX_ITEMS at APPS_PER_PAGE, with room
 
 std::string without_slash(std::string u)
@@ -155,6 +162,24 @@ Fetched fetch(const library::Server& server, Env& env, lantern::CredentialStore&
     if (client.offers(lantern::Family::sections) > 0) {
         if (const auto sections = client.sections(); sections && *sections)
             add_sections(f.catalog, index, (*sections)->sections);
+    }
+    // The sheets of the first games (name, publisher, date, genres, icon): a
+    // failure only leaves them out, the catalogue is read.
+    if (client.offers(lantern::Family::titles) > 0) {
+        std::vector<std::string> ids;
+        for (const library::Item& item : f.catalog.items) {
+            if (ids.size() >= MAX_SHEETS) break;
+            char hex[17];
+            std::snprintf(hex, sizeof hex, "%016llx", (unsigned long long)library::base_of(item.title_id));
+            if (std::ranges::find(ids, hex) == ids.end()) ids.emplace_back(hex);
+        }
+        for (size_t at = 0; at < ids.size(); at += BATCH) {
+            std::vector<std::string_view> batch;
+            for (size_t i = at; i < ids.size() && i < at + BATCH; i++) batch.emplace_back(ids[i]);
+            const auto sheets = client.titles(batch);
+            if (!sheets || !*sheets) break;
+            add_titles(f.catalog, f.titles, (*sheets)->titles, f.endpoint);
+        }
     }
     f.status = Status::Ok;
     return f;

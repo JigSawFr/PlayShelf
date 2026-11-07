@@ -1,4 +1,4 @@
-<!-- translated from docs/servers.md, sha256 91a95c604db3 -->
+<!-- translated from docs/servers.md, sha256 91372650123e -->
 # Serveurs de bibliothèque
 
 PlayShelf installe depuis un serveur de bibliothèque que vous faites tourner vous-même, sur un ordinateur ou un NAS, et qui parle [Lantern](https://lantern.boreale.dev) : il lit le catalogue du serveur, puis télécharge les paquets, chacun vérifié d'après la taille et le SHA-256 annoncés par le serveur. Jusqu'à 16 serveurs peuvent être gardés, chacun avec ses adresses.
@@ -30,7 +30,7 @@ Le jeton et la clé sont gardés dans `sd:/config/playshelf/lantern.json`, scell
 
 ## Ce qu'un serveur offre
 
-Le catalogue, ce sont les sections du serveur et ses jeux, avec leurs tailles et leurs versions, et son message du jour. Un serveur offre plus ou moins, et PlayShelf montre ce qu'il offre. Une fois son catalogue lu, sa pastille **Serveur** dans le *Catalogue* a jusqu'à trois lignes de plus, et la fiche d'un jeu jusqu'à deux (dans le *Catalogue*, et dans la *Bibliothèque* pour un jeu de ce serveur) :
+Le catalogue, ce sont les sections du serveur et ses jeux, avec leurs tailles et leurs versions, et son message du jour. Quand le serveur tient des fiches de titres, PlayShelf demande celles des 300 premiers jeux : leur éditeur, leur date, leurs genres et leur icône complètent ce que Nlib API ne connaît pas (un jeu sans page chez lui, ou pas de réseau), et l'icône s'affiche dans *Téléchargements*. Un serveur offre plus ou moins, et PlayShelf montre ce qu'il offre. Une fois son catalogue lu, sa pastille **Serveur** dans le *Catalogue* a jusqu'à trois lignes de plus, et la fiche d'un jeu jusqu'à deux (dans le *Catalogue*, et dans la *Bibliothèque* pour un jeu de ce serveur) :
 
 - **Cheats** : les cheats du serveur, par jeu et par build. **Installer** écrit le fichier d'une build là où Atmosphère le cherche, `sd:/atmosphere/contents/<title id>/cheats/<build id>.txt` ; **Installer toutes les builds** les écrit toutes, et Atmosphère charge celle qui correspond à la version du jeu. Les codes d'une build peuvent être affichés, et un fichier retiré.
 - **Sauvegardes** : les sauvegardes d'un utilisateur (choisi d'abord quand la console en a plusieurs) et leurs copies sur le serveur. **Envoyer une copie de cette sauvegarde** envoie la sauvegarde du jeu, avec une note pour la reconnaître ; **Remettre sur cette console** remplace la sauvegarde par une copie. La sauvegarde remplacée est d'abord gardée sur la carte SD, dans `sd:/config/playshelf/saves/<title id>/`, et remise si quoi que ce soit se passe mal. Un jeu doit avoir été lancé une fois sur la console pour avoir une sauvegarde à remplacer.

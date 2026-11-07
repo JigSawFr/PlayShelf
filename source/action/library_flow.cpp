@@ -9,6 +9,7 @@
 #include <map>
 
 #include "action/download_flow.hpp"
+#include "action/nlib_flow.hpp"
 #include "action/pairing_flow.hpp"
 #include "action/popular_flow.hpp"
 #include "action/rebuilt.hpp"
@@ -55,6 +56,9 @@ void fetched(const library::Server& server, const std::shared_ptr<Loaded>& l, st
     rebuilt::prune(*s_installed);
     const lantern_app::Fetched& f = l->fetch;
     if (f.status == lantern_app::Status::Ok) {
+        // The server's own sheets, for the games Nlib API has no facts for.
+        for (const lantern_app::ServerTitle& t : f.titles) nlib_flow::offer(t.base, t.facts);
+        nlib_flow::offered();
         s_loaded[server.id] = l;
         done(l, "");
         return;
@@ -326,6 +330,7 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
         if (it.has_version) j.version = it.version;
         j.size = it.size;
         j.sha256 = it.sha256;
+        j.icon_url = it.icon_url;
         jobs.push_back(std::move(j));
     }
     return download_flow::add(std::move(jobs));
