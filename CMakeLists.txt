@@ -373,7 +373,9 @@ set(ASSEMBLE_RESOURCES
     # (view/release_notes.cpp), the full list a press away.
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/.github/release-notes ${MERGED_RESOURCES}/release-notes
     COMMAND ${CMAKE_COMMAND} -E remove -f ${MERGED_RESOURCES}/release-notes/README.md ${MERGED_RESOURCES}/img/emoji/README.md
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_ICON} ${MERGED_RESOURCES}/img/app_icon.jpg)
+    # Inside the app, the icon without the name (icon.jpg carries it for the
+    # HOME menu; the screens say it): the brand kit's images/icon-512.png.
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/images/icon-512.png ${MERGED_RESOURCES}/img/app_icon.png)
 
 # The web simulator: Japanese, Korean and Chinese drawn with the characters
 # the catalogs use, cut out of Noto Sans CJK (tools/web_cjk_font.py), as the

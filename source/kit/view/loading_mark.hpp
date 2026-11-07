@@ -1,4 +1,4 @@
-// LoadingMark — the PlayShelf icon (icon.jpg, from branding/icon.svg) drawn at
+// LoadingMark — the PlayShelf icon (images/icon-512.png, from branding/icon.svg) drawn at
 // the view's size for the loading screen, its corners rounded, over Aurore's
 // aurora glow, which breathes from teal to violet while the app starts. Brand
 // colours, not the theme's: the loading screen looks the same in both themes.

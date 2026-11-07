@@ -8,7 +8,7 @@
 
     <ScrollView
         title="@i18n/playshelf/dev/report_title"
-        icon="@res/img/app_icon.jpg"
+        icon="@res/img/app_icon.png"
         width="auto"
         height="auto"
         axis="column"
