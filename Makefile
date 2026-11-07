@@ -194,6 +194,12 @@ homebrew_install_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 homebrew_install_LIBS  := $(LANTERN_LIB) -lz
 $(TESTOUT)/homebrew_install: $(LANTERN_LIB)
 
+# A Lantern server's homebrew catalogue as the tab's items.
+homebrew_map_SRC   := source/lantern_app/homebrew_map.cpp source/lantern_app/session.cpp source/lantern_app/catalog_map.cpp source/library/catalog.cpp source/library/facts.cpp source/library/server.cpp \
+                      source/library/servers.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/homebrew_map/test.cpp
+homebrew_map_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+homebrew_map_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/homebrew_map: $(LANTERN_LIB)
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
 INSTALL_FORMATS := $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
