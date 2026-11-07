@@ -91,7 +91,7 @@ DownloadsTab::DownloadsTab()
         peer_flow::apply();
     });
     card->addView(share_files);
-    cadran::List::row(share_files, "share");
+    cadran::List::row(share_files, "upload");
     connections = new aurore::DetailCell();
     connections->setText("playshelf/downloads/connections"_i18n);
     ui::set_detail(connections, std::to_string(config::get().connections));
