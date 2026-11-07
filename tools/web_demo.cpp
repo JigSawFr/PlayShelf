@@ -379,9 +379,34 @@ int main(int argc, char** argv)
           "\"motd\": \"Welcome to PlayShelf's demo shelf: made-up games, installed on a simulated console.\", "
           "\"base\": \"/api/lantern\", \"versions\": [1], \"platforms\": [\"switch\"], "
           "\"account\": {\"state\": \"active\", \"scopes\": [\"library\"]}, "
-          "\"features\": {\"library\": 1, \"titles\": 0, \"changes\": 0, \"sections\": 0, \"homebrew\": 0, \"saves\": 0, "
+          "\"features\": {\"library\": 1, \"titles\": 0, \"changes\": 0, \"sections\": 0, \"homebrew\": 1, \"saves\": 0, "
           "\"cheats\": 0, \"requests\": 0, \"pairing\": 0}}\n");
     write(out + "/lantern/apps.json", "{\"schema\": 1, \"items\": [" + items + "\n  ], \"next\": null}\n");
+
+    // One homebrew, for the Homebrew tab: a made-up NRO (its header is all a
+    // build needs to see) on a one-entry manifest.
+    {
+        const std::string id = "org.example.lamplight", path = "/switch/" + id + "/" + id + ".nro";
+        std::string nro = "NRO0";
+        nro.resize(12u << 10, '\x2a');
+        write(out + "/files/" + id + ".nro", nro);
+        Sha256 file_sha;
+        file_sha.update(std::string_view(nro));
+        const std::string fh = file_sha.hex();
+        Sha256 manifest_sha;
+        const std::string canonical = "[{\"path\":\"" + path + "\",\"sha256\":\"" + fh + "\",\"size\":" + std::to_string(nro.size()) + "}]";
+        manifest_sha.update(std::string_view(canonical));
+        write(out + "/lantern/homebrew.json",
+              "{\"schema\": 1, \"items\": [\n    {\"id\": \"" + id + "\", \"platform\": \"switch\", \"kind\": \"app\", "
+              "\"name\": \"Lamplight\", \"author\": \"Noor\", \"version\": \"1.2.0\", \"build\": 10200, "
+              "\"license\": \"MIT\", \"language\": \"en\", "
+              "\"summary\": \"A pocket journal for long nights.\", "
+              "\"description\": \"Write a few lines each evening; Lamplight keeps them on the SD card.\", "
+              "\"updated\": \"2026-10-29T08:00:00Z\", "
+              "\"package\": {\"format\": \"nro\", \"file\": \"/files/" + id + ".nro\", \"path\": \"" + path + "\", "
+              "\"size\": " + std::to_string(nro.size()) + ", \"sha256\": \"" + fh + "\", \"manifest_sha256\": \"" + manifest_sha.hex() + "\"}}\n"
+              "  ], \"next\": null}\n");
+    }
 
     // Atlas' files of every game, and the console's first ones: their
     // content meta records and names (web_demo_art.py adds their icons), and

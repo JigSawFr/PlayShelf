@@ -73,6 +73,10 @@ class DemoTransport final : public lantern::Transport
             if (!read_file(dir + "/lantern/apps.json", &body)) return answer(h, 404, "{\"status\": 404}", "application/problem+json");
             return answer(h, 200, body, "application/json");
         }
+        if (path == "/api/lantern/v1/homebrew") {
+            if (!read_file(dir + "/lantern/homebrew.json", &body)) return answer(h, 404, "{\"status\": 404}", "application/problem+json");
+            return answer(h, 200, body, "application/json");
+        }
         if (path.starts_with("/files/")) return file(r, h, dir + path);
         return answer(h, 404, "{\"status\": 404}", "application/problem+json");
     }
