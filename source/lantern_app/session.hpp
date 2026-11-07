@@ -8,9 +8,11 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <lantern/lantern.hpp>
 
+#include "lantern_app/catalog_map.hpp"
 #include "library/catalog.hpp"
 #include "library/servers.hpp"
 
@@ -41,6 +43,7 @@ struct Fetched
     std::string     name;       // the server's own (handshake)
     std::string     uid;
     bool            cheats = false, saves = false, requests = false;   // what the server offers besides packages
+    std::vector<ServerTitle> titles;   // its sheets for the games of the catalogue (the first MAX_SHEETS)
 };
 
 // "category: detail" of an SDK error, for a person.

@@ -87,12 +87,16 @@ const std::string PAGE1 = R"({"schema":1,"items":[)" + app_json("a1", "0100ABCD0
 const std::string PAGE2 = R"({"schema":1,"items":[)" + app_json("a3", "0100ABCD00011001", "dlc", 0, "Tide Runner Pack") + R"(],"next":null})";
 const std::string SECTIONS = R"({"schema":1,"sections":[{"id":"new","title":"New","apps":["a3","a1"]}]})";
 
+const std::string TITLES = R"({"schema":1,"titles":[{"platform":"switch","title_id":"0100abcd00010000","language":"en","name":"Tide Runner",
+  "publisher":"Example Games","release":"2024-03-08","updated":"2026-10-30T09:12:03.250Z","genres":["Adventure"],"icon":{"url":"/icons/a.jpg"}}],"unknown":[]})";
+
 Reply lantern_server(const std::string& url, const char* uid, const std::string& host)
 {
     if (url.find(host) == std::string::npos) return {404, "", true};
     if (url.ends_with("/.well-known/lantern")) return {200, shake(uid)};
     if (url.find("/v1/apps?") != std::string::npos) return {200, url.find("cursor=c2") != std::string::npos ? PAGE2 : PAGE1};
     if (url.ends_with("/v1/sections")) return {200, SECTIONS};
+    if (url.find("/v1/titles?ids=0100abcd00010000") != std::string::npos) return {200, TITLES};
     return {404, R"({"status":404})"};
 }
 
@@ -150,6 +154,9 @@ void test_paired()
     CHECK(f.catalog.items[0].url == "https://wan.example.org/files/a1.nsp");
     CHECK(f.catalog.sections.size() == 1 && f.catalog.sections[0].items == std::vector<size_t>({ 2, 0 }));
     CHECK(!w.net.bearer.empty() && w.net.bearer.back() == "Bearer et_fictional");
+    // The sheet of the game, asked once for its three items; its icon on all.
+    CHECK(f.titles.size() == 1 && f.titles[0].base == 0x0100ABCD00010000ULL && f.titles[0].facts.publisher == "Example Games");
+    CHECK(f.titles[0].facts.release_date == 20240308 && f.catalog.items[0].icon_url == "https://wan.example.org/icons/a.jpg");
 }
 
 void test_other_server()

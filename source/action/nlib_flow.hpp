@@ -42,6 +42,13 @@ const library::FactsBook& book();
 // the title database's.
 library::Facts facts(uint64_t title_id);
 
+// A server's own sheet of a game, kept as its facts when none are known yet
+// and it says something beyond the name (a game Nlib API does not know, or
+// no network); `offered()` once the sheets of a catalogue are all offered.
+// UI thread.
+void offer(uint64_t base_id, library::Facts facts);
+void offered();
+
 // The games on screen: those not known yet asked of Nlib API, one after
 // the other, in place of the ones asked before and not done.
 void enrich(const std::vector<uint64_t>& title_ids);

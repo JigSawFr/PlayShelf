@@ -9,10 +9,12 @@
 #include <map>
 #include <span>
 #include <string>
+#include <vector>
 
 #include <lantern/types.hpp>
 
 #include "library/catalog.hpp"
+#include "library/facts.hpp"
 
 namespace lantern_app
 {
@@ -22,6 +24,20 @@ using AppIndex = std::map<std::string, size_t>;
 
 // Adds `apps` to `catalog`; `origin` makes a relative `file` absolute.
 void add_apps(library::Catalog& catalog, AppIndex& index, std::span<const lantern::App> apps, const std::string& origin);
+
+// What a server says of a game (its title sheet, § 7): the facts the pages
+// show, kept when Nlib API knows nothing of the game.
+struct ServerTitle
+{
+    uint64_t       base = 0;   // the game's title id
+    library::Facts facts;
+};
+
+// `titles` as ServerTitles added to `out` (a title whose id is not 16 hex
+// digits is left out), and each one's icon (https:// only; `origin` makes
+// a relative one absolute) on the items of its game.
+void add_titles(library::Catalog& catalog, std::vector<ServerTitle>& out, std::span<const lantern::Title> titles,
+                const std::string& origin);
 
 // The sections of `sections` over the items already in `catalog`; an app id
 // no item has is left out.

@@ -70,4 +70,31 @@ void add_sections(library::Catalog& catalog, const AppIndex& index, std::span<co
     }
 }
 
+void add_titles(library::Catalog& catalog, std::vector<ServerTitle>& out, std::span<const lantern::Title> titles,
+                const std::string& origin)
+{
+    for (const lantern::Title& t : titles) {
+        uint64_t id = 0;
+        if (!hex16(std::string(t.title_id), &id)) continue;
+        ServerTitle s;
+        s.base = library::base_of(id);
+        library::Facts& f = s.facts;
+        f.name         = library::display_text(std::string(t.name), 128);
+        f.publisher    = library::display_text(std::string(t.publisher), 128);
+        f.developer    = library::display_text(std::string(t.developer), 128);
+        f.release_date = library::date_of(std::string(t.release));
+        for (const auto& g : t.genres)
+            if (f.categories.size() < 8) f.categories.push_back(library::display_text(std::string(g), 64));
+        for (const auto& l : t.languages)
+            if (f.languages.size() < 32) f.languages.push_back(library::display_text(std::string(l), 16));
+        if (t.players && t.players->max) f.players = *t.players->max > 99 ? 99 : (int)*t.players->max;
+        std::string icon;
+        if (t.icon) icon = library::resolve(origin, std::string(t.icon->url));
+        if (!icon.empty())
+            for (library::Item& item : catalog.items)
+                if (library::base_of(item.title_id) == s.base) item.icon_url = icon;
+        out.push_back(std::move(s));
+    }
+}
+
 }   // namespace lantern_app

@@ -29,6 +29,7 @@ struct Item
     Kind        kind = Kind::Unknown;
     std::string section;           // the section's id ("" for an index)
     std::string sha256;            // lower-case hex of the file as the server serves it ("" when unknown)
+    std::string icon_url;          // the game's icon, https:// ("" for none: the server did not say)
 };
 
 struct Section

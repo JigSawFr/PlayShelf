@@ -218,6 +218,21 @@ library::Facts facts(uint64_t title_id)
     return f;
 }
 
+void offer(uint64_t base, library::Facts facts)
+{
+    if (s_book.find(base)) return;
+    if (facts.publisher.empty() && !facts.release_date && facts.categories.empty()) return;
+    if (!s_book.put(base, std::move(facts))) return;
+    s_dirty = true;
+    s_untold++;
+}
+
+void offered()
+{
+    if (s_untold) tell();
+    save();
+}
+
 void enrich(const std::vector<uint64_t>& title_ids)
 {
     if (!config::get().nlib_api) return;
