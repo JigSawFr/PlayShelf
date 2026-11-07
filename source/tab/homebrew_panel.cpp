@@ -37,6 +37,26 @@ bool holds(const std::string& name, const std::string& query)
                           [](char a, char b) { return std::tolower((unsigned char)a) == std::tolower((unsigned char)b); });
     return it != name.end();
 }
+
+bool lower_before(const std::string& a, const std::string& b)
+{
+    return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end(),
+                                        [](char x, char y) { return std::tolower((unsigned char)x) < std::tolower((unsigned char)y); });
+}
+
+// `a` before `b`: by name always in the end; the ones with an update first
+// (then the ones not on the console yet), or the largest first.
+bool before(const lantern_app::HomebrewItem& a, const lantern_app::HomebrewItem& b, HomebrewPanel::Order order)
+{
+    if (order == HomebrewPanel::Order::Updates) {
+        const int ra = homebrew_flow::standing(a) == homebrew_flow::Standing::Update ? 0 : 1;
+        const int rb = homebrew_flow::standing(b) == homebrew_flow::Standing::Update ? 0 : 1;
+        if (ra != rb) return ra < rb;
+    } else if (order == HomebrewPanel::Order::Largest && a.size != b.size) {
+        return a.size > b.size;
+    }
+    return lower_before(a.name, b.name);
+}
 }   // namespace
 
 HomebrewPanel::HomebrewPanel(aurore::Box* tiles_box, aurore::Label* status_label)
@@ -50,7 +70,7 @@ HomebrewPanel::~HomebrewPanel()
     *this->alive = false;
 }
 
-void HomebrewPanel::show(const library::Server& s, const std::string& q, bool only_installed)
+void HomebrewPanel::show(const library::Server& s, const std::string& q, bool only_installed, Order by)
 {
     if (s.id != this->server.id) {
         this->data = nullptr;
@@ -60,6 +80,7 @@ void HomebrewPanel::show(const library::Server& s, const std::string& q, bool on
     this->server = s;
     this->query = q;
     this->installed_only = only_installed;
+    this->order = by;
     if (!this->data) {
         const auto held = homebrew_flow::loaded();
         if (held && held->server.id == s.id) this->data = held;
@@ -115,14 +136,15 @@ void HomebrewPanel::rebuild()
     }
     const auto& items = this->data->list.items;
     std::vector<size_t> keep;
-    std::string         key = this->query + (this->installed_only ? "\n1\n" : "\n0\n");
     for (size_t i = 0; i < items.size(); i++) {
         const auto standing = homebrew_flow::standing(items[i]);
         if (this->installed_only && standing == homebrew_flow::Standing::New) continue;
         if (!holds(items[i].name, this->query)) continue;
         keep.push_back(i);
-        key += std::string(items[i].entry.id) + "|" + std::to_string((int)standing) + "\n";
     }
+    std::stable_sort(keep.begin(), keep.end(), [&](size_t a, size_t b) { return before(items[a], items[b], this->order); });
+    std::string key = this->query + (this->installed_only ? "\n1\n" : "\n0\n") + std::to_string((int)this->order) + "\n";
+    for (size_t i : keep) key += std::string(items[i].entry.id) + "|" + std::to_string((int)homebrew_flow::standing(items[i])) + "\n";
     this->shown_count = keep.size();
     ui::set_text(this->status, items.empty()    ? "playshelf/homebrew/none"_i18n
                                : keep.empty()   ? (this->installed_only && this->query.empty() ? "playshelf/homebrew/none_installed"_i18n : " ")

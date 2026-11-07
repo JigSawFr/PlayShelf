@@ -34,6 +34,7 @@ std::string   s_query;
 size_t        s_order = 0;   // in ORDERS
 std::string   s_section;
 bool          s_homebrew = false;   // the server's homebrew shown, not its games
+size_t        s_horder = 0;         // its order, as HomebrewPanel::Order
 library::Filter s_filter;
 
 // The orders, as library::Sort's, then the shelves: a row of covers a
@@ -59,6 +60,14 @@ bool needs_facts()
     const library::Filter& f = s_filter;
     return !f.genre.empty() || !f.publisher.empty() || !f.language.empty() || f.players || f.hide_demos ||
            sort_of() == library::Sort::Publisher || shelves();
+}
+
+// The homebrew's orders, as HomebrewPanel::Order: by name, the updates first, the largest first.
+constexpr const char* HORDERS[] = { "name", "updates", "largest" };
+
+std::string homebrew_order_text(size_t order)
+{
+    return aurore::getStr(std::string("playshelf/library/sort_values/") + HORDERS[order]);
 }
 
 std::string order_text(size_t order)
@@ -209,7 +218,7 @@ void CatalogueTab::refresh()
     const library::Server* s = this->server();
     if (s) s_server_id = s->id;
     ui::set_visible_all({ { empty_box, !s }, { server_cell, s != nullptr }, { kind_cell, s != nullptr },
-                          { search_cell, s != nullptr }, { sort_cell, s != nullptr && !s_homebrew },
+                          { search_cell, s != nullptr }, { sort_cell, s != nullptr },
                           { filter_cell, s != nullptr && !s_homebrew }, { homebrew, s && s_homebrew } });
     if (!s) {
         ui::set_visible_all({ { section_cell, false }, { status, false }, { grid, false }, { more, false } });
@@ -220,14 +229,14 @@ void CatalogueTab::refresh()
     homebrew_kind::show(kind_cell, s_homebrew);
     search_cell->set_value(s_query.empty() ? "playshelf/library/search_all"_i18n : s_query);
     search_cell->set_active(!s_query.empty());
-    sort_cell->set_value(order_text(s_order));
+    sort_cell->set_value(s_homebrew ? homebrew_order_text(s_horder) : order_text(s_order));
     const std::string filtered = filter_sheet::summary(s_filter);
     filter_cell->set_value(filtered.empty() ? "playshelf/filters/none"_i18n : filtered);
     filter_cell->set_active(!filtered.empty());
     if (s_homebrew) {
         // The homebrew in place of the games: nothing of the games' view.
         ui::set_visible_all({ { section_cell, false }, { status, true }, { grid, false }, { more, false } });
-        this->homebrew_panel->show(*s, s_query, false);
+        this->homebrew_panel->show(*s, s_query, false, (HomebrewPanel::Order)s_horder);
         this->list.sync();
         return;
     }
@@ -543,6 +552,15 @@ void CatalogueTab::server_sheet()
 
 void CatalogueTab::pick_sort()
 {
+    if (s_homebrew) {
+        std::vector<std::string> names;
+        for (size_t i = 0; i < std::size(HORDERS); i++) names.push_back(homebrew_order_text(i));
+        ui::pick("playshelf/library/sort"_i18n, names, (int)s_horder, ui::guarded(this->alive, [this](int i) {
+                     s_horder = (size_t)i;
+                     this->refresh();
+                 }));
+        return;
+    }
     std::vector<std::string> labels;
     for (size_t i = 0; i < std::size(ORDERS); i++) labels.push_back(order_text(i));
     ui::pick("playshelf/library/sort"_i18n, labels, (int)s_order, ui::guarded(this->alive, [this](int i) {

@@ -41,7 +41,9 @@ class HomebrewPanel
     // Shows `server`'s homebrew, read first when it was not (or another
     // server's was): the entries whose name holds `query`, only the ones the
     // console has when `installed_only`. Built again only when it changed.
-    void show(const library::Server& server, const std::string& query, bool installed_only);
+    // `order`: by name, the ones with an update first, or the largest first.
+    enum class Order { Name, Updates, Largest };
+    void show(const library::Server& server, const std::string& query, bool installed_only, Order order = Order::Name);
     // Reads the server again.
     void reload();
     // How many entries the console has (what the last show() was given).
@@ -64,6 +66,7 @@ class HomebrewPanel
     library::Server server;
     std::string     query, built_key, why_failed;
     bool            installed_only = false, waiting = false;
+    Order           order = Order::Name;
     size_t          shown_count = 0;
     std::shared_ptr<const homebrew_flow::Loaded> data;
     std::vector<GameTile*> tiles;   // the tiles shown, in the order of `entries`
