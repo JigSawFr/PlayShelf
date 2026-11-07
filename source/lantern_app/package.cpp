@@ -1,6 +1,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "lantern_app/package.hpp"
 
+#include "lantern_app/delta.hpp"
 #include "lantern_app/file_sink.hpp"
 
 #include <array>
@@ -142,6 +143,46 @@ PackageResult fetch_package(Platform& platform, const library::Server& server, c
     }
     out.why = describe(done.error());
     if (done.error().category() == lantern::Category::integrity) std::remove(path.c_str());
+    return out;
+}
+
+DeltaResult fetch_package_delta(Platform& platform, const library::Server& server, const PackageRequest& request,
+                                const std::string& chunks_url, uint64_t chunks_size, const std::string& chunks_sha256,
+                                const std::vector<std::string>& seed_files, const std::string& path,
+                                const std::atomic<bool>* stop, const std::function<void(uint64_t)>& progress)
+{
+    DeltaResult out;
+    const auto  whole = [&]() {
+        const PackageResult got = fetch_package(platform, server, request, path, stop, progress);
+        static_cast<PackageResult&>(out) = got;
+        out.whole = true;
+        return out;
+    };
+    const auto digest = lantern::digest_from_hex(request.sha256);
+    const auto index_digest = lantern::digest_from_hex(chunks_sha256);
+    if (!digest || request.size == 0 || chunks_url.empty() || !index_digest || chunks_size == 0 || seed_files.empty())
+        return whole();
+
+    std::vector<std::vector<std::byte>> held;
+    uint64_t                            room = MAX_SEED_BYTES;
+    for (const std::string& file : seed_files) {
+        std::vector<std::byte> bytes;
+        if (!read_seed(file, room, &bytes)) continue;
+        room -= bytes.size();
+        held.push_back(std::move(bytes));
+    }
+    if (held.empty()) return whole();
+    std::vector<lantern::Seed> seeds;
+    for (const auto& h : held) seeds.emplace_back(h.data(), h.size());
+
+    std::string why;
+    const auto  client = open_client(platform, server, request.url, &why);
+    if (!client) {
+        out.why = why;
+        return out;
+    }
+    out = fetch_delta(*client, request, chunks_url, chunks_size, chunks_sha256, held, path, stop, progress);
+    if (out.whole && !out.ok && !out.stopped && out.why.empty()) return whole();
     return out;
 }
 
