@@ -70,7 +70,7 @@ struct World
     lantern::ServerTrust trust;
     RangeSource source;
 
-    World() : source(make(server, random, clock, trust), {"https://shelf.example.org/files/a.nsp", SIZE, std::string(64, 'a')}) {}
+    World() : source(make(server, random, clock, trust), {"https://shelf.example.org/files/a.nsp", SIZE, std::string(64, 'a'), {}}) {}
 
     static std::unique_ptr<lantern::Client> make(Server& s, Random& r, Clock& c, lantern::ServerTrust& t)
     {

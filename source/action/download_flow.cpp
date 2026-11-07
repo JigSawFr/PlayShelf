@@ -224,7 +224,7 @@ Outcome run_job(const download::Job& job, const library::Server& server, const s
             o.why = why;
             return ctl->stop ? stopped() : o;
         }
-        remote = std::make_unique<lantern_app::RangeSource>(std::move(client), lantern_app::PackageRequest{job.url, job.size, job.sha256});
+        remote = std::make_unique<lantern_app::RangeSource>(std::move(client), lantern_app::PackageRequest{job.url, job.size, job.sha256, {}});
     }
     LocalOnly    local(job.size);
     PrefixSource prefixed(path, have, remote ? static_cast<install::Source&>(*remote) : local);
@@ -422,7 +422,7 @@ void fetch_ahead()
             continue;
         }
         const std::string id = job.id, path = ahead_path(job.id);
-        const lantern_app::PackageRequest request{job.url, job.size, job.sha256};
+        const lantern_app::PackageRequest request{job.url, job.size, job.sha256, {}};
         const auto        stop = a.stop;
         aurore::Logger::info("downloads: fetching {} ahead", job.name);
         ui::in_background("fetch ahead", [id, server = *server, request, path, stop, reserve]() {
