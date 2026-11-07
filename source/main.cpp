@@ -48,7 +48,6 @@
 #include "tab/catalogue_tab.hpp"
 #include "tab/downloads_tab.hpp"
 #include "tab/home_tab.hpp"
-#include "tab/homebrew_tab.hpp"
 #include "tab/library_tab.hpp"
 #include "tab/preferences_tab.hpp"
 #include "ui/ui.hpp"
@@ -266,7 +265,6 @@ void register_views()
     aurore::Application::registerXMLView("HomeTab",         HomeTab::create);
     aurore::Application::registerXMLView("LibraryTab",      LibraryTab::create);
     aurore::Application::registerXMLView("CatalogueTab",    CatalogueTab::create);
-    aurore::Application::registerXMLView("HomebrewTab",     HomebrewTab::create);
     aurore::Application::registerXMLView("DownloadsTab",    DownloadsTab::create);
     aurore::Application::registerXMLView("PreferencesTab",  PreferencesTab::create);
     aurore::Application::registerXMLView("AboutTab",        AboutTab::create);

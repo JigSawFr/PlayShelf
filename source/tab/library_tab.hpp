@@ -10,7 +10,8 @@
 // (installed_flow::remove, asked first). The catalogues are the
 // Catalogue tab's (action/library_flow): the shown server's is read when
 // none is yet. Read again when the tab shows and when a download is
-// installed; Ⓧ reads it again.
+// installed; Ⓧ reads it again. A pill switches to the homebrew of the first
+// server the console has (tab/homebrew_panel), those it has installed.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -21,6 +22,7 @@
 #include "action/installed_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/library_flow.hpp"
+#include "tab/homebrew_panel.hpp"
 #include "tab/tab_base.hpp"
 
 class GameTile;
@@ -35,6 +37,8 @@ class LibraryTab : public TabBase
     // The Library shown next with only the games in this state (the Home
     // tab's tiles); its order kept.
     static void preset(library::Filter::State state);
+    // The Library shown next with the homebrew the console has, not the games.
+    static void preset_homebrew();
 
   protected:
     void refresh() override;
@@ -52,6 +56,7 @@ class LibraryTab : public TabBase
     void show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games);
     void add_page();
     void pick_filter();
+    void pick_kind();
     void open(size_t i);
     void set_hints();
 
@@ -73,7 +78,11 @@ class LibraryTab : public TabBase
     AURORE_BIND(aurore::Box,    bar,       "li_bar");
     ToolChip* summary = nullptr;
     ToolChip* filter_cell = nullptr;
+    ToolChip* kind_cell = nullptr;
     AURORE_BIND(aurore::Box,    grid,      "li_grid");
     AURORE_BIND(aurore::Box,    list_box,  "li_list");
     AURORE_BIND(aurore::Button, more,      "li_more");
+    AURORE_BIND(aurore::Label,  status,    "li_status");
+    AURORE_BIND(aurore::Box,    homebrew,  "li_homebrew");
+    std::unique_ptr<HomebrewPanel> homebrew_panel;
 };

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <format>
 #include <numeric>
+#include <optional>
 #include <utility>
 
 #include <aurore/cadran/ui/cadran_kit.hpp>
@@ -73,6 +74,15 @@ enum class Order : int { Name, Publisher, Newest, ToGetFirst, MostPlayed, Recent
 const char* const ORDERS[] = { "name", "publisher", "newest", "to_get_first", "most_played", "recently_played" };
 Order           s_order = Order::Name;
 library::Filter s_filter;
+bool            s_homebrew = false;   // the homebrew the console has shown, not its games
+
+// The server whose homebrew is shown: the first one paired.
+std::optional<library::Server> first_server()
+{
+    for (const library::Server& sv : library::load_servers())
+        if (!sv.uid.empty()) return sv;
+    return std::nullopt;
+}
 
 bool needs_facts()
 {
@@ -85,6 +95,7 @@ bool needs_facts()
 LibraryTab::LibraryTab()
     : TabBase("xml/tab/library.xml")
 {
+    homebrew_panel = std::make_unique<HomebrewPanel>(homebrew, status);
     cadran::kit::Empty empty = cadran::kit::empty("shelf");
     empty.title->setText("playshelf/installed/empty_title"_i18n);
     empty.text->setText("playshelf/installed/empty_text"_i18n);
@@ -94,6 +105,8 @@ LibraryTab::LibraryTab()
     summary = new ToolChip("gamepad", "playshelf/installed/summary"_i18n);
     filter_cell = new ToolChip("tools", "playshelf/filters/row_sort"_i18n);
     filter_cell->setVisibility(aurore::Visibility::GONE);
+    kind_cell = new ToolChip("gamepad", "playshelf/library/kind"_i18n);
+    bar->addView(kind_cell);
     bar->addView(summary);
     bar->addView(filter_cell);
     cadran::kit::wrap(bar);
@@ -103,6 +116,10 @@ LibraryTab::LibraryTab()
     });
     filter_cell->registerClickAction([this](aurore::View*) {
         this->pick_filter();
+        return true;
+    });
+    kind_cell->registerClickAction([this](aurore::View*) {
+        this->pick_kind();
         return true;
     });
     more->registerClickAction([this](aurore::View*) {
@@ -164,6 +181,11 @@ void LibraryTab::preset(library::Filter::State state)
     s_filter.state = state;
 }
 
+void LibraryTab::preset_homebrew()
+{
+    s_homebrew = true;
+}
+
 aurore::View* LibraryTab::create()
 {
     return new LibraryTab();
@@ -172,6 +194,20 @@ aurore::View* LibraryTab::create()
 void LibraryTab::refresh()
 {
     download_flow::show_pill();
+    kind_cell->set_value(s_homebrew ? "playshelf/tabs/homebrew"_i18n : "playshelf/library/kind_games"_i18n);
+    kind_cell->set_active(s_homebrew);
+    ui::set_visible_all({ { summary, !s_homebrew }, { homebrew, s_homebrew }, { status, s_homebrew } });
+    if (s_homebrew) {
+        // The homebrew in place of the games: nothing of the games' view.
+        ui::set_visible_all({ { empty_box, false }, { filter_cell, false }, { grid, false }, { list_box, false }, { more, false } });
+        const auto server = first_server();
+        if (!server) {
+            ui::set_text(status, "playshelf/homebrew/no_server"_i18n);
+            return;
+        }
+        this->homebrew_panel->show(*server, "", true);
+        return;
+    }
     // What the last read had, at once; this read's when it ends.
     if (const auto known = installed_flow::games(); known && known != this->shown_games) this->show_games(known);
     else if (!this->shown_games) summary->set_value("playshelf/installed/reading"_i18n);
@@ -190,6 +226,7 @@ void LibraryTab::refresh()
 void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Game>> games)
 {
     this->shown_games = std::move(games);
+    if (s_homebrew) return;   // the homebrew shown: the games are built when it is left
     const auto all = catalogues();
     this->entries.clear();
     size_t to_get = 0;
@@ -378,6 +415,17 @@ void LibraryTab::add_page()
     // What Nlib API knows of the games just shown, gathered meanwhile (all
     // of them instead when a filter or the order needs it: show_games()).
     if (!needs_facts()) nlib_flow::enrich(shown_ids);
+}
+
+void LibraryTab::pick_kind()
+{
+    const std::vector<std::string> labels = { "playshelf/library/kind_games"_i18n, "playshelf/tabs/homebrew"_i18n };
+    ui::pick("playshelf/library/kind"_i18n, labels, s_homebrew ? 1 : 0, ui::guarded(this->alive, [this](int i) {
+                 s_homebrew = i == 1;
+                 this->refresh();
+                 // Back to the games: those already read, built again.
+                 if (!s_homebrew && this->shown_games) this->show_games(this->shown_games);
+             }));
 }
 
 void LibraryTab::pick_filter()

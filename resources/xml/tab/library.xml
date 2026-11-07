@@ -3,7 +3,8 @@
 <!-- Library: the games on the console (tab/library_tab.cpp). With none, an
      empty state; else a line saying how many and how many the catalogues
      have more of (A reads them again), then the games as a grid of covers
-     (a page at a time, "Show more" after it). -->
+     (a page at a time, "Show more" after it). A pill switches to the
+     homebrew installed, as tiles too. -->
 
 <aurore:Box
     width="auto"
@@ -31,6 +32,11 @@
             <aurore:Box id="li_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
             <aurore:Box id="li_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
             <aurore:Box id="li_list" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
+            <!-- The homebrew view (tab/homebrew_panel): the server's homebrew the console has. -->
+            <aurore:Box width="auto" height="auto" axis="column" alignItems="stretch" marginTop="4">
+                <aurore:Label id="li_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
+            </aurore:Box>
+            <aurore:Box id="li_homebrew" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
             <aurore:Button id="li_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
                 width="320" alignSelf="center"/>
 

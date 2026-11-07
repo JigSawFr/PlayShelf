@@ -14,9 +14,8 @@ constexpr int home        = 0;   // where the console and its servers stand
 constexpr int library     = 1;   // the games on the console
 constexpr int catalogue   = 2;   // a library server's catalogue
 constexpr int downloads   = 3;   // the downloads' queue
-constexpr int homebrew    = 4;   // the homebrew a library server offers
-constexpr int preferences = 6;   // the app's settings and its updates
-constexpr int about       = 7;   // version, help, credits
+constexpr int preferences = 5;   // the app's settings and its updates
+constexpr int about       = 6;   // version, help, credits
 
 // The n-th entry of config::START_TABS as a sidebar position.
 constexpr int of(int n)
@@ -32,7 +31,6 @@ inline int position_of(const std::string& screen)
     if (screen == "tab/library") return library;
     if (screen == "tab/catalogue") return catalogue;
     if (screen == "tab/downloads") return downloads;
-    if (screen == "tab/homebrew") return homebrew;
     if (screen == "tab/preferences") return preferences;
     if (screen == "tab/about") return about;
     return -1;

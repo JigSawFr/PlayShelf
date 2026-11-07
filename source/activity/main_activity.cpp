@@ -92,7 +92,7 @@ void MainActivity::onContentAvailable()
     // something to get.
     this->insights_listener = insights::listen([this]() { this->update_insights(); });
     insights::start();
-    homebrew_flow::on_change([this]() { this->update_homebrew_badge(); });
+    homebrew_flow::on_change([this]() { this->update_home_badge(); });
     homebrew_flow::preload();
 
     // −: the language, the theme and the text size (also a tap on them in
@@ -164,19 +164,18 @@ void MainActivity::update_insights()
 {
     const auto snap = insights::now();
     insight_notices::publish(*snap);
-    auto* frame   = this->getView("main_tabs");
-    auto* sidebar = frame ? dynamic_cast<aurore::Sidebar*>(frame->getView("aurore/tab_frame/sidebar")) : nullptr;
-    if (!sidebar) return;
-    if (TabBadge* badge = TabBadge::of(sidebar->getItem(tabs::home))) badge->set_count((int)snap->to_get_games);
+    this->update_home_badge();
 }
 
-void MainActivity::update_homebrew_badge()
+// Home's badge: the console's games with something to get, and the server's
+// homebrew with an update.
+void MainActivity::update_home_badge()
 {
     auto* frame   = this->getView("main_tabs");
     auto* sidebar = frame ? dynamic_cast<aurore::Sidebar*>(frame->getView("aurore/tab_frame/sidebar")) : nullptr;
     if (!sidebar) return;
-    if (TabBadge* badge = TabBadge::of(sidebar->getItem(tabs::homebrew)))
-        badge->set_count((int)homebrew_flow::updates_count());
+    if (TabBadge* badge = TabBadge::of(sidebar->getItem(tabs::home)))
+        badge->set_count((int)(insights::now()->to_get_games + homebrew_flow::updates_count()));
 }
 
 void MainActivity::open_tab(int position, const std::string& row)
