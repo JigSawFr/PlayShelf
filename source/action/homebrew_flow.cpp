@@ -6,6 +6,7 @@
 
 #include <aurore.hpp>
 
+#include "action/peer_flow.hpp"
 #include "lantern_app/delta.hpp"
 #include "lantern_app/package.hpp"
 #include "lantern_app/platform.hpp"
@@ -64,7 +65,12 @@ void load(const library::Server& server, const std::function<void(std::shared_pt
         std::string why;
         auto        c = lantern_app::connect(server, platform.env(), platform.store());
         if (c.status != lantern_app::Status::Ok) why = c.why.empty() ? "not paired" : c.why;
-        else why = lantern_app::fetch_homebrew(*c.client, platform.env().platform, c.endpoint, "", data->list);
+        else {
+            // The server's grant key, for serving its files to peers (SPEC.md 19.4).
+            const std::string server_uid = c.uid, grant_key = c.grant_key;
+            aurore::sync([server_uid, grant_key]() { if (!grant_key.empty()) peer_flow::note_server(server_uid, grant_key); });
+            why = lantern_app::fetch_homebrew(*c.client, platform.env().platform, c.endpoint, "", data->list);
+        }
         aurore::sync([data, why, done]() {
             s_loading = false;
             if (why.empty()) s_loaded = data;
@@ -127,13 +133,23 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
                 if (!out.ok) why = out.why;
             }
             std::remove(package_file().c_str());
-            aurore::sync([out, why, done, uid = server.uid]() {
+            // A single file written whole, whose size and SHA-256 were checked,
+            // is one the console can give to its peers.
+            std::string held_sha, held_path;
+            uint64_t    held_size = 0;
+            if (const auto held = lantern::pick_package(item.entry, ""); why.empty() && held && !(*held)->path.empty()) {
+                held_sha  = std::string(lantern::to_hex((*held)->sha256).data(), 64);
+                held_path = std::string((*held)->path);
+                held_size = (*held)->size;
+            }
+            aurore::sync([out, why, done, uid = server.uid, held_sha, held_path, held_size]() {
                 s_busy = false;
                 if (why.empty()) {
                     homebrew::Record record = out.record;
                     record.server_uid = uid;
                     s_book.put(record);
                     if (!s_book.newer) s_book.save(book_file());
+                    if (!held_sha.empty()) peer_flow::hold(held_sha, held_size, held_path);
                 }
                 done(why);
             });
@@ -157,6 +173,7 @@ std::string remove(const std::string& id)
     const homebrew::Record* r = s_book.find(id);
     if (!r) return {};
     const homebrew::Record copy = *r;
+    peer_flow::release(copy.files);
     const auto left = homebrew::uninstall(copy, paths::sd_root());
     s_book.erase(id);
     if (!s_book.newer && !s_book.save(book_file())) return "homebrew.json could not be written";

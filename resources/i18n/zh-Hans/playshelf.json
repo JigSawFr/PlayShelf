@@ -437,6 +437,7 @@
         "resume_all": "全部继续",
         "clear": "清除已安装",
         "keep_awake": "下载时不进入睡眠模式",
+        "share_files": "与网络共享自制软件",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

@@ -437,6 +437,7 @@
         "resume_all": "Alles hervatten",
         "clear": "Geïnstalleerde wissen",
         "keep_awake": "Geen slaapstand tijdens downloads",
+        "share_files": "Homebrews delen met het netwerk",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

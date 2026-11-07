@@ -32,6 +32,7 @@ A content that is not signed by Nintendo stops its package: it may have been cha
 Under the queue, and in [`config.json`](config.md):
 
 - **Stay awake while downloading**: the console does not go to sleep by itself while downloads run (on by default).
+- **Share homebrew with the network** (off by default): see [Servers › Homebrew](servers.md#homebrew).
 - **Connections per download**, 1 to 8 (4 by default): how many requests *Install from a URL* (*About › Help & diagnostics*) makes at once, each for a 4 MB piece of the package. A library server's packages are fetched by one connection, resumed where it stopped.
 - **Fetch ahead**: while a package installs, the next one or two are fetched to the SD card, when it has room for them and their install; their install then starts from the file. Each takes its size twice on the SD card until it is installed (off by default).
 

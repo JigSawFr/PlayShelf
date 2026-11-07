@@ -9,6 +9,7 @@
 #include <aurore/cadran/ui/guarded.hpp>
 
 #include "action/download_flow.hpp"
+#include "action/peer_flow.hpp"
 #include "action/screen_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
@@ -81,6 +82,16 @@ DownloadsTab::DownloadsTab()
     });
     card->addView(keep_awake);
     cadran::List::row(keep_awake, "bolt");
+    // Off until turned on: this console then gives the homebrew files it
+    // holds to the other consoles of the network (SPEC.md 19.4).
+    share_files = new aurore::BooleanCell();
+    share_files->init("playshelf/downloads/share_files"_i18n, config::get().share_files, [](bool on) {
+        config::get().share_files = on;
+        ui::save_config();
+        peer_flow::apply();
+    });
+    card->addView(share_files);
+    cadran::List::row(share_files, "share");
     connections = new aurore::DetailCell();
     connections->setText("playshelf/downloads/connections"_i18n);
     ui::set_detail(connections, std::to_string(config::get().connections));

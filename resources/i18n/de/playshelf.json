@@ -437,6 +437,7 @@
         "resume_all": "Alle fortsetzen",
         "clear": "Installierte entfernen",
         "keep_awake": "Kein Standby während Downloads",
+        "share_files": "Homebrews im Netzwerk teilen",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

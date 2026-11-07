@@ -194,6 +194,11 @@ lantern_ports_SRC   := source/lantern_app/port_data.cpp source/library/catalog.c
 lantern_ports_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_ports_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_ports: $(LANTERN_LIB)
+# What a peer serves, over loopback.
+lantern_peers_serve_SRC   := source/lantern_app/peer_book.cpp source/lantern_app/peer_service.cpp $(KIT)/util/paths.cpp tests/lantern_peers_serve/test.cpp
+lantern_peers_serve_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_peers_serve_LIBS  := $(LANTERN_LIB) -lpthread
+$(TESTOUT)/lantern_peers_serve: $(LANTERN_LIB)
 # The system under the Lantern client: random bytes, the time, the discovery socket.
 lantern_system_SRC   := source/lantern_app/system.cpp tests/lantern_system/test.cpp
 lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
