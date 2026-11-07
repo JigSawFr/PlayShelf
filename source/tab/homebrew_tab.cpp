@@ -46,11 +46,11 @@ void HomebrewTab::load()
     this->status->setText("playshelf/homebrew/reading"_i18n);
     homebrew_flow::load(*server, ui::guarded(this->alive, [this](std::shared_ptr<const homebrew_flow::Loaded> d, std::string why) {
         this->waiting = false;
-        this->show(d, why);
+        this->present(d, why);
     }));
 }
 
-void HomebrewTab::show(const std::shared_ptr<const homebrew_flow::Loaded>& d, const std::string& why)
+void HomebrewTab::present(const std::shared_ptr<const homebrew_flow::Loaded>& d, const std::string& why)
 {
     this->data = d;
     this->why_failed = why;
