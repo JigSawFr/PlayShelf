@@ -42,6 +42,8 @@
         "discover_failed": "無法搜尋此網路",
         "discover_pick": "此網路中的伺服器",
         "server": "伺服器",
+        "kind": "Show",
+        "kind_games": "Games",
         "search": "搜尋",
         "search_all": "所有遊戲",
         "sort": "排序",

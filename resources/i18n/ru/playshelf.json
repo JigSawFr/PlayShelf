@@ -42,6 +42,8 @@
         "discover_failed": "Не удалось выполнить поиск в этой сети",
         "discover_pick": "Серверы в этой сети",
         "server": "Сервер",
+        "kind": "Show",
+        "kind_games": "Games",
         "search": "Поиск",
         "search_all": "Все игры",
         "sort": "Порядок",

@@ -42,6 +42,8 @@
         "discover_failed": "Não foi possível pesquisar esta rede",
         "discover_pick": "Servidores nesta rede",
         "server": "Servidor",
+        "kind": "Mostrar",
+        "kind_games": "Jogos",
         "search": "Buscar",
         "search_all": "Todos os jogos",
         "sort": "Ordem",

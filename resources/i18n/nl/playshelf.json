@@ -42,6 +42,8 @@
         "discover_failed": "Dit netwerk kon niet worden doorzocht",
         "discover_pick": "Servers op dit netwerk",
         "server": "Server",
+        "kind": "Tonen",
+        "kind_games": "Spellen",
         "search": "Zoeken",
         "search_all": "Alle games",
         "sort": "Volgorde",

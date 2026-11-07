@@ -4,7 +4,8 @@
      no server yet, an empty state to add one or find one on this network;
      else the server and what the games are filtered and sorted by, a line
      saying where the catalogue stands, then its games as a grid of covers
-     (a page at a time, "Show more" after it). -->
+     (a page at a time, "Show more" after it). A pill switches to the
+     server's homebrew, as tiles too. -->
 
 <aurore:Box
     width="auto"
@@ -34,6 +35,8 @@
                 <aurore:Label id="lb_status" text=" " fontSize="16.5" textColor="@theme/cadran/text3"/>
             </aurore:Box>
             <aurore:Box id="lb_grid" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
+            <!-- The homebrew view (tab/homebrew_panel): tiles in place of the games'. -->
+            <aurore:Box id="lb_homebrew" width="auto" height="auto" axis="column" alignItems="flexStart" marginTop="8"/>
             <aurore:Button id="lb_more" style="default" text="@i18n/playshelf/library/show_more" marginTop="16"
                 width="320" alignSelf="center"/>
 

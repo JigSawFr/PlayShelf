@@ -33,6 +33,7 @@ std::string   s_server_id;
 std::string   s_query;
 size_t        s_order = 0;   // in ORDERS
 std::string   s_section;
+bool          s_homebrew = false;   // the server's homebrew shown, not its games
 library::Filter s_filter;
 
 // The orders, as library::Sort's, then the shelves: a row of covers a
@@ -98,6 +99,7 @@ bool inside(aurore::View* view, aurore::View* parent)
 CatalogueTab::CatalogueTab()
     : TabBase("xml/tab/catalogue.xml", false), list(this)
 {
+    homebrew_panel = std::make_unique<HomebrewPanel>(homebrew, status);
     cadran::kit::Empty empty = cadran::kit::empty("shelf");
     empty.title->setText("playshelf/library/empty_title"_i18n);
     empty.text->setText("playshelf/library/empty_text"_i18n);
@@ -132,14 +134,19 @@ CatalogueTab::CatalogueTab()
     }));
     // The controls, a pill each.
     server_cell = new ToolChip("server", "");
+    kind_cell = new ToolChip("gamepad", "playshelf/library/kind"_i18n);
     search_cell = new ToolChip("eye", "playshelf/library/search"_i18n);
     sort_cell = new ToolChip("list", "playshelf/library/sort"_i18n);
     filter_cell = new ToolChip("tools", "playshelf/filters/row"_i18n);
     section_cell = new ToolChip("folder", "playshelf/library/section"_i18n);
-    for (ToolChip* c : { server_cell, search_cell, sort_cell, filter_cell, section_cell }) bar->addView(c);
+    for (ToolChip* c : { server_cell, kind_cell, search_cell, sort_cell, filter_cell, section_cell }) bar->addView(c);
     cadran::kit::wrap(bar);
     server_cell->registerClickAction([this](aurore::View*) {
         this->server_sheet();
+        return true;
+    });
+    kind_cell->registerClickAction([this](aurore::View*) {
+        this->pick_kind();
         return true;
     });
     search_cell->registerClickAction([this](aurore::View*) {
@@ -175,7 +182,9 @@ CatalogueTab::CatalogueTab()
         return true;
     });
     this->registerAction("playshelf/library/reload"_i18n, aurore::BUTTON_X, [this](aurore::View*) {
-        if (this->server()) this->load(true);
+        if (!this->server()) return true;
+        if (s_homebrew) this->homebrew_panel->reload();
+        else this->load(true);
         return true;
     });
     cadran::style_button(more);
@@ -199,20 +208,30 @@ void CatalogueTab::refresh()
     this->servers = library::load_servers();
     const library::Server* s = this->server();
     if (s) s_server_id = s->id;
-    ui::set_visible_all({ { empty_box, !s }, { server_cell, s != nullptr }, { search_cell, s != nullptr },
-                          { sort_cell, s != nullptr }, { filter_cell, s != nullptr } });
+    ui::set_visible_all({ { empty_box, !s }, { server_cell, s != nullptr }, { kind_cell, s != nullptr },
+                          { search_cell, s != nullptr }, { sort_cell, s != nullptr && !s_homebrew },
+                          { filter_cell, s != nullptr && !s_homebrew }, { homebrew, s && s_homebrew } });
     if (!s) {
         ui::set_visible_all({ { section_cell, false }, { status, false }, { grid, false }, { more, false } });
         this->shown_data = nullptr;
         return;
     }
     server_cell->set_value(s->name);
+    kind_cell->set_value(s_homebrew ? "playshelf/tabs/homebrew"_i18n : "playshelf/library/kind_games"_i18n);
+    kind_cell->set_active(s_homebrew);
     search_cell->set_value(s_query.empty() ? "playshelf/library/search_all"_i18n : s_query);
     search_cell->set_active(!s_query.empty());
     sort_cell->set_value(order_text(s_order));
     const std::string filtered = filter_sheet::summary(s_filter);
     filter_cell->set_value(filtered.empty() ? "playshelf/filters/none"_i18n : filtered);
     filter_cell->set_active(!filtered.empty());
+    if (s_homebrew) {
+        // The homebrew in place of the games: nothing of the games' view.
+        ui::set_visible_all({ { section_cell, false }, { status, true }, { grid, false }, { more, false } });
+        this->homebrew_panel->show(*s, s_query, false);
+        this->list.sync();
+        return;
+    }
     ui::set_visible_all({ { status, true }, { grid, true } });
 
     this->shown_data = library_flow::loaded(s->id);
@@ -246,6 +265,7 @@ void CatalogueTab::load(bool again)
 
 void CatalogueTab::show_status()
 {
+    if (s_homebrew) return;   // the homebrew view has its own line
     std::string text;
     const char* color = "cadran/text3";
     if (library_flow::loading()) {
@@ -557,6 +577,15 @@ void CatalogueTab::pick_section()
     }
     ui::pick("playshelf/library/section"_i18n, labels, selected, ui::guarded(this->alive, [this, ids](int i) {
                  s_section = ids[(size_t)i];
+                 this->refresh();
+             }));
+}
+
+void CatalogueTab::pick_kind()
+{
+    const std::vector<std::string> labels = { "playshelf/library/kind_games"_i18n, "playshelf/tabs/homebrew"_i18n };
+    ui::pick("playshelf/library/kind"_i18n, labels, s_homebrew ? 1 : 0, ui::guarded(this->alive, [this](int i) {
+                 s_homebrew = i == 1;
                  this->refresh();
              }));
 }

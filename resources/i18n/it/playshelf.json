@@ -42,6 +42,8 @@
         "discover_failed": "Impossibile esplorare questa rete",
         "discover_pick": "Server su questa rete",
         "server": "Server",
+        "kind": "Mostra",
+        "kind_games": "Giochi",
         "search": "Cerca",
         "search_all": "Tutti i giochi",
         "sort": "Ordine",

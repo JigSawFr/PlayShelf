@@ -26,6 +26,7 @@
 
 #include "action/library_flow.hpp"
 #include "library/servers.hpp"
+#include "tab/homebrew_panel.hpp"
 #include "tab/tab_base.hpp"
 
 class GameTile;
@@ -63,6 +64,7 @@ class CatalogueTab : public TabBase
     void ask_facts();
     void facts_came();
     void pick_section();
+    void pick_kind();
     void search();
     void after_saved(const std::string& saved_id);
 
@@ -87,11 +89,14 @@ class CatalogueTab : public TabBase
     int nlib_listener = 0;
     AURORE_BIND(aurore::Box,        bar,         "lb_bar");
     ToolChip* server_cell = nullptr;
+    ToolChip* kind_cell = nullptr;
     ToolChip* search_cell = nullptr;
     ToolChip* sort_cell = nullptr;
     ToolChip* filter_cell = nullptr;
     ToolChip* section_cell = nullptr;
     AURORE_BIND(aurore::Label,      status,      "lb_status");
     AURORE_BIND(aurore::Box,        grid,        "lb_grid");
+    AURORE_BIND(aurore::Box,        homebrew,    "lb_homebrew");
     AURORE_BIND(aurore::Button,     more,        "lb_more");
+    std::unique_ptr<HomebrewPanel> homebrew_panel;
 };

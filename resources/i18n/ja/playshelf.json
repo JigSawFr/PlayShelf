@@ -42,6 +42,8 @@
         "discover_failed": "このネットワークを検索できませんでした",
         "discover_pick": "このネットワークのサーバー",
         "server": "サーバー",
+        "kind": "Show",
+        "kind_games": "Games",
         "search": "検索",
         "search_all": "すべてのゲーム",
         "sort": "並び順",

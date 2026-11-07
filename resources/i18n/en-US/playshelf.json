@@ -42,6 +42,8 @@
         "discover_failed": "This network could not be searched",
         "discover_pick": "Servers on this network",
         "server": "Server",
+        "kind": "Show",
+        "kind_games": "Games",
         "search": "Search",
         "search_all": "Every game",
         "sort": "Order",
