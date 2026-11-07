@@ -71,6 +71,17 @@ void seed_console()
         }
         ::closedir(d);
     }
+    // Homebrew installed already (data/homebrew.json says so): its copy on the
+    // SD card, older than the server's, so updating it reads its chunks.
+    {
+        const std::string id = "org.example.lamplight", sd = paths::sd_root(), at = "/switch/" + id;
+        std::string       bytes;
+        if (paths::read_file(dir() + "/console/old/" + id + ".nro", bytes)) {
+            ::mkdir((sd + "/switch").c_str(), 0755);
+            ::mkdir((sd + at).c_str(), 0755);
+            (void)paths::atomic_write(sd + at + "/" + id + ".nro", bytes);
+        }
+    }
     // The title database's source the demo answers (TITLEDB_URL, one of the
     // default sources), fetched as Preferences › Title database would: the
     // coming games' names and dates, from the first screen.

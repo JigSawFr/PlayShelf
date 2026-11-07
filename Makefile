@@ -80,10 +80,10 @@ dist: all
 # there by the desktop one.
 WEB_DEMO_SOURCES := tools/web_demo.cpp $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
                 source/install/cnmt.cpp source/install/nca.cpp $(KIT)/util/sha256.cpp
-%/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
+%/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp) $(BUILD)/lantern-host/liblantern.a
 	@mkdir -p $*
-	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
-	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
+	$(CXX) -std=c++23 -O1 -isystem library/lantern-sdk/cpp/include -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
+	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) $(BUILD)/lantern-host/liblantern.a -lzstd -lz -o $@
 ART_PYTHON ?= python3
 %/demo/lantern/apps.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
 	@rm -rf $*/demo
@@ -152,6 +152,7 @@ LANTERN_HOST := $(BUILD)/lantern-host
 LANTERN_LIB  := $(LANTERN_HOST)/liblantern.a
 LANTERN_INC  := -isystem library/lantern-sdk/cpp/include
 $(LANTERN_LIB):
+	@mkdir -p $(BUILD)
 	@test -f library/lantern-sdk/cpp/CMakeLists.txt || { echo "the Lantern SDK is missing: run git submodule update --init"; exit 1; }
 	cmake -S library/lantern-sdk/cpp -B $(LANTERN_HOST) -DCMAKE_BUILD_TYPE=Release -DLANTERN_BUILD_TESTS=OFF -DLANTERN_BUILD_EXAMPLES=OFF -DLANTERN_INSTALL=OFF -DLANTERN_CURL=OFF -DLANTERN_MBEDTLS=OFF > $(LANTERN_HOST).log 2>&1 || { cat $(LANTERN_HOST).log; exit 1; }
 	cmake --build $(LANTERN_HOST) --target lantern -j$(JOBS) > $(LANTERN_HOST).log 2>&1 || { tail -n 30 $(LANTERN_HOST).log; exit 1; }
