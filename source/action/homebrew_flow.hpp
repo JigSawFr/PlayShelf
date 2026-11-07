@@ -31,6 +31,17 @@ std::shared_ptr<const Loaded> loaded();
 // why not.
 void load(const library::Server& server, const std::function<void(std::shared_ptr<const Loaded>, std::string)>& done);
 
+// Reads the first paired server's homebrew in the background (the rail's
+// badge counts its updates before the tab is opened); nothing when none.
+void preload();
+
+// How many of the catalogue last read have an update; 0 when none was read.
+size_t updates_count();
+
+// `fn` called on the UI thread when that count may have changed (the
+// catalogue read, an install, a removal); an empty one forgets it.
+void on_change(std::function<void()> fn);
+
 // What is installed.
 const homebrew::Book& book();
 

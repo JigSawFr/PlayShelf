@@ -18,6 +18,17 @@ constexpr float PADDING = 8;
 constexpr float COVER = GameTile::WIDTH - 2 * MARGIN - 2 * PADDING;   // 144
 }   // namespace
 
+float GameTile::room()
+{
+    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
+           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
+}
+
+int GameTile::columns()
+{
+    return std::max(1, (int)(room() / WIDTH));
+}
+
 GameTile::GameTile()
 {
     this->setAxis(aurore::Axis::COLUMN);

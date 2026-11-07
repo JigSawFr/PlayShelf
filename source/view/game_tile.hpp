@@ -16,6 +16,10 @@ class GameTile : public aurore::Box
     // Its width, margins included: the grid fits as many a row as its width
     // takes.
     static constexpr float WIDTH = 176;
+    // The tab's room (the screen less the rail and the column's sides) and
+    // how many tiles a row of it takes.
+    static float room();
+    static int   columns();
 
     GameTile();
 

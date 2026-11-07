@@ -86,17 +86,6 @@ void show_detail(GameTile* tile, const library::Title& t, const library::Catalog
     tile->set_detail(text);
 }
 
-// The tab's room: the screen less the rail and the column's sides.
-float room()
-{
-    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
-           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
-}
-
-int columns()
-{
-    return std::max(1, (int)(room() / GameTile::WIDTH));
-}
 
 bool inside(aurore::View* view, aurore::View* parent)
 {
@@ -176,8 +165,8 @@ CatalogueTab::CatalogueTab()
         const size_t first = this->built;
         this->add_page();
         if (first < this->built && this->grid_row) {
-            aurore::View* line = this->grid->getChildren()[first / (size_t)columns()];
-            aurore::Application::giveFocus(dynamic_cast<aurore::Box*>(line)->getChildren()[first % (size_t)columns()]);
+            aurore::View* line = this->grid->getChildren()[first / (size_t)GameTile::columns()];
+            aurore::Application::giveFocus(dynamic_cast<aurore::Box*>(line)->getChildren()[first % (size_t)GameTile::columns()]);
         }
         return true;
     });
@@ -323,7 +312,7 @@ void CatalogueTab::build_grid(bool force)
     this->grid_row = nullptr;
     this->built = 0;
     // The covers centred in the tab's room; a shelf scrolls across it all.
-    grid->setPaddingLeft(shelves() ? 0 : (room() - (float)columns() * GameTile::WIDTH) / 2);
+    grid->setPaddingLeft(shelves() ? 0 : (GameTile::room() - (float)GameTile::columns() * GameTile::WIDTH) / 2);
     this->selection = this->select();
     this->ask_facts();
     if (shelves()) this->add_shelves();
@@ -371,7 +360,7 @@ void CatalogueTab::add_page()
 {
     const auto* data = this->shown_data.get();
     const size_t end = data ? std::min(this->selection.size(), this->built + PAGE) : 0;
-    const int    per_row = columns();
+    const int    per_row = GameTile::columns();
     std::vector<uint64_t> shown_ids;
     for (; this->built < end; this->built++) {
         if (!this->grid_row || (int)this->grid_row->getChildren().size() >= per_row) {
@@ -456,7 +445,7 @@ void CatalogueTab::add_shelves()
         header->addView(count);
         grid->addView(header);
         auto* frame = new aurore::HScrollingFrame();
-        frame->setWidth(room());
+        frame->setWidth(GameTile::room());
         frame->setHeight(GameTile::WIDTH + 64);
         auto* row = new aurore::Box(aurore::Axis::ROW);
         frame->addView(row);

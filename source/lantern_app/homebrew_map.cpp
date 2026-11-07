@@ -49,18 +49,6 @@ void add_homebrew(HomebrewList& list, std::span<const lantern::Homebrew> entries
     }
 }
 
-lantern::HomebrewUpdatesRequest updates_request(std::span<const Held> held)
-{
-    lantern::HomebrewUpdatesRequest r;
-    for (const Held& h : held) {
-        lantern::InstalledHomebrew i;
-        i.id    = h.id;
-        i.build = h.build;
-        r.installed.push_back(std::move(i));
-    }
-    return r;
-}
-
 std::string fetch_homebrew(lantern::Client& client, const std::string& platform, const std::string& origin,
                            const std::string& arch, HomebrewList& out)
 {
@@ -71,24 +59,6 @@ std::string fetch_homebrew(lantern::Client& client, const std::string& platform,
     for (int page = 0; page < MAX_PAGES; page++) {
         query.cursor = cursor;
         const auto r = client.homebrew(query);
-        if (!r) return describe(r.error());
-        if (!*r) return "the server lists its homebrew in a newer version than this one reads";
-        add_homebrew(out, (*r)->items, origin, arch);
-        cursor.assign((*r)->next);
-        if (cursor.empty() || out.truncated) return {};
-    }
-    out.truncated = true;
-    return {};
-}
-
-std::string fetch_homebrew_updates(lantern::Client& client, std::span<const Held> held, const std::string& platform,
-                                   const std::string& origin, const std::string& arch, HomebrewList& out)
-{
-    if (held.empty()) return {};
-    const lantern::HomebrewUpdatesRequest request = updates_request(held);
-    std::string cursor;
-    for (int page = 0; page < MAX_PAGES; page++) {
-        const auto r = client.homebrew_updates(request, cursor, platform);
         if (!r) return describe(r.error());
         if (!*r) return "the server lists its homebrew in a newer version than this one reads";
         add_homebrew(out, (*r)->items, origin, arch);
