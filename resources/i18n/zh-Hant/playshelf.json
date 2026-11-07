@@ -441,6 +441,8 @@
         "clear": "清除已安裝",
         "keep_awake": "下載時不進入睡眠模式",
         "share_files": "與網路分享自製軟體",
+        "share_none": "Nothing to share yet",
+        "share_held": "{} files shared",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

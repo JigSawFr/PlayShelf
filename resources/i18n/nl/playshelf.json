@@ -441,6 +441,8 @@
         "clear": "Geïnstalleerde wissen",
         "keep_awake": "Geen slaapstand tijdens downloads",
         "share_files": "Homebrews delen met het netwerk",
+        "share_none": "Nothing to share yet",
+        "share_held": "{} files shared",
         "screen_off": "Turn the screen off",
         "screen_off_never": "Never",
         "screen_off_minutes": "After {} minutes without input",

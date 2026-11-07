@@ -100,6 +100,13 @@ void hold(const std::string& sha256_hex, uint64_t size, const std::string& sd_pa
     if (s_server) rebuild_locked();
 }
 
+size_t held_count()
+{
+    const std::lock_guard<std::mutex> guard(s_lock);
+    load_locked();
+    return s_book.held().size();
+}
+
 void release(const std::vector<std::string>& sd_paths)
 {
     const std::lock_guard<std::mutex> guard(s_lock);
