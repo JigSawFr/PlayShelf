@@ -780,6 +780,8 @@
         "data_failed": "Die Spieldaten von {} konnten nicht gelesen werden",
         "installing": "{} wird installiert …",
         "install_failed": "{} konnte nicht installiert werden",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} ist installiert.",
         "remove_failed": "Das Homebrew konnte nicht entfernt werden",
         "consent_body": "{} schreibt an Orte, die den Start der Konsole verändern können:",

@@ -780,6 +780,8 @@
         "data_failed": "{}의 게임 데이터를 읽을 수 없습니다",
         "installing": "{} 설치 중…",
         "install_failed": "{}을(를) 설치할 수 없습니다",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{}이(가) 설치되었습니다.",
         "remove_failed": "홈브루를 제거할 수 없습니다",
         "consent_body": "{}은(는) 콘솔 부팅을 바꿀 수 있는 위치에 기록합니다:",

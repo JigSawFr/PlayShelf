@@ -226,7 +226,11 @@ void HomebrewPanel::install(size_t index)
         dialog->close();
         if (why == homebrew_flow::DECLINED) {}
         else if (!why.empty()) ui::error(aurore::getStr("playshelf/homebrew/install_failed", name), why);
-        else ui::info(aurore::getStr("playshelf/homebrew/installed_ok", name));
+        else {
+            std::string line = aurore::getStr("playshelf/homebrew/installed_ok", name);
+            if (!homebrew_flow::origin().empty()) line += "\n" + homebrew_flow::origin();
+            ui::info(line);
+        }
         this->built_key.clear();
         this->rebuild();
     }));

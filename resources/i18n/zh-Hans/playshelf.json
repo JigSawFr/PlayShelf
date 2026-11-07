@@ -780,6 +780,8 @@
         "data_failed": "无法读取 {} 的游戏数据",
         "installing": "正在安装 {}…",
         "install_failed": "无法安装 {}",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} 已安装。",
         "remove_failed": "无法移除自制软件",
         "consent_body": "{} 会写入可能改变主机启动方式的位置:",

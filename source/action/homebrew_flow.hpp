@@ -43,6 +43,11 @@ size_t updates_count();
 // catalogue read, an install, a removal); an empty one forgets it.
 void on_change(std::function<void()> fn);
 
+// Where the last install's package came from, in words ("Taken from <console>
+// on your network.", "1.2 MB downloaded instead of 14 MB."), empty when it
+// was read whole from the server: for the line that says it was installed.
+const std::string& origin();
+
 // What is installed.
 const homebrew::Book& book();
 

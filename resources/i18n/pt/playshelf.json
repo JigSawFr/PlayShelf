@@ -780,6 +780,8 @@
         "data_failed": "Não foi possível ler os dados do jogo de {}",
         "installing": "A instalar {}…",
         "install_failed": "Não foi possível instalar {}",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} está instalado.",
         "remove_failed": "Não foi possível remover o homebrew",
         "consent_body": "{} escreve em locais que podem alterar o arranque da consola:",

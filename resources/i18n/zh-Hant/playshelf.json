@@ -780,6 +780,8 @@
         "data_failed": "無法讀取 {} 的遊戲資料",
         "installing": "正在安裝 {}…",
         "install_failed": "無法安裝 {}",
+        "origin_peer": "Taken from {} on your network.",
+        "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} 已安裝。",
         "remove_failed": "無法移除自製軟體",
         "consent_body": "{} 會寫入可能改變主機啟動方式的位置:",

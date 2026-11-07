@@ -35,6 +35,7 @@ struct PackageResult
     bool        ok = false;
     bool        stopped = false;   // `stop` was set: the file keeps what was written
     std::string why;
+    std::string from_peer;   // the peer that gave the whole file, if one did (its name, else its address)
 };
 
 // A client of `server` for a package at `url`: made, handshaken, signed in;

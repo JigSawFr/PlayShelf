@@ -37,7 +37,8 @@ bool read_seed(const std::string& file, uint64_t room, std::vector<std::byte>* o
 // not check is passed by, the sink emptied for the next. False when none
 // gave it: the caller reads from the server.
 bool fetch_from_peers(lantern::Client& client, const PackageRequest& request, const lantern::DownloadTarget& target,
-                      FileSink& sink, lantern::DownloadState& state, const std::atomic<bool>* stop);
+                      FileSink& sink, lantern::DownloadState& state, const std::atomic<bool>* stop,
+                      std::string* from = nullptr);
 
 // The package of `request` into `path`, from the chunks `held` has and the
 // ranges of the rest, over a client already made. `chunks_url` is the

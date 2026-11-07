@@ -7,6 +7,7 @@
 
 #include <aurore.hpp>
 
+#include "action/library_flow.hpp"
 #include "action/peer_flow.hpp"
 #include "lantern_app/delta.hpp"
 #include "lantern_app/package.hpp"
@@ -25,6 +26,7 @@ std::shared_ptr<const Loaded> s_loaded;
 homebrew::Book                s_book;
 bool                          s_book_read = false;
 bool                          s_loading = false, s_busy = false;
+std::string                   s_origin;   // where the last install's package came from
 
 std::function<void()>         s_changed;
 // Asked while a read ran: told with that read's answer, one server or another.
@@ -117,6 +119,11 @@ void load(const library::Server& server, const std::function<void(std::shared_pt
     });
 }
 
+const std::string& origin()
+{
+    return s_origin;
+}
+
 void install(const std::shared_ptr<const Loaded>& data, size_t index, const std::function<void(std::string)>& done)
 {
     if (s_busy || !data || index >= data->list.items.size()) return;
@@ -163,6 +170,10 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
                 static_cast<lantern_app::PackageResult&>(got) =
                     lantern_app::fetch_package(platform, server, request, package_file(), nullptr, nullptr);
             }
+            // What the transfer says of where the package came from.
+            const std::string from_peer = got.from_peer;
+            const uint64_t    taken_here = got.from_seeds, read_remote = got.from_ranges;
+            const bool        was_delta = !got.whole && got.from_seeds > 0;
             homebrew::Outcome out;
             if (!got.ok) why = got.why;
             else {
@@ -180,8 +191,14 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
                 held_path = std::string((*held)->path);
                 held_size = (*held)->size;
             }
-            aurore::sync([out, why, done, uid = server.uid, held_sha, held_path, held_size]() {
+            aurore::sync([out, why, done, uid = server.uid, held_sha, held_path, held_size, from_peer, taken_here, read_remote,
+                          was_delta]() {
                 s_busy = false;
+                s_origin.clear();
+                if (why.empty() && !from_peer.empty()) s_origin = aurore::getStr("playshelf/homebrew/origin_peer", from_peer);
+                else if (why.empty() && was_delta)
+                    s_origin = aurore::getStr("playshelf/homebrew/origin_delta", library_flow::size_text(read_remote),
+                                              library_flow::size_text(taken_here + read_remote));
                 if (why.empty()) {
                     homebrew::Record record = out.record;
                     record.server_uid = uid;
