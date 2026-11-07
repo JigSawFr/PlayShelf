@@ -63,6 +63,12 @@ using Consent = std::function<bool(const std::vector<std::string>& paths)>;
 Outcome install(const lantern::Homebrew& entry, const std::string& package_file, const std::string& sd_root,
                 const std::string& staging, const Record* old, const Consent& consent);
 
+// What an interrupted install leaves behind, removed at startup (never while
+// one runs): the downloaded `package_file`, the `staging` folder, and the
+// ".part" beside each file the book records (an update's single-file copy).
+// A first install's ".part" is not in the book and stays until the next try.
+void sweep_leftovers(const Book& book, const std::string& sd_root, const std::string& staging, const std::string& package_file);
+
 // Removes what `record` wrote (a file at a time, then the folders it left
 // empty under a "switch/<id>" or "config/<id>" root).
 std::vector<std::string> uninstall(const Record& record, const std::string& sd_root);

@@ -71,6 +71,12 @@ size_t updates_count()
 
 void preload()
 {
+    // Startup, nothing installing: clear what a cut install left behind.
+    static bool swept = false;
+    if (!swept && !s_busy) {
+        swept = true;
+        homebrew::sweep_leftovers(book(), paths::sd_root(), staging_dir(), package_file());
+    }
     if (s_loaded) return;
     for (const library::Server& s : library::load_servers())
         if (!s.uid.empty()) {

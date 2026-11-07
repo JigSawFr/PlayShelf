@@ -159,11 +159,31 @@ void test_book()
     fs::write(file, "nope");
     CHECK(!Book().load(file));
 }
+
+void test_sweep()
+{
+    TempDir     t("hb_sweep");
+    const std::string sd = t.path() + "/sd", stage = t.path() + "/stage", pkg = t.path() + "/dl.pkg";
+    Book        b;
+    Record      r;
+    r.id = "demo";
+    r.files = { "/switch/demo/demo.nro" };
+    b.put(r);
+    fs::write(pkg, "half");
+    fs::write(stage + "/switch/demo/x", "x");
+    fs::write(sd + "/switch/demo/demo.nro", "kept");
+    fs::write(sd + "/switch/demo/demo.nro.part", "cut");
+    sweep_leftovers(b, sd, stage, pkg);
+    CHECK(!fs::exists(pkg) && !fs::exists(stage) && !fs::exists(sd + "/switch/demo/demo.nro.part"));
+    CHECK(fs::read(sd + "/switch/demo/demo.nro") == "kept");
+    sweep_leftovers(b, sd, stage, pkg);   // nothing left: no harm
+}
 }   // namespace
 
 int main()
 {
     test_single_file();
+    test_sweep();
     test_archive();
     test_book();
     CHECK_DONE("homebrew install: a single file, the book, uninstall, a wrong package refused");

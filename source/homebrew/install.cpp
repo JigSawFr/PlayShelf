@@ -232,6 +232,16 @@ Outcome install(const lantern::Homebrew& entry, const std::string& package_file,
     return out;
 }
 
+void sweep_leftovers(const Book& book, const std::string& sd_root, const std::string& staging, const std::string& package_file)
+{
+    std::remove(package_file.c_str());
+    std::string why;
+    (void)save_archive::clear_dir(staging, &why);
+    ::rmdir(staging.c_str());
+    for (const auto& [id, r] : book.all())
+        for (const auto& p : r.files) std::remove((join(sd_root, p) + ".part").c_str());
+}
+
 std::vector<std::string> uninstall(const Record& record, const std::string& sd_root)
 {
     std::vector<std::string> gone;
