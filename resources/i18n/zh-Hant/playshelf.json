@@ -784,6 +784,9 @@
         "origin_peer": "Taken from {} on your network.",
         "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} 已安裝。",
+        "update_all": "Update all",
+        "updating": "Updating {} ({}/{})…",
+        "updated_all": "{} updated.",
         "remove_failed": "無法移除自製軟體",
         "consent_body": "{} 會寫入可能改變主機啟動方式的位置:",
         "consent_yes": "仍然安裝"

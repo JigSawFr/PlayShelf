@@ -784,6 +784,9 @@
         "origin_peer": "Taken from {} on your network.",
         "origin_delta": "{} downloaded instead of {}.",
         "installed_ok": "{} è installato.",
+        "update_all": "Update all",
+        "updating": "Updating {} ({}/{})…",
+        "updated_all": "{} updated.",
         "remove_failed": "Impossibile rimuovere l'homebrew",
         "consent_body": "{} scrive in posti che possono cambiare l'avvio della console:",
         "consent_yes": "Installa comunque"
