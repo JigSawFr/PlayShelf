@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -66,6 +67,16 @@ std::string ask(uint16_t port, const std::string& request)
     return out;
 }
 
+// A file made for the owner alone (these are in a folder only the test reads).
+void put(const std::string& path, const std::string& bytes, bool append)
+{
+    const int fd = ::open(path.c_str(), O_CREAT | O_WRONLY | (append ? O_APPEND : O_TRUNC), 0600);
+    if (fd < 0) return;
+    const ssize_t n = ::write(fd, bytes.data(), bytes.size());
+    (void)n;
+    ::close(fd);
+}
+
 std::string body_of(const std::string& answer)
 {
     const size_t i = answer.find("\r\n\r\n");
@@ -89,9 +100,7 @@ int main()
     for (size_t i = 0; i < content.size(); i++) content[i] = (char)(i * 31 + 7);
     const std::string file_path = root + "/switch/a.nro";
     {
-        FILE* f = std::fopen(file_path.c_str(), "wb");
-        std::fwrite(content.data(), 1, content.size(), f);
-        std::fclose(f);
+        put(file_path, content, false);
     }
     const lantern::Digest digest = lantern::Sha256::of(content);
     const lantern::Ed25519Seed seed{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
@@ -113,9 +122,7 @@ int main()
         std::string text;
         paths::read_file(book_file, text);
         text.insert(text.rfind('}'), ",\"later\":42");
-        FILE* f = std::fopen(book_file.c_str(), "wb");
-        std::fwrite(text.data(), 1, text.size(), f);
-        std::fclose(f);
+        put(book_file, text, false);
         PeerBook again;
         CHECK(again.load(book_file));
         CHECK(again.uid() == book.uid() && again.held().size() == 1 && again.servers().count(SERVER_UID) == 1);
@@ -123,9 +130,7 @@ int main()
         paths::read_file(book_file, text);
         CHECK(text.find("\"later\"") != std::string::npos);
         // A newer schema is read as empty and never written over.
-        FILE* g = std::fopen(book_file.c_str(), "wb");
-        std::fputs("{\"schema\":2,\"uid\":\"x\"}", g);
-        std::fclose(g);
+        put(book_file, "{\"schema\":2,\"uid\":\"x\"}", false);
         PeerBook newer;
         CHECK(newer.load(book_file) && newer.newer && newer.uid().empty());
         CHECK(!newer.save(book_file));
@@ -211,9 +216,7 @@ int main()
     }
     // The file changed on the card: no longer held whole.
     {
-        FILE* f = std::fopen(file_path.c_str(), "ab");
-        std::fputs("x", f);
-        std::fclose(f);
+        put(file_path, "x", true);
         PeerResponder again(book, root, "n", clock);
         again.set_enabled(true);
         CHECK(again.answer_request(get("GET", sha, g), "127.0.0.1").head.rfind("HTTP/1.1 404", 0) == 0);
