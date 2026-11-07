@@ -25,6 +25,13 @@ homebrew::Book                s_book;
 bool                          s_book_read = false;
 bool                          s_loading = false, s_busy = false;
 
+std::function<void()>         s_changed;
+
+void changed()
+{
+    if (s_changed) s_changed();
+}
+
 std::string book_file() { return paths::data_dir() + "/homebrew.json"; }
 std::string package_file() { return paths::data_dir() + "/homebrew.pkg"; }
 std::string staging_dir() { return paths::data_dir() + "/homebrew-staging"; }
@@ -46,6 +53,26 @@ const homebrew::Book& book()
 }
 
 bool busy() { return s_busy; }
+
+void on_change(std::function<void()> fn) { s_changed = std::move(fn); }
+
+size_t updates_count()
+{
+    if (!s_loaded) return 0;
+    size_t n = 0;
+    for (const auto& item : s_loaded->list.items) n += standing(item) == Standing::Update;
+    return n;
+}
+
+void preload()
+{
+    if (s_loaded) return;
+    for (const library::Server& s : library::load_servers())
+        if (!s.uid.empty()) {
+            load(s, [](std::shared_ptr<const Loaded>, std::string) {});
+            return;
+        }
+}
 
 Standing standing(const lantern_app::HomebrewItem& item)
 {
@@ -75,6 +102,7 @@ void load(const library::Server& server, const std::function<void(std::shared_pt
             s_loading = false;
             if (why.empty()) s_loaded = data;
             done(why.empty() ? data : nullptr, why);
+            changed();
         });
     });
 }
@@ -152,6 +180,7 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
                     if (!held_sha.empty()) peer_flow::hold(held_sha, held_size, held_path);
                 }
                 done(why);
+                changed();
             });
         });
     };
@@ -176,6 +205,7 @@ std::string remove(const std::string& id)
     peer_flow::release(copy.files);
     const auto left = homebrew::uninstall(copy, paths::sd_root());
     s_book.erase(id);
+    changed();
     if (!s_book.newer && !s_book.save(book_file())) return "homebrew.json could not be written";
     return left.empty() ? std::string() : "some files could not be removed";
 }

@@ -3,6 +3,7 @@
 
 #include "action/changes_flow.hpp"
 #include "action/download_flow.hpp"
+#include "action/homebrew_flow.hpp"
 #include "action/peer_flow.hpp"
 #include "action/insights.hpp"
 #include "action/newer_files.hpp"
@@ -91,6 +92,8 @@ void MainActivity::onContentAvailable()
     // something to get.
     this->insights_listener = insights::listen([this]() { this->update_insights(); });
     insights::start();
+    homebrew_flow::on_change([this]() { this->update_homebrew_badge(); });
+    homebrew_flow::preload();
 
     // −: the language, the theme and the text size (also a tap on them in
     // the header, which shows them). Left out of the footer first when a
@@ -145,6 +148,7 @@ MainActivity::~MainActivity()
 {
     notices::unlisten(this->notice_listener);
     insights::unlisten(this->insights_listener);
+    homebrew_flow::on_change(nullptr);
     if (aurore::getHintsOptionalOwner() == this->getContentView()) aurore::setHintsOptionalOwner(nullptr);
 }
 
@@ -164,6 +168,15 @@ void MainActivity::update_insights()
     auto* sidebar = frame ? dynamic_cast<aurore::Sidebar*>(frame->getView("aurore/tab_frame/sidebar")) : nullptr;
     if (!sidebar) return;
     if (TabBadge* badge = TabBadge::of(sidebar->getItem(tabs::home))) badge->set_count((int)snap->to_get_games);
+}
+
+void MainActivity::update_homebrew_badge()
+{
+    auto* frame   = this->getView("main_tabs");
+    auto* sidebar = frame ? dynamic_cast<aurore::Sidebar*>(frame->getView("aurore/tab_frame/sidebar")) : nullptr;
+    if (!sidebar) return;
+    if (TabBadge* badge = TabBadge::of(sidebar->getItem(tabs::homebrew)))
+        badge->set_count((int)homebrew_flow::updates_count());
 }
 
 void MainActivity::open_tab(int position, const std::string& row)

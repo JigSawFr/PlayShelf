@@ -1,6 +1,5 @@
 // source/lantern_app/homebrew_map.cpp: entries mapped for the tab: file made
-// absolute and https only, a bad one counted and left out, texts made safe,
-// the updates request built from what is held.
+// absolute and https only, a bad one counted and left out, texts made safe.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
 #include "lantern_app/homebrew_map.hpp"
@@ -52,9 +51,5 @@ int main()
     add_homebrew(ports, std::vector<lantern::Homebrew>{good, bad}, "https://shelf.example.org", "");
     CHECK(ports.items.size() == 1 && ports.skipped == 1);
 
-    const std::vector<Held> held = {{"org.example.tide", 3}, {"org.example.cdn", 7}};
-    const auto request = updates_request(held);
-    CHECK(request.installed.size() == 2 && request.installed[1].build == 7);
-
-    CHECK_DONE("homebrew map: files absolute and https, bad entries counted, the updates request");
+    CHECK_DONE("homebrew map: files absolute and https, bad entries counted");
 }

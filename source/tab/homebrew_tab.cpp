@@ -2,8 +2,10 @@
 #include "tab/homebrew_tab.hpp"
 
 #include "action/library_flow.hpp"
+#include "action/library_icons.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
+#include "view/game_tile.hpp"
 
 using namespace aurore::literals;
 
@@ -15,15 +17,6 @@ std::optional<library::Server> first_server()
     for (const library::Server& s : library::load_servers())
         if (!s.uid.empty()) return s;
     return std::nullopt;
-}
-
-std::string standing_text(homebrew_flow::Standing s)
-{
-    switch (s) {
-    case homebrew_flow::Standing::Installed: return "playshelf/homebrew/installed"_i18n;
-    case homebrew_flow::Standing::Update:    return "playshelf/homebrew/update_available"_i18n;
-    default:                                 return {};
-    }
 }
 }   // namespace
 
@@ -82,25 +75,22 @@ void HomebrewTab::refresh()
     if (now == this->seen) return;
     this->seen = now;
 
-    // New cells in a new box, the focus moved, then the old one removed.
+    // New tiles in a new box, the focus moved, then the old one removed.
     auto* box = new aurore::Box(aurore::Axis::COLUMN);
-    box->setAlignItems(aurore::AlignItems::STRETCH);
+    box->setAlignItems(aurore::AlignItems::FLEX_START);
+    box->setPaddingLeft((GameTile::room() - (float)GameTile::columns() * GameTile::WIDTH) / 2);
+    this->tiles.clear();
+    ++this->generation;
+    aurore::Box*  row = nullptr;
     aurore::View* first = nullptr;
     for (size_t i = 0; i < items.size(); i++) {
-        const auto& item = items[i];
-        auto* cell = new aurore::DetailCell();
-        cell->setText(item.name);
-        std::string detail = item.version;
-        if (!item.author.empty()) detail += (detail.empty() ? "" : " · ") + item.author;
-        const std::string standing = standing_text(homebrew_flow::standing(item));
-        if (!standing.empty()) detail += (detail.empty() ? "" : " · ") + standing;
-        cell->setDetailText(detail);
-        cell->registerClickAction([this, i](aurore::View*) {
-            this->open_item(i);
-            return true;
-        });
-        box->addView(cell);
-        if (!first) first = cell;
+        if (!row || (int)row->getChildren().size() >= GameTile::columns()) {
+            row = new aurore::Box(aurore::Axis::ROW);
+            box->addView(row);
+        }
+        GameTile* tile = this->make_tile(i);
+        row->addView(tile);
+        if (!first) first = tile;
     }
     aurore::View* old = this->list->getChildren().empty() ? nullptr : this->list->getChildren()[0];
     this->list->addView(box);
@@ -111,6 +101,45 @@ void HomebrewTab::refresh()
         if (inside && first) aurore::Application::giveFocus(first);
         this->list->removeView(old);
     }
+}
+
+GameTile* HomebrewTab::make_tile(size_t index)
+{
+    const auto& item = this->data->list.items[index];
+    auto*       tile = new GameTile();
+    tile->set_name(item.name);
+    switch (homebrew_flow::standing(item)) {
+    case homebrew_flow::Standing::Update:
+        tile->set_detail("playshelf/homebrew/update_available"_i18n);
+        tile->set_detail_color("cadran/amber");
+        tile->set_badge("download", "cadran/amber");
+        break;
+    case homebrew_flow::Standing::Installed:
+        tile->set_detail("playshelf/homebrew/installed"_i18n);
+        tile->set_detail_color("cadran/teal");
+        tile->set_badge("check", "cadran/teal");
+        break;
+    default:
+        tile->set_detail(item.version);
+        tile->set_detail_color("cadran/text3");
+        break;
+    }
+    tile->registerClickAction([this, index](aurore::View*) {
+        this->open_item(index);
+        return true;
+    });
+    this->tiles.push_back(tile);
+    if (!item.icon.empty()) {
+        const size_t at = this->tiles.size() - 1;
+        const int    gen = this->generation;
+        library_icons::picture(item.icon, 256, 256,
+                               [weak = ui::Weak(this->alive), this, at, gen](const library_icons::Picture& p) {
+                                   const ui::Alive held = weak.lock();
+                                   if (p && held && *held && gen == this->generation && at < this->tiles.size())
+                                       this->tiles[at]->set_icon(p->rgba.data(), p->width, p->height);
+                               });
+    }
+    return tile;
 }
 
 void HomebrewTab::open_item(size_t index)

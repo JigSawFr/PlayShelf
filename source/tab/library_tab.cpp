@@ -33,17 +33,6 @@ namespace
 {
 constexpr size_t PAGE = 40;   // covers built at a time
 
-// The tab's room: the screen less the rail and the column's sides.
-float room()
-{
-    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
-           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
-}
-
-int columns()
-{
-    return std::max(1, (int)(room() / GameTile::WIDTH));
-}
 
 size_t installed_jobs()
 {
@@ -325,7 +314,7 @@ void LibraryTab::add_page()
 {
     const size_t end = std::min(this->entries.size(), this->built + PAGE);
     const bool   list = config::get().library_view == "list";
-    const int    per_row = columns();
+    const int    per_row = GameTile::columns();
     std::vector<uint64_t> shown_ids;
     for (; this->built < end; this->built++) {
         const size_t at = this->built;

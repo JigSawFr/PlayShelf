@@ -32,4 +32,6 @@ class MainActivity : public aurore::Activity
     // Home's badge and the bell's entries, from action/insights.
     int  insights_listener = 0;
     void update_insights();
+    // Homebrew's entry of the sidebar: how many of the server's have an update.
+    void update_homebrew_badge();
 };

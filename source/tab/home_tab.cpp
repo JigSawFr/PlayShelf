@@ -40,13 +40,6 @@ namespace
 constexpr size_t BANNERS = 8;    // games in a row of banners
 constexpr float  CARD_W = 440, CARD_H = 220;
 
-// The tab's room: the screen less the rail and the column's sides.
-float room()
-{
-    return aurore::Application::contentWidth - aurore::Application::getStyle()["aurore/tab_frame/sidebar_width"] -
-           2 * aurore::Application::getStyle()["aurore/tab_frame/content_padding_sides"];
-}
-
 bool inside(aurore::View* view, aurore::View* parent)
 {
     for (aurore::View* v = view; v; v = v->getParent())
@@ -395,7 +388,7 @@ aurore::Box* HomeTab::add_row(const std::string& title, const std::string& line,
     }
     content->addView(head);
     auto* frame = new aurore::HScrollingFrame();
-    frame->setWidth(room());
+    frame->setWidth(GameTile::room());
     frame->setHeight(height);
     auto* row = new aurore::Box(aurore::Axis::ROW);
     frame->addView(row);
