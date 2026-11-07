@@ -355,6 +355,14 @@ key("Down")
 shot("01_library")
 key("Down")
 shot("12_catalogue")
+key("Right")                 # into the Catalogue: the server pill
+key("Right")                 # the pill that switches games and homebrew
+key("Return")
+key("Down")                  # Homebrew
+key("Return")
+time.sleep(2)
+shot("12_catalogue_homebrew")
+key("Escape")                # back to the rail
 key("Down")
 shot("11_downloads")
 key("Down")

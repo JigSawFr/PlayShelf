@@ -42,6 +42,8 @@
         "discover_failed": "이 네트워크를 검색할 수 없습니다",
         "discover_pick": "이 네트워크의 서버",
         "server": "서버",
+        "kind": "Show",
+        "kind_games": "Games",
         "search": "검색",
         "search_all": "모든 게임",
         "sort": "정렬",

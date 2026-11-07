@@ -28,7 +28,8 @@ struct Loaded
 std::shared_ptr<const Loaded> loaded();
 
 // Reads `server`'s homebrew; `done` on the UI thread with it, or nullptr and
-// why not.
+// why not. Asked while another read runs, it gets that read's answer (which
+// may be another server's).
 void load(const library::Server& server, const std::function<void(std::shared_ptr<const Loaded>, std::string)>& done);
 
 // Reads the first paired server's homebrew in the background (the rail's

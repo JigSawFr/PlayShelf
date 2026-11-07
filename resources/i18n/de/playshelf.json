@@ -42,6 +42,8 @@
         "discover_failed": "Dieses Netzwerk konnte nicht durchsucht werden",
         "discover_pick": "Server in diesem Netzwerk",
         "server": "Server",
+        "kind": "Anzeigen",
+        "kind_games": "Spiele",
         "search": "Suchen",
         "search_all": "Alle Spiele",
         "sort": "Reihenfolge",

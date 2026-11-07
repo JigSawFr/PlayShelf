@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cstdio>
+#include <vector>
 
 #include <aurore.hpp>
 
@@ -26,6 +27,8 @@ bool                          s_book_read = false;
 bool                          s_loading = false, s_busy = false;
 
 std::function<void()>         s_changed;
+// Asked while a read ran: told with that read's answer, one server or another.
+std::vector<std::function<void(std::shared_ptr<const Loaded>, std::string)>> s_waiting;
 
 void changed()
 {
@@ -83,7 +86,10 @@ Standing standing(const lantern_app::HomebrewItem& item)
 
 void load(const library::Server& server, const std::function<void(std::shared_ptr<const Loaded>, std::string)>& done)
 {
-    if (s_loading) return;
+    if (s_loading) {
+        s_waiting.push_back(done);
+        return;
+    }
     s_loading = true;
     ui::in_background("homebrew", [server, done]() {
         lantern_app::Platform platform;
@@ -101,7 +107,11 @@ void load(const library::Server& server, const std::function<void(std::shared_pt
         aurore::sync([data, why, done]() {
             s_loading = false;
             if (why.empty()) s_loaded = data;
-            done(why.empty() ? data : nullptr, why);
+            const std::shared_ptr<const Loaded> got = why.empty() ? data : nullptr;
+            done(got, why);
+            auto waiting = std::move(s_waiting);
+            s_waiting.clear();
+            for (const auto& w : waiting) w(got, why);
             changed();
         });
     });

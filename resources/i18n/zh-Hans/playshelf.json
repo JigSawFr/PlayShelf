@@ -42,6 +42,8 @@
         "discover_failed": "无法搜索此网络",
         "discover_pick": "此网络中的服务器",
         "server": "服务器",
+        "kind": "Show",
+        "kind_games": "Games",
         "search": "搜索",
         "search_all": "全部游戏",
         "sort": "排序",
