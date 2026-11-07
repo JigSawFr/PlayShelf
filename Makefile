@@ -211,6 +211,12 @@ lantern_discovery_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_discovery_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_discovery: $(LANTERN_LIB)
 
+# An app's whole life: read, installed, updated by a delta from the SD card's copy, removed.
+homebrew_cycle_SRC   := source/lantern_app/delta.cpp source/lantern_app/session.cpp source/lantern_app/catalog_map.cpp source/library/catalog.cpp source/library/facts.cpp source/library/server.cpp source/library/servers.cpp source/homebrew/install.cpp source/saves/archive.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp $(KIT)/util/zip_write.cpp tests/homebrew_cycle/test.cpp
+homebrew_cycle_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+homebrew_cycle_LIBS  := $(LANTERN_LIB) -lz
+$(TESTOUT)/homebrew_cycle: $(LANTERN_LIB)
+
 # A homebrew package written onto the SD card, and the book of what is installed.
 homebrew_install_SRC   := source/homebrew/install.cpp source/saves/archive.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp $(KIT)/util/zip_write.cpp tests/homebrew_install/test.cpp
 homebrew_install_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
