@@ -39,6 +39,19 @@ int main()
     CHECK(list.items[0].size == 4096 && list.items[0].name == "Tide Tool");
     CHECK(list.items[2].name == "org.example.blank");   // no name: the id
 
+    // A port is listed when its data lies where § 8.6 allows, and counted as
+    // skipped when it does not.
+    lantern::Homebrew good = entry("org.example.frost", "Frost", "/files/frost.nro");
+    good.kind = "port";
+    good.port.emplace();
+    good.port->data_root = "/switch/frost/";
+    lantern::Homebrew bad = good;
+    bad.id = "org.example.bad";
+    bad.port->data_root = "/etc/";
+    HomebrewList ports;
+    add_homebrew(ports, std::vector<lantern::Homebrew>{good, bad}, "https://shelf.example.org", "");
+    CHECK(ports.items.size() == 1 && ports.skipped == 1);
+
     const std::vector<Held> held = {{"org.example.tide", 3}, {"org.example.cdn", 7}};
     const auto request = updates_request(held);
     CHECK(request.installed.size() == 2 && request.installed[1].build == 7);

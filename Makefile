@@ -189,6 +189,11 @@ lantern_peers_SRC   := source/lantern_app/peers.cpp source/lantern_app/delta.cpp
 lantern_peers_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
 lantern_peers_LIBS  := $(LANTERN_LIB)
 $(TESTOUT)/lantern_peers: $(LANTERN_LIB)
+# A port's game data looked for on the SD card.
+lantern_ports_SRC   := source/lantern_app/port_data.cpp source/library/catalog.cpp tests/lantern_ports/test.cpp
+lantern_ports_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_ports_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_ports: $(LANTERN_LIB)
 # The system under the Lantern client: random bytes, the time, the discovery socket.
 lantern_system_SRC   := source/lantern_app/system.cpp tests/lantern_system/test.cpp
 lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)

@@ -163,4 +163,13 @@ std::string remove(const std::string& id)
     return left.empty() ? std::string() : "some files could not be removed";
 }
 
+void check_data(const lantern_app::HomebrewItem& item, const std::function<void(lantern_app::PortData)>& done)
+{
+    const lantern::Homebrew entry = item.entry;
+    ui::in_background("port data", [entry, done]() {
+        const lantern_app::PortData data = lantern_app::check_port_data(entry, paths::sd_root());
+        aurore::sync([data, done]() { done(data); });
+    });
+}
+
 }   // namespace homebrew_flow

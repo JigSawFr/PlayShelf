@@ -12,6 +12,7 @@
 
 #include "homebrew/install.hpp"
 #include "lantern_app/homebrew_map.hpp"
+#include "lantern_app/port_data.hpp"
 #include "library/servers.hpp"
 
 namespace homebrew_flow
@@ -43,6 +44,10 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
 bool busy();
 // What `done` gets when the user refused the paths that need consent.
 inline constexpr const char* DECLINED = "declined";
+
+// A port's game data looked for on the SD card, in the background (it hashes
+// the files it finds); `done` on the UI thread.
+void check_data(const lantern_app::HomebrewItem& item, const std::function<void(lantern_app::PortData)>& done);
 
 // Removes an installed one's files and forgets it; "" or why not.
 std::string remove(const std::string& id);

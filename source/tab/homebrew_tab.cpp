@@ -124,9 +124,17 @@ void HomebrewTab::open_item(size_t index)
                      : st == homebrew_flow::Standing::Update ? "playshelf/homebrew/update"_i18n
                                                             : "playshelf/homebrew/reinstall"_i18n);
     if (st != homebrew_flow::Standing::New) values.push_back("playshelf/homebrew/remove"_i18n);
+    // A port needs the user's own game data (SPEC.md 8.6): one more choice
+    // looks for it on the SD card.
+    const int check_choice = item.entry.port ? (int)values.size() : -1;
+    if (check_choice >= 0) values.push_back("playshelf/homebrew/check_data"_i18n);
     std::string title = item.name;
     if (!item.summary.empty()) title += "\n" + item.summary;
-    ui::pick(title, values, 0, ui::guarded(this->alive, [this, index, item_id](int choice) {
+    ui::pick(title, values, 0, ui::guarded(this->alive, [this, index, item_id, check_choice](int choice) {
+        if (choice == check_choice) {
+            this->check_data(index);
+            return;
+        }
         if (ui::refuse_read_only()) return;
         if (choice == 0) {
             if (homebrew_flow::busy()) {
@@ -149,6 +157,26 @@ void HomebrewTab::open_item(size_t index)
             if (!why.empty()) ui::error("playshelf/homebrew/remove_failed"_i18n, why);
             this->seen.clear();
             this->refresh();
+        }
+    }));
+}
+
+void HomebrewTab::check_data(size_t index)
+{
+    if (!this->data || index >= this->data->list.items.size()) return;
+    const std::string name = this->data->list.items[index].name;
+    aurore::Dialog* dialog = ui::dialog("playshelf/homebrew/checking_data"_i18n);
+    dialog->open();
+    homebrew_flow::check_data(this->data->list.items[index], ui::guarded(this->alive, [dialog, name](lantern_app::PortData got) {
+        dialog->close();
+        if (!got.error.empty()) {
+            ui::error(aurore::getStr("playshelf/homebrew/data_failed", name), got.error);
+        } else if (got.ready) {
+            ui::info(aurore::getStr(got.unverified ? "playshelf/homebrew/data_unverified" : "playshelf/homebrew/data_ready", name));
+        } else {
+            std::string lines;
+            for (const std::string& m : got.missing) lines += (lines.empty() ? "" : "\n") + m;
+            ui::info(aurore::getStr("playshelf/homebrew/data_missing", name, lines));
         }
     }));
 }

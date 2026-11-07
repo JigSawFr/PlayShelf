@@ -29,7 +29,7 @@ void add_homebrew(HomebrewList& list, std::span<const lantern::Homebrew> entries
         }
         const auto package = lantern::pick_package(e, arch);
         const std::string url = package ? https_or_empty(origin, (*package)->file) : std::string();
-        if (url.empty() || e.id.empty()) {
+        if (url.empty() || e.id.empty() || (e.port && !lantern::check_port(e))) {
             list.skipped++;
             continue;
         }

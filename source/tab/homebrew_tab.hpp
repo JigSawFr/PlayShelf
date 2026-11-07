@@ -23,6 +23,7 @@ class HomebrewTab : public TabBase
     void load();
     void present(const std::shared_ptr<const homebrew_flow::Loaded>& data, const std::string& why);
     void open_item(size_t index);
+    void check_data(size_t index);
 
     std::shared_ptr<const homebrew_flow::Loaded> data;
     bool        waiting = false;
