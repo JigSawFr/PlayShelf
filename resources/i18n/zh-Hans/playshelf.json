@@ -13,7 +13,8 @@
         "about": "关于",
         "library": "游戏库",
         "catalogue": "目录",
-        "downloads": "下载"
+        "downloads": "下载",
+        "homebrew": "自制软件"
     },
     "hints": {
         "refresh": "刷新",
@@ -752,5 +753,25 @@
         "intro": "此主机上安装的 Boréale 家族自制软件：每个软件启动时会把自己添加到这里。在其中一个上按 A 即可打开。",
         "this_app": "本应用",
         "open_manual": "请从自制软件菜单打开 {}。"
+    },
+    "homebrew": {
+        "no_server": "请先配对服务器(目录),才能查看其自制软件。",
+        "reading": "正在读取服务器的自制软件…",
+        "failed": "无法读取自制软件:{}",
+        "none": "此服务器没有适用于这台主机的自制软件。",
+        "count": "{} 个自制软件,来自 {}",
+        "installed": "已安装",
+        "update_available": "有可用更新",
+        "install": "安装",
+        "update": "更新",
+        "reinstall": "重新安装",
+        "remove": "移除",
+        "busy": "正在安装另一个自制软件。",
+        "installing": "正在安装 {}…",
+        "install_failed": "无法安装 {}",
+        "installed_ok": "{} 已安装。",
+        "remove_failed": "无法移除自制软件",
+        "consent_body": "{} 会写入可能改变主机启动方式的位置:",
+        "consent_yes": "仍然安装"
     }
 }

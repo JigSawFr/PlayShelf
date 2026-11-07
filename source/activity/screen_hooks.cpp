@@ -140,7 +140,7 @@ void install_screen_hooks()
     h.is_tab = [](aurore::View* v) { return dynamic_cast<TabBase*>(v) != nullptr; };
     h.tab_position = [](const std::string& screen) { return tabs::position_of(screen); };
     h.settings_tab = []() { return tabs::preferences; };
-    h.rail_icons = []() { return std::vector<std::string>{ "home", "shelf", "server", "download", "", "settings", "info" }; };
+    h.rail_icons = []() { return std::vector<std::string>{ "home", "shelf", "server", "download", "gamepad", "", "settings", "info" }; };
 
     h.send_report = []() { upload_flow::choose(); };
 

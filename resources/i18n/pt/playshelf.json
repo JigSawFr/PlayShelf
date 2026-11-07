@@ -13,7 +13,8 @@
         "about": "Sobre",
         "library": "Biblioteca",
         "catalogue": "Catálogo",
-        "downloads": "Transferências"
+        "downloads": "Transferências",
+        "homebrew": "Homebrew"
     },
     "hints": {
         "refresh": "Atualizar",
@@ -752,5 +753,25 @@
         "intro": "Os homebrews da família Boréale instalados nesta consola: cada um junta-se aqui ao arrancar. A num deles abre-o.",
         "this_app": "Esta app",
         "open_manual": "Abra {} a partir do menu de homebrew."
+    },
+    "homebrew": {
+        "no_server": "Emparelhe primeiro um servidor (Catálogo) para ver o seu homebrew.",
+        "reading": "A ler o homebrew do servidor…",
+        "failed": "Não foi possível ler o homebrew: {}",
+        "none": "Este servidor não tem homebrew para esta consola.",
+        "count": "{} homebrew em {}",
+        "installed": "Instalado",
+        "update_available": "Atualização disponível",
+        "install": "Instalar",
+        "update": "Atualizar",
+        "reinstall": "Instalar de novo",
+        "remove": "Remover",
+        "busy": "Outro homebrew está a ser instalado.",
+        "installing": "A instalar {}…",
+        "install_failed": "Não foi possível instalar {}",
+        "installed_ok": "{} está instalado.",
+        "remove_failed": "Não foi possível remover o homebrew",
+        "consent_body": "{} escreve em locais que podem alterar o arranque da consola:",
+        "consent_yes": "Instalar mesmo assim"
     }
 }

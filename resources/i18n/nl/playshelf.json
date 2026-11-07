@@ -13,7 +13,8 @@
         "about": "Info",
         "library": "Bibliotheek",
         "catalogue": "Catalogus",
-        "downloads": "Downloads"
+        "downloads": "Downloads",
+        "homebrew": "Homebrew"
     },
     "hints": {
         "refresh": "Vernieuwen",
@@ -752,5 +753,25 @@
         "intro": "De homebrews van de Boréale-familie op deze console: elk voegt zich hier toe bij het starten. A op een ervan opent het.",
         "this_app": "Deze app",
         "open_manual": "Open {} via het homebrewmenu."
+    },
+    "homebrew": {
+        "no_server": "Koppel eerst een server (Catalogus) om de homebrew ervan te zien.",
+        "reading": "Homebrew van de server wordt gelezen…",
+        "failed": "De homebrew kon niet worden gelezen: {}",
+        "none": "Deze server heeft geen homebrew voor deze console.",
+        "count": "{} homebrew op {}",
+        "installed": "Geïnstalleerd",
+        "update_available": "Update beschikbaar",
+        "install": "Installeren",
+        "update": "Bijwerken",
+        "reinstall": "Opnieuw installeren",
+        "remove": "Verwijderen",
+        "busy": "Er wordt al een andere homebrew geïnstalleerd.",
+        "installing": "{} wordt geïnstalleerd…",
+        "install_failed": "{} kon niet worden geïnstalleerd",
+        "installed_ok": "{} is geïnstalleerd.",
+        "remove_failed": "De homebrew kon niet worden verwijderd",
+        "consent_body": "{} schrijft op plaatsen die het opstarten van de console kunnen veranderen:",
+        "consent_yes": "Toch installeren"
     }
 }
