@@ -128,7 +128,7 @@ struct World
         config.trust = &trust;
         auto made = lantern::Client::create(server, config);
         client = std::make_unique<lantern::Client>(std::move(*made));
-        request = {FILE_URL, file.size(), hex_of(file)};
+        request = {FILE_URL, file.size(), hex_of(file), {}};
         std::remove(out.c_str());
     }
     ~World() { std::remove(out.c_str()); }
