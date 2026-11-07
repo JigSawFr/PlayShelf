@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Downloads: the queue by game, each game's icon, state and timeline of
-     its packages; A on one gives what can be done with it; whether the
-     console stays awake while they run, and a download's connections. Filled by
+     its packages; A on one gives what can be done with it. Its settings are in
+     Preferences. Filled by
      source/tab/downloads_tab.cpp. -->
 
 <aurore:Box
@@ -26,7 +26,6 @@
 
             <aurore:Box id="dl_empty" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="40"/>
             <aurore:Box id="dl_list" width="auto" height="auto" axis="column" alignItems="stretch"/>
-            <aurore:Box id="dl_settings" width="auto" height="auto" axis="column" alignItems="stretch" marginTop="12"/>
 
         </aurore:Box>
 
