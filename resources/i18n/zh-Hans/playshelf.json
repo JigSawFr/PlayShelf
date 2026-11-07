@@ -51,6 +51,7 @@
             "name": "按名称",
             "newest": "最新在前",
             "largest": "最大在前",
+            "updates": "Updates first",
             "publisher": "按发行商",
             "shelves": "按类型分架"
         },

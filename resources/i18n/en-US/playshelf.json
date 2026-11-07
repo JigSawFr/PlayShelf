@@ -51,6 +51,7 @@
             "name": "By name",
             "newest": "Newest first",
             "largest": "Largest first",
+            "updates": "Updates first",
             "publisher": "By publisher",
             "shelves": "By genre, as shelves"
         },
