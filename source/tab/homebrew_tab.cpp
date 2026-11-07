@@ -18,15 +18,6 @@ std::optional<library::Server> first_server()
         if (!s.uid.empty()) return s;
     return std::nullopt;
 }
-
-std::string standing_text(homebrew_flow::Standing s)
-{
-    switch (s) {
-    case homebrew_flow::Standing::Installed: return "playshelf/homebrew/installed"_i18n;
-    case homebrew_flow::Standing::Update:    return "playshelf/homebrew/update_available"_i18n;
-    default:                                 return {};
-    }
-}
 }   // namespace
 
 HomebrewTab::HomebrewTab()
