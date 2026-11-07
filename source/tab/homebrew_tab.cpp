@@ -118,7 +118,7 @@ void HomebrewTab::open_item(size_t index)
     if (!this->data || index >= this->data->list.items.size()) return;
     const auto& item = this->data->list.items[index];
     const auto  st = homebrew_flow::standing(item);
-    const std::string id(item.entry.id);
+    const std::string item_id(item.entry.id);
     std::vector<std::string> values;
     values.push_back(st == homebrew_flow::Standing::New ? "playshelf/homebrew/install"_i18n
                      : st == homebrew_flow::Standing::Update ? "playshelf/homebrew/update"_i18n
@@ -126,7 +126,7 @@ void HomebrewTab::open_item(size_t index)
     if (st != homebrew_flow::Standing::New) values.push_back("playshelf/homebrew/remove"_i18n);
     std::string title = item.name;
     if (!item.summary.empty()) title += "\n" + item.summary;
-    ui::pick(title, values, 0, ui::guarded(this->alive, [this, index, id](int choice) {
+    ui::pick(title, values, 0, ui::guarded(this->alive, [this, index, item_id](int choice) {
         if (ui::refuse_read_only()) return;
         if (choice == 0) {
             if (homebrew_flow::busy()) {
@@ -145,7 +145,7 @@ void HomebrewTab::open_item(size_t index)
                 this->refresh();
             }));
         } else {
-            const std::string why = homebrew_flow::remove(id);
+            const std::string why = homebrew_flow::remove(item_id);
             if (!why.empty()) ui::error("playshelf/homebrew/remove_failed"_i18n, why);
             this->seen.clear();
             this->refresh();
