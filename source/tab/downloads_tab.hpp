@@ -11,11 +11,9 @@
 // install one refused for a content not signed by Nintendo anyway, remove
 // it, what it installed so far deleted), and the game's own pause, resume
 // and remove. Ⓧ pauses or resumes them all, Ⓨ clears the
-// installed ones. Last, whether the console stays awake while they run
-// (config keep_awake), how many connections a download takes at once
-// (config connections, install/split_stream) and how many packages are
-// fetched ahead while one installs (config prefetch). Updated as the queue changes, the running job's line
-// twice a second.
+// installed ones. Its settings (awake, connections, fetched ahead, the
+// screen) are in Preferences. Updated as the queue changes, the running
+// job's line twice a second.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -65,10 +63,4 @@ class DownloadsTab : public TabBase
 
     AURORE_BIND(aurore::Box, empty_box, "dl_empty");
     AURORE_BIND(aurore::Box, list,      "dl_list");
-    AURORE_BIND(aurore::Box, settings,  "dl_settings");
-    aurore::BooleanCell* keep_awake = nullptr;
-    aurore::BooleanCell* share_files = nullptr;
-    aurore::DetailCell*  connections = nullptr;
-    aurore::DetailCell*  prefetch = nullptr;
-    aurore::DetailCell*  screen_off = nullptr;
 };

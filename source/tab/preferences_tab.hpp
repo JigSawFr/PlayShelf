@@ -3,9 +3,9 @@
 // the intro; the monthly "Support PlayShelf" reminder; how PlayShelf
 // updates; the title database (action/titledb_flow: fetched, its sources in
 // their order; the icons it lacks asked of Nlib API or not); Home's
-// suggestions put away (action/not_interested), to show again. A setting
-// that shapes one feature lives in that feature's tab; checking for
-// updates now and Help & diagnostics are in About.
+// suggestions put away (action/not_interested), to show again. Every
+// setting is here; checking for updates now and Help & diagnostics are in
+// About.
 // Copyright (C) 2026 JigSawFr, (C) 2026 Taylor.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -41,6 +41,11 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::BooleanCell, support_reminder, "pf_support_reminder");
     AURORE_BIND(aurore::BooleanCell, notices_others, "pf_notices_others");
     AURORE_BIND(aurore::BooleanCell, look_shared, "pf_look_shared");
+    AURORE_BIND(aurore::BooleanCell, keep_awake,     "pf_keep_awake");
+    AURORE_BIND(aurore::BooleanCell, share_files,    "pf_share_files");
+    AURORE_BIND(aurore::DetailCell,  connections,    "pf_connections");
+    AURORE_BIND(aurore::DetailCell,  prefetch,       "pf_prefetch");
+    AURORE_BIND(aurore::DetailCell,  screen_off,     "pf_screen_off");
     AURORE_BIND(aurore::BooleanCell, update_daily,   "pf_update_daily");
     AURORE_BIND(aurore::DetailCell,  update_via,     "pf_update_via");
     AURORE_BIND(aurore::BooleanCell, sphaira_entry,  "pf_sphaira_entry");

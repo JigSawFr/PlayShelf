@@ -9,11 +9,8 @@
 #include <aurore/cadran/ui/guarded.hpp>
 
 #include "action/download_flow.hpp"
-#include "action/peer_flow.hpp"
-#include "action/screen_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
-#include "install/split_stream.hpp"
 #include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -72,101 +69,6 @@ DownloadsTab::DownloadsTab()
     empty.text->setText("playshelf/downloads/empty_text"_i18n);
     empty_box->addView(empty.box);
 
-    // The settings, a card: staying awake, the connections.
-    aurore::Box* card = cadran::List::rows_in(settings);
-    keep_awake = new aurore::BooleanCell();
-    keep_awake->init("playshelf/downloads/keep_awake"_i18n, config::get().keep_awake, [](bool on) {
-        config::get().keep_awake = on;
-        ui::save_config();
-        download_flow::keep_awake_changed();
-    });
-    card->addView(keep_awake);
-    cadran::List::row(keep_awake, "bolt");
-    // Off until turned on: this console then gives the homebrew files it
-    // holds to the other consoles of the network (SPEC.md 19.4).
-    share_files = new aurore::BooleanCell();
-    share_files->init("playshelf/downloads/share_files"_i18n, config::get().share_files, [](bool on) {
-        config::get().share_files = on;
-        ui::save_config();
-        peer_flow::apply();
-    });
-    card->addView(share_files);
-    cadran::List::row(share_files, "upload");
-    connections = new aurore::DetailCell();
-    connections->setText("playshelf/downloads/connections"_i18n);
-    ui::set_detail(connections, std::to_string(config::get().connections));
-    connections->registerClickAction([this](aurore::View*) {
-        std::vector<std::string> values, details;
-        for (int n = 1; n <= install::MAX_CONNECTIONS; n++) {
-            values.push_back(std::to_string(n));
-            details.push_back(n == 1   ? "playshelf/downloads/connections_one"_i18n
-                              : n == 4 ? "playshelf/downloads/connections_default"_i18n
-                              : n == install::MAX_CONNECTIONS ? "playshelf/downloads/connections_most"_i18n
-                                                              : "");
-        }
-        ui::pick("playshelf/downloads/connections"_i18n, values, config::get().connections - 1,
-                 ui::guarded(this->alive, [this](int i) {
-                     config::get().connections = i + 1;
-                     ui::save_config();
-                     ui::set_detail(this->connections, std::to_string(i + 1));
-                 }),
-                 true, details);
-        return true;
-    });
-    card->addView(connections);
-    cadran::List::row(connections, "server");
-    prefetch = new aurore::DetailCell();
-    prefetch->setText("playshelf/downloads/prefetch"_i18n);
-    auto prefetch_text = [](int n) {
-        return n <= 0 ? "playshelf/downloads/prefetch_off"_i18n
-             : n == 1 ? "playshelf/downloads/prefetch_one"_i18n
-                      : aurore::getStr("playshelf/downloads/prefetch_many", n);
-    };
-    ui::set_detail(prefetch, prefetch_text(config::get().prefetch));
-    prefetch->registerClickAction([this, prefetch_text](aurore::View*) {
-        const std::vector<std::string> values = { prefetch_text(0), prefetch_text(1), prefetch_text(2) };
-        ui::pick("playshelf/downloads/prefetch"_i18n, values, config::get().prefetch,
-                 ui::guarded(this->alive, [this, prefetch_text](int i) {
-                     config::get().prefetch = i;
-                     ui::save_config();
-                     ui::set_detail(this->prefetch, prefetch_text(i));
-                     download_flow::prefetch_changed();
-                 }),
-                 true, { "", "playshelf/downloads/prefetch_note"_i18n, "playshelf/downloads/prefetch_note"_i18n });
-        return true;
-    });
-    card->addView(prefetch);
-    cadran::List::row(prefetch, "folder");
-    screen_off = new aurore::DetailCell();
-    screen_off->setText("playshelf/downloads/screen_off"_i18n);
-    auto screen_off_text = [](int n) {
-        return n <= 0 ? "playshelf/downloads/screen_off_never"_i18n : aurore::getStr("playshelf/downloads/screen_off_minutes", n);
-    };
-    ui::set_detail(screen_off, screen_off_text(config::get().screen_off_minutes));
-    screen_off->registerClickAction([this, screen_off_text](aurore::View*) {
-        const int options[] = { 0, 2, 5, 10, 15, 30 };
-        std::vector<std::string> values;
-        int selected = 2;
-        for (size_t k = 0; k < std::size(options); k++) {
-            values.push_back(screen_off_text(options[k]));
-            if (options[k] == config::get().screen_off_minutes) selected = (int)k;
-        }
-        ui::pick("playshelf/downloads/screen_off"_i18n, values, selected,
-                 ui::guarded(this->alive, [this, screen_off_text, options](int i) {
-                     config::get().screen_off_minutes = options[i];
-                     ui::save_config();
-                     ui::set_detail(this->screen_off, screen_off_text(options[i]));
-                     screen_flow::changed();
-                 }),
-                 true, { "playshelf/downloads/screen_off_note"_i18n, "", "", "", "", "" });
-        return true;
-    });
-    card->addView(screen_off);
-    cadran::List::row(screen_off, "eye");
-    // A tab's margins, as the other tabs' lists have them.
-    const cadran::List margins(this);
-    (void)margins;
-
     this->listener = download_flow::listen(ui::guarded(this->alive, [this]() {
         if (this->shown()) this->update();
     }));
@@ -224,13 +126,17 @@ void DownloadsTab::update()
         for (size_t k = 0; same && k < groups[i].jobs.size(); k++) same = jobs[groups[i].jobs[k]].id == this->rows[i].ids[k];
     }
     if (!same) {
-        // The focus moves off the cards first: they are made again.
-        aurore::View* focus = aurore::Application::getCurrentFocus();
-        for (aurore::View* v = focus; v; v = v->getParent())
-            if (v == list) {
-                aurore::Application::giveFocus(keep_awake);
-                break;
-            }
+        // The focus moves off the cards first (to the rail): they are made
+        // again, and it comes back to the first one.
+        bool on_cards = false;
+        for (aurore::View* v = aurore::Application::getCurrentFocus(); v; v = v->getParent()) on_cards |= v == list;
+        if (on_cards) {
+            for (aurore::View* v = this; v; v = v->getParent())
+                if (aurore::View* rail = v->getView("aurore/tab_frame/sidebar")) {
+                    aurore::Application::giveFocus(rail);
+                    break;
+                }
+        }
         list->clearViews(true);
         this->rows.clear();
         this->generation++;
@@ -312,7 +218,7 @@ void DownloadsTab::update()
                                        }));
             this->rows.push_back(r);
         }
-        if (!this->rows.empty() && !aurore::Application::getCurrentFocus()->isFocusable())
+        if (!this->rows.empty() && (on_cards || !aurore::Application::getCurrentFocus()->isFocusable()))
             aurore::Application::giveFocus(this->rows.front().card);
     }
     ui::set_visible(empty_box, jobs.empty());

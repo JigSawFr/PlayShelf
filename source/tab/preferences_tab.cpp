@@ -12,8 +12,11 @@
 #include "action/not_interested.hpp"
 #include "action/notices.hpp"
 #include "action/titledb_flow.hpp"
+#include "action/peer_flow.hpp"
 #include "action/popular_flow.hpp"
+#include "action/screen_flow.hpp"
 #include "action/update_flow.hpp"
+#include "install/split_stream.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 
@@ -28,6 +31,20 @@ int index_of(const char* const (&list)[N], const std::string& value)
         if (value == list[i]) return (int)i;
     return 0;
 }
+
+std::string prefetch_text(int n)
+{
+    return n <= 0 ? "playshelf/downloads/prefetch_off"_i18n
+         : n == 1 ? "playshelf/downloads/prefetch_one"_i18n
+                  : aurore::getStr("playshelf/downloads/prefetch_many", n);
+}
+
+std::string screen_off_text(int n)
+{
+    return n <= 0 ? "playshelf/downloads/screen_off_never"_i18n : aurore::getStr("playshelf/downloads/screen_off_minutes", n);
+}
+
+constexpr int SCREEN_OFF_MINUTES[] = { 0, 2, 5, 10, 15, 30 };
 
 std::string tab_name(const std::string& tab)
 {
@@ -138,6 +155,68 @@ PreferencesTab::PreferencesTab()
         ui::save_prefs();
     });
 
+    // How downloads run: the console stays awake, the connections of one,
+    // the packages fetched ahead, the screen turned off.
+    keep_awake->init("playshelf/downloads/keep_awake"_i18n, config::get().keep_awake, [](bool on) {
+        config::get().keep_awake = on;
+        ui::save_config();
+        download_flow::keep_awake_changed();
+    });
+    // Off until turned on: this console then gives the homebrew files it
+    // holds to the other consoles of the network (SPEC.md 19.4).
+    share_files->init("playshelf/downloads/share_files"_i18n, config::get().share_files, [](bool on) {
+        config::get().share_files = on;
+        ui::save_config();
+        peer_flow::apply();
+    });
+    connections->registerClickAction([this](aurore::View*) {
+        std::vector<std::string> values, details;
+        for (int n = 1; n <= install::MAX_CONNECTIONS; n++) {
+            values.push_back(std::to_string(n));
+            details.push_back(n == 1   ? "playshelf/downloads/connections_one"_i18n
+                              : n == 4 ? "playshelf/downloads/connections_default"_i18n
+                              : n == install::MAX_CONNECTIONS ? "playshelf/downloads/connections_most"_i18n
+                                                              : "");
+        }
+        ui::pick("playshelf/downloads/connections"_i18n, values, config::get().connections - 1,
+                 ui::guarded(this->alive, [this](int i) {
+                     config::get().connections = i + 1;
+                     ui::save_config();
+                     this->refresh();
+                 }),
+                 true, details);
+        return true;
+    });
+    prefetch->registerClickAction([this](aurore::View*) {
+        const std::vector<std::string> values = { prefetch_text(0), prefetch_text(1), prefetch_text(2) };
+        ui::pick("playshelf/downloads/prefetch"_i18n, values, config::get().prefetch,
+                 ui::guarded(this->alive, [this](int i) {
+                     config::get().prefetch = i;
+                     ui::save_config();
+                     download_flow::prefetch_changed();
+                     this->refresh();
+                 }),
+                 true, { "", "playshelf/downloads/prefetch_note"_i18n, "playshelf/downloads/prefetch_note"_i18n });
+        return true;
+    });
+    screen_off->registerClickAction([this](aurore::View*) {
+        std::vector<std::string> values;
+        int selected = 2;
+        for (size_t k = 0; k < std::size(SCREEN_OFF_MINUTES); k++) {
+            values.push_back(screen_off_text(SCREEN_OFF_MINUTES[k]));
+            if (SCREEN_OFF_MINUTES[k] == config::get().screen_off_minutes) selected = (int)k;
+        }
+        ui::pick("playshelf/downloads/screen_off"_i18n, values, selected,
+                 ui::guarded(this->alive, [this](int i) {
+                     config::get().screen_off_minutes = SCREEN_OFF_MINUTES[i];
+                     ui::save_config();
+                     screen_flow::changed();
+                     this->refresh();
+                 }),
+                 true, { "playshelf/downloads/screen_off_note"_i18n, "", "", "", "", "" });
+        return true;
+    });
+
     // How PlayShelf updates (checking now is in About, by the version).
     update_daily->init("playshelf/tools/update_daily"_i18n, config::get().update_daily, [](bool on) {
         config::get().update_daily = on;
@@ -193,6 +272,8 @@ PreferencesTab::PreferencesTab()
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
                        { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
+                       { "pf_keep_awake", "bolt" }, { "pf_share_files", "upload" }, { "pf_connections", "server" },
+                       { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
                        { "pf_popular_online", "bolt" }, { "pf_not_interested", "eye" } });
@@ -334,6 +415,11 @@ void PreferencesTab::refresh()
     support_reminder->setOn(cfg.support_reminder, false);
     notices_others->setOn(cfg.notices_others, false);
     look_shared->setOn(cfg.look_shared, false);
+    keep_awake->setOn(cfg.keep_awake, false);
+    share_files->setOn(cfg.share_files, false);
+    connections->setDetailText(std::to_string(cfg.connections));
+    prefetch->setDetailText(prefetch_text(cfg.prefetch));
+    screen_off->setDetailText(screen_off_text(cfg.screen_off_minutes));
     update_daily->setOn(cfg.update_daily, false);
     sphaira_entry->setOn(cfg.sphaira_entry, false);
     nlib_api->setOn(cfg.nlib_api, false);

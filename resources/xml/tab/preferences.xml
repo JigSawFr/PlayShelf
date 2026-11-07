@@ -2,10 +2,11 @@
 
 <!-- Preferences: only what sets PlayShelf itself up — the app (language,
      theme, text size and start tab as tiles first, the palette, the effects,
-     the intro),
+     the intro), how downloads run (awake, connections, fetched ahead, the
+     screen) and whether homebrew files are shared with the network,
      the monthly "Support PlayShelf" reminder, how it updates and the title
-     database (the names and icons every tab falls back on). A setting
-     that shapes one feature sits with it; Help & diagnostics is in About. -->
+     database (the names and icons every tab falls back on). Every setting is
+     here; Help & diagnostics is in About. -->
 
 <aurore:Box
     width="auto"
@@ -37,6 +38,12 @@
             <aurore:BooleanCell id="pf_intro"/>
             <aurore:BooleanCell id="pf_support_reminder"/>
             <aurore:BooleanCell id="pf_notices_others"/>
+            <aurore:Header title="@i18n/playshelf/tabs/downloads" marginTop="24" marginBottom="8"/>
+            <aurore:BooleanCell id="pf_keep_awake"/>
+            <aurore:BooleanCell id="pf_share_files"/>
+            <aurore:DetailCell id="pf_connections" title="@i18n/playshelf/downloads/connections"/>
+            <aurore:DetailCell id="pf_prefetch" title="@i18n/playshelf/downloads/prefetch"/>
+            <aurore:DetailCell id="pf_screen_off" title="@i18n/playshelf/downloads/screen_off"/>
             <aurore:Header title="@i18n/playshelf/tools/section_update" marginTop="24" marginBottom="8"/>
             <aurore:BooleanCell id="pf_update_daily"/>
             <aurore:DetailCell id="pf_update_via" title="@i18n/kit/tools/update_via"/>
