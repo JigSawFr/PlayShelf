@@ -108,7 +108,7 @@ void HomebrewPanel::rebuild()
     }
     this->shown_count = keep.size();
     ui::set_text(this->status, items.empty()    ? "playshelf/homebrew/none"_i18n
-                               : keep.empty()   ? " "
+                               : keep.empty()   ? (this->installed_only && this->query.empty() ? "playshelf/homebrew/none_installed"_i18n : " ")
                                                 : aurore::getStr("playshelf/homebrew/count", keep.size(), this->data->server.name));
     if (key == this->built_key) return;
     this->built_key = key;

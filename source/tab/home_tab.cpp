@@ -14,6 +14,7 @@
 
 #include "action/download_flow.hpp"
 #include "action/game_page.hpp"
+#include "action/homebrew_flow.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
@@ -125,7 +126,8 @@ std::string key_of(const insights::Snapshot& s)
 {
     std::string key = std::format("{} {} {} {} {} {} {} {} {} {}|", s.console_games, s.server_games, s.updates, s.dlcs,
                                   s.downloads, s.space.free / 100000000, s.loading, library::load_servers().size(),
-                                  popular_flow::size(), config::get().nlib_api);
+                                  popular_flow::size(), config::get().nlib_api) +
+                      std::to_string(homebrew_flow::updates_count()) + "|";
     for (const auto* list : { &s.to_get, &s.added, &s.popular, &s.trending, &s.month, &s.newest }) {
         for (const insights::Pick& p : *list) key += std::format("{:x},", p.title().id);
         key += '|';
@@ -365,6 +367,12 @@ void HomeTab::add_tiles(const insights::Snapshot& s)
          });
     tile(std::to_string(s.dlcs), "playshelf/installed/stat_dlcs"_i18n, "plus", s.dlcs ? "cadran/amber" : "cadran/text2",
          library_with(library::Filter::State::DlcsMissing));
+    // The server's homebrew with an update: only while there is one.
+    if (const size_t updates = homebrew_flow::updates_count())
+        tile(std::to_string(updates), "playshelf/home/stat_homebrew"_i18n, "download", "cadran/amber", []() {
+            LibraryTab::preset_homebrew();
+            ui::open_tab(tabs::library);
+        });
     tile(std::to_string(s.downloads), "playshelf/home/stat_downloads"_i18n, "history", s.downloads ? "cadran/teal" : "cadran/text2",
          []() { ui::open_tab(tabs::downloads); });
     if (s.space.known)
