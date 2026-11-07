@@ -22,8 +22,8 @@ bool holds(const std::string& name, const std::string& query)
 }
 }   // namespace
 
-HomebrewPanel::HomebrewPanel(aurore::Box* host, aurore::Label* status)
-    : host(host), status(status)
+HomebrewPanel::HomebrewPanel(aurore::Box* tiles_box, aurore::Label* status_label)
+    : host(tiles_box), status(status_label)
 {
     this->status->setSingleLine(false);   // a long reason wraps instead of running under the rail
 }

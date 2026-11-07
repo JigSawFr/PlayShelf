@@ -25,7 +25,7 @@ class HomebrewPanel
 {
   public:
     // The tiles go in `host`, the reading's state in `status`.
-    HomebrewPanel(aurore::Box* host, aurore::Label* status);
+    HomebrewPanel(aurore::Box* tiles_box, aurore::Label* status_label);
     ~HomebrewPanel();
 
     // Shows `server`'s homebrew, read first when it was not (or another
