@@ -302,7 +302,6 @@ DYNAMIC_KEYS = {
     "installed/order_values/": array_of("source/tab/library_tab.cpp", "ORDERS"),
     "languages/": array_of("source/titledb/nlib.hpp", "NLIB_LANGUAGES"),
     "library/connection_values/": array_of("source/activity/server_activity.cpp", "CONNECTIONS"),
-    "library/format_values/": array_of("source/activity/server_activity.cpp", "FORMATS"),
     # A failed download's cause: every cause's name but those the Downloads
     # tab words otherwise (its own error, the unsigned content's line).
     "downloads/cause/": [v for v in returned_by("source/download/recovery.cpp", "cause_name") if v not in ("other", "unsigned")],

@@ -1,4 +1,4 @@
-<!-- translated from docs/getting-started.md, sha256 de5e4a285024 -->
+<!-- translated from docs/getting-started.md, sha256 c87bb42f91e1 -->
 # Prise en main
 
 PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et en installe vos propres sauvegardes et homebrews : le jeu de base, ses mises à jour et ses contenus additionnels, en NSP, NSZ, XCI ou XCZ, en HTTPS. Cette page va de la carte SD au premier jeu installé.
@@ -10,7 +10,7 @@ PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et 
 
 - Une Nintendo Switch avec [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere).
 - [sys-patch](https://github.com/impeeza/sys-patch) ou des sigpatches, pour que les jeux installés démarrent. PlayShelf les cherche avant d'installer, et demande s'il faut continuer quand il ne trouve ni l'un ni les autres.
-- Votre propre serveur de bibliothèque, accessible en HTTPS : [AeroFoil](https://github.com/luketanti/AeroFoil), Ownfoil, ou n'importe quel serveur web avec un index JSON de vos fichiers. Voir [Serveurs de bibliothèque](servers.md).
+- Votre propre serveur de bibliothèque qui parle [Lantern](https://lantern.boreale.dev), accessible en HTTPS. Un serveur qui parle autre chose (AeroFoil, Ownfoil, un index JSON) a besoin d'un [pont](https://github.com/JigSawFr/lantern-bridge). Voir [Serveurs de bibliothèque](servers.md).
 
 ## Installer PlayShelf
 
@@ -24,8 +24,8 @@ PlayShelf garde ses réglages et ses données dans `sd:/config/playshelf/` : ses
 
 Le premier démarrage s'ouvre sur l'**Accueil**, qui vous souhaite la bienvenue : il n'y a pas encore de serveur.
 
-- **Ajouter un serveur** : son nom, son adresse `https://` sur votre réseau, sur Internet ou les deux, et son nom d'utilisateur et son mot de passe s'il a un compte. Voir [Ajouter un serveur](servers.md#ajouter-un-serveur).
-- **Chercher sur ce réseau** : liste les serveurs AeroFoil et Ownfoil qui répondent sur le réseau de la console, pour en choisir un.
+- **Ajouter un serveur** : son nom et son adresse `https://` sur votre réseau, sur Internet ou les deux ; puis **appairer** la console avec lui, à partir du code que PlayShelf affiche. Voir [Ajouter un serveur](servers.md#ajouter-un-serveur) et [L'appairage](servers.md#lappairage).
+- **Chercher sur ce réseau** : liste les serveurs Lantern qui répondent sur le réseau de la console, pour en choisir un.
 
 ## Installer un jeu
 

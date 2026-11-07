@@ -6,7 +6,7 @@ Thanks for helping! This page is the map; each subject has a page of its own und
 
 ```sh
 git clone --recursive https://github.com/JigSawFr/PlayShelf && cd PlayShelf
-make test        # the host tests: gcc, g++, zlib headers, no devkitPro
+make test        # the host tests: gcc, g++, cmake, zlib headers, no devkitPro
 make desktop     # the real UI against a simulated console and a demo: X11, Wayland and D-Bus dev packages, Playwright
 make dist        # playshelf.zip for the SD card: devkitPro's switch-dev
 ```

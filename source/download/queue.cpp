@@ -143,6 +143,7 @@ std::string queue_to_json(const std::vector<Job>& jobs, const std::string& previ
         j["title_id"] = job.title_id;
         put(j, "version", job.version.has_value(), job.version.value_or(0));
         j["size"] = job.size;
+        put(j, "sha256", !job.sha256.empty(), job.sha256);
         j["state"] = STATES[std::to_underlying(job.state)];
         put(j, "error", !job.error.empty(), job.error);
         put(j, "unsigned", job.unsigned_content, true);
@@ -186,6 +187,8 @@ std::vector<Job> queue_from_json(const std::string& text)
         if (const auto v = j.find("version"); v != j.end() && v->is_number_unsigned() && v->get<uint64_t>() <= UINT32_MAX)
             job.version = (uint32_t)v->get<uint64_t>();
         job.size = u64(j, "size");
+        job.sha256 = str(j, "sha256", 64);
+        if (job.sha256.size() != 64) job.sha256.clear();
         const std::string state = str(j, "state", 16);
         for (int i = 0; i < 5; i++)
             if (state == STATES[i]) job.state = (State)i;

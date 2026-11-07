@@ -76,8 +76,7 @@ std::string greeting()
 
 uint32_t date_of(const library::Title& t)
 {
-    const uint32_t known = nlib_flow::facts(t.id).release_date;
-    return known ? known : t.release_date;
+    return nlib_flow::facts(t.id).release_date;
 }
 
 // "12 November 2026": a day, in the language's words.
@@ -451,7 +450,7 @@ void HomeTab::add_banners(const std::string& title, const std::vector<Pick>& pic
     }
 }
 
-void HomeTab::show_icon(const Pick& pick, uint64_t game_id)
+void HomeTab::show_icon(uint64_t game_id)
 {
     const int    gen = this->generation;
     const size_t at = this->tiles.size() - 1;
@@ -460,10 +459,7 @@ void HomeTab::show_icon(const Pick& pick, uint64_t game_id)
         if (pic && held && *held && gen == this->generation && at < this->tiles.size())
             this->tiles[at]->set_icon(pic->rgba.data(), pic->width, pic->height);
     };
-    if (pick.data && !pick.title().icon_url.empty())
-        library_icons::get(pick.data, library::password_of(pick.data->server), pick.title().icon_url, shown, game_id);
-    else
-        library_icons::local(game_id, shown);
+    library_icons::local(game_id, shown);
 }
 
 void HomeTab::add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,
@@ -488,7 +484,7 @@ void HomeTab::add_covers(const std::string& title, const std::string& line, cons
         if (each) each(tile, p);
         row->addView(tile);
         this->tiles.push_back(tile);
-        this->show_icon(p, t.id);
+        this->show_icon(t.id);
     }
 }
 
@@ -499,7 +495,7 @@ GameTile* HomeTab::lone_tile(uint64_t game_id, const std::string& name, const De
     tile->set_detail(detail.text);
     tile->set_detail_color(detail.ink);
     this->tiles.push_back(tile);
-    this->show_icon({}, game_id);
+    this->show_icon(game_id);
     return tile;
 }
 
@@ -557,7 +553,7 @@ void HomeTab::add_wished(const std::vector<insights::Wished>& wished)
                 return true;
             });
             this->tiles.push_back(tile);
-            this->show_icon(w.found, w.id);
+            this->show_icon(w.id);
         } else {
             // On no server yet: A takes it off the list.
             tile = this->lone_tile(w.id, w.name, { "playshelf/home/wish_waiting"_i18n, "cadran/text3" });

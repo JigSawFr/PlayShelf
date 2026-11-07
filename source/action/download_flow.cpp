@@ -19,9 +19,9 @@
 #include "core/sim_env.h"
 #include "download/recovery.hpp"
 #include "install/console_core.hpp"
-#include "install/http_source.hpp"
 #include "install/installer.hpp"
 #include "install/prefix_source.hpp"
+#include "lantern_app/package.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -168,24 +168,34 @@ void awake(bool on)
     screen_flow::active(on && config::get().keep_awake);
 }
 
-// The request headers and the pin for `url`, from its server's profile:
-// the credentials for that server's own addresses only, the pin for its
-// LAN one.
-void credentials_of(const download::Job& job, std::vector<std::string>* headers, std::string* pin)
+// The job's server, when it is still there.
+std::optional<library::Server> server_for(const download::Job& job)
 {
-    if (job.server_id.empty()) return;
+    if (job.server_id.empty()) return std::nullopt;
     const std::vector<library::Server> servers = library::load_servers();
     const library::Server*             s = library::find_server(servers, job.server_id);
-    if (!s) return;
-    const bool lan = !s->lan_url.empty() && library::same_origin(job.url, s->lan_url);
-    const bool wan = !s->wan_url.empty() && library::same_origin(job.url, s->wan_url);
-    if (lan || wan) *headers = library::auth_headers(s->username, library::password_of(*s));
-    if (lan) *pin = s->pin;
+    return s ? std::optional<library::Server>(*s) : std::nullopt;
 }
 
+// A package that is not on the SD card: the install reads its file only.
+class LocalOnly : public install::Source
+{
+  public:
+    explicit LocalOnly(uint64_t size) : total(size) {}
+    uint64_t size() const override { return total; }
+    install::Done read(uint64_t, uint8_t*, size_t) override { return std::unexpected("the package is not on the SD card"); }
+    install::Done stream(uint64_t, uint64_t, const std::function<bool(const uint8_t*, size_t)>&) override
+    {
+        return std::unexpected("the package is not on the SD card");
+    }
+
+  private:
+    uint64_t total;
+};
+
 // On the worker thread.
-Outcome run_job(const download::Job& job, const std::vector<std::string>& headers, const std::string& pin, int connections,
-                uint64_t ahead, const std::vector<download::Job>& snapshot, const std::shared_ptr<Control>& ctl)
+Outcome run_job(const download::Job& job, const library::Server& server, const std::vector<download::Job>& snapshot,
+                const std::shared_ptr<Control>& ctl)
 {
     using namespace install;
     Outcome o;
@@ -195,13 +205,41 @@ Outcome run_job(const download::Job& job, const std::vector<std::string>& header
         return o;
     };
     std::string cut_why;
-    HttpSource  http(job.url, headers, &ctl->stop, pin, connections);
-    if (const Done opened = http.open(); !opened) {
-        o.why = opened.error();
-        return ctl->stop ? stopped() : o;
+    // The package whole on the SD card first, fetched and checked by the
+    // Lantern client (a file already there, partly or whole, is taken up).
+    const std::string path = ahead_path(job.id);
+    if (job.size == 0 || job.sha256.empty()) {
+        o.why = "the catalogue gave no size or checksum for this package: read the server again";
+        return o;
     }
-    // What was fetched ahead read from its file, the rest from the server.
-    PrefixSource prefixed(ahead_path(job.id), ahead, http);
+    if (file_size(path) != job.size) {
+        paths::ensure_dir(ahead_dir());
+        lantern_app::Platform platform;
+        auto                  last = std::chrono::steady_clock::now();
+        const std::string     id = job.id;
+        const uint64_t        total = job.size;
+        const auto            got = lantern_app::fetch_package(
+            platform, server, {job.url, job.size, job.sha256}, path, &ctl->stop, [&](uint64_t n) {
+                const auto t = std::chrono::steady_clock::now();
+                if (t - last < std::chrono::milliseconds(500) && n < total) return;
+                last = t;
+                aurore::sync([id, n, total]() {
+                    if (s_running != id) return;
+                    if (n > s_live.done) s_last_byte = now_seconds();
+                    s_live.done = n;
+                    s_live.total = total;
+                    s_rate.add(n, now_seconds());
+                    changed();
+                });
+            });
+        if (got.stopped) return stopped();
+        if (!got.ok) {
+            o.why = got.why;
+            return ctl->stop ? stopped() : o;
+        }
+    }
+    LocalOnly    local(job.size);
+    PrefixSource prefixed(path, job.size, local);
     CutSource    src(prefixed, *ctl, &cut_why);
     const auto pkg = package_open(src);
     if (!pkg) {
@@ -389,22 +427,19 @@ void fetch_ahead()
         if (a.running || a.failed || (a.total && a.have >= a.total)) continue;
         a.running = true;
         a.stop = std::make_shared<std::atomic<bool>>(false);
-        std::vector<std::string> headers;
-        std::string              pin;
-        credentials_of(job, &headers, &pin);
-        const std::string id = job.id, url = job.url, path = ahead_path(job.id);
+        const auto server = server_for(job);
+        if (!server || job.size == 0 || job.sha256.empty()) {
+            a.running = false;
+            a.failed = true;
+            continue;
+        }
+        const std::string id = job.id, path = ahead_path(job.id);
+        const lantern_app::PackageRequest request{job.url, job.size, job.sha256};
         const auto        stop = a.stop;
         aurore::Logger::info("downloads: fetching {} ahead", job.name);
-        ui::in_background("fetch ahead", [id, url, path, headers, pin, stop, reserve]() {
-            std::string why;
-            uint64_t    have = file_size(path);
-            const auto  size = http::resource_size(url, headers, pin);
-            if (!size) {
-                why = size.error().error;
-                aurore::sync([id, have, why]() { ahead_ended(id, have, 0, why); });
-                return;
-            }
-            const uint64_t total = *size;
+        ui::in_background("fetch ahead", [id, server = *server, request, path, stop, reserve]() {
+            const uint64_t total = request.size;
+            uint64_t       have = file_size(path);
             if (have > total) {   // another package's: started over
                 std::remove(path.c_str());
                 have = 0;
@@ -413,33 +448,22 @@ void fetch_ahead()
                 aurore::sync([id, have, total]() { ahead_ended(id, have, total, "no room on the SD card"); });
                 return;
             }
-            FILE* f = have < total ? std::fopen(path.c_str(), "ab") : nullptr;
-            if (have < total && !f) why = "the file could not be written";
-            auto last = std::chrono::steady_clock::now();
-            if (f) {
-                const auto fetched = http::range(
-                    url, have, total - have,
-                    [&](const uint8_t* data, size_t n) {
-                        if (std::fwrite(data, 1, n, f) != n) {
-                            why = "the file could not be written";
-                            return false;
-                        }
-                        have += n;
-                        const auto t = std::chrono::steady_clock::now();
-                        if (t - last >= std::chrono::milliseconds(500)) {
-                            last = t;
-                            aurore::sync([id, have, total]() {
-                                Ahead& now = s_ahead[id];
-                                now.have = have;
-                                now.total = total;
-                                changed();
-                            });
-                        }
-                        return true;
-                    },
-                    headers, stop.get(), pin);
-                std::fclose(f);
-                if (why.empty() && !fetched) why = fetched.error().error;
+            std::string why;
+            if (have < total) {
+                lantern_app::Platform platform;
+                auto                  last = std::chrono::steady_clock::now();
+                const auto            got = lantern_app::fetch_package(platform, server, request, path, stop.get(), [&](uint64_t n) {
+                    const auto t = std::chrono::steady_clock::now();
+                    if (t - last < std::chrono::milliseconds(500)) return;
+                    last = t;
+                    aurore::sync([id, n, total]() {
+                        Ahead& now = s_ahead[id];
+                        now.have = n;
+                        now.total = total;
+                        changed();
+                    });
+                });
+                if (!got.ok) why = got.stopped ? "cancelled" : got.why;
             }
             have = file_size(path);
             if (have >= total) why.clear();
@@ -513,18 +537,15 @@ void run(download::Job& job)
     awake(true);
     start_ticking();
 
-    std::vector<std::string> headers;
-    std::string              pin;
-    credentials_of(job, &headers, &pin);
+    const auto server = server_for(job);
     const download::Job              copy = job;
     const std::vector<download::Job> snapshot = s_jobs;
     const auto                       ctl = s_control;
-    const int                        connections = config::get().connections;
-    const auto                       a = s_ahead.find(job.id);
-    const uint64_t                   ahead = a != s_ahead.end() ? a->second.have : 0;
-    aurore::Logger::info("downloads: {} started ({} connections, {} bytes fetched ahead)", job.name, connections, ahead);
-    ui::in_background("download", [copy, headers, pin, connections, ahead, snapshot, ctl]() {
-        const Outcome o = run_job(copy, headers, pin, connections, ahead, snapshot, ctl);
+    aurore::Logger::info("downloads: {} started", job.name);
+    ui::in_background("download", [copy, server, snapshot, ctl]() {
+        Outcome o;
+        if (server) o = run_job(copy, *server, snapshot, ctl);
+        else o.why = download::SERVER_GONE;
         aurore::sync([id = copy.id, o]() { finished(id, o); });
     });
     save();

@@ -41,6 +41,7 @@ struct Job
     uint64_t    title_id = 0;
     std::optional<uint32_t> version;   // the package's, as the catalogue gives it
     uint64_t    size = 0;    // the package's, as the catalogue gives it (0: unknown)
+    std::string sha256;      // the file's as the server serves it, lower-case hex (64 digits)
     State       state = State::Waiting;
     std::string error;       // Failed: why
     bool        unsigned_content = false;   // Failed: on a content not signed by Nintendo

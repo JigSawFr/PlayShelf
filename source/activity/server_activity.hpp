@@ -1,11 +1,10 @@
 // ServerActivity — Library › a server, added or changed (library/servers):
 // its name, its address on this network and over the Internet (https://
 // each, one at least), which one to use (automatic: this network's when it
-// answers), how it answers (the API, a JSON index, or found out), the
-// account it asks for (the password sealed for this console as soon as it
-// is saved), the key trusted for its own certificate (A forgets it: the next
-// connection asks again). Save writes servers.json and runs `saved` with the
-// server's id; Delete, once confirmed, removes it (`saved` with "").
+// answers), and whether this console is paired with it (A pairs it again or
+// forgets the pairing). Save writes servers.json, then pairs a server that
+// is not yet, and runs `saved` with the server's id; Delete, once confirmed,
+// removes it and the console's credentials for it (`saved` with "").
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
@@ -13,7 +12,7 @@
 #include <functional>
 #include <string>
 
-#include "library/client.hpp"
+#include "library/servers.hpp"
 
 class ServerActivity : public aurore::Activity
 {
@@ -34,18 +33,13 @@ class ServerActivity : public aurore::Activity
 
     library::Server server;
     bool            is_new;
-    bool            password_changed = false;
-    std::string     password;   // the one typed, until saved
     std::function<void(const std::string&)> saved;
 
     AURORE_BIND(aurore::DetailCell, name,       "sv_name");
     AURORE_BIND(aurore::DetailCell, lan,        "sv_lan");
     AURORE_BIND(aurore::DetailCell, wan,        "sv_wan");
     AURORE_BIND(aurore::DetailCell, connection, "sv_connection");
-    AURORE_BIND(aurore::DetailCell, format,     "sv_format");
-    AURORE_BIND(aurore::DetailCell, user,       "sv_user");
-    AURORE_BIND(aurore::DetailCell, pass,       "sv_password");
-    AURORE_BIND(aurore::DetailCell, pin,        "sv_pin");
+    AURORE_BIND(aurore::DetailCell, pairing,    "sv_pairing");
     AURORE_BIND(aurore::DetailCell, save_cell,  "sv_save");
     AURORE_BIND(aurore::DetailCell, delete_cell, "sv_delete");
 };

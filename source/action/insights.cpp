@@ -90,8 +90,7 @@ uint32_t today(long days = 0)
 
 uint32_t date_of(const library::Title& t)
 {
-    const uint32_t known = nlib_flow::facts(t.id).release_date;
-    return known ? known : t.release_date;
+    return nlib_flow::facts(t.id).release_date;
 }
 
 // The catalogues read in this run, the servers' order.

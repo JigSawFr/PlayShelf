@@ -9,12 +9,15 @@
 #include <map>
 
 #include "action/download_flow.hpp"
+#include "action/pairing_flow.hpp"
 #include "action/popular_flow.hpp"
 #include "action/rebuilt.hpp"
 #include "action/titledb_flow.hpp"
 #include "activity/server_activity.hpp"
 #include "install/console_core.hpp"
-#include "library/http_transport.hpp"
+#include "lantern_app/discovery.hpp"
+#include "lantern_app/platform.hpp"
+#include "lantern_app/system.hpp"
 #include "library/installed.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
@@ -45,43 +48,37 @@ std::shared_ptr<const Installed> read_installed()
 
 using Done = std::function<void(std::shared_ptr<const Loaded>, std::string)>;
 
-// The pin kept with the server in servers.json, and in `server`.
-bool trust(library::Server& server, const std::string& pin)
-{
-    std::vector<library::Server> all = library::load_servers();
-    for (library::Server& s : all)
-        if (s.id == server.id) s.pin = pin;
-    std::string why;
-    if (!library::save_servers(all, &why)) {
-        ui::error("playshelf/library/save_failed"_i18n, why);
-        return false;
-    }
-    server.pin = pin;
-    return true;
-}
-
 void fetched(const library::Server& server, const std::shared_ptr<Loaded>& l, std::shared_ptr<const Installed> now, const Done& done)
 {
     s_loading = false;
     s_installed = std::move(now);
     rebuilt::prune(*s_installed);
-    const library::Fetch& f = l->fetch;
-    if (f.status == library::FetchStatus::Ok) {
+    const lantern_app::Fetched& f = l->fetch;
+    if (f.status == lantern_app::Status::Ok) {
         s_loaded[server.id] = l;
         done(l, "");
         return;
     }
-    if (f.status == library::FetchStatus::UnknownCertificate) {
-        const std::string body = aurore::getStr("playshelf/library/trust_body", server.name, f.endpoint, f.offered_short);
-        const std::string pin = f.offered_pin;
+    if (f.status == lantern_app::Status::NotPaired) {
+        // The server was added, or its credentials were forgotten: pair
+        // again, then read it.
+        library::Server copy = server;
+        if (!f.uid.empty() && copy.uid.empty()) copy.uid = f.uid;
         ui::confirm(
-            body, "playshelf/library/trust"_i18n,
-            [copy = server, pin, done]() mutable {
-                if (ui::refuse_read_only() || !trust(copy, pin)) {
+            aurore::getStr("playshelf/pairing/needed_body", server.name), "playshelf/pairing/needed"_i18n,
+            [copy, done]() {
+                pairing_flow::start(copy, [copy, done](bool paired) {
+                    if (!paired) {
+                        done(nullptr, "");
+                        return;
+                    }
+                    for (const library::Server& s : library::load_servers())
+                        if (s.id == copy.id) {
+                            load(s, done);
+                            return;
+                        }
                     done(nullptr, "");
-                    return;
-                }
-                load(copy, done);
+                });
             },
             [done]() { done(nullptr, ""); });
         return;
@@ -170,22 +167,18 @@ void load(const library::Server& server, const Done& done)
         s_waiting.clear();
         for (const Done& d : waiting) d(l, why);
     };
-    const std::string password = library::password_of(server);
     const auto        atlas = popular_flow::signals();
-    ui::in_background("library", [server, password, all, atlas]() {
-        library::HttpTransport transport;
-        auto                   l = std::make_shared<Loaded>();
+    ui::in_background("library", [server, all, atlas]() {
+        lantern_app::Platform platform;
+        auto                  l = std::make_shared<Loaded>();
         l->server = server;
-        l->fetch = library::fetch(server, password, transport);
-        if (l->fetch.status == library::FetchStatus::Ok) {
+        l->fetch = lantern_app::fetch(server, platform.env(), platform.store());
+        if (l->fetch.status == lantern_app::Status::Ok) {
             l->titles = library::group_titles(l->fetch.catalog);
-            // A game the server names only by its file: the title
-            // database's name, when it has one, else titledb's as Atlas
-            // tells it (games.json).
+            // A game's name: the title database's when it has one, else
+            // titledb's as Atlas tells it (games.json), else the server's.
             for (library::Title& t : l->titles) {
                 if (!t.id) continue;
-                const auto known = l->fetch.catalog.titles.find(t.id);
-                if (known != l->fetch.catalog.titles.end() && !known->second.name.empty()) continue;
                 if (const auto local = titledb_flow::title(t.id); local && !local->name.empty()) t.name = local->name;
                 else if (const library::GameSignals* g = atlas->find(t.id); g && !g->name.empty()) t.name = g->name;
             }
@@ -217,7 +210,9 @@ void discover(const std::function<void(const std::string&)>& saved)
     dialog->open();
     ui::in_background("discovery", [cancel, dialog, saved]() {
         std::string why;
-        const auto  found = library::discover(cancel.get(), &why);
+        std::vector<lantern_app::Found> found;
+        if (auto socket = lantern_app::BroadcastSocket::open()) found = lantern_app::discover(*socket);
+        else why = lantern_app::describe(socket.error());
         aurore::sync([cancel, dialog, saved, found, why]() {
             if (*cancel) return;   // the dialog is closed already
             dialog->close();
@@ -227,17 +222,16 @@ void discover(const std::function<void(const std::string&)>& saved)
                 return;
             }
             std::vector<std::string> names, details;
-            for (const library::Discovered& d : found) {
-                names.push_back(d.name.empty() ? d.address : d.name);
-                details.push_back(d.address + ":" + std::to_string(d.port));
+            for (const lantern_app::Found& d : found) {
+                names.push_back(d.name.empty() ? d.url : d.name);
+                details.push_back(d.url);
             }
             ui::pick("playshelf/library/discover_pick"_i18n, names, 0, [found, saved](int i) {
-                const library::Discovered& d = found[(size_t)i];
-                library::Server            s;
+                const lantern_app::Found& d = found[(size_t)i];
+                library::Server           s;
                 s.id = library::new_server_id();
                 s.name = d.name;
-                s.lan_url = d.url();
-                if (d.remote.starts_with("https://")) s.wan_url = d.remote;
+                s.lan_url = d.url;
                 open_editor(s, true, saved);
             }, false, details);
         });
@@ -321,7 +315,6 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
             if (!update && !dlc && (long)i != t.base) continue;
             j.game = t.name;
             j.game_id = t.id;
-            j.icon_url = t.icon_url;
             j.label = update ? aurore::getStr("playshelf/library/update", it.version)
                     : dlc    ? library::clean_name(it.name)
                              : "playshelf/library/base"_i18n;
@@ -332,6 +325,7 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
         j.title_id = it.title_id;
         if (it.has_version) j.version = it.version;
         j.size = it.size;
+        j.sha256 = it.sha256;
         jobs.push_back(std::move(j));
     }
     return download_flow::add(std::move(jobs));

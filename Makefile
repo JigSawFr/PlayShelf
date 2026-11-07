@@ -85,14 +85,14 @@ WEB_DEMO_SOURCES := tools/web_demo.cpp $(KIT)/util/aes.cpp source/install/rsa.cp
 	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
 	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
 ART_PYTHON ?= python3
-%/demo/index.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
+%/demo/lantern/apps.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
 	@rm -rf $*/demo
 	@$*/web_demo $*/demo tools/web_demo_games.json
 	@$(ART_PYTHON) tools/web_demo_art.py tools/web_demo_games.json $*/demo || { rm -rf $*/demo; exit 1; }
-.PRECIOUS: %/web_demo %/demo/index.json
+.PRECIOUS: %/web_demo %/demo/lantern/apps.json
 
 # Then PlayShelf with Emscripten.
-web: $(WEB)/demo/index.json
+web: $(WEB)/demo/lantern/apps.json
 	@emcmake cmake -B $(WEB) -S . -DCMAKE_BUILD_TYPE=Release -DPLAYSHELF_WEB_DEMO=$(abspath $(WEB))/demo $(CMAKE_ARGS)
 	@"$$(command -v cmake)" --build $(WEB) -j $(JOBS)
 
@@ -111,7 +111,7 @@ site:
 # The desktop simulator with the demo (DESKTOP_DEMO=1, the default; empty:
 # without it, and without Playwright).
 DESKTOP_DEMO ?= 1
-desktop: $(if $(DESKTOP_DEMO),$(DESKTOP)/demo/index.json)
+desktop: $(if $(DESKTOP_DEMO),$(DESKTOP)/demo/lantern/apps.json)
 	@cmake -B $(DESKTOP) -S . -DAURORE_PLATFORM=DESKTOP -DCMAKE_BUILD_TYPE=Release \
 	    -DPLAYSHELF_DESKTOP_DEMO=$(if $(DESKTOP_DEMO),$(abspath $(DESKTOP))/demo,) $(CMAKE_ARGS)
 	@cmake --build $(DESKTOP) -j $(JOBS)
@@ -145,6 +145,43 @@ C := library/aurore/library/lib/cadran
 # A secret sealed for this console: AES and HMAC, and the console's key
 # (the desktop build's random one: sim/sim_device_key.cpp).
 SECRET_BOX := $(KIT)/util/secret_box.cpp $(KIT)/util/aes.cpp $(KIT)/sim/sim_device_key.cpp
+# The Lantern SDK (library/lantern-sdk, a submodule), built once for the host
+# suites: its client library as a static archive, no curl or mbedtls adapter
+# (the suites script the transport).
+LANTERN_HOST := $(BUILD)/lantern-host
+LANTERN_LIB  := $(LANTERN_HOST)/liblantern.a
+LANTERN_INC  := -isystem library/lantern-sdk/cpp/include
+$(LANTERN_LIB):
+	@test -f library/lantern-sdk/cpp/CMakeLists.txt || { echo "the Lantern SDK is missing: run git submodule update --init"; exit 1; }
+	cmake -S library/lantern-sdk/cpp -B $(LANTERN_HOST) -DCMAKE_BUILD_TYPE=Release -DLANTERN_BUILD_TESTS=OFF -DLANTERN_BUILD_EXAMPLES=OFF -DLANTERN_INSTALL=OFF -DLANTERN_CURL=OFF -DLANTERN_MBEDTLS=OFF > $(LANTERN_HOST).log 2>&1 || { cat $(LANTERN_HOST).log; exit 1; }
+	cmake --build $(LANTERN_HOST) --target lantern -j$(JOBS) > $(LANTERN_HOST).log 2>&1 || { tail -n 30 $(LANTERN_HOST).log; exit 1; }
+# Lantern credentials kept on the SD card, sealed.
+lantern_store_SRC   := source/lantern_app/credential_store.cpp $(SECRET_BOX) $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_store/test.cpp
+lantern_store_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_store_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_store: $(LANTERN_LIB)
+# Lantern's apps and sections as the neutral catalogue.
+lantern_catalog_SRC   := source/lantern_app/catalog_map.cpp source/library/catalog.cpp $(KIT)/util/sha256.cpp tests/lantern_catalog/test.cpp
+lantern_catalog_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_catalog_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_catalog: $(LANTERN_LIB)
+# A Lantern server read over a scripted network.
+lantern_session_SRC   := source/lantern_app/session.cpp source/lantern_app/catalog_map.cpp source/library/catalog.cpp source/library/server.cpp \
+                         source/library/servers.cpp $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/lantern_session/test.cpp
+lantern_session_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_session_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_session: $(LANTERN_LIB)
+# The system under the Lantern client: random bytes, the time, the discovery socket.
+lantern_system_SRC   := source/lantern_app/system.cpp tests/lantern_system/test.cpp
+lantern_system_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_system_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_system: $(LANTERN_LIB)
+# Servers found on the LAN.
+lantern_discovery_SRC   := source/lantern_app/discovery.cpp source/library/catalog.cpp $(KIT)/util/sha256.cpp tests/lantern_discovery/test.cpp
+lantern_discovery_FLAGS := $(TEST_CXXFLAGS) $(LANTERN_INC)
+lantern_discovery_LIBS  := $(LANTERN_LIB)
+$(TESTOUT)/lantern_discovery: $(LANTERN_LIB)
+
 # The install formats (source/install/: crypto, PFS0/HFS0, XCI, CNMT, NCA),
 # pure C++ with the kit's SHA-256.
 INSTALL_FORMATS := $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp source/install/cnmt.cpp \
@@ -185,13 +222,11 @@ compress_title_LIBS := -llz4
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp
 install_txn_LIBS := -lzstd
-# The library client's formats (source/library/: catalogues, addresses,
-# discovery, endpoints, certificate pins), with the kit's SHA-256.
-LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp $(KIT)/util/sha256.cpp
+# The library's neutral parts (source/library/: addresses, endpoints, title ids).
+LIBRARY_FORMATS := source/library/catalog.cpp source/library/server.cpp
 library_SRC := $(LIBRARY_FORMATS) tests/library/test.cpp
-# A server's catalogue fetched (a scripted network) and the servers' file.
-library_client_SRC := $(filter-out $(KIT)/util/sha256.cpp,$(LIBRARY_FORMATS)) source/library/client.cpp source/library/servers.cpp \
-                      $(SECRET_BOX) $(KIT)/util/sha256.cpp $(KIT)/util/paths.cpp tests/library_client/test.cpp
+# The servers' file: its schema, the carry-over of schema 1.
+library_servers_SRC := source/library/servers.cpp source/library/server.cpp $(KIT)/util/paths.cpp tests/library_servers/test.cpp
 library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp tests/library_titles/test.cpp
 # What is known of the games beyond their catalogue (Nlib API's), kept on
 # the SD card.
@@ -205,9 +240,8 @@ library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
 save_archive_SRC  := source/saves/archive.cpp $(KIT)/util/zip_write.cpp $(KIT)/util/paths.cpp tests/save_archive/test.cpp
 save_archive_LIBS := -lz
-# AeroFoil's other services (a scripted server): sign-in, cheats, save backups, requests.
-library_services_SRC := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp $(KIT)/util/paths.cpp \
-                        tests/library_services/test.cpp
+# The cheat files on the SD card: build ids, their paths, those installed.
+library_services_SRC := source/library/services.cpp $(KIT)/util/paths.cpp tests/library_services/test.cpp
 # What Atlas knows of each game beyond its popularity (games.json,
 # similar.json), and the recommendations made from every signal.
 library_signals_SRC := source/library/signals.cpp tests/library_signals/test.cpp
@@ -362,11 +396,8 @@ install_package_FUZZ_LIBS := -lzstd
 install_bktr_FUZZ       := $(filter-out tests/%,$(bktr_SRC)) tests/fuzz/install_bktr/fuzz.cpp
 install_ivfc_FUZZ       := $(filter-out tests/%,$(ivfc_SRC)) tests/fuzz/install_ivfc/fuzz.cpp
 install_recompress_FUZZ := $(filter-out tests/%,$(recompress_SRC)) tests/fuzz/install_recompress/fuzz.cpp
-library_catalog_FUZZ   := $(LIBRARY_FORMATS) tests/fuzz/library_catalog/fuzz.cpp
-library_discovery_FUZZ := $(LIBRARY_FORMATS) tests/fuzz/library_discovery/fuzz.cpp
 save_archive_FUZZ      := source/saves/archive.cpp tests/fuzz/save_archive/fuzz.cpp
 save_archive_FUZZ_LIBS := -lz
-library_services_FUZZ  := $(LIBRARY_FORMATS) source/library/client.cpp source/library/services.cpp tests/fuzz/library_services/fuzz.cpp
 titledb_FUZZ           := $(filter-out tests/%,$(titledb_SRC)) tests/fuzz/titledb/fuzz.cpp
 FUZZERS := $(sort $(patsubst %_FUZZ,%,$(filter %_FUZZ,$(.VARIABLES))))
 FUZZ_PROGRAMS := $(addprefix $(FUZZOUT)/,$(FUZZERS))

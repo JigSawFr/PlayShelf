@@ -1,4 +1,4 @@
-<!-- translated from docs/troubleshooting.md, sha256 20277d9da266 -->
+<!-- translated from docs/troubleshooting.md, sha256 edf5576b6ee2 -->
 # Dépannage
 
 Que faire quand un catalogue ne peut pas être lu, qu'un serveur n'est pas trouvé, qu'un téléchargement échoue ou qu'un jeu installé ne démarre pas, et comment envoyer un rapport.
@@ -7,18 +7,19 @@ Que faire quand un catalogue ne peut pas être lu, qu'un serveur n'est pas trouv
 
 *Le catalogue n'a pas pu être lu*, avec la raison :
 
-- **le certificat du serveur n'a pas été approuvé** : un serveur de votre réseau avec son propre certificat est approuvé une fois sa clé comparée, à la question que pose PlayShelf ; un serveur dont la clé a changé doit d'abord être oublié. Voir [Certificats](servers.md#certificats).
-- **the index is not JSON**, **the server's answer is not a catalogue** : l'adresse n'est ni l'API du serveur ni un index JSON. Vérifiez-la dans un navigateur, et choisissez dans le profil du serveur le *Catalogue* qu'il parle. Voir [Ce que lit PlayShelf](servers.md#ce-que-lit-playshelf).
-- Un nom d'utilisateur ou un mot de passe refusé : modifiez-les dans le profil du serveur.
+- **cette console n'est pas appairée avec le serveur** : appairez-la de nouveau, à la question que pose PlayShelf ou dans le profil du serveur. Voir [L'appairage](servers.md#lappairage).
+- **refusé (la clé du serveur n'est pas celle épinglée)** : le serveur a été réinstallé ou a reçu un autre certificat. Oubliez l'appairage dans le profil du serveur et appairez de nouveau, après avoir comparé la nouvelle clé. Voir [Certificats](servers.md#certificats).
+- **un autre serveur que celui qui a été appairé** : l'adresse répond maintenant avec un autre serveur ; vérifiez-la, ou appairez de nouveau.
+- **le serveur ne parle pas Lantern** : l'adresse n'est pas celle d'un serveur Lantern. Un serveur d'un autre genre a besoin d'un [pont](https://github.com/JigSawFr/lantern-bridge).
 
 **Relire**, sous le catalogue, le relit depuis le serveur.
 
 ## Aucun serveur trouvé sur le réseau
 
-*Chercher sur ce réseau* liste les serveurs qui répondent à une demande de découverte sur le port UDP 8465 (comme AeroFoil et Ownfoil). Rien trouvé :
+*Chercher sur ce réseau* liste les serveurs qui répondent à une demande de découverte sur le port UDP 47115 (comme les serveurs Lantern). Rien trouvé :
 
 - le serveur est éteint, ou sur un autre réseau que la console (un Wi-Fi invité, un autre sous-réseau) ;
-- un pare-feu sur l'ordinateur du serveur bloque le port UDP 8465 ;
+- un pare-feu sur l'ordinateur du serveur bloque le port UDP 47115 ;
 - le serveur ne répond pas à la découverte : ajoutez-le à la main avec *Ajouter un serveur* et son adresse `https://`.
 
 ## Un téléchargement échoue

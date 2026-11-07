@@ -104,6 +104,32 @@ if (PLATFORM_SWITCH AND USE_DEKO3D)
     endif ()
 endif ()
 
+# The Lantern client (JigSawFr/lantern-sdk, a submodule in library/lantern-sdk):
+# the protocol's whole client, built from its sources with PlayShelf's
+# toolchain. Its TLS transport depends on the platform: mbedTLS over the
+# console's sockets on the Switch (devkitPro's switch-mbedtls), libcurl on a
+# desktop, and none in a browser (source/sim/web_http.cpp answers instead).
+set(LANTERN_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LANTERN_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LANTERN_INSTALL OFF CACHE BOOL "" FORCE)
+if (PLATFORM_SWITCH)
+    set(LANTERN_CURL OFF CACHE STRING "" FORCE)
+    set(LANTERN_MBEDTLS ON CACHE STRING "" FORCE)
+elseif (PLAYSHELF_WEB)
+    set(LANTERN_CURL OFF CACHE STRING "" FORCE)
+    set(LANTERN_MBEDTLS OFF CACHE STRING "" FORCE)
+else ()
+    set(LANTERN_CURL ON CACHE STRING "" FORCE)
+    set(LANTERN_MBEDTLS OFF CACHE STRING "" FORCE)
+endif ()
+add_subdirectory(library/lantern-sdk/cpp ${CMAKE_BINARY_DIR}/lantern)
+list(APPEND PLAYSHELF_LIBS Lantern::lantern)
+if (PLATFORM_SWITCH)
+    list(APPEND PLAYSHELF_LIBS Lantern::mbedtls)
+elseif (NOT PLAYSHELF_WEB)
+    list(APPEND PLAYSHELF_LIBS Lantern::curl)
+endif ()
+
 find_package(Threads REQUIRED)
 list(APPEND PLAYSHELF_LIBS ${CMAKE_THREAD_LIBS_INIT})
 

@@ -1,6 +1,6 @@
 # Downloads
 
-A game's page in the *Catalogue* adds its packages to the **Downloads**: its base game, its updates and its add-ons, each a package. They are installed one after the other, straight from the server to the console: nothing is first saved whole to the SD card.
+A game's page in the *Catalogue* adds its packages to the **Downloads**: its base game, its updates and its add-ons, each a package. They are installed one after the other. Each package is first written whole to the SD card, where the Lantern client checks its size and its SHA-256 against what the server announced, then installed from that file, which is deleted once it is. It takes the package's size on the SD card, on top of its install.
 
 ## The queue
 
@@ -32,7 +32,7 @@ A content that is not signed by Nintendo stops its package: it may have been cha
 Under the queue, and in [`config.json`](config.md):
 
 - **Stay awake while downloading**: the console does not go to sleep by itself while downloads run (on by default).
-- **Connections per download**, 1 to 8 (4 by default): how many requests a download makes at once, each for a 4 MB piece of the package. More help with a server that serves each connection slowly.
+- **Connections per download**, 1 to 8 (4 by default): how many requests *Install from a URL* (*About › Help & diagnostics*) makes at once, each for a 4 MB piece of the package. A library server's packages are fetched by one connection, resumed where it stopped.
 - **Fetch ahead**: while a package installs, the next one or two are fetched to the SD card, when it has room for them and their install; their install then starts from the file. Each takes its size twice on the SD card until it is installed (off by default).
 
 ## Before the first install

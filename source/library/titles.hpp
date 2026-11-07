@@ -29,8 +29,6 @@ struct Title
     std::vector<size_t> updates;          // newest first
     std::vector<size_t> dlcs;             // by name
     uint64_t            size = 0;         // every item's
-    uint32_t            release_date = 0; // YYYYMMDD, 0 when unknown
-    std::string         icon_url;
     std::vector<std::string> sections;    // the ids of the sections its items are in
 };
 

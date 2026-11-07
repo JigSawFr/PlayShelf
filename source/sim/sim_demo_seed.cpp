@@ -11,7 +11,9 @@
 #include <sys/stat.h>
 
 #include "core/sim_env.h"
+#include "lantern_app/platform.hpp"
 #include "library/servers.hpp"
+#include "sim/sim_lantern.hpp"
 #include "sim/sim_demo.hpp"
 #include "titledb/store.hpp"
 #include "util/http.hpp"
@@ -28,6 +30,7 @@ library::Server server()
     s.id = "de0de0de0de0de00";
     s.name = "Demo shelf";
     s.wan_url = DEMO_ORIGIN;
+    s.uid = sim_lantern::DEMO_UID;   // paired already: see sim_lantern
     return s;
 }
 
@@ -88,6 +91,7 @@ void seed_console()
 void start()
 {
     if (dir().empty()) return;
+    lantern_app::set_sim({ sim_lantern::transport, sim_lantern::store });
 #ifndef __EMSCRIPTEN__
     static const http::StandIn answers{ serves,  get,           post,    redirect, download, range,
                                         resource_size, request, call, peer_certificate };

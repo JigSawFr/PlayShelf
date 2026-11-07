@@ -113,21 +113,10 @@ std::vector<Title> group_titles(const Catalog& catalog)
         std::sort(t.updates.begin(), t.updates.end(),
                   [&](size_t a, size_t b) { return items[a].version > items[b].version; });
         sort_folded(t.dlcs, [&](size_t i) -> const std::string& { return items[i].name; });
-        // Its name: the titledb's, else the base game's, else its first
-        // item's, without the file's tags.
-        const auto known = t.id ? catalog.titles.find(t.id) : catalog.titles.end();
+        // Its name: the base game's, else its first item's, without the
+        // file's tags.
         const Item& first = items[t.base >= 0 ? (size_t)t.base : !t.updates.empty() ? t.updates.front() : t.dlcs.front()];
-        if (known != catalog.titles.end() && !known->second.name.empty()) t.name = known->second.name;
-        else t.name = clean_name(first.name);
-        // The base game's icon and date first, else any item's.
-        std::vector<size_t> order;
-        if (t.base >= 0) order.push_back((size_t)t.base);
-        order.insert(order.end(), t.updates.begin(), t.updates.end());
-        order.insert(order.end(), t.dlcs.begin(), t.dlcs.end());
-        for (size_t i : order) {
-            if (t.icon_url.empty()) t.icon_url = items[i].icon_url;
-            if (!t.release_date) t.release_date = items[i].release_date;
-        }
+        t.name = clean_name(first.name);
     }
     return titles;
 }
@@ -159,7 +148,7 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
                 continue;
         }
         publishers[i] = fold(facts.publisher);
-        dates[i] = t.release_date ? t.release_date : facts.release_date;
+        dates[i] = facts.release_date;
         out.push_back(i);
     }
     std::stable_sort(out.begin(), out.end(), [&](size_t a, size_t b) {

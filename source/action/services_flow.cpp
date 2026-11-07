@@ -13,7 +13,7 @@
 
 #include "action/titledb_flow.hpp"
 #include "core/saves.h"
-#include "library/http_transport.hpp"
+#include "lantern_app/services.hpp"
 #include "library/servers.hpp"
 #include "library/services.hpp"
 #include "library/titles.hpp"
@@ -31,14 +31,6 @@ namespace
 {
 using Loaded = std::shared_ptr<const library_flow::Loaded>;
 using Choice = ui::Choice;
-
-// The web sign-in of each server, by its id: the UI thread's only.
-std::map<std::string, library::Session> s_sessions;
-
-library::Link link_of(const library_flow::Loaded& l)
-{
-    return library::link_of(l.server, l.fetch, library::password_of(l.server));
-}
 
 // A game's name: the catalogue's, the title databases', else `fallback`,
 // else its title id.
@@ -103,16 +95,15 @@ void cheat_sheet(const Loaded& l, uint64_t title_id, const std::vector<library::
 void install_cheats(const Loaded& l, const std::vector<library::Cheat>& chosen, const std::function<void()>& after)
 {
     if (ui::refuse_read_only() || chosen.empty()) return;
-    const library::Link link = link_of(*l);
+    const library::Server link = l->server;
     auto                b = busy("playshelf/services/cheats_installing"_i18n, false);
     ui::in_background("cheats", [b, link, chosen, after]() {
-        library::HttpTransport t;
         size_t                 done = 0;
         std::string            why;
         for (const library::Cheat& c : chosen) {
             std::string text;
             const std::string path = library::cheat_path(paths::sd_root(), c.title_id, c.build_id);
-            if (!library::fetch_cheat(link, t, c, &text, &why)) break;
+            if (!lantern_app::fetch_cheat(link, c, &text, &why)) break;
             if (path.empty() || !paths::ensure_dir(path.substr(0, path.find_last_of('/'))) ||
                 !paths::atomic_write(path, text, &why)) {
                 if (why.empty()) why = "the SD card refused the file";
@@ -133,12 +124,11 @@ void install_cheats(const Loaded& l, const std::vector<library::Cheat>& chosen, 
 
 void view_cheat(const Loaded& l, const library::Cheat& c)
 {
-    const library::Link link = link_of(*l);
+    const library::Server link = l->server;
     auto                b = busy("playshelf/services/cheat_reading"_i18n, true);
     ui::in_background("cheat", [b, link, c]() {
-        library::HttpTransport t;
         std::string            text, why;
-        const bool             ok = library::fetch_cheat(link, t, c, &text, &why);
+        const bool             ok = lantern_app::fetch_cheat(link, c, &text, &why);
         aurore::sync([b, ok, text, why, c]() {
             if (!finish(b)) return;
             if (!ok) {
@@ -239,7 +229,7 @@ void open_saves(const Loaded& l, const CoreSaveUser& user, uint64_t only);
 void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint64_t title_id);
 
 // On a worker thread: the games `user` has a save of, and the server's backups.
-std::shared_ptr<const SaveData> read_saves(const library::Link& link, const CoreSaveUser& user)
+std::shared_ptr<const SaveData> read_saves(const library::Server& link, const CoreSaveUser& user)
 {
     auto d = std::make_shared<SaveData>();
     d->user = user;
@@ -247,21 +237,19 @@ std::shared_ptr<const SaveData> read_saves(const library::Link& link, const Core
     const int        n = core_save_titles(&user, ids.data(), (int)ids.size());
     d->local_read = n >= 0;
     for (int i = 0; i < n; i++) d->local.insert(ids[(size_t)i]);
-    library::HttpTransport t;
-    if (!library::list_saves(link, t, &d->backups, &d->why)) d->backups.clear();
+    if (!lantern_app::list_saves(link, &d->backups, &d->why)) d->backups.clear();
     return d;
 }
 
 std::string backup_label(const library::SaveBackup& s)
 {
-    std::string when = s.created ? ui::time_text((uint64_t)s.created) : s.created_at;
-    if (s.server_copy) return aurore::getStr("playshelf/services/save_server_copy", when);
+    const std::string when = s.created ? ui::time_text((uint64_t)s.created) : s.created_at;
     return s.note.empty() ? when : when + " · " + s.note;
 }
 
 void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const std::string& note)
 {
-    const library::Link link = link_of(*l);
+    const library::Server link = l->server;
     auto                b = busy(aurore::getStr("playshelf/services/save_sending", game_name(*l, title_id)), true);
     ui::in_background("save backup", [b, link, user, title_id, note, l]() {
         std::string       why;
@@ -275,8 +263,7 @@ void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const
             core_save_unmount();
         }
         if (ok && !*b->cancel) {
-            library::HttpTransport t;
-            ok = library::upload_save(link, t, title_id, zip, note,
+            ok = lantern_app::upload_save(link, title_id, zip, note,
                                       [b](uint64_t done, uint64_t total) { show_progress(b, done, total); },
                                       b->cancel.get(), &why);
         }
@@ -303,16 +290,15 @@ void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const
 void restore(const Loaded& l, const CoreSaveUser& user, const library::SaveBackup& backup)
 {
     if (ui::refuse_read_only()) return;
-    const library::Link link = link_of(*l);
+    const library::Server link = l->server;
     const std::string   name = game_name(*l, backup.title_id, backup.title_name);
     auto                b = busy(aurore::getStr("playshelf/services/save_restoring", name), false);
     ui::in_background("save restore", [b, link, user, backup, l, name]() {
         std::string       why, kept;
         const std::string zip = paths::cache_dir() + "/save_restore.zip";
         paths::ensure_dir(paths::cache_dir());
-        library::HttpTransport          t;
         std::vector<save_archive::Entry> entries;
-        bool ok = library::download_save(link, t, backup, zip, [b](uint64_t d, uint64_t n) { show_progress(b, d, n); },
+        bool ok = lantern_app::download_save(link, backup, zip, [b](uint64_t d, uint64_t n) { show_progress(b, d, n); },
                                          nullptr, &why) &&
                   save_archive::read_entries(zip, &entries, &why);
         char root[512];
@@ -366,12 +352,11 @@ void remove_backup(const Loaded& l, const CoreSaveUser& user, const library::Sav
 {
     ui::confirm_danger(aurore::getStr("playshelf/services/save_delete_body", backup_label(backup)),
                        "playshelf/services/save_delete"_i18n, [l, user, backup]() {
-                           const library::Link link = link_of(*l);
+                           const library::Server link = l->server;
                            auto                b = busy("playshelf/services/save_deleting"_i18n, false);
                            ui::in_background("save delete", [b, link, backup, l, user]() {
-                               library::HttpTransport t;
                                std::string            why;
-                               const bool             ok = library::delete_save(link, t, backup, &why);
+                               const bool             ok = lantern_app::delete_save(link, backup, &why);
                                const auto             d = ok ? read_saves(link, user) : nullptr;
                                aurore::sync([b, ok, why, l, d, backup]() {
                                    finish(b);
@@ -418,12 +403,11 @@ void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint6
                                      }, "restore");
                                  else
                                      what.emplace_back("playshelf/services/save_play_first"_i18n, nullptr, "info");
-                                 if (!s.delete_url.empty())
-                                     what.emplace_back("playshelf/services/save_delete"_i18n, [l, user, s]() { remove_backup(l, user, s); },
-                                                       "trash", "", "", Choice::Tone::DANGER);
+                                 what.emplace_back("playshelf/services/save_delete"_i18n, [l, user, s]() { remove_backup(l, user, s); },
+                                                   "trash", "", "", Choice::Tone::DANGER);
                                  ui::pick_actions(backup_label(s), what, library_flow::size_text(s.size));
                              },
-                             s.server_copy ? "folder" : "save", library_flow::size_text(s.size), "playshelf/services/group_server"_i18n,
+                             "save", library_flow::size_text(s.size), "playshelf/services/group_server"_i18n,
                              s.latest ? Choice::Tone::ON : Choice::Tone::PLAIN);
     }
     if (!count)
@@ -436,7 +420,7 @@ void games_with_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d)
 {
     std::map<uint64_t, size_t> backups;
     for (const library::SaveBackup& s : d->backups)
-        backups[s.title_id] += !s.server_copy;
+        backups[s.title_id]++;
     std::set<uint64_t> ids = d->local;
     for (const auto& kv : backups) ids.insert(kv.first);
     if (ids.empty()) {
@@ -467,7 +451,7 @@ void games_with_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d)
 
 void open_saves(const Loaded& l, const CoreSaveUser& user, uint64_t only)
 {
-    const library::Link link = link_of(*l);
+    const library::Server link = l->server;
     auto                b = busy("playshelf/services/saves_reading"_i18n, true);
     ui::in_background("saves", [b, link, user, only, l]() {
         const auto d = read_saves(link, user);
@@ -481,18 +465,14 @@ void open_saves(const Loaded& l, const CoreSaveUser& user, uint64_t only)
 
 // ---------------------------------------------------------------- requests
 
-void ask_for(const Loaded& l, uint64_t id, const std::string& name)
+void ask_for(const Loaded& l, uint64_t id)
 {
-    const library::Link link = link_of(*l);
-    const std::string   server_id = l->server.id;
-    library::Session    session = s_sessions[server_id];
+    const library::Server link = l->server;
     auto                b = busy("playshelf/services/request_sending"_i18n, false);
-    ui::in_background("request", [b, link, session, id, name, server_id]() mutable {
-        library::HttpTransport t;
+    ui::in_background("request", [b, link, id]() {
         std::string            message, why;
-        const bool             ok = library::request_title(link, t, session, id, name, &message, &why);
-        aurore::sync([b, ok, message, why, session, server_id]() {
-            s_sessions[server_id] = session;
+        const bool             ok = lantern_app::request_title(link, id, &message, &why);
+        aurore::sync([b, ok, message, why]() {
             finish(b);
             if (!ok) ui::error("playshelf/services/request_failed"_i18n, why);
             else ui::notify(message.empty() ? "playshelf/services/request_sent"_i18n : message);
@@ -508,11 +488,7 @@ void search_and_ask(const Loaded& l)
         if (typed) {
             const uint64_t base = library::base_of(typed);
             ui::confirm(aurore::getStr("playshelf/services/request_body", game_name(*l, base)), "playshelf/services/request"_i18n,
-                        [l, base]() {
-                            // Its name only when known: never its title id in its place.
-                            const std::string name = game_name(*l, base);
-                            ask_for(l, base, name == title_id::text(base) ? "" : name);
-                        });
+                        [l, base]() { ask_for(l, base); });
             return;
         }
         auto b = busy("playshelf/services/request_searching"_i18n, true);
@@ -532,12 +508,12 @@ void search_and_ask(const Loaded& l)
                     details.push_back(on_server.count(id) ? "playshelf/services/request_there"_i18n : title_id::text(id));
                 }
                 ui::pick("playshelf/services/request_pick"_i18n, names, 0, [l, found, on_server](int i) {
-                    const auto& [id, name] = found[(size_t)i];
+                    const uint64_t id = found[(size_t)i].first;
                     if (on_server.contains(id)) {
                         ui::info("playshelf/services/request_there_body"_i18n);
                         return;
                     }
-                    ask_for(l, id, name);
+                    ask_for(l, id);
                 }, false, details);
             });
         });
@@ -555,34 +531,32 @@ std::string status_text(const std::string& status)
 
 bool offered(const library_flow::Loaded& l)
 {
-    return l.fetch.status == library::FetchStatus::Ok && l.fetch.dialect == library::Dialect::Sections;
+    return l.fetch.status == lantern_app::Status::Ok && (l.fetch.cheats || l.fetch.saves || l.fetch.requests);
 }
 
 std::vector<Choice> game_choices(const Loaded& l, uint64_t title_id)
 {
     std::vector<Choice> out;
     if (!l || !title_id || !offered(*l)) return out;
-    out.emplace_back("playshelf/services/cheats"_i18n, [l, title_id]() { cheats(l, title_id); }, "code", "",
-                     "playshelf/services/group_server_more"_i18n);
-    out.emplace_back("playshelf/services/saves"_i18n, [l, title_id]() { saves(l, title_id); }, "save", "",
-                     "playshelf/services/group_server_more"_i18n);
+    if (l->fetch.cheats)
+        out.emplace_back("playshelf/services/cheats"_i18n, [l, title_id]() { cheats(l, title_id); }, "code", "",
+                         "playshelf/services/group_server_more"_i18n);
+    if (l->fetch.saves)
+        out.emplace_back("playshelf/services/saves"_i18n, [l, title_id]() { saves(l, title_id); }, "save", "",
+                         "playshelf/services/group_server_more"_i18n);
     return out;
 }
 
 void cheats(const Loaded& l, uint64_t title_id)
 {
     if (!l) return;
-    const library::Link link = link_of(*l);
-    const std::string   server_id = l->server.id;
-    library::Session    session = s_sessions[server_id];
+    const library::Server link = l->server;
     auto                b = busy("playshelf/services/cheats_reading"_i18n, true);
-    ui::in_background("cheats", [b, link, session, server_id, l, title_id]() mutable {
-        library::HttpTransport      t;
+    ui::in_background("cheats", [b, link, l, title_id]() {
         std::vector<library::Cheat> list;
         std::string                 why;
-        const bool                  ok = library::list_cheats(link, t, session, &list, &why);
-        aurore::sync([b, ok, list, why, session, server_id, l, title_id]() {
-            s_sessions[server_id] = session;
+        const bool                  ok = lantern_app::list_cheats(link, title_id, &list, &why);
+        aurore::sync([b, ok, list, why, l, title_id]() {
             if (!finish(b)) return;
             if (!ok) {
                 ui::error("playshelf/services/cheats_failed_list"_i18n, why);
@@ -646,17 +620,13 @@ void saves(const Loaded& l, uint64_t title_id)
 void requests(const Loaded& l)
 {
     if (!l) return;
-    const library::Link link = link_of(*l);
-    const std::string   server_id = l->server.id;
-    library::Session    session = s_sessions[server_id];
+    const library::Server link = l->server;
     auto                b = busy("playshelf/services/requests_reading"_i18n, true);
-    ui::in_background("requests", [b, link, session, server_id, l]() mutable {
-        library::HttpTransport             t;
+    ui::in_background("requests", [b, link, l]() {
         std::vector<library::TitleRequest> list;
         std::string                        why;
-        const bool                         ok = library::list_requests(link, t, session, &list, &why);
-        aurore::sync([b, ok, list, why, session, server_id, l]() {
-            s_sessions[server_id] = session;
+        const bool                         ok = lantern_app::list_requests(link, &list, &why);
+        aurore::sync([b, ok, list, why, l]() {
             if (!finish(b)) return;
             if (!ok) {
                 ui::error("playshelf/services/requests_failed"_i18n, why);

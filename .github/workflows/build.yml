@@ -80,7 +80,7 @@ jobs:
           ref: ${{ inputs.tag || github.ref }}
           submodules: true
       - name: Dependencies
-        run: dpkg -s zlib1g-dev libzstd-dev liblz4-dev > /dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends zlib1g-dev libzstd-dev liblz4-dev; }
+        run: dpkg -s zlib1g-dev libzstd-dev liblz4-dev cmake > /dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends zlib1g-dev libzstd-dev liblz4-dev cmake; }
       - name: Compiler messages as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
       - name: Host tests
@@ -292,9 +292,10 @@ jobs:
           submodules: true
       - name: Compiler messages as annotations
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
-      # libwebp for the title database's icons, when the image lacks it.
+      # libwebp for the title database's icons and mbedTLS for the Lantern
+      # client's connections, when the image lacks them.
       - name: Portlibs
-        run: dkp-pacman -Q switch-libwebp > /dev/null 2>&1 || dkp-pacman -Sy --noconfirm switch-libwebp
+        run: for p in switch-libwebp switch-mbedtls; do dkp-pacman -Q "$p" > /dev/null 2>&1 || dkp-pacman -Sy --noconfirm "$p"; done
       - name: Build .nro / .zip
         env:
           # The commit the app says it was built from (app::commit()): for a

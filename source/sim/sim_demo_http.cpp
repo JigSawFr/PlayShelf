@@ -25,7 +25,7 @@ const std::string& dir()
         const std::string at = PLAYSHELF_DEMO_DIR;
 #endif
         struct stat st;
-        return !at.empty() && ::stat((at + "/index.json").c_str(), &st) == 0 ? at : std::string();
+        return !at.empty() && ::stat((at + "/lantern/apps.json").c_str(), &st) == 0 ? at : std::string();
     }();
     return d;
 }
@@ -40,7 +40,7 @@ constexpr size_t SLICE = 32u << 10;   // read, paced and handed on at a time
 // simulated speed; the others' at once.
 bool demo_file(const std::string& url, std::string* path, bool* paced = nullptr)
 {
-    const std::string origin = DEMO_ORIGIN, insights = INSIGHTS_BASE, nlib = NLIB_BASE;
+    const std::string insights = INSIGHTS_BASE, nlib = NLIB_BASE;
     std::string       rest;
     if (paced) *paced = false;
     if (dir().empty()) return false;
@@ -56,14 +56,10 @@ bool demo_file(const std::string& url, std::string* path, bool* paced = nullptr)
         else if (what == "/banner/480p") rest = "/nlib/" + id + "/banner.jpg";
         else if (what.starts_with("/screen/")) rest = "/nlib/" + id + "/screen" + what.substr(8) + ".jpg";
         else return false;
-    } else if (url.starts_with(origin)) {
-        rest = url.substr(origin.size());
-        if (paced) *paced = true;
     } else
         return false;
     const size_t query = rest.find_first_of("?#");
     if (query != std::string::npos) rest.resize(query);
-    if (rest.empty() || rest == "/") rest = "/index.json";
     if (rest.contains("..")) return false;
     *path = dir() + rest;
     return true;
@@ -277,14 +273,6 @@ bool call(const std::string& url, const http::Call& c, const http::Headers&, con
     if (!demo_file(url, &path, &paced)) return sim_net::offline(error);
     response->cookies.clear();
     response->location.clear();
-    // The demo server's sign-in always lets in (a session for its other
-    // services); what it is sent is not kept: a form, a deletion.
-    if (c.method == "POST" && url == std::string(DEMO_ORIGIN) + "/login") {
-        response->status = 302;
-        response->location = "/";
-        response->cookies.push_back("session=demo");
-        return true;
-    }
     if (!c.method.empty() && c.method != "GET" && c.method != "OPTIONS") return sim_net::offline(error);
     if (c.to_path.empty()) return whole(path, &response->body, error, max_bytes, &response->status, paced);
     const bool ok = save(url, c.to_path, error, max_bytes, c.progress, 0, c.cancel);

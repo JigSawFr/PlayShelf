@@ -382,9 +382,6 @@ void LibraryTab::add_page()
             if (held && *held && gen == this->generation && at < this->icons.size()) this->icons[at](p);
         };
         if (e.game->icon) library_icons::decode(e.game->icon, shown);
-        else if (e.data && !e.data->titles[(size_t)e.title].icon_url.empty())
-            library_icons::get(e.data, library::password_of(e.data->server), e.data->titles[(size_t)e.title].icon_url, shown,
-                               e.game->game.id);
         else
             library_icons::local(e.game->game.id, shown);
     }
@@ -520,12 +517,7 @@ void LibraryTab::open(size_t i)
     // Its cover as the Library shows it: the console's icon, else the
     // server's, else the title database's or Nlib API's.
     const std::shared_ptr<const std::vector<uint8_t>> own = e.game->icon;
-    const auto                                        data = e.data;
-    const std::string url = data ? data->titles[(size_t)e.title].icon_url : "";
-    const auto ask = [data, url, game_id](library_icons::Done shown) {
-        if (data && !url.empty()) library_icons::get(data, library::password_of(data->server), url, std::move(shown), game_id);
-        else library_icons::local(game_id, std::move(shown));
-    };
+    const auto ask = [game_id](library_icons::Done shown) { library_icons::local(game_id, std::move(shown)); };
     page.icon = [own, ask](library_icons::Done shown) {
         if (!own) return ask(std::move(shown));
         library_icons::decode(own, [ask, shown](const library_icons::Picture& p) {

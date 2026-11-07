@@ -6,18 +6,19 @@ What to do when a catalogue cannot be read, a server is not found, a download fa
 
 *The catalogue could not be read*, with the reason:
 
-- **the server's certificate was not trusted**: a server of your network with a certificate of its own is trusted once its key is compared, from the question PlayShelf asks; a server whose key changed must be forgotten first. See [Certificates](servers.md#certificates).
-- **the index is not JSON**, **the server's answer is not a catalogue**: the address is not the server's API nor a JSON index. Check it in a browser, and set *Catalogue* in the server's profile to the format it speaks. See [What PlayShelf reads](servers.md#what-playshelf-reads).
-- A user name or password refused: change them in the server's profile.
+- **this console is not paired with the server**: pair it again, from the question PlayShelf asks or the server's profile. See [Pairing](servers.md#pairing).
+- **refused (the server's key is not the one pinned)**: the server was reinstalled or given another certificate. Forget the pairing in the server's profile and pair again, after comparing the new key. See [Certificates](servers.md#certificates).
+- **another server than the one that was paired**: the address now answers with another server; check it, or pair again.
+- **the server does not speak Lantern**: the address is not a Lantern server's. A server of another kind needs a [bridge](https://github.com/JigSawFr/lantern-bridge).
 
 **Read again**, under the catalogue, reads it from the server once more.
 
 ## No server found on the network
 
-*Find on this network* lists the servers that answer a discovery request on UDP port 8465 (AeroFoil and Ownfoil do). Nothing found:
+*Find on this network* lists the servers that answer a discovery request on UDP port 47115 (Lantern servers do). Nothing found:
 
 - the server is off, or on another network than the console (a guest Wi-Fi, a different subnet);
-- a firewall on the server's computer blocks UDP port 8465;
+- a firewall on the server's computer blocks UDP port 47115;
 - the server does not answer discovery: add it by hand with *Add a server* and its `https://` address.
 
 ## A download fails

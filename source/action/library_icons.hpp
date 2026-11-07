@@ -40,16 +40,9 @@ using Done = std::function<void(Picture)>;
 // and the image left as it was, when there is none.
 bool show(aurore::Image* image, const Picture& picture);
 
-// `done(picture)` on the UI thread: nullptr when there is none (no icon,
-// not an image, the server refused it). Not called for an icon dropped
-// before it was fetched. `password`: the server's, opened
-// (library::password_of). `title_id` (0: none): the game's, whose icon
-// local() gives when the server's does not come.
-void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& password, const std::string& url, Done done,
-         uint64_t title_id = 0);
-
-// A title's icon from the title database (titledb_flow), else from Nlib
-// API, as get() gives it (`done(nullptr)`: neither has one).
+// `done(picture)` on the UI thread, with a title's icon from the title
+// database (titledb_flow), else from Nlib API (`done(nullptr)`: neither has
+// one, or the icon was dropped before it was fetched).
 void local(uint64_t title_id, Done done);
 
 // A picture at `url` (Nlib API's banner, a screenshot: no credentials, no

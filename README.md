@@ -10,7 +10,7 @@
 
 ---
 
-PlayShelf is a Nintendo Switch homebrew that browses a library server you run yourself (an [AeroFoil](https://github.com/luketanti/AeroFoil) or [Ownfoil](https://github.com/a1ex4/ownfoil) server, or a plain JSON index) and installs **your own backups and homebrew** from it. With an AeroFoil server, it also installs its cheats, keeps copies of your saves on it and asks it for a game.
+PlayShelf is a Nintendo Switch homebrew that browses a library server you run yourself, that speaks [Lantern](https://lantern.boreale.dev), and installs **your own backups and homebrew** from it, each package checked against the SHA-256 the server announced. It also installs the server's cheats, keeps copies of your saves on it and asks it for a game. A server of another kind (AeroFoil, Ownfoil, a JSON index) needs a [bridge](https://github.com/JigSawFr/lantern-bridge).
 
 It is built on the same technical base and the same *Cadran* look as [PlayGuard](https://github.com/JigSawFr/PlayGuard).
 

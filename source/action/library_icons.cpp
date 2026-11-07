@@ -29,9 +29,7 @@ constexpr int    MAX_SIDE = 4096;   // a JPEG or PNG larger than this is not dec
 
 struct Job
 {
-    std::shared_ptr<const library_flow::Loaded> loaded;
     std::string                                 url;
-    std::string                                 password;
     Done                                        done;
     uint64_t                                    title_id = 0;   // the game's: the title database's icon, then Nlib API's
     bool                                        online = false; // config nlib_api when it was asked
@@ -130,16 +128,6 @@ std::string fetched(const std::string& url, const http::Headers& headers, const 
     return r.body;
 }
 
-// On the worker: the server's icon (the credentials and the pin only for
-// its own address).
-std::string bytes_of(const Job& job)
-{
-    const library::Server& s = job.loaded->server;
-    const bool             own = library::same_origin(job.url, job.loaded->fetch.endpoint);
-    const http::Headers    headers = own ? library::auth_headers(s.username, job.password) : http::Headers();
-    return fetched(job.url, headers, own && job.loaded->fetch.on_lan ? s.pin : "", 15);
-}
-
 // On the worker: the game's icon from the title database, else from Nlib
 // API (a game it did not know left alone).
 Picture local_picture(const Job& job)
@@ -178,9 +166,7 @@ void drain()
         Picture picture;
         if (job.max_w) picture = scaled(fetched(job.url, {}, "", 15), job.max_w, job.max_h);
         else {
-            // The server's icon; the game's own when the server gave none.
-            const std::string bytes = job.loaded ? bytes_of(job) : "";
-            picture = bytes.empty() && job.title_id ? local_picture(job) : decoded(bytes);
+            picture = job.title_id ? local_picture(job) : nullptr;
         }
         aurore::sync([picture, done = std::move(job.done)]() { done(picture); });
     }
@@ -203,20 +189,6 @@ bool show(aurore::Image* image, const Picture& picture)
     if (!image || !picture) return false;
     image->setImageFromRGBA(picture->rgba.data(), picture->width, picture->height);
     return true;
-}
-
-void get(std::shared_ptr<const library_flow::Loaded> l, const std::string& password, const std::string& url, Done done,
-         uint64_t title_id)
-{
-    if (!l || url.empty()) return;
-    Job job;
-    job.loaded = std::move(l);
-    job.url = url;
-    job.password = password;
-    job.done = std::move(done);
-    job.title_id = title_id;
-    job.online = config::get().nlib_api;
-    queue(std::move(job));
 }
 
 void local(uint64_t title_id, Done done)

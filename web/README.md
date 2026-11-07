@@ -42,8 +42,8 @@ monsters to collect, a village to live in…), of made-up series and studios,
 none of a real game's names, characters or pictures. 24 are on the server,
 4 are only coming out.
 
-- **The catalogue**, a JSON index of the server's games, some with updates
-  and add-ons, two as an NSZ, each with its icon.
+- **The catalogue**, the server's apps as a Lantern server lists them (`lantern/apps.json`), some with updates
+  and add-ons, two as an NSZ.
 - **The packages**, made by `tools/web_demo.cpp` with the install suites'
   builders (`tests/install/packages.hpp`): encrypted with the host tests'
   keys, which the simulated console takes (`source/sim/sim_install.cpp`).

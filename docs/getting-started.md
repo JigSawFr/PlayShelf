@@ -9,7 +9,7 @@ PlayShelf browses a library server you run yourself and installs your own backup
 
 - A Nintendo Switch with [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere).
 - [sys-patch](https://github.com/impeeza/sys-patch) or sigpatches, for the games installed to start. PlayShelf looks for them before it installs, and asks whether to go on when it finds neither.
-- A library server of your own, reachable over HTTPS: [AeroFoil](https://github.com/luketanti/AeroFoil), Ownfoil, or any web server with a JSON index of your files. See [Library servers](servers.md).
+- A library server of your own that speaks [Lantern](https://lantern.boreale.dev), reachable over HTTPS. A server that speaks something else (AeroFoil, Ownfoil, a JSON index) needs a [bridge](https://github.com/JigSawFr/lantern-bridge). See [Library servers](servers.md).
 
 ## Install PlayShelf
 
@@ -23,8 +23,8 @@ PlayShelf keeps its settings and its data in `sd:/config/playshelf/`: its server
 
 The first start opens on **Home**, which welcomes you: there is no server yet.
 
-- **Add a server**: its name, its `https://` address on your network, over the Internet or both, and its user name and password if it has an account. See [Adding a server](servers.md#adding-a-server).
-- **Find on this network**: lists the AeroFoil and Ownfoil servers that answer on the console's network, to pick one.
+- **Add a server**: its name and its `https://` address on your network, over the Internet or both; then **pair** the console with it, from the code PlayShelf shows. See [Adding a server](servers.md#adding-a-server) and [Pairing](servers.md#pairing).
+- **Find on this network**: lists the Lantern servers that answer on the console's network, to pick one.
 
 ## Install a game
 
