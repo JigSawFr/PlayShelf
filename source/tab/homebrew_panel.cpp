@@ -161,6 +161,21 @@ void HomebrewPanel::rebuild()
     ++this->generation;
     aurore::Box*  row = nullptr;
     aurore::View* first = nullptr;
+    size_t        updates = 0;
+    for (size_t i : keep) updates += homebrew_flow::standing(items[i]) == homebrew_flow::Standing::Update;
+    if (updates > 0) {
+        // One pill to bring every update, above the tiles.
+        auto* all = new ToolChip("download", "playshelf/homebrew/update_all"_i18n);
+        all->set_value(std::to_string(updates));
+        all->set_active(true);
+        all->setMarginBottom(12);
+        all->registerClickAction([this](aurore::View*) {
+            this->update_all();
+            return true;
+        });
+        box->addView(all);
+        first = all;
+    }
     for (size_t at = 0; at < keep.size(); at++) {
         if (!row || (int)row->getChildren().size() >= GameTile::columns()) {
             row = new aurore::Box(aurore::Axis::ROW);
@@ -272,6 +287,45 @@ void HomebrewPanel::install(size_t index)
         }
         this->built_key.clear();
         this->rebuild();
+    }));
+}
+
+void HomebrewPanel::update_all()
+{
+    if (ui::refuse_read_only() || !this->data) return;
+    if (homebrew_flow::busy()) {
+        ui::info("playshelf/homebrew/busy"_i18n);
+        return;
+    }
+    auto todo = std::make_shared<std::vector<size_t>>();
+    for (size_t i = 0; i < this->data->list.items.size(); i++)
+        if (homebrew_flow::standing(this->data->list.items[i]) == homebrew_flow::Standing::Update) todo->push_back(i);
+    if (!todo->empty()) this->update_step(todo, 0, 0);
+}
+
+// The `at`th of `todo`; on to the next when it is done or its paths were
+// refused, stopped with the reason when it fails. `done` counts the ones
+// installed.
+void HomebrewPanel::update_step(const std::shared_ptr<std::vector<size_t>>& todo, size_t at, size_t done)
+{
+    if (at >= todo->size()) {
+        this->built_key.clear();
+        this->rebuild();
+        if (done > 0) ui::info(aurore::getStr("playshelf/homebrew/updated_all", done));
+        return;
+    }
+    const std::string name = this->data->list.items[(*todo)[at]].name;
+    aurore::Dialog*   dialog = ui::dialog(aurore::getStr("playshelf/homebrew/updating", name, at + 1, todo->size()));
+    dialog->open();
+    homebrew_flow::install(this->data, (*todo)[at], ui::guarded(this->alive, [this, dialog, name, todo, at, done](std::string why) {
+        dialog->close();
+        this->built_key.clear();
+        if (!why.empty() && why != homebrew_flow::DECLINED) {
+            ui::error(aurore::getStr("playshelf/homebrew/install_failed", name), why);
+            this->rebuild();
+            return;
+        }
+        this->update_step(todo, at + 1, done + (why.empty() ? 1 : 0));
     }));
 }
 

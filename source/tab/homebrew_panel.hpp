@@ -58,6 +58,9 @@ class HomebrewPanel
     void install(size_t index);
     void remove(const std::string& id);
     void check_data(size_t index);
+    // The entries with an update, installed one after the other.
+    void update_all();
+    void update_step(const std::shared_ptr<std::vector<size_t>>& todo, size_t at, size_t done);
 
     aurore::Box*   host;
     aurore::Label* status;
