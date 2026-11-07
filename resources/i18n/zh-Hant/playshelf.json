@@ -13,7 +13,8 @@
         "about": "關於",
         "library": "遊戲庫",
         "catalogue": "目錄",
-        "downloads": "下載"
+        "downloads": "下載",
+        "homebrew": "自製軟體"
     },
     "hints": {
         "refresh": "重新整理",
@@ -752,5 +753,25 @@
         "intro": "此主機上安裝的 Boréale 家族自製軟體：每個軟體啟動時會把自己加到這裡。在其中一個上按 A 即可開啟。",
         "this_app": "本應用程式",
         "open_manual": "請從自製軟體選單開啟 {}。"
+    },
+    "homebrew": {
+        "no_server": "請先配對伺服器(目錄),才能查看其自製軟體。",
+        "reading": "正在讀取伺服器的自製軟體…",
+        "failed": "無法讀取自製軟體:{}",
+        "none": "此伺服器沒有適用於這台主機的自製軟體。",
+        "count": "{} 個自製軟體,來自 {}",
+        "installed": "已安裝",
+        "update_available": "有可用更新",
+        "install": "安裝",
+        "update": "更新",
+        "reinstall": "重新安裝",
+        "remove": "移除",
+        "busy": "正在安裝另一個自製軟體。",
+        "installing": "正在安裝 {}…",
+        "install_failed": "無法安裝 {}",
+        "installed_ok": "{} 已安裝。",
+        "remove_failed": "無法移除自製軟體",
+        "consent_body": "{} 會寫入可能改變主機啟動方式的位置:",
+        "consent_yes": "仍然安裝"
     }
 }

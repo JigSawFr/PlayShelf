@@ -349,7 +349,7 @@ if not m or int(m.group(1)) < 2000:
 # screenshot.
 time.sleep(4)
 
-# The tabs, down the rail: Home, Library, Catalogue, Downloads | Preferences, About.
+# The tabs, down the rail: Home, Library, Catalogue, Downloads, Homebrew | Preferences, About.
 shot("00_home")
 key("Down")
 shot("01_library")
@@ -357,6 +357,8 @@ key("Down")
 shot("12_catalogue")
 key("Down")
 shot("11_downloads")
+key("Down")
+shot("13_homebrew")
 key("Down")
 shot("02_preferences")
 key("Right")                 # into Preferences: the language tile

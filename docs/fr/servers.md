@@ -1,4 +1,4 @@
-<!-- translated from docs/servers.md, sha256 91372650123e -->
+<!-- translated from docs/servers.md, sha256 dfad5356866e -->
 # Serveurs de bibliothèque
 
 PlayShelf installe depuis un serveur de bibliothèque que vous faites tourner vous-même, sur un ordinateur ou un NAS, et qui parle [Lantern](https://lantern.boreale.dev) : il lit le catalogue du serveur, puis télécharge les paquets, chacun vérifié d'après la taille et le SHA-256 annoncés par le serveur. Jusqu'à 16 serveurs peuvent être gardés, chacun avec ses adresses.
@@ -37,6 +37,10 @@ Le catalogue, ce sont les sections du serveur et ses jeux, avec leurs tailles et
 - **Demandes** : les jeux que vous avez demandés au serveur et où en est chacun ; **Demander un jeu** en trouve un par son nom dans les bases de titres, ou par son title id.
 
 Ce qu'une personne peut faire dépend des droits que le serveur a donnés à cette console à l'appairage.
+
+## Homebrews
+
+L'onglet *Homebrews* liste les homebrews qu'un serveur offre pour la console (SPEC § 8) : nom, version et auteur, et si la console l'a déjà ou si une mise à jour existe. **Installer** récupère le paquet en entier, vérifie sa taille et son SHA-256 d'après ce que le serveur annonce, puis l'écrit là où le profil Switch le dit : un seul `.nro` dans `sd:/switch/<id>/<id>.nro`, une surcouche dans `sd:/switch/.overlays/`, une archive décompressée dans son propre dossier. Chaque fichier d'une archive est vérifié d'après le manifeste du paquet avant qu'aucun ne soit mis en place. Un paquet qui écrit hors de ses dossiers (sous `sd:/atmosphere/`, par exemple) montre d'abord chaque chemin et ne s'installe que si vous êtes d'accord. Une **mise à jour** retire les fichiers que la nouvelle version ne livre plus ; **Supprimer** efface ce que le homebrew a écrit et les dossiers qu'il laisse vides. Ce qui est installé est gardé dans `sd:/config/playshelf/homebrew.json`.
 
 ## Téléchargements
 

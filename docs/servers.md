@@ -37,6 +37,10 @@ The catalogue is the server's sections and its games, with their sizes and versi
 
 What a person may do depends on the scopes the server gave this console when it paired.
 
+## Homebrew
+
+The *Homebrew* tab lists the homebrew a server offers for the console (SPEC § 8): its name, version and author, and whether the console has it or an update. **Install** fetches the package whole, checks its size and SHA-256 against what the server announced, then writes it where the Switch profile says: a single `.nro` at `sd:/switch/<id>/<id>.nro`, an overlay in `sd:/switch/.overlays/`, an archive unpacked into its own folder. Every file of an archive is checked against the package's manifest before any is moved into place. A package that writes outside its own folders (under `sd:/atmosphere/`, for example) shows each path first and installs only if you agree. An **update** removes the files the new version no longer ships; **Remove** deletes what the homebrew wrote and the folders it left empty. What is installed is kept in `sd:/config/playshelf/homebrew.json`.
+
 ## Downloads
 
 A package is installed as it arrives: the installer asks the server for the ranges it needs, each a signed request of the SDK's client, so the install goes on while the package downloads and takes no room beyond itself. The contents are checked by the installer as it reads them; the whole file's SHA-256 is checked only for a package fetched ahead, which the client writes to the SD card (a download cut short resumes where it stopped, the file hashed again first) and which is installed from that file once whole.

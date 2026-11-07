@@ -30,6 +30,10 @@
             <DownloadsTab/>
         </aurore:Tab>
 
+        <aurore:Tab label="@i18n/playshelf/tabs/homebrew">
+            <HomebrewTab/>
+        </aurore:Tab>
+
         <aurore:Separator/>
 
         <aurore:Tab label="@i18n/playshelf/tabs/preferences">

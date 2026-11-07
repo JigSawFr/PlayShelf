@@ -13,7 +13,8 @@
         "about": "정보",
         "library": "라이브러리",
         "catalogue": "카탈로그",
-        "downloads": "다운로드"
+        "downloads": "다운로드",
+        "homebrew": "홈브루"
     },
     "hints": {
         "refresh": "새로 고침",
@@ -752,5 +753,25 @@
         "intro": "이 콘솔에 설치된 Boréale 패밀리의 홈브류입니다. 각각 시작할 때 여기에 추가됩니다. A를 누르면 열립니다.",
         "this_app": "이 앱",
         "open_manual": "홈브류 메뉴에서 {}을(를) 여세요."
+    },
+    "homebrew": {
+        "no_server": "서버의 홈브루를 보려면 먼저 서버를 페어링하세요(카탈로그).",
+        "reading": "서버의 홈브루를 읽는 중…",
+        "failed": "홈브루를 읽을 수 없습니다: {}",
+        "none": "이 서버에는 이 콘솔용 홈브루가 없습니다.",
+        "count": "{}개의 홈브루 ({})",
+        "installed": "설치됨",
+        "update_available": "업데이트 있음",
+        "install": "설치",
+        "update": "업데이트",
+        "reinstall": "다시 설치",
+        "remove": "제거",
+        "busy": "다른 홈브루를 설치하는 중입니다.",
+        "installing": "{} 설치 중…",
+        "install_failed": "{}을(를) 설치할 수 없습니다",
+        "installed_ok": "{}이(가) 설치되었습니다.",
+        "remove_failed": "홈브루를 제거할 수 없습니다",
+        "consent_body": "{}은(는) 콘솔 부팅을 바꿀 수 있는 위치에 기록합니다:",
+        "consent_yes": "그래도 설치"
     }
 }
