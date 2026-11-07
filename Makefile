@@ -80,10 +80,10 @@ dist: all
 # there by the desktop one.
 WEB_DEMO_SOURCES := tools/web_demo.cpp $(KIT)/util/aes.cpp source/install/rsa.cpp source/install/pfs.cpp \
                 source/install/cnmt.cpp source/install/nca.cpp $(KIT)/util/sha256.cpp
-%/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp)
+%/web_demo: $(WEB_DEMO_SOURCES) $(wildcard tests/install/*.hpp) $(BUILD)/lantern-host/liblantern.a
 	@mkdir -p $*
-	$(CXX) -std=c++23 -O1 -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
-	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) -lzstd -lz -o $@
+	$(CXX) -std=c++23 -O1 -isystem library/lantern-sdk/cpp/include -Isource -Isource/kit -I$(KIT) -Itests -Itests/install -isystem library/aurore/library/include \
+	    -Wall -Wextra -Wshadow -Werror $(WEB_DEMO_SOURCES) $(BUILD)/lantern-host/liblantern.a -lzstd -lz -o $@
 ART_PYTHON ?= python3
 %/demo/lantern/apps.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
 	@rm -rf $*/demo

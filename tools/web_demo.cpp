@@ -30,6 +30,7 @@
 
 #include <aurore/extern/nlohmann/json.hpp>
 
+#include <lantern/chunks.hpp>
 #include "install/packages.hpp"
 #include "util/sha256.hpp"
 #include "library/seen.hpp"
@@ -379,33 +380,69 @@ int main(int argc, char** argv)
           "\"motd\": \"Welcome to PlayShelf's demo shelf: made-up games, installed on a simulated console.\", "
           "\"base\": \"/api/lantern\", \"versions\": [1], \"platforms\": [\"switch\"], "
           "\"account\": {\"state\": \"active\", \"scopes\": [\"library\"]}, "
-          "\"features\": {\"library\": 1, \"titles\": 0, \"changes\": 0, \"sections\": 0, \"homebrew\": 1, \"saves\": 0, "
+          "\"features\": {\"library\": 1, \"titles\": 0, \"changes\": 0, \"sections\": 0, \"homebrew\": 1, \"deltas\": 1, \"saves\": 0, "
           "\"cheats\": 0, \"requests\": 0, \"pairing\": 0}}\n");
     write(out + "/lantern/apps.json", "{\"schema\": 1, \"items\": [" + items + "\n  ], \"next\": null}\n");
 
     // One homebrew, for the Homebrew tab: a made-up NRO (its header is all a
-    // build needs to see) on a one-entry manifest.
+    // build needs to see) on a one-entry manifest. The server holds its
+    // version 1.3.0 with a chunk index (SPEC.md 22.1); the console's SD card
+    // starts with 1.2.0 (console/old/, console/data/homebrew.json), so
+    // updating it reads the chunks the old copy holds and asks for the rest.
     {
+        for (const char* d : { "/console", "/console/old", "/console/data" }) mkdir((out + d).c_str(), 0755);
         const std::string id = "org.example.lamplight", path = "/switch/" + id + "/" + id + ".nro";
-        std::string nro = "NRO0";
-        nro.resize(12u << 10, '\x2a');
+        // 320 KiB of made-up bytes; the newer one rewrites 40 KiB in the
+        // middle and adds 8 KiB at the end.
+        std::string old_nro = "NRO0";
+        uint32_t    x       = 0x2545f491u;
+        while (old_nro.size() < (320u << 10)) {
+            x ^= x << 13; x ^= x >> 17; x ^= x << 5;
+            old_nro.push_back((char)(x >> 11));
+        }
+        std::string nro = old_nro;
+        for (size_t k = 100u << 10; k < (140u << 10); k++) nro[k] = (char)(nro[k] ^ 0x5a);
+        for (size_t k = 0; k < (8u << 10); k++) nro.push_back((char)(k * 7 + 3));
+        write(out + "/console/old/" + id + ".nro", old_nro);
         write(out + "/files/" + id + ".nro", nro);
-        Sha256 file_sha;
-        file_sha.update(std::string_view(nro));
-        const std::string fh = file_sha.hex();
+        const auto hex_of = [](const std::string& b) {
+            Sha256 h;
+            h.update(std::string_view(b));
+            return h.hex();
+        };
+        const std::string fh = hex_of(nro);
         Sha256 manifest_sha;
         const std::string canonical = "[{\"path\":\"" + path + "\",\"sha256\":\"" + fh + "\",\"size\":" + std::to_string(nro.size()) + "}]";
         manifest_sha.update(std::string_view(canonical));
+        // The chunk index, cut by the SDK's own chunker.
+        const auto cuts = lantern::cdc_cut(std::span<const std::byte>(reinterpret_cast<const std::byte*>(nro.data()), nro.size()), 65536);
+        if (!cuts) {
+            std::fprintf(stderr, "web_demo: the homebrew could not be cut into chunks\n");
+            return 1;
+        }
+        std::string index = "{\"chunker\": {\"alg\": \"lantern-cdc-1\", \"size\": 65536}, \"chunks\": [";
+        for (size_t k = 0; k < cuts->size(); k++) {
+            const auto& c = (*cuts)[k];
+            index += std::string(k ? ", " : "") + "[" + std::to_string(c.length) + ", \"" + hex_of(nro.substr(c.offset, c.length)) + "\"]";
+        }
+        index += "], \"schema\": 1, \"sha256\": \"" + fh + "\", \"size\": " + std::to_string(nro.size()) + "}";
+        write(out + "/files/" + id + ".chunks.json", index);
         write(out + "/lantern/homebrew.json",
               "{\"schema\": 1, \"items\": [\n    {\"id\": \"" + id + "\", \"platform\": \"switch\", \"kind\": \"app\", "
-              "\"name\": \"Lamplight\", \"author\": \"Noor\", \"version\": \"1.2.0\", \"build\": 10200, "
+              "\"name\": \"Lamplight\", \"author\": \"Noor\", \"version\": \"1.3.0\", \"build\": 10300, "
               "\"license\": \"MIT\", \"language\": \"en\", "
               "\"summary\": \"A pocket journal for long nights.\", "
               "\"description\": \"Write a few lines each evening; Lamplight keeps them on the SD card.\", "
-              "\"updated\": \"2026-10-29T08:00:00Z\", "
+              "\"updated\": \"2026-11-05T08:00:00Z\", "
               "\"package\": {\"format\": \"nro\", \"file\": \"/files/" + id + ".nro\", \"path\": \"" + path + "\", "
-              "\"size\": " + std::to_string(nro.size()) + ", \"sha256\": \"" + fh + "\", \"manifest_sha256\": \"" + manifest_sha.hex() + "\"}}\n"
+              "\"size\": " + std::to_string(nro.size()) + ", \"sha256\": \"" + fh + "\", \"manifest_sha256\": \"" + manifest_sha.hex() + "\", "
+              "\"chunks\": {\"url\": \"/files/" + id + ".chunks.json\", \"size\": " + std::to_string(index.size()) +
+              ", \"sha256\": \"" + hex_of(index) + "\"}}}\n"
               "  ], \"next\": null}\n");
+        // What the console says it installed: 1.2.0, from this server.
+        write(out + "/console/data/homebrew.json",
+              "{\"schema\": 1, \"installed\": [{\"id\": \"" + id + "\", \"version\": \"1.2.0\", \"platform\": \"switch\", "
+              "\"server\": \"d0e0d0e0-0000-4000-8000-00000000d0e0\", \"build\": 10200, \"files\": [\"" + path + "\"]}]}\n");
     }
 
     // Atlas' files of every game, and the console's first ones: their
