@@ -7,6 +7,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <functional>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -28,6 +29,11 @@ void hold(const std::string& sha256_hex, uint64_t size, const std::string& sd_pa
 // How many files this console holds whole for the others (what it gives
 // while sharing is on).
 size_t held_count();
+
+// How many other consoles answer on this network for the first paired
+// server (asked in the background, at most once a minute); `done` runs on the
+// UI thread, 0 when there is no server or no answer.
+void count_nearby(std::function<void(size_t)> done);
 
 // Files that are gone or changed.
 void release(const std::vector<std::string>& sd_paths);

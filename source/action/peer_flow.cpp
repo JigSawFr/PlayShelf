@@ -6,9 +6,12 @@
 
 #include <aurore.hpp>
 
+#include "action/library_flow.hpp"
 #include "lantern_app/peer_book.hpp"
+#include "lantern_app/peers.hpp"
 #include "lantern_app/peer_service.hpp"
 #include "lantern_app/system.hpp"
+#include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/paths.hpp"
 
@@ -105,6 +108,24 @@ size_t held_count()
     const std::lock_guard<std::mutex> guard(s_lock);
     load_locked();
     return s_book.held().size();
+}
+
+void count_nearby(std::function<void(size_t)> done)
+{
+    std::string uid;
+    for (const library::Server& sv : library::load_servers())
+        if (!sv.uid.empty()) {
+            uid = sv.uid;
+            break;
+        }
+    if (uid.empty()) {
+        done(0);
+        return;
+    }
+    ui::in_background("peers nearby", [uid, done]() {
+        const size_t n = lantern_app::peers_of(uid).size();
+        aurore::sync([n, done]() { done(n); });
+    });
 }
 
 void release(const std::vector<std::string>& sd_paths)
