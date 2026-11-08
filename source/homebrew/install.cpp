@@ -110,6 +110,7 @@ bool Book::load(const std::string& path)
         rec.platform = r.value("platform", std::string());
         rec.server_uid = r.value("server", std::string());
         rec.build = r.value("build", uint64_t(0));
+        rec.pending = r.value("pending", false);
         if (r.contains("files") && r["files"].is_array())
             for (const auto& f : r["files"])
                 if (f.is_string() && rec.files.size() < MAX_FILES) rec.files.push_back(f.get<std::string>());
@@ -122,9 +123,12 @@ bool Book::save(const std::string& path) const
 {
     if (this->newer) return false;   // never over a newer schema
     nlohmann::json list = nlohmann::json::array();
-    for (const auto& [id, r] : this->records)
-        list.push_back({ { "id", r.id }, { "version", r.version }, { "platform", r.platform }, { "server", r.server_uid },
-                         { "build", r.build }, { "files", r.files } });
+    for (const auto& [id, r] : this->records) {
+        nlohmann::json j = { { "id", r.id }, { "version", r.version }, { "platform", r.platform }, { "server", r.server_uid },
+                             { "build", r.build }, { "files", r.files } };
+        if (r.pending) j["pending"] = true;
+        list.push_back(std::move(j));
+    }
     nlohmann::json doc = { { "schema", SCHEMA }, { "installed", list } };
     return paths::atomic_write(path, doc.dump(1));
 }
@@ -143,7 +147,7 @@ void Book::put(const Record& record)
 void Book::erase(const std::string& id) { this->records.erase(id); }
 
 Outcome install(const lantern::Homebrew& entry, const std::string& package_file, const std::string& sd_root,
-                const std::string& staging, const Record* old, const Consent& consent)
+                const std::string& staging, const Record* old, const Consent& consent, const Begin& begin)
 {
     Outcome out;
     const auto fail = [&out](const std::string& why) {
@@ -173,6 +177,23 @@ Outcome install(const lantern::Homebrew& entry, const std::string& package_file,
     const auto want = lantern::to_hex(package.sha256);
     if (size != package.size || hex != std::string(want.data(), want.size())) return fail("the package is not the one announced");
 
+    out.record.id = str(entry.id);
+    out.record.version = str(entry.version);
+    out.record.platform = str(entry.platform);
+    out.record.build = entry.build;
+    for (const auto& f : plan->files) out.record.files.push_back(str(f.path));
+    // Written down before the first file moves: a cut leaves a book that lists
+    // every file either version may have put there.
+    const auto note_pending = [&]() {
+        if (!begin) return true;
+        Record pending = out.record;
+        pending.pending = true;
+        if (old)
+            for (const auto& p : old->files)
+                if (std::find(pending.files.begin(), pending.files.end(), p) == pending.files.end()) pending.files.push_back(p);
+        return begin(pending);
+    };
+
     // Every file, as (path, source); an archive's come from `staging`.
     std::vector<std::pair<std::string, std::string>> moves;
     if (plan->placement == lantern::Placement::single_file) {
@@ -180,6 +201,7 @@ Outcome install(const lantern::Homebrew& entry, const std::string& package_file,
         const std::string target = join(sd_root, str(plan->files[0].path));
         if (!paths::ensure_dir(parent_of(target))) return fail("a folder could not be made for " + target);
         const std::string part = target + ".part";
+        if (!note_pending()) return fail("homebrew.json could not be written");
         if (!copy_file(package_file, part)) {
             std::remove(part.c_str());
             return fail("could not write " + target);
@@ -211,16 +233,11 @@ Outcome install(const lantern::Homebrew& entry, const std::string& package_file,
                 return fail(name + " is not what the manifest says");
             moves.push_back({ str(f.path), at });
         }
+        if (!note_pending()) return fail("homebrew.json could not be written");
         for (const auto& [path, from] : moves)
             if (!put_in_place(from, join(sd_root, path), &why)) return fail(why);
         (void)save_archive::clear_dir(staging, &why);
     }
-
-    out.record.id = str(entry.id);
-    out.record.version = str(entry.version);
-    out.record.platform = str(entry.platform);
-    out.record.build = entry.build;
-    for (const auto& f : plan->files) out.record.files.push_back(str(f.path));
 
     // What the old version wrote and this one does not.
     if (old) {

@@ -89,7 +89,7 @@ Standing standing(const lantern_app::HomebrewItem& item)
 {
     const homebrew::Record* r = book().find(std::string(item.entry.id));
     if (!r) return Standing::New;
-    return item.entry.build > r->build ? Standing::Update : Standing::Installed;
+    return r->pending || item.entry.build > r->build ? Standing::Update : Standing::Installed;
 }
 
 void load(const library::Server& server, const std::function<void(std::shared_ptr<const Loaded>, std::string)>& done)
@@ -184,7 +184,17 @@ void install(const std::shared_ptr<const Loaded>& data, size_t index, const std:
             if (!got.ok) why = got.why;
             else {
                 out = homebrew::install(item.entry, package_file(), paths::sd_root(), staging_dir(),
-                                        old_copy ? &*old_copy : nullptr, [](const std::vector<std::string>&) { return true; });
+                                        old_copy ? &*old_copy : nullptr, [](const std::vector<std::string>&) { return true; },
+                                        [uid = server.uid](const homebrew::Record& pending) {
+                                            // The book on disk only: the screen's copy changes when it ends.
+                                            homebrew::Book b;
+                                            (void)b.load(book_file());   // unreadable: started afresh, as the end does
+                                            if (b.newer) return true;
+                                            homebrew::Record r = pending;
+                                            r.server_uid = uid;
+                                            b.put(r);
+                                            return b.save(book_file());
+                                        });
                 if (!out.ok) why = out.why;
             }
             std::remove(package_file().c_str());
