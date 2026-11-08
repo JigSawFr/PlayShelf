@@ -20,226 +20,23 @@
 #include "ui/ui.hpp"
 #include "util/title_id.hpp"
 #include "view/cover_placeholder.hpp"
+#include "view/game_parts.hpp"
 #include "view/game_tile.hpp"
 
 using namespace aurore::literals;
+using namespace game_parts;
 
 namespace
 {
 namespace kit = cadran::kit;
 
 constexpr float ICON = 112;
-constexpr int   SHOT_W = 320, SHOT_H = 180;    // a screenshot's tile
-constexpr int   SHOTS_PER_ROW = 3;
-// A screenshot shown alone: 16:9 above its counter, the picture made that
-// size (a view wider than its picture would draw its edges stretched).
-constexpr int      FULL_H = 660, FULL_W = FULL_H * 16 / 9;
+constexpr int      SHOTS_PER_ROW = 3;
 constexpr size_t   MAX_OTHERS = 12;        // games in a row of more like it
 constexpr uint64_t PLAYERS_TRUSTED = 20;   // IGDB ratings below which the players' rating is not shown
 
 enum Tab : size_t { OVERVIEW, UPDATES, DLCS, DETAILS };
 
-constexpr float HERO_RADIUS = 16;   // the banner's corners
-
-// The banner: its picture, its lower part fading into the page for the
-// head laid over it to read on any picture.
-class Banner : public aurore::Image
-{
-  public:
-    Banner()
-    {
-        this->setHeight(360);
-        this->setCornerRadius(HERO_RADIUS);
-        this->setScalingType(aurore::ImageScalingType::FILL);
-        this->setClipsToBounds(true);
-        this->setVisibility(aurore::Visibility::GONE);
-    }
-
-    void draw(NVGcontext* vg, float x, float y, float width, float height, aurore::Style style,
-              aurore::FrameContext* ctx) override
-    {
-        aurore::Image::draw(vg, x, y, width, height, style, ctx);
-        NVGcolor solid = aurore::Application::getTheme()["aurore/background"];
-        solid.a = 0.96f * this->getAlpha();
-        NVGcolor clear = solid;
-        clear.a = 0.0f;
-        nvgBeginPath(vg);
-        nvgRoundedRect(vg, x, y, width, height, HERO_RADIUS);
-        nvgFillPaint(vg, nvgLinearGradient(vg, x, y + height * 0.2f, x, y + height * 0.85f, clear, solid));
-        nvgFill(vg);
-    }
-};
-
-// A chip: its mark and its text, on a tint of its ink.
-aurore::Box* chip(const std::string& text, const char* icon_name, const char* ink, const char* tint)
-{
-    auto* box = new aurore::Box(aurore::Axis::ROW);
-    box->setAlignItems(aurore::AlignItems::CENTER);
-    box->setHeight(32);
-    box->setPaddingLeft(12);
-    box->setPaddingRight(15);
-    box->setCornerRadius(16);
-    box->setThemeColor("backgroundColor", tint);
-    box->setMarginRight(8);
-    box->setMarginBottom(6);
-    CadranIcon* mark = kit::icon(icon_name, 16, ink);
-    mark->setMarginRight(7);
-    box->addView(mark);
-    aurore::Label* l = kit::label(text, 15, ink);
-    l->setSingleLine(true);
-    box->addView(l);
-    return box;
-}
-
-// Where the console stands on a tab's items: a mark in a round of its tint,
-// a line in the display face, a line under it.
-aurore::Box* status_card(const std::string& title, const std::string& line, const char* icon_name, const char* ink,
-                       const char* tint)
-{
-    auto* card = new aurore::Box(aurore::Axis::ROW);
-    card->setAlignItems(aurore::AlignItems::CENTER);
-    card->setPadding(16, 20, 16, 16);
-    card->setCornerRadius(16);
-    card->setThemeColor("backgroundColor", "cadran/surf");
-    card->setThemeColor("borderColor", "cadran/line");
-    card->setBorderThickness(1);
-    card->setMarginBottom(16);
-    auto* round = new aurore::Box(aurore::Axis::ROW);
-    round->setWidth(48);
-    round->setHeight(48);
-    round->setShrink(0);
-    round->setCornerRadius(24);
-    round->setThemeColor("backgroundColor", tint);
-    round->setAlignItems(aurore::AlignItems::CENTER);
-    round->setJustifyContent(aurore::JustifyContent::CENTER);
-    round->setMarginRight(16);
-    round->addView(kit::icon(icon_name, 24, ink));
-    card->addView(round);
-    auto* text = new aurore::Box(aurore::Axis::COLUMN);
-    text->setGrow(1);
-    text->setShrink(1);
-    text->addView(kit::display(title, 21, ink));
-    if (!line.empty()) {
-        aurore::Label* under = kit::label(line, 16, "cadran/text3");
-        under->setMarginTop(4);
-        text->addView(under);
-    }
-    card->addView(text);
-    return card;
-}
-
-// A game's language in the language PlayShelf speaks ("ko" -> "coréen"),
-// Nlib API's code itself for one PlayShelf has no word for.
-std::string language_name(const std::string& code)
-{
-    for (const char* known : titledb::NLIB_LANGUAGES)
-        if (code == known) return aurore::getStr("playshelf/languages/" + code);
-    return code;
-}
-
-// "3 March 2017", in the language's order.
-std::string date_text(uint32_t ymd)
-{
-    if (!ymd) return "";
-    const unsigned y = ymd / 10000, m = ymd / 100 % 100, d = ymd % 100;
-    if (m < 1 || m > 12) return std::to_string(y);
-    return aurore::getStr("playshelf/game/date", d, aurore::getStr(std::format("cadran/months/{}", m)), y, m);
-}
-
-// Its eShop page: ec.nintendo.com sends a phone to the shop of the country
-// PlayShelf's language is spoken in.
-std::string eshop_url(uint64_t nsu_id)
-{
-    static const std::pair<const char*, const char*> COUNTRIES[] = {
-        { "en-US", "US" }, { "fr", "FR" }, { "fr-CA", "CA" }, { "de", "DE" },      { "es", "ES" },      { "es-419", "MX" },
-        { "it", "IT" },    { "nl", "NL" }, { "pt", "PT" },    { "pt-BR", "BR" },   { "ru", "RU" },      { "ja", "JP" },
-        { "ko", "KR" },    { "zh-Hans", "HK" }, { "zh-Hant", "HK" },
-    };
-    const std::string locale = live_prefs::locale();
-    const char*       country = "US";
-    for (const auto& [l, c] : COUNTRIES)
-        if (locale == l) country = c;
-    return std::format("https://ec.nintendo.com/apps/{}/{}", nsu_id, country);
-}
-
-// One screenshot on the whole screen, black around it: ◀ ▶ the others, B
-// back to the page.
-class ShotActivity : public aurore::Activity
-{
-  public:
-    ShotActivity(uint64_t base_id, int shots, int first) : base(base_id), count(shots), at(first) {}
-
-    aurore::View* createContentView() override
-    {
-        auto* box = new aurore::Box(aurore::Axis::COLUMN);
-        box->setWidth(aurore::View::AUTO);
-        box->setHeight(aurore::View::AUTO);
-        box->setGrow(1);
-        box->setAlignItems(aurore::AlignItems::CENTER);
-        box->setJustifyContent(aurore::JustifyContent::CENTER);
-        box->setBackgroundColor(nvgRGB(0, 0, 0));
-        box->setFocusable(true);
-        box->setHideHighlight(true);
-        this->image = new aurore::Image();
-        this->image->setWidth(FULL_W);
-        this->image->setHeight(FULL_H);
-        this->image->setScalingType(aurore::ImageScalingType::FIT);
-        box->addView(this->image);
-        this->counter = kit::label("", 18, "cadran/text3");
-        this->counter->setMarginTop(12);
-        box->addView(this->counter);
-        box->registerAction("hints/back"_i18n, aurore::BUTTON_B, [](aurore::View*) {
-            aurore::Application::popActivity(aurore::TransitionAnimation::FADE);
-            return true;
-        });
-        auto step = [this](int by) {
-            return [this, by](aurore::View*) {
-                this->at = (this->at - 1 + by + this->count) % this->count + 1;
-                this->load();
-                return true;
-            };
-        };
-        box->registerAction("", aurore::BUTTON_LEFT, step(-1), true, true);
-        box->registerAction("", aurore::BUTTON_RIGHT, step(1), true, true);
-        box->registerAction("", aurore::BUTTON_LB, step(-1), true);
-        box->registerAction("", aurore::BUTTON_RB, step(1), true);
-        this->load();
-        return box;
-    }
-
-    ~ShotActivity() override { *this->alive = false; }
-
-  private:
-    uint64_t     base;
-    int          count, at;
-    aurore::Image* image = nullptr;
-    aurore::Label* counter = nullptr;
-    ui::Alive    alive = ui::make_alive();
-
-    void load()
-    {
-        this->counter->setText(std::format("{} / {}", this->at, this->count));
-        const int wanted = this->at;
-        ui::Weak  weak(this->alive);
-        library_icons::picture(titledb::nlib_screen_url(this->base, wanted), FULL_W, FULL_H,
-                               [this, weak, wanted](const library_icons::Picture& p) {
-                                   const ui::Alive held = weak.lock();
-                                   if (held && *held && wanted == this->at) library_icons::show(this->image, p);
-                               });
-    }
-};
-
-// A row of a card of facts: its name, its value (nothing when it has none).
-void fact(aurore::Box* card, const std::string& name, const std::string& value)
-{
-    if (value.empty()) return;
-    auto* cell = new aurore::DetailCell();
-    cell->setText(name);
-    cell->setDetailText(value);
-    card->addView(cell);
-    cadran::List::row(cell);
-    cell->detail->setMaxWidth(640);
-}
 }   // namespace
 
 void GameActivity::show(Page page)
