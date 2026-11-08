@@ -412,7 +412,13 @@ void PreferencesTab::show_share()
         return;
     }
     const size_t held = peer_flow::held_count();
-    share_files->setDetailText(held == 0 ? "playshelf/downloads/share_none"_i18n : aurore::getStr("playshelf/downloads/share_held", held));
+    const std::string text = held == 0 ? "playshelf/downloads/share_none"_i18n : aurore::getStr("playshelf/downloads/share_held", held);
+    share_files->setDetailText(text);
+    // Who answers on the network: added when somebody does.
+    peer_flow::count_nearby(ui::guarded(this->alive, [this, text](size_t n) {
+        if (n > 0 && config::get().share_files)
+            share_files->setDetailText(text + " · " + aurore::getStr("playshelf/downloads/share_peers", n));
+    }));
 }
 
 void PreferencesTab::refresh()

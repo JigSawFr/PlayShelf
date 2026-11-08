@@ -443,6 +443,7 @@
         "share_files": "Partager les homebrews avec le réseau",
         "share_none": "Nothing to share yet",
         "share_held": "{} files shared",
+        "share_peers": "{} peers nearby",
         "screen_off": "Éteindre l'écran",
         "screen_off_never": "Jamais",
         "screen_off_minutes": "Après {} minutes sans toucher",
