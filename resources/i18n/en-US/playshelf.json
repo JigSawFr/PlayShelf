@@ -598,6 +598,7 @@
         "critics": "Critics' score",
         "critics_score": "{}/100",
         "editions": "Other editions",
+        "also_on": "Also on",
         "players_rating": "Players' rating",
         "players_rating_value": "{}/100 · {} ratings",
         "similar": "Similar games",

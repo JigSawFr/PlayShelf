@@ -598,6 +598,7 @@
         "critics": "媒體評分",
         "critics_score": "{}/100",
         "editions": "其他版本",
+        "also_on": "也在",
         "players_rating": "玩家評分",
         "players_rating_value": "{}/100 · {} 個評分",
         "similar": "相似遊戲",

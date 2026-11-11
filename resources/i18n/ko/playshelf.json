@@ -598,6 +598,7 @@
         "critics": "평론가 점수",
         "critics_score": "{}/100",
         "editions": "다른 에디션",
+        "also_on": "다른 스토어",
         "players_rating": "플레이어 평점",
         "players_rating_value": "{}/100 · {}개",
         "similar": "비슷한 게임",

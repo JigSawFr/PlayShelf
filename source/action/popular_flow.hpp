@@ -4,11 +4,11 @@
 // players' rating (games.json), the games most like it (similar.json) and
 // the game an edition is one of (editions.json: library/signals) and the
 // games still to come (upcoming.json: library/upcoming) and where each is read (reach.json:
-// library/reach).
+// library/reach) and the other stores it is sold on (also.json: library/also).
 // popular.json and games.json as PlayShelf came with them; each, once a day
 // when config popular_online allows it, the newest from Atlas' data branch
 // (its platforms/switch/ folder) through jsDelivr (kept in cache_dir()),
-// whichever was made last. similar.json, editions.json, upcoming.json and reach.json are only fetched:
+// whichever was made last. similar.json, editions.json, upcoming.json, reach.json and also.json are only fetched:
 // empty until they first come. Read off the UI thread at start-up; the books
 // are the UI thread's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "library/also.hpp"
 #include "library/popular.hpp"
 #include "library/reach.hpp"
 #include "library/signals.hpp"
@@ -54,6 +55,8 @@ std::shared_ptr<const library::UpcomingBook> upcoming();
 // reach.json's: where each of the best known games is read, by language,
 // empty until the first fetch.
 std::shared_ptr<const library::ReachBook> reach();
+// also.json's: the other stores each game is sold on, empty until the first fetch.
+std::shared_ptr<const library::AlsoBook> also();
 
 // Told when a book was read or replaced, on the UI thread.
 int  listen(std::function<void()> changed);
