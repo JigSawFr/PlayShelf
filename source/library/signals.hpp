@@ -51,6 +51,16 @@ struct GameSignals
     PlayersRating      igdb;
 };
 
+// Reviews or ratings below which a source's say is left out of
+// players_rating() (a handful of voices is not an opinion).
+constexpr uint64_t STEAM_TRUSTED = 50;
+constexpr uint64_t IGDB_TRUSTED = 20;
+
+// How well the players rate a game, 0..100: Steam's share of positive
+// reviews and IGDB's rating, the two averaged when both are known; 0 when
+// neither is (or too few voted).
+int players_rating(const GameSignals& game);
+
 class SignalBook
 {
   public:

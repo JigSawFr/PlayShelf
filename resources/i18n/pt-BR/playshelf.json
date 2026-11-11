@@ -234,7 +234,10 @@
             "newest": "Os mais recentes",
             "to_get_first": "Por completar primeiro",
             "most_played": "Os mais jogados",
-            "recently_played": "Jogados recentemente"
+            "recently_played": "Jogados recentemente",
+            "best_known": "Mais conhecidos",
+            "best_reviewed": "Melhor avaliados pela crítica",
+            "best_rated": "Melhor avaliados pelos jogadores"
         },
         "stat_updates": "Atualizações por instalar",
         "stat_dlcs": "Conteúdos por instalar",

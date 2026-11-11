@@ -234,7 +234,10 @@
             "newest": "Newest first",
             "to_get_first": "Something to get first",
             "most_played": "Most played",
-            "recently_played": "Played lately"
+            "recently_played": "Played lately",
+            "best_known": "Best known",
+            "best_reviewed": "Best reviewed by critics",
+            "best_rated": "Best rated by players"
         },
         "stat_updates": "Updates to get",
         "stat_dlcs": "Add-ons to get",

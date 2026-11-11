@@ -234,7 +234,10 @@
             "newest": "Nieuwste eerst",
             "to_get_first": "Aan te vullen eerst",
             "most_played": "Meest gespeeld",
-            "recently_played": "Onlangs gespeeld"
+            "recently_played": "Onlangs gespeeld",
+            "best_known": "Bekendste eerst",
+            "best_reviewed": "Best beoordeeld door critici",
+            "best_rated": "Best beoordeeld door spelers"
         },
         "stat_updates": "Updates te halen",
         "stat_dlcs": "Extra content te halen",

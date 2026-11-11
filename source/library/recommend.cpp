@@ -28,8 +28,6 @@ bool share(const std::vector<Trait>& a, const std::vector<Trait>& b)
     return false;
 }
 constexpr size_t   MAX_SHARED_THEMES = 2;   // themes a likeness names
-constexpr uint64_t STEAM_TRUSTED = 50;   // reviews below which Steam's say is left out
-constexpr uint64_t IGDB_TRUSTED = 20;    // ratings below which IGDB's players' say is left out
 
 // A trait of `kinds` shared with the console's games: the weightiest such
 // game's weight (relative), and the trait's label.
