@@ -35,6 +35,14 @@ int main()
     CHECK(b.of(0x0100B0C013912000).trend == -40);
     CHECK(b.of(0x0100000000030000).score == 100 && b.of(0x0100000000030000).trend == 999);
     CHECK(b.of(0x0100000000010000).score == 0 && b.of(0x010025400AECE800).score == 0);
+    // Where a score stands among the games known: the share of them it beats.
+    {
+        PopularBook r;
+        CHECK(r.share_below(50) == 0);
+        CHECK(r.from_json(R"({"schema":1,"generated":"2026-11-11","games":{
+            "0100000000010000":[10,0],"0100000000020000":[20,0],"0100000000030000":[30,0],"0100000000040000":[40,0]}})"));
+        CHECK(r.share_below(40) == 75 && r.share_below(10) == 0 && r.share_below(30) == 50 && r.share_below(100) == 100);
+    }
     // Read again: what was there goes.
     CHECK(b.from_json(R"({"schema":1,"generated":"2026-11-01","games":{}})") && b.size() == 0);
     // Atlas' schema: another one (a field that changed meaning), or none, is

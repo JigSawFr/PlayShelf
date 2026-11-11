@@ -595,6 +595,8 @@
         "launches_one": "啟動 1 次",
         "launches": "啟動 {} 次",
         "last_played": "上次遊玩",
+        "renown_rank": "知名度",
+        "renown_rank_value": "比 {}% 的遊戲更有名",
         "critics": "媒體評分",
         "critics_score": "{}/100",
         "editions": "其他版本",

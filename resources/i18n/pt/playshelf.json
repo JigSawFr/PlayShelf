@@ -595,6 +595,8 @@
         "launches_one": "iniciado uma vez",
         "launches": "iniciado {} vezes",
         "last_played": "Última partida",
+        "renown_rank": "Notoriedade",
+        "renown_rank_value": "Mais conhecido do que {} % dos jogos",
         "critics": "Nota da crítica",
         "critics_score": "{}/100",
         "editions": "Outras edições",

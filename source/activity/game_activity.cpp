@@ -419,6 +419,10 @@ void GameActivity::fill_details_tab()
     // The other stores it is sold on (Atlas, from Wikidata): their names only.
     if (const uint8_t stores = popular_flow::also()->of(library::base_of(this->page.title_id)))
         fact(card, "playshelf/game/also_on"_i18n, library::store_names(stores));
+    // Where it stands among the games Atlas scores: the share it is better known than.
+    if (const library::Renown r = popular_flow::of(this->page.title_id); r.score > 0)
+        fact(card, "playshelf/game/renown_rank"_i18n,
+             aurore::getStr("playshelf/game/renown_rank_value", popular_flow::share_below(r.score)));
     // What critics gave it (Atlas, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)
         fact(card, "playshelf/game/critics"_i18n, aurore::getStr("playshelf/game/critics_score", critics));

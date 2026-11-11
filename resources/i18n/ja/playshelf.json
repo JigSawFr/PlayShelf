@@ -595,6 +595,8 @@
         "launches_one": "1 回起動",
         "launches": "{} 回起動",
         "last_played": "最後に遊んだ日",
+        "renown_rank": "知名度",
+        "renown_rank_value": "{}% のゲームより有名",
         "critics": "評論家の評価",
         "critics_score": "{}/100",
         "editions": "ほかのエディション",

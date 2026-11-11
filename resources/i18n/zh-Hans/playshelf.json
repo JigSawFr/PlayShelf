@@ -595,6 +595,8 @@
         "launches_one": "启动 1 次",
         "launches": "启动 {} 次",
         "last_played": "上次游玩",
+        "renown_rank": "知名度",
+        "renown_rank_value": "比 {}% 的游戏更有名",
         "critics": "媒体评分",
         "critics_score": "{}/100",
         "editions": "其他版本",

@@ -171,6 +171,11 @@ library::Renown of(uint64_t base_id)
     return s_popular.book->of(base_id);
 }
 
+int share_below(int score)
+{
+    return s_popular.book->share_below(score);
+}
+
 size_t size()
 {
     return s_popular.book->size();

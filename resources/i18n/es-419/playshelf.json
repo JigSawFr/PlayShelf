@@ -595,6 +595,8 @@
         "launches_one": "iniciado una vez",
         "launches": "iniciado {} veces",
         "last_played": "Última partida",
+        "renown_rank": "Fama",
+        "renown_rank_value": "Más conocido que el {} % de los juegos",
         "critics": "Nota de la crítica",
         "critics_score": "{}/100",
         "editions": "Otras ediciones",

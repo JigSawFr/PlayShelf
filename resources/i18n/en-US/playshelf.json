@@ -595,6 +595,8 @@
         "launches_one": "started once",
         "launches": "started {} times",
         "last_played": "Last played",
+        "renown_rank": "Renown",
+        "renown_rank_value": "Better known than {} % of the games",
         "critics": "Critics' score",
         "critics_score": "{}/100",
         "editions": "Other editions",
