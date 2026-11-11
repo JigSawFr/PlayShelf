@@ -729,6 +729,8 @@
         "coming_line": "La cloche dit quand un jeu souhaité sort",
         "series": "Dans vos séries",
         "series_line": "D'autres jeux des séries que vous avez",
+        "series_gap": "Manquants dans vos séries",
+        "series_gap_line": "Sur aucun de vos serveurs",
         "because_like": "Comme {}",
         "because_like_traits": "Comme {} · {}",
         "because_series": "Série : {}",

@@ -729,6 +729,8 @@
         "coming_line": "The bell says when a wished one comes out",
         "series": "In your series",
         "series_line": "More of the series you have",
+        "series_gap": "Missing from your series",
+        "series_gap_line": "Not on your servers",
         "because_like": "Like {}",
         "because_like_traits": "Like {} · {}",
         "because_series": "Series: {}",

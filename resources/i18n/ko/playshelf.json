@@ -729,6 +729,8 @@
         "coming_line": "원하는 게임이 나오면 종으로 알림",
         "series": "내 시리즈",
         "series_line": "보유한 시리즈의 다른 게임",
+        "series_gap": "내 시리즈에서 빠진 게임",
+        "series_gap_line": "서버에 없음",
         "because_like": "{}와(과) 비슷함",
         "because_like_traits": "{}와(과) 비슷함 · {}",
         "because_series": "시리즈: {}",

@@ -729,6 +729,8 @@
         "coming_line": "Колокольчик сообщит о выходе желанной игры",
         "series": "В ваших сериях",
         "series_line": "Ещё из ваших серий",
+        "series_gap": "Недостающее из ваших серий",
+        "series_gap_line": "Нет на ваших серверах",
         "because_like": "Как {}",
         "because_like_traits": "Как {} · {}",
         "because_series": "Серия: {}",

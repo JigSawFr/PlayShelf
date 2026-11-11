@@ -139,6 +139,7 @@ std::string key_of(const insights::Snapshot& s)
     for (const insights::Played& p : s.recent) key += std::format("{:x}.{},", p.game.game.id, p.game.last_played);
     for (const insights::Wished& w : s.wished) key += std::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
     for (const insights::Coming& c : s.coming) key += std::format("{:x},", c.id);
+    for (const insights::SeriesGap& g : s.gaps) key += std::format("{:x},", g.id);
     return key;
 }
 }   // namespace
@@ -226,6 +227,7 @@ void HomeTab::build(bool force)
             return Detail{ it == series_of.end() ? "" : it->second, "cadran/teal" };
         }, [](GameTile* tile, const Pick& p) { put_away(tile, p); });
     }
+    this->add_gaps(s.gaps);
     this->add_wished(s.wished);
     const uint32_t today = day();
     this->add_covers("playshelf/home/added"_i18n, "playshelf/home/added_line"_i18n, s.added, [today](const Pick& p) {
@@ -589,6 +591,28 @@ void HomeTab::add_coming(const std::vector<insights::Coming>& coming)
         const uint64_t    game_id = c.id;
         const std::string name = c.name;
         const std::string about = c.publisher.empty() ? day_text(c.date) : c.publisher + " · " + day_text(c.date);
+        tile->registerClickAction([game_id, name, about](aurore::View*) {
+            const bool on = wishlist::has(game_id);
+            ui::pick_actions(name,
+                             { ui::Choice(on ? "playshelf/wishlist/remove"_i18n : "playshelf/wishlist/add"_i18n,
+                                          [game_id, name]() { wishlist::toggle(game_id, name); }, "heart") },
+                             about);
+            return true;
+        });
+        row->addView(tile);
+    }
+}
+
+void HomeTab::add_gaps(const std::vector<insights::SeriesGap>& gaps)
+{
+    if (gaps.empty()) return;
+    aurore::Box* row = this->add_row("playshelf/home/series_gap"_i18n, "playshelf/home/series_gap_line"_i18n, GameTile::WIDTH + 64);
+    for (const insights::SeriesGap& g : gaps) {
+        GameTile* tile = this->lone_tile(g.id, g.name, { g.series, "cadran/teal" });
+        if (wishlist::has(g.id)) tile->set_badge("heart", "cadran/pink");
+        // A: on the wishlist (the bell says when a server has it), or off.
+        const uint64_t    game_id = g.id;
+        const std::string name = g.name, about = g.series;
         tile->registerClickAction([game_id, name, about](aurore::View*) {
             const bool on = wishlist::has(game_id);
             ui::pick_actions(name,

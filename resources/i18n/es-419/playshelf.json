@@ -729,6 +729,8 @@
         "coming_line": "La campana avisa cuando sale uno deseado",
         "series": "En tus sagas",
         "series_line": "Más de las sagas que tienes",
+        "series_gap": "Faltan en tus sagas",
+        "series_gap_line": "En ninguno de tus servidores",
         "because_like": "Como {}",
         "because_like_traits": "Como {} · {}",
         "because_series": "Saga: {}",

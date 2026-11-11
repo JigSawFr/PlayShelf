@@ -729,6 +729,8 @@
         "coming_line": "ほしいゲームが出たらベルでお知らせ",
         "series": "あなたのシリーズ",
         "series_line": "持っているシリーズの別作品",
+        "series_gap": "シリーズの未所持作品",
+        "series_gap_line": "サーバーにはありません",
         "because_like": "{} に似ています",
         "because_like_traits": "{} に似ています · {}",
         "because_series": "シリーズ: {}",

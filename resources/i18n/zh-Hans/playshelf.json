@@ -729,6 +729,8 @@
         "coming_line": "想要的游戏推出时铃铛会提醒",
         "series": "你的系列",
         "series_line": "你已有系列的其他作品",
+        "series_gap": "系列中缺少的游戏",
+        "series_gap_line": "不在你的服务器上",
         "because_like": "类似 {}",
         "because_like_traits": "类似 {} · {}",
         "because_series": "系列：{}",
