@@ -729,6 +729,8 @@
         "coming_line": "La campanella avvisa quando ne esce uno desiderato",
         "series": "Nelle tue serie",
         "series_line": "Altri giochi delle tue serie",
+        "series_gap": "Mancano nelle tue serie",
+        "series_gap_line": "Su nessuno dei tuoi server",
         "because_like": "Come {}",
         "because_like_traits": "Come {} · {}",
         "because_series": "Serie: {}",

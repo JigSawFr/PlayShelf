@@ -28,6 +28,8 @@ void test_games()
         "0100000000030000":"nope"
     }})"));
     CHECK(b.size() == 2 && b.generated() == "2026-10-29");
+    // Every game, to search them by a trait.
+    CHECK(b.all().size() == 2 && b.all().contains(A) && b.all().at(A).series.size() == 1);
     const GameSignals* a = b.find(A);
     if (!CHECK(a)) return;
     // Malformed traits left out; a label never holds a line break.

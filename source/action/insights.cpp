@@ -345,6 +345,27 @@ void make()
             if (s.series.size() >= ROW) break;
             s.series.push_back(std::move(f.second));
         }
+
+        // And those of the same series no server has: Atlas knows them by name only.
+        std::vector<std::pair<double, SeriesGap>> gaps;
+        for (const auto& [id, g] : signals->all()) {
+            if (g.name.empty() || where.contains(id) || editions->game_of(id) != id || owned_games.contains(id) ||
+                std::ranges::contains(unwanted, id))
+                continue;
+            for (const library::Trait& t : g.series) {
+                const auto it = mine.find(t.id);
+                if (it == mine.end() || it->second.second.empty()) continue;
+                gaps.push_back({ it->second.first + popular_flow::of(id).score / 1e3, { id, g.name, it->second.second } });
+                break;
+            }
+        }
+        std::stable_sort(gaps.begin(), gaps.end(), [](const auto& a, const auto& b) {
+            return a.first != b.first ? a.first > b.first : a.second.id < b.second.id;
+        });
+        for (auto& g : gaps) {
+            if (s.gaps.size() >= ROW) break;
+            s.gaps.push_back(std::move(g.second));
+        }
     }
 
     // Coming out in the next two months (the title databases and Atlas'

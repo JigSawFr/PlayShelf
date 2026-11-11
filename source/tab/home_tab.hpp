@@ -62,6 +62,7 @@ class HomeTab : public TabBase
     void add_recent(const std::vector<insights::Played>& recent);
     void add_wished(const std::vector<insights::Wished>& wished);
     void add_coming(const std::vector<insights::Coming>& coming);
+    void add_gaps(const std::vector<insights::SeriesGap>& gaps);
     aurore::Box* add_row(const std::string& title, const std::string& line, float height);
     // A cover for a game known by its title id alone (no catalogue has it).
     GameTile* lone_tile(uint64_t id, const std::string& name, const Detail& detail);

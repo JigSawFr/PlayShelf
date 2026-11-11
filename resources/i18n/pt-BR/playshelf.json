@@ -729,6 +729,8 @@
         "coming_line": "O sino avisa quando sai um desejado",
         "series": "Nas suas séries",
         "series_line": "Mais das séries que você tem",
+        "series_gap": "Faltam nas suas séries",
+        "series_gap_line": "Em nenhum dos seus servidores",
         "because_like": "Como {}",
         "because_like_traits": "Como {} · {}",
         "because_series": "Série: {}",

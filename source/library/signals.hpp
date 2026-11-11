@@ -71,6 +71,8 @@ class SignalBook
     // From games.json; false when it is not one (the book is left empty).
     bool from_json(const std::string& text);
     const GameSignals* find(uint64_t base_id) const;
+    // Every game, to search them by a trait.
+    const std::unordered_map<uint64_t, GameSignals>& all() const { return this->games; }
     size_t size() const { return this->games.size(); }
     const std::string& generated() const { return this->day; }
 

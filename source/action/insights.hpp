@@ -50,6 +50,14 @@ struct Coming
     uint32_t    date = 0;   // YYYYMMDD
 };
 
+// A game of a series the console has games of that no server has (Atlas'
+// games.json names it).
+struct SeriesGap
+{
+    uint64_t    id = 0;
+    std::string name, series;
+};
+
 // A game of the console whose newest update (the title databases') no
 // server has yet.
 struct Missing
@@ -102,6 +110,7 @@ struct Snapshot
     std::vector<Pick>    local;      // much read in the console's language (Atlas' reach.json)
     std::vector<Suggested> like;     // for the console's player, from every signal (library/recommend)
     std::vector<InSeries>  series;   // in the series of the console's games, the most played's first
+    std::vector<SeriesGap> gaps;     // in those series, on no server (Atlas), the most played's first
     std::vector<Coming>  coming;     // coming out soon (the title databases)
     std::vector<Missing> missing;    // updates no server has yet
     std::vector<Wished>  wished;     // the wishlist, those a server has first

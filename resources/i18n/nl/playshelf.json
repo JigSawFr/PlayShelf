@@ -729,6 +729,8 @@
         "coming_line": "De bel meldt wanneer een gewenste uitkomt",
         "series": "In je series",
         "series_line": "Meer uit je series",
+        "series_gap": "Ontbreekt in je reeksen",
+        "series_gap_line": "Op geen van je servers",
         "because_like": "Zoals {}",
         "because_like_traits": "Zoals {} · {}",
         "because_series": "Serie: {}",

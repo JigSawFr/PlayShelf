@@ -729,6 +729,8 @@
         "coming_line": "Die Glocke meldet, wenn ein gewünschtes erscheint",
         "series": "In Ihren Reihen",
         "series_line": "Mehr aus Ihren Reihen",
+        "series_gap": "Fehlt in Ihren Reihen",
+        "series_gap_line": "Auf keinem Ihrer Server",
         "because_like": "Wie {}",
         "because_like_traits": "Wie {} · {}",
         "because_series": "Reihe: {}",
