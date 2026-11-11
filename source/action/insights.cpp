@@ -338,15 +338,32 @@ void make()
         }
     }
 
-    // Coming out in the next two months (the title databases), better known
-    // first, the console's servers aside.
-    for (uint64_t id : titledb_flow::released(today(1), today(62), 400)) {
-        if (where.contains(id)) continue;
-        const auto t = titledb_flow::title(id);
-        if (!t || t->name.empty()) continue;
-        s.coming.push_back({ id, t->name, t->publisher, t->release_date });
+    // Coming out in the next two months (the title databases and Atlas'
+    // upcoming.json, which also knows games they lack), the most followed
+    // first (Atlas' hypes), then the better known, the console's servers aside.
+    {
+        const auto upcoming = popular_flow::upcoming();
+        const uint32_t first = today(1), last = today(62);
+        std::set<uint64_t> seen;
+        for (uint64_t id : titledb_flow::released(first, last, 400)) {
+            if (where.contains(id) || !seen.insert(id).second) continue;
+            const auto t = titledb_flow::title(id);
+            if (!t || t->name.empty()) continue;
+            const library::Upcoming* a = upcoming->find(id);
+            s.coming.push_back({ id, t->name, t->publisher, a && a->date >= first && a->date <= last ? a->date : t->release_date });
+        }
+        for (const auto& [id, a] : upcoming->all()) {
+            if (a.date < first || a.date > last || where.contains(id) || !seen.insert(id).second) continue;
+            s.coming.push_back({ id, a.name, "", a.date });
+        }
     }
-    std::stable_sort(s.coming.begin(), s.coming.end(), [](const Coming& a, const Coming& b) {
+    auto hypes_of = [](uint64_t id) {
+        const auto* a = popular_flow::upcoming()->find(id);
+        return a ? a->hypes : 0u;
+    };
+    std::stable_sort(s.coming.begin(), s.coming.end(), [&hypes_of](const Coming& a, const Coming& b) {
+        const uint32_t h = hypes_of(a.id), k = hypes_of(b.id);
+        if (h != k) return h > k;
         const int x = popular_flow::of(a.id).score, y = popular_flow::of(b.id).score;
         return x != y ? x > y : a.date < b.date;
     });

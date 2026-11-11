@@ -2,11 +2,12 @@
 // knows of the games, for Home and a game's page: how well known each is
 // (popular.json: library/popular), its name, its traits, Steam audience and IGDB
 // players' rating (games.json), the games most like it (similar.json) and
-// the game an edition is one of (editions.json: library/signals).
+// the game an edition is one of (editions.json: library/signals) and the
+// games still to come (upcoming.json: library/upcoming).
 // popular.json and games.json as PlayShelf came with them; each, once a day
 // when config popular_online allows it, the newest from Atlas' data branch
 // (its platforms/switch/ folder) through jsDelivr (kept in cache_dir()),
-// whichever was made last. similar.json and editions.json are only fetched:
+// whichever was made last. similar.json, editions.json and upcoming.json are only fetched:
 // empty until they first come. Read off the UI thread at start-up; the books
 // are the UI thread's.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
@@ -19,6 +20,7 @@
 
 #include "library/popular.hpp"
 #include "library/signals.hpp"
+#include "library/upcoming.hpp"
 
 namespace popular_flow
 {
@@ -44,6 +46,9 @@ std::string name_of(uint64_t base_id);
 std::shared_ptr<const library::SignalBook>  signals();
 std::shared_ptr<const library::SimilarBook> similar();
 std::shared_ptr<const library::EditionBook> editions();
+// upcoming.json's: the games still to come and how many follow each, empty
+// until the first fetch.
+std::shared_ptr<const library::UpcomingBook> upcoming();
 
 // Told when a book was read or replaced, on the UI thread.
 int  listen(std::function<void()> changed);
