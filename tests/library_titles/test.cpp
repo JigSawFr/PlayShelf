@@ -180,6 +180,12 @@ void test_filter()
     sel.filter = Filter();
     sel.filter.language = "fr";
     CHECK(pick() == std::vector<size_t>({ 0 }));
+    // A series and a studio are the Library's, applied by its tab (Atlas' signals):
+    // counted as set, no game left out here.
+    sel.filter = Filter();
+    sel.filter.series = "A saga";
+    sel.filter.studio = "A studio";
+    CHECK(pick() == std::vector<size_t>({ 0, 1, 2, 3 }) && sel.filter.active() == 2);
 
     // By publisher, those with none last; by date, the facts' when the
     // catalogue has none.

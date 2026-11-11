@@ -8,6 +8,7 @@
 #include <aurore/cadran/ui/live_prefs.hpp>
 
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "library/titles.hpp"
 #include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
@@ -94,6 +95,20 @@ void show(std::shared_ptr<Sheet> sheet)
         if (!facts.publisher.empty()) publishers.insert(facts.publisher);
     }
 
+    // The series and studios Atlas knows of these games (the Library only: its
+    // tab applies them), by their English names.
+    std::set<std::string> series, studios;
+    if (sheet->states == States::Library) {
+        const auto signals = popular_flow::signals();
+        for (uint64_t id : sheet->games)
+            if (const library::GameSignals* g = signals->find(library::base_of(id))) {
+                for (const library::Trait& t : g->series)
+                    if (!t.label.empty()) series.insert(t.label);
+                for (const library::Trait& t : g->developers)
+                    if (!t.label.empty()) studios.insert(t.label);
+            }
+    }
+
     if (!sheet->order.labels.empty()) {
         const Order& o = sheet->order;
         lines.emplace_back("playshelf/library/sort"_i18n, [sheet]() {
@@ -118,6 +133,16 @@ void show(std::shared_ptr<Sheet> sheet)
         std::vector<std::string> values(publishers.begin(), publishers.end());
         pick_value(sheet, "playshelf/filters/publisher"_i18n, values, values, &library::Filter::publisher);
     }, "server", f.publisher.empty() ? "playshelf/filters/any"_i18n : f.publisher);
+    if (!series.empty())
+        lines.emplace_back("playshelf/filters/series"_i18n, [sheet, series]() {
+            std::vector<std::string> values(series.begin(), series.end());
+            pick_value(sheet, "playshelf/filters/series"_i18n, values, values, &library::Filter::series);
+        }, "folder", f.series.empty() ? "playshelf/filters/any"_i18n : f.series);
+    if (!studios.empty())
+        lines.emplace_back("playshelf/filters/studio"_i18n, [sheet, studios]() {
+            std::vector<std::string> values(studios.begin(), studios.end());
+            pick_value(sheet, "playshelf/filters/studio"_i18n, values, values, &library::Filter::studio);
+        }, "server", f.studio.empty() ? "playshelf/filters/any"_i18n : f.studio);
     lines.emplace_back("playshelf/filters/players"_i18n, [sheet]() {
         const std::vector<std::string> labels = { players_text(0), players_text(1), players_text(2) };
         ui::pick("playshelf/filters/players"_i18n, labels, std::min(sheet->filter->players, 2), [sheet](int i) {
@@ -162,6 +187,8 @@ std::string summary(const library::Filter& f)
     std::vector<std::string> parts;
     if (!f.genre.empty()) parts.push_back(nlib_flow::genre_name(f.genre));
     if (!f.publisher.empty()) parts.push_back(f.publisher);
+    if (!f.series.empty()) parts.push_back(f.series);
+    if (!f.studio.empty()) parts.push_back(f.studio);
     if (f.players) parts.push_back(players_text(f.players));
     if (!f.language.empty()) parts.push_back("playshelf/game/language_chip"_i18n);
     if (f.state != State::Any) parts.push_back(aurore::getStr(state_key(f.state)));

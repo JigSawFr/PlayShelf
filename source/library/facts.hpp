@@ -71,6 +71,8 @@ struct Filter
     std::string genre;       // Nlib API's English word
     std::string publisher;
     std::string language;    // Nlib API's code ("fr")
+    std::string series;      // Atlas' games.json: a series' English name (the Library's, applied by its tab)
+    std::string studio;      // and a developer's
     int         players = 0;   // 1: one at a time only; 2: two or more
     bool        hide_demos = false;
     State       state = State::Any;
@@ -79,7 +81,8 @@ struct Filter
     size_t active() const;
 };
 
-// Whether a game of these facts is kept (all but the state). One whose
+// Whether a game of these facts is kept (all but the state, the series and the
+// studio, which Atlas' signals tell and the Library applies). One whose
 // facts are not known yet is left out by a genre, a publisher, players or a
 // language asked.
 bool matches(const Filter& filter, const Facts& facts);

@@ -656,6 +656,8 @@
         "note": "類型、發行商、玩家人數或語言：只有 Nlib API 已提供詳情的遊戲才會符合。其他遊戲會在此期間請求。",
         "genre": "類型",
         "publisher": "發行商",
+        "series": "系列",
+        "studio": "開發商",
         "players": "玩家人數",
         "any": "全部",
         "players_one": "1 名玩家",

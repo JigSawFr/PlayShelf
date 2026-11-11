@@ -656,6 +656,8 @@
         "note": "类型、发行商、玩家人数或语言：只有 Nlib API 已提供详情的游戏才会匹配。其他游戏会在此期间请求。",
         "genre": "类型",
         "publisher": "发行商",
+        "series": "系列",
+        "studio": "开发商",
         "players": "玩家人数",
         "any": "全部",
         "players_one": "1 名玩家",

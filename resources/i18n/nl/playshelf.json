@@ -656,6 +656,8 @@
         "note": "Een genre, een uitgever, spelers of een taal: alleen games waarvan Nlib API de details al gaf, komen overeen. De andere worden intussen opgevraagd.",
         "genre": "Genre",
         "publisher": "Uitgever",
+        "series": "Reeks",
+        "studio": "Studio",
         "players": "Spelers",
         "any": "Alle",
         "players_one": "Eén speler",
