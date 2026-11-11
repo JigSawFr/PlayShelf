@@ -37,6 +37,8 @@ void refresh();
 
 // A game's, by its base game's title id (UI thread); a score of 0 when unknown.
 library::Renown of(uint64_t base_id);
+// How many of the games known a score of `score` is better known than, in percent (0 before the file is read).
+int share_below(int score);
 // The games known (0 before the file is read).
 size_t size();
 // A game's name as Atlas' games.json tells it (titledb's), "" when unknown:

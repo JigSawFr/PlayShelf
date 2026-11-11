@@ -60,6 +60,15 @@ bool PopularBook::from_json(const std::string& text)
     return true;
 }
 
+int PopularBook::share_below(int score) const
+{
+    if (this->games.empty()) return 0;
+    size_t below = 0;
+    for (const auto& g : this->games)
+        if (g.second.score < score) below++;
+    return (int)(below * 100 / this->games.size());
+}
+
 Renown PopularBook::of(uint64_t base_id) const
 {
     const auto it = this->games.find(base_id);

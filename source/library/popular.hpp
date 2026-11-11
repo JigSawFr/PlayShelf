@@ -34,6 +34,9 @@ class PopularBook
     // A game's, by its base game's title id; a score of 0 when unknown.
     Renown of(uint64_t base_id) const;
     size_t size() const { return this->games.size(); }
+    // How many of the games known are less well known than `score` (1 to 100), in percent of them: 0
+    // for none or no game known.
+    int share_below(int score) const;
     // The day it was made ("2026-10-27"), to keep the newer of two.
     const std::string& generated() const { return this->day; }
 

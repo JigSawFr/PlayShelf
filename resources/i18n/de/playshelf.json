@@ -595,6 +595,8 @@
         "launches_one": "einmal gestartet",
         "launches": "{}-mal gestartet",
         "last_played": "Zuletzt gespielt",
+        "renown_rank": "Bekanntheit",
+        "renown_rank_value": "Bekannter als {} % der Spiele",
         "critics": "Kritikerwertung",
         "critics_score": "{}/100",
         "editions": "Andere Editionen",

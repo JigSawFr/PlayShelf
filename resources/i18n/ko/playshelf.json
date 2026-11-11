@@ -595,6 +595,8 @@
         "launches_one": "1회 실행",
         "launches": "{}회 실행",
         "last_played": "마지막 플레이",
+        "renown_rank": "인지도",
+        "renown_rank_value": "게임의 {}%보다 유명함",
         "critics": "평론가 점수",
         "critics_score": "{}/100",
         "editions": "다른 에디션",

@@ -595,6 +595,8 @@
         "launches_one": "запущена один раз",
         "launches": "запусков: {}",
         "last_played": "Последняя игра",
+        "renown_rank": "Известность",
+        "renown_rank_value": "Известнее, чем {} % игр",
         "critics": "Оценка критиков",
         "critics_score": "{}/100",
         "editions": "Другие издания",
