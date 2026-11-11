@@ -234,7 +234,10 @@
             "newest": "最新優先",
             "to_get_first": "有可補全內容優先",
             "most_played": "玩得最多",
-            "recently_played": "最近玩過"
+            "recently_played": "最近玩過",
+            "best_known": "依知名度",
+            "best_reviewed": "依評論家評分",
+            "best_rated": "依玩家評分"
         },
         "stat_updates": "可用更新",
         "stat_dlcs": "可用追加內容",

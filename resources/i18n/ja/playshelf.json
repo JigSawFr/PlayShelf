@@ -234,7 +234,10 @@
             "newest": "新しい順",
             "to_get_first": "足りないものがある順",
             "most_played": "よく遊ぶ順",
-            "recently_played": "最近遊んだ順"
+            "recently_played": "最近遊んだ順",
+            "best_known": "知名度順",
+            "best_reviewed": "批評家の評価が高い順",
+            "best_rated": "プレイヤーの評価が高い順"
         },
         "stat_updates": "更新データ",
         "stat_dlcs": "追加コンテンツ",

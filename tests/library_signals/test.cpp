@@ -54,6 +54,24 @@ void test_igdb()
         if (CHECK(b.find(id))) CHECK(b.find(id)->igdb.rating == 0 && b.find(id)->igdb.count == 0);
 }
 
+// How the players rate a game: Steam's and IGDB's, trusted from a few
+// voices, averaged.
+void test_players_rating()
+{
+    GameSignals g;
+    CHECK(players_rating(g) == 0);
+    g.steam.positive = 90, g.steam.negative = 10;
+    CHECK(players_rating(g) == 90);
+    g.steam.positive = 30, g.steam.negative = 10;   // 40 reviews: too few
+    CHECK(players_rating(g) == 0);
+    g.igdb.rating = 80, g.igdb.count = 19;
+    CHECK(players_rating(g) == 0);
+    g.igdb.count = 20;
+    CHECK(players_rating(g) == 80);
+    g.steam.positive = 90, g.steam.negative = 10;
+    CHECK(players_rating(g) == 85);
+}
+
 // IGDB's themes: [id as text, name]; an id that is no number, a name
 // missing, and the Wikidata sort ("Q1") are left out.
 void test_themes()
@@ -167,6 +185,7 @@ int main()
     test_similar();
     test_igdb();
     test_themes();
+    test_players_rating();
     test_names();
     test_editions();
     test_names_any();

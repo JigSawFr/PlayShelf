@@ -70,8 +70,8 @@ bool something_to_get(const library::TitleState& st)
 }
 
 // The order and the filter chosen: they stay for this run.
-enum class Order : int { Name, Publisher, Newest, ToGetFirst, MostPlayed, RecentlyPlayed };
-const char* const ORDERS[] = { "name", "publisher", "newest", "to_get_first", "most_played", "recently_played" };
+enum class Order : int { Name, Publisher, Newest, ToGetFirst, MostPlayed, RecentlyPlayed, BestKnown, BestReviewed, BestRated };
+const char* const ORDERS[] = { "name", "publisher", "newest", "to_get_first", "most_played", "recently_played", "best_known", "best_reviewed", "best_rated" };
 Order           s_order = Order::Name;
 library::Filter s_filter;
 bool            s_homebrew = false;   // the homebrew the console has shown, not its games
@@ -82,6 +82,21 @@ std::optional<library::Server> first_server()
     for (const library::Server& sv : library::load_servers())
         if (!sv.uid.empty()) return sv;
     return std::nullopt;
+}
+
+// What the three "best" orders sort by, 0..100 (0: not known): how well known the game is,
+// the critics' score, the players' rating (Atlas' popular.json and games.json).
+int figure_of(uint64_t id, const library::SignalBook& signals)
+{
+    switch (s_order) {
+        case Order::BestKnown: return popular_flow::of(id).score;
+        case Order::BestReviewed: return popular_flow::of(id).critics;
+        case Order::BestRated: {
+            const library::GameSignals* g = signals.find(id);
+            return g ? library::players_rating(*g) : 0;
+        }
+        default: return 0;
+    }
 }
 
 bool needs_facts()
@@ -269,9 +284,11 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
     {
         bool        to_get  = false;
         uint32_t    release = 0;
+        int         figure = 0;   // BestKnown, BestReviewed, BestRated: its score, 0 when not known
         std::string publisher, name;
     };
     std::vector<Key> keys(this->entries.size());
+    const auto       signals = popular_flow::signals();
     for (size_t i = 0; i < this->entries.size(); i++) {
         const Entry& e = this->entries[i];
         Key&         k = keys[i];
@@ -282,6 +299,8 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
             k.publisher = library::fold(f.publisher);
             k.release = f.release_date;
         }
+        if (s_order == Order::BestKnown || s_order == Order::BestReviewed || s_order == Order::BestRated)
+            k.figure = figure_of(e.game->game.id, *signals);
     }
     std::vector<size_t> order(this->entries.size());
     std::iota(order.begin(), order.end(), size_t{ 0 });
@@ -300,6 +319,9 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
             if (ka.publisher != kb.publisher) return kb.publisher.empty() || (!ka.publisher.empty() && ka.publisher < kb.publisher);
         } else if (s_order == Order::Newest) {
             if (ka.release != kb.release) return ka.release > kb.release;
+        } else if (s_order == Order::BestKnown || s_order == Order::BestReviewed || s_order == Order::BestRated) {
+            // The best first; the games nothing is known of last, by name.
+            if (ka.figure != kb.figure) return ka.figure > kb.figure;
         }
         return ka.name < kb.name;
     });
@@ -362,6 +384,10 @@ void LibraryTab::add_page()
         // Ordered by play: how much, unless something is to get.
         if ((s_order == Order::MostPlayed || s_order == Order::RecentlyPlayed) && e.game->play_s)
             detail = installed_flow::play_text(e.game->play_s);
+        // Ordered by one of the scores: the score, when it is known.
+        if (s_order == Order::BestKnown || s_order == Order::BestReviewed || s_order == Order::BestRated)
+            if (const int figure = figure_of(e.game->game.id, *popular_flow::signals()))
+                detail = aurore::getStr("playshelf/game/critics_score", figure);
         if (st.update_available) detail = "playshelf/library/update_available"_i18n;
         else if (st.dlcs_missing == 1) detail = "playshelf/installed/dlcs_missing_one"_i18n;
         else if (st.dlcs_missing) detail = aurore::getStr("playshelf/installed/dlcs_missing", st.dlcs_missing);

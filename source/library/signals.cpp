@@ -83,6 +83,16 @@ bool is_day(const std::string& s)
     return true;
 }
 
+int players_rating(const GameSignals& g)
+{
+    double sum = 0;
+    int    says = 0;
+    if (g.steam.positive + g.steam.negative >= STEAM_TRUSTED)
+        sum += 100.0 * (double)g.steam.positive / (double)(g.steam.positive + g.steam.negative), says++;
+    if (g.igdb.count >= IGDB_TRUSTED) sum += g.igdb.rating, says++;
+    return says ? (int)std::lround(sum / says) : 0;
+}
+
 bool SignalBook::from_json(const std::string& text)
 {
     this->games.clear();
