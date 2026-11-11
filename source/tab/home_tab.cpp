@@ -128,7 +128,7 @@ std::string key_of(const insights::Snapshot& s)
                                   s.downloads, s.space.free / 100000000, s.loading, library::load_servers().size(),
                                   popular_flow::size(), config::get().nlib_api) +
                       std::to_string(homebrew_flow::updates_count()) + "|";
-    for (const auto* list : { &s.to_get, &s.added, &s.popular, &s.trending, &s.month, &s.newest }) {
+    for (const auto* list : { &s.to_get, &s.added, &s.popular, &s.trending, &s.local, &s.month, &s.newest }) {
         for (const insights::Pick& p : *list) key += std::format("{:x},", p.title().id);
         key += '|';
     }
@@ -236,6 +236,11 @@ void HomeTab::build(bool force)
     if (online) this->add_banners("playshelf/home/popular"_i18n, s.popular, false, true);
     this->add_covers("playshelf/home/trending"_i18n, "playshelf/home/trending_line"_i18n, s.trending, [](const Pick& p) {
         return Detail{ aurore::getStr("playshelf/home/trend", popular_flow::of(p.title().id).trend), "cadran/teal" };
+    }, [](GameTile* tile, const Pick& p) { put_away(tile, p); });
+    this->add_covers("playshelf/home/local"_i18n, "playshelf/home/local_line"_i18n, s.local, [](const Pick& p) {
+        return Detail{ aurore::getStr("playshelf/home/local_share", popular_flow::reach()->share(library::base_of(p.title().id),
+                                      library::language_of(aurore::Application::getLocale()))),
+                       "cadran/teal" };
     }, [](GameTile* tile, const Pick& p) { put_away(tile, p); });
     if (online) {
         if (s.month.size() >= 3) this->add_banners("playshelf/home/month"_i18n, s.month, false);

@@ -39,6 +39,7 @@ constexpr uint64_t IDLE_S = 90 * 86400;   // a game not played for three months
 constexpr uint64_t IDLE_SIZE = 1000000000;   // and taking 1 GB or more
 constexpr int      TRENDING = 25;         // read a quarter more than before, at least
 constexpr int      POPULAR = 20;          // a score worth showing
+constexpr int      LOCAL_SHARE = 30;      // of a game's readers in the console's language, at least, in percent
 
 std::shared_ptr<const Snapshot>      s_now = std::make_shared<Snapshot>();
 Listeners                            s_listeners;
@@ -254,6 +255,9 @@ void make()
     // The servers' games the console has not (no demos): by date, by when
     // they came, by how well known they are.
     const uint32_t        month_ago = today(-31), to_day = today();
+    // The console's language, as Atlas counts it (English: every game is read in it).
+    const auto            reach = popular_flow::reach();
+    const std::string     language = library::language_of(aurore::Application::getLocale());
     std::vector<Pick>     fresh;
     std::vector<uint32_t> came;
     for (const Pick& p : every) {
@@ -269,6 +273,7 @@ void make()
         const library::Renown r = popular_flow::of(t.id);
         if (r.score >= POPULAR) s.popular.push_back(p);
         if (r.score >= POPULAR && r.trend >= TRENDING) s.trending.push_back(p);
+        if (!language.empty() && language != "en" && reach->share(library::base_of(t.id), language) >= LOCAL_SHARE) s.local.push_back(p);
     }
     auto by_date = [](const Pick& a, const Pick& b) { return date_of(a.title()) > date_of(b.title()); };
     std::stable_sort(s.newest.begin(), s.newest.end(), by_date);
@@ -282,7 +287,11 @@ void make()
     std::stable_sort(s.trending.begin(), s.trending.end(), [](const Pick& a, const Pick& b) {
         return popular_flow::of(a.title().id).trend > popular_flow::of(b.title().id).trend;
     });
-    for (auto* row : { &s.newest, &s.month, &s.added, &s.popular, &s.trending }) {
+    std::stable_sort(s.local.begin(), s.local.end(), [&reach, &language](const Pick& a, const Pick& b) {
+        const int x = reach->share(library::base_of(a.title().id), language), y = reach->share(library::base_of(b.title().id), language);
+        return x != y ? x > y : popular_flow::of(a.title().id).score > popular_flow::of(b.title().id).score;
+    });
+    for (auto* row : { &s.newest, &s.month, &s.added, &s.popular, &s.trending, &s.local }) {
         one_per_game(*row, *editions, [](const Pick& p) { return p.title().id; });
         if (row->size() > ROW) row->resize(ROW);
     }

@@ -284,6 +284,8 @@ notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
 library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 # The games still to come and how many follow each (upcoming.json, Atlas).
 library_upcoming_SRC := source/library/upcoming.cpp source/library/signals.cpp tests/library_upcoming/test.cpp
+# Where each game is read, by language (reach.json, Atlas).
+library_reach_SRC := source/library/reach.cpp source/library/signals.cpp tests/library_reach/test.cpp
 # When each game was first seen on a server; the wishlist's ids.
 library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
