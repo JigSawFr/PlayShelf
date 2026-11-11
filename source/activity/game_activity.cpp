@@ -416,6 +416,9 @@ void GameActivity::fill_details_tab()
             fact(card, "playshelf/game/players_rating"_i18n,
                  aurore::getStr("playshelf/game/players_rating_value", (int)sig->igdb.rating, sig->igdb.count));
     }
+    // The other stores it is sold on (Atlas, from Wikidata): their names only.
+    if (const uint8_t stores = popular_flow::also()->of(library::base_of(this->page.title_id)))
+        fact(card, "playshelf/game/also_on"_i18n, library::store_names(stores));
     // What critics gave it (Atlas, from Wikidata: OpenCritic's mostly).
     if (const int critics = popular_flow::of(this->page.title_id).critics)
         fact(card, "playshelf/game/critics"_i18n, aurore::getStr("playshelf/game/critics_score", critics));

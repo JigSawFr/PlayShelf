@@ -286,6 +286,8 @@ library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 library_upcoming_SRC := source/library/upcoming.cpp source/library/signals.cpp tests/library_upcoming/test.cpp
 # Where each game is read, by language (reach.json, Atlas).
 library_reach_SRC := source/library/reach.cpp source/library/signals.cpp tests/library_reach/test.cpp
+# The other stores a game is sold on (also.json, Atlas).
+library_also_SRC := source/library/also.cpp source/library/signals.cpp tests/library_also/test.cpp
 # When each game was first seen on a server; the wishlist's ids.
 library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
