@@ -137,6 +137,7 @@ std::string key_of(const insights::Snapshot& s)
     for (const insights::Suggested& l : s.like) key += std::format("{:x}.{}.{:x}.{},", l.pick.title().id, std::to_underlying(l.reason.kind), l.reason.because, l.reason.hours);
     for (const insights::InSeries& l : s.series) key += std::format("{:x},", l.pick.title().id);
     for (const insights::Played& p : s.recent) key += std::format("{:x}.{},", p.game.game.id, p.game.last_played);
+    for (const insights::Played& p : s.tonight) key += std::format("{:x}.{},", p.game.game.id, p.figure);
     for (const insights::Wished& w : s.wished) key += std::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
     for (const insights::Coming& c : s.coming) key += std::format("{:x},", c.id);
     for (const insights::SeriesGap& g : s.gaps) key += std::format("{:x},", g.id);
@@ -196,7 +197,10 @@ void HomeTab::build(bool force)
     if (!s.console_games && library::load_servers().empty()) return this->add_welcome();
     this->add_hero(s);
     this->add_tiles(s);
-    this->add_recent(s.recent);
+    this->add_played("playshelf/home/recent"_i18n, "playshelf/home/recent_line"_i18n, s.recent,
+                     [](const insights::Played& p) { return installed_flow::play_text(p.game.play_s); });
+    this->add_played("playshelf/home/tonight"_i18n, "playshelf/home/tonight_line"_i18n, s.tonight,
+                     [](const insights::Played& p) { return aurore::getStr("playshelf/game/critics_score", p.figure); });
     const bool online = config::get().nlib_api;
     if (online) this->add_banners("playshelf/installed/featured"_i18n, s.to_get, true);
     // For the player, each with the reason that weighed most; then the
@@ -509,15 +513,16 @@ GameTile* HomeTab::lone_tile(uint64_t game_id, const std::string& name, const De
     return tile;
 }
 
-void HomeTab::add_recent(const std::vector<insights::Played>& recent)
+void HomeTab::add_played(const std::string& title, const std::string& line, const std::vector<insights::Played>& games,
+                         const std::function<std::string(const insights::Played&)>& detail)
 {
-    if (recent.empty()) return;
-    aurore::Box* row = this->add_row("playshelf/home/recent"_i18n, "playshelf/home/recent_line"_i18n, GameTile::WIDTH + 64);
+    if (games.empty()) return;
+    aurore::Box* row = this->add_row(title, line, GameTile::WIDTH + 64);
     const int  gen = this->generation;
-    for (const insights::Played& p : recent) {
+    for (const insights::Played& p : games) {
         auto* tile = new GameTile();
         tile->set_name(p.name);
-        tile->set_detail(installed_flow::play_text(p.game.play_s));
+        tile->set_detail(detail(p));
         tile->set_detail_color("cadran/teal");
         // Its page from a catalogue that has it, else the Library.
         const Pick found = p.found;

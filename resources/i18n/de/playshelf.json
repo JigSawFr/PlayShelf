@@ -689,6 +689,8 @@
         "welcome_text": "Füge deinen Bibliotheksserver hinzu, um deine Spiele zu durchsuchen und zu installieren: Neuheiten, was deinen Spielen fehlt und ähnliche Spiele erscheinen hier.",
         "recent": "Zuletzt gespielt",
         "recent_line": "Auf dieser Konsole",
+        "tonight": "Für heute Abend",
+        "tonight_line": "Gut bewertet, kaum gespielt",
         "played_hours": "{} Std. gespielt",
         "played_minutes": "{} Min. gespielt",
         "search": "Suchen",

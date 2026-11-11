@@ -40,6 +40,7 @@ struct Played
     installed_flow::Game game;
     std::string          name;
     Pick                 found;
+    int                  figure = 0;   // Tonight's pick: its best score in Atlas (critics or players), 0 when none
 };
 
 // A game the title databases date in the next weeks.
@@ -102,6 +103,7 @@ struct Snapshot
 
     std::vector<Pick>    to_get;     // the console's games with something to get, the most played first
     std::vector<Played>  recent;     // played lately, the latest first
+    std::vector<Played>  tonight;    // well rated and hardly played, the best first (Atlas' scores)
     std::vector<Pick>    added;      // new on a server (library/seen), the latest first
     std::vector<Pick>    newest;     // the servers' newest games the console has not
     std::vector<Pick>    month;      // released in the last month, the console has not

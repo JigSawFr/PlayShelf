@@ -55,6 +55,11 @@ Shared shared(const std::vector<Trait>& mine, const std::vector<Owned>& owned, c
 }
 }   // namespace
 
+double quality_of(const Renown& r, int players_rating)
+{
+    return 0.5 * r.score / 100.0 + 0.3 * r.critics / 100.0 + 0.2 * players_rating / 100.0;
+}
+
 double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, uint64_t now)
 {
     if (!play_s && !launches) return 0.3;

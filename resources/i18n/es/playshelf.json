@@ -689,6 +689,8 @@
         "welcome_text": "Añade tu servidor de biblioteca para explorar e instalar tus juegos: sus novedades, lo que les falta a tus juegos y juegos parecidos aparecen aquí.",
         "recent": "Jugados hace poco",
         "recent_line": "En esta consola",
+        "tonight": "Para esta noche",
+        "tonight_line": "Bien valorados, casi sin jugar",
         "played_hours": "{} h jugadas",
         "played_minutes": "{} min jugados",
         "search": "Buscar",

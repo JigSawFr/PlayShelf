@@ -689,6 +689,8 @@
         "welcome_text": "Voeg je bibliotheekserver toe om je games te bekijken en te installeren: nieuwe games, wat je games missen en vergelijkbare games verschijnen hier.",
         "recent": "Onlangs gespeeld",
         "recent_line": "Op deze console",
+        "tonight": "Voor vanavond",
+        "tonight_line": "Goed beoordeeld, amper gespeeld",
         "played_hours": "{} u gespeeld",
         "played_minutes": "{} min gespeeld",
         "search": "Zoeken",

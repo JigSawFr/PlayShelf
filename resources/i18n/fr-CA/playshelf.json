@@ -689,6 +689,8 @@
         "welcome_text": "Ajoutez votre serveur de bibliothèque pour parcourir et installer vos jeux : ses nouveautés, ce qui manque à vos jeux et des jeux qui leur ressemblent s'affichent ici.",
         "recent": "Joués récemment",
         "recent_line": "Sur cette console",
+        "tonight": "À lancer ce soir",
+        "tonight_line": "Bien notés, à peine joués",
         "played_hours": "{} h de jeu",
         "played_minutes": "{} min de jeu",
         "search": "Rechercher",

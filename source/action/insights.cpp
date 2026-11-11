@@ -39,6 +39,9 @@ constexpr uint64_t IDLE_S = 90 * 86400;   // a game not played for three months
 constexpr uint64_t IDLE_SIZE = 1000000000;   // and taking 1 GB or more
 constexpr int      TRENDING = 25;         // read a quarter more than before, at least
 constexpr int      POPULAR = 20;          // a score worth showing
+constexpr uint64_t TONIGHT_PLAY_S = 2 * 3600;   // played less than this,
+constexpr uint32_t TONIGHT_LAUNCHES = 3;        // and started fewer times: hardly played
+constexpr double   TONIGHT_QUALITY = 0.45;      // and said to be at least this good
 constexpr int      LOCAL_SHARE = 30;      // of a game's readers in the console's language, at least, in percent
 
 std::shared_ptr<const Snapshot>      s_now = std::make_shared<Snapshot>();
@@ -199,6 +202,7 @@ void make()
     // genres they have, each weighed by how many have it and how much they
     // were played.
     std::vector<std::pair<uint64_t, Pick>> getting;
+    std::vector<std::pair<double, Played>> tonight;
     std::map<std::string, double>          genres;
     std::vector<library::Owned>            owned;
     const uint64_t                         now = (uint64_t)std::time(nullptr);
@@ -231,6 +235,17 @@ void make()
             if (g.size >= IDLE_SIZE && (!g.last_played || now - g.last_played > IDLE_S))
                 s.idle.push_back({ g, name_of(g.game.id, g.name), found });
             if (g.last_played) s.recent.push_back({ g, name_of(g.game.id, g.name), found });
+            // Hardly played, and well rated: worth an evening.
+            if (g.play_s < TONIGHT_PLAY_S && g.launches < TONIGHT_LAUNCHES) {
+                const library::Renown r = popular_flow::of(g.game.id);
+                const library::GameSignals* sig = popular_flow::signals()->find(g.game.id);
+                const int players = sig ? library::players_rating(*sig) : 0;
+                const double quality = library::quality_of(r, players);
+                if (r.score >= POPULAR && quality >= TONIGHT_QUALITY) {
+                    Played p{ g, name_of(g.game.id, g.name), found, std::max(r.critics, players) };
+                    tonight.push_back({ quality, std::move(p) });
+                }
+            }
         }
     std::stable_sort(getting.begin(), getting.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
     for (const auto& g : getting) s.to_get.push_back(g.second);
@@ -238,6 +253,11 @@ void make()
     std::stable_sort(s.recent.begin(), s.recent.end(),
                      [](const Played& a, const Played& b) { return a.game.last_played > b.game.last_played; });
     if (s.recent.size() > ROW) s.recent.resize(ROW);
+    std::stable_sort(tonight.begin(), tonight.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+    for (auto& t : tonight) {
+        if (s.tonight.size() >= ROW) break;
+        s.tonight.push_back(std::move(t.second));
+    }
     std::stable_sort(s.idle.begin(), s.idle.end(), [](const Played& a, const Played& b) { return a.game.size > b.game.size; });
 
     // The games the player put away (not_interested), and those the console

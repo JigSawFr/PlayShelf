@@ -689,6 +689,8 @@
         "welcome_text": "라이브러리 서버를 추가해 게임을 둘러보고 설치하세요. 새 게임, 내 게임에 없는 것, 비슷한 게임이 여기에 표시됩니다.",
         "recent": "최근 플레이",
         "recent_line": "이 본체",
+        "tonight": "오늘 밤의 추천",
+        "tonight_line": "평점은 높지만 거의 안 한 게임",
         "played_hours": "{}시간 플레이",
         "played_minutes": "{}분 플레이",
         "search": "검색",
