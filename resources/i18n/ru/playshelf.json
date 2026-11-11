@@ -725,6 +725,7 @@
         "series": "В ваших сериях",
         "series_line": "Ещё из ваших серий",
         "because_like": "Как {}",
+        "because_like_traits": "Как {} · {}",
         "because_series": "Серия: {}",
         "because_developer": "От {}",
         "because_popular": "Популярное",

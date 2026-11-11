@@ -725,6 +725,7 @@
         "series": "Dans vos séries",
         "series_line": "D'autres jeux des séries que vous avez",
         "because_like": "Comme {}",
+        "because_like_traits": "Comme {} · {}",
         "because_series": "Série : {}",
         "because_developer": "Par {}",
         "because_popular": "Populaire",

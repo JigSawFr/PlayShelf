@@ -725,6 +725,7 @@
         "series": "あなたのシリーズ",
         "series_line": "持っているシリーズの別作品",
         "because_like": "{} に似ています",
+        "because_like_traits": "{} に似ています · {}",
         "because_series": "シリーズ: {}",
         "because_developer": "{} 開発",
         "because_popular": "人気",

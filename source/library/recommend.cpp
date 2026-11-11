@@ -27,6 +27,7 @@ bool share(const std::vector<Trait>& a, const std::vector<Trait>& b)
             if (x.id == y.id) return true;
     return false;
 }
+constexpr size_t   MAX_SHARED_THEMES = 2;   // themes a likeness names
 constexpr uint64_t STEAM_TRUSTED = 50;   // reviews below which Steam's say is left out
 constexpr uint64_t IGDB_TRUSTED = 20;    // ratings below which IGDB's players' say is left out
 
@@ -140,18 +141,29 @@ std::vector<Suggestion> recommend(const std::vector<Owned>& owned, const std::ve
         s.score = score;
         const size_t why = (size_t)(std::max_element(std::begin(parts), std::end(parts)) - std::begin(parts));
         switch (why) {
-            case 0: s.reason = { Reason::Kind::Like, because, 0, "" }; break;
-            case 1: s.reason = { Reason::Kind::Series, 0, 0, series.label }; break;
-            case 2: s.reason = { Reason::Kind::Developer, 0, 0, developer.label }; break;
-            case 3: s.reason = { Reason::Kind::Genre, 0, 0, genre_label }; break;
-            default: s.reason = { Reason::Kind::Popular, 0, 0, "" }; break;
+            case 0: s.reason = { Reason::Kind::Like, because, 0, "", "" }; break;
+            case 1: s.reason = { Reason::Kind::Series, 0, 0, series.label, "" }; break;
+            case 2: s.reason = { Reason::Kind::Developer, 0, 0, developer.label, "" }; break;
+            case 3: s.reason = { Reason::Kind::Genre, 0, 0, genre_label, "" }; break;
+            default: s.reason = { Reason::Kind::Popular, 0, 0, "", "" }; break;
         }
         // A series or a studio without a name says nothing: its likeness instead.
         if ((s.reason.kind == Reason::Kind::Series || s.reason.kind == Reason::Kind::Developer) && s.reason.label.empty())
-            s.reason = because ? Reason{ Reason::Kind::Like, because, 0, "" } : Reason{ Reason::Kind::Popular, 0, 0, "" };
-        if (s.reason.kind == Reason::Kind::Like)
+            s.reason = because ? Reason{ Reason::Kind::Like, because, 0, "", "" } : Reason{ Reason::Kind::Popular, 0, 0, "", "" };
+        if (s.reason.kind == Reason::Kind::Like) {
             for (const Owned& o : owned)
                 if (o.id == s.reason.because) s.reason.hours = o.hours;
+            // What they have in common: the IGDB themes of both, the game's order.
+            const GameSignals* other = signals.find(s.reason.because);
+            if (mine && other) {
+                size_t n = 0;
+                for (const Trait& t : mine->themes) {
+                    if (n >= MAX_SHARED_THEMES) break;
+                    if (std::ranges::none_of(other->themes, [&t](const Trait& o) { return o.id == t.id; })) continue;
+                    s.reason.traits += (n++ ? ", " : "") + t.label;
+                }
+            }
+        }
         out.push_back(std::move(s));
     }
     std::stable_sort(out.begin(), out.end(), [](const Suggestion& a, const Suggestion& b) { return a.score > b.score; });

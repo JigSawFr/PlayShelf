@@ -23,7 +23,7 @@ namespace library
 
 struct Trait
 {
-    std::string id;      // Wikidata's ("Q123")
+    std::string id;      // Wikidata's ("Q123"), IGDB's for a theme ("17")
     std::string label;   // English, "" when Wikidata has none
 };
 
@@ -46,6 +46,7 @@ struct GameSignals
 {
     std::string        name;   // titledb's (US, else GB, else JP), "" when not told
     std::vector<Trait> series, developers, publishers, genres, modes;
+    std::vector<Trait> themes;   // IGDB's ("Survival"), once Atlas has its keys
     SteamAudience      steam;
     PlayersRating      igdb;
 };

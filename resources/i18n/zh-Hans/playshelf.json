@@ -725,6 +725,7 @@
         "series": "你的系列",
         "series_line": "你已有系列的其他作品",
         "because_like": "类似 {}",
+        "because_like_traits": "类似 {} · {}",
         "because_series": "系列：{}",
         "because_developer": "{} 开发",
         "because_popular": "热门",

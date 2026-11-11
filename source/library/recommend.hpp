@@ -53,6 +53,7 @@ struct Reason
     uint64_t    because = 0;   // Like: the console's game it is like
     uint32_t    hours = 0;     // Like: that game's play time
     std::string label;         // Series, Developer: its name; Genre: Nlib API's word
+    std::string traits;        // Like: the IGDB themes both games have, at most two ("Survival, Fantasy"), "" when none
 };
 
 struct Suggestion

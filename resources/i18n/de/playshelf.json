@@ -725,6 +725,7 @@
         "series": "In Ihren Reihen",
         "series_line": "Mehr aus Ihren Reihen",
         "because_like": "Wie {}",
+        "because_like_traits": "Wie {} · {}",
         "because_series": "Reihe: {}",
         "because_developer": "Von {}",
         "because_popular": "Beliebt",
