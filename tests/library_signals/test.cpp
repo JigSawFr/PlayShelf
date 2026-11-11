@@ -54,6 +54,20 @@ void test_igdb()
         if (CHECK(b.find(id))) CHECK(b.find(id)->igdb.rating == 0 && b.find(id)->igdb.count == 0);
 }
 
+// IGDB's themes: [id as text, name]; an id that is no number, a name
+// missing, and the Wikidata sort ("Q1") are left out.
+void test_themes()
+{
+    SignalBook b;
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-11-11","games":{
+        "0100000000010000":{"themes":[["1","Fantasy"],["Q5","Wikidata"],["x","Bad"],["2",""],["3"],[4,"Number"],["17","Open\nworld"]]},
+        "0100000000020000":{"themes":"nope"}}})"));
+    const GameSignals* a = b.find(A);
+    if (!CHECK(a)) return;
+    CHECK(a->themes.size() == 2 && a->themes[0].id == "1" && a->themes[0].label == "Fantasy" && a->themes[1].label == "Open world");
+    if (CHECK(b.find(B))) CHECK(b.find(B)->themes.empty());
+}
+
 // titledb's name, which Atlas' games.json gives each game: kept as told;
 // none, not a string or too long: not known.
 void test_names()
@@ -152,6 +166,7 @@ int main()
     test_games();
     test_similar();
     test_igdb();
+    test_themes();
     test_names();
     test_editions();
     test_names_any();

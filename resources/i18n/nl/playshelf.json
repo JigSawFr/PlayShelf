@@ -725,6 +725,7 @@
         "series": "In je series",
         "series_line": "Meer uit je series",
         "because_like": "Zoals {}",
+        "because_like_traits": "Zoals {} · {}",
         "because_series": "Serie: {}",
         "because_developer": "Door {}",
         "because_popular": "Populair",

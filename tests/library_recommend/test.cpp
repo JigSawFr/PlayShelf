@@ -43,7 +43,8 @@ void test_recommend()
         "0100000000150000":[["0100000000140000",90]]}})"));
     SignalBook signals;
     CHECK(signals.from_json(R"({"schema":1,"generated":"2026-10-29","games":{
-        "0100000000010000":{"series":[["Q1","A saga"]]},
+        "0100000000010000":{"series":[["Q1","A saga"]],"themes":[["1","Fantasy"],["2","Survival"],["4","Horror"]]},
+        "0100000000110000":{"themes":[["3","Puzzle"],["2","Survival"],["1","Fantasy"],["4","Horror"]]},
         "0100000000120000":{"series":[["Q1","A saga"]]}}})"));
     const std::vector<Owned> owned = { { P, owned_weight(80 * 3600, 40, 0, 0), 80 }, { N, owned_weight(0, 0, 0, 0), 0 } };
     std::map<std::string, double> genres = { { "Platformer", 5.0 } };
@@ -67,6 +68,9 @@ void test_recommend()
     CHECK(got[0].id == LIKE_P && got[0].reason.kind == Reason::Kind::Like && got[0].reason.because == P);
     // The played game's hours come with its likeness.
     CHECK(got[0].reason.hours == 80);
+    // What they share: the IGDB themes of both, the game's order, two at most.
+    CHECK(got[0].reason.traits == "Survival, Fantasy");
+    CHECK(got[1].reason.traits.empty());
     CHECK(got[1].id == SAME_SERIES && got[1].reason.kind == Reason::Kind::Series && got[1].reason.label == "A saga");
     for (const Suggestion& s : got) {
         CHECK(s.id != NOTHING);

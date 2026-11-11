@@ -725,6 +725,7 @@
         "series": "Nas suas séries",
         "series_line": "Mais das séries que você tem",
         "because_like": "Como {}",
+        "because_like_traits": "Como {} · {}",
         "because_series": "Série: {}",
         "because_developer": "De {}",
         "because_popular": "Popular",

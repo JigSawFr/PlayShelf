@@ -725,6 +725,7 @@
         "series": "내 시리즈",
         "series_line": "보유한 시리즈의 다른 게임",
         "because_like": "{}와(과) 비슷함",
+        "because_like_traits": "{}와(과) 비슷함 · {}",
         "because_series": "시리즈: {}",
         "because_developer": "{} 개발",
         "because_popular": "인기",

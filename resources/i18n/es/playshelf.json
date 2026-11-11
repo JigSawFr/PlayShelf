@@ -725,6 +725,7 @@
         "series": "En tus sagas",
         "series_line": "Más de las sagas que tienes",
         "because_like": "Como {}",
+        "because_like_traits": "Como {} · {}",
         "because_series": "Saga: {}",
         "because_developer": "De {}",
         "because_popular": "Popular",

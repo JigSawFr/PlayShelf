@@ -112,6 +112,8 @@ std::pair<std::string, const char*> reason_text(const library::Reason& r)
         case Kind::Like:
             if (r.hours >= PLAYED_HOURS)
                 return { aurore::getStr("playshelf/home/because_played", insights::name_of(r.because), r.hours), "cadran/teal" };
+            if (!r.traits.empty())
+                return { aurore::getStr("playshelf/home/because_like_traits", insights::name_of(r.because), r.traits), "cadran/teal" };
             return { aurore::getStr("playshelf/home/because_like", insights::name_of(r.because)), "cadran/teal" };
         case Kind::Series: return { aurore::getStr("playshelf/home/because_series", r.label), "cadran/teal" };
         case Kind::Developer: return { aurore::getStr("playshelf/home/because_developer", r.label), "cadran/teal" };

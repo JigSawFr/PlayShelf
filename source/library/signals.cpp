@@ -33,6 +33,27 @@ std::vector<Trait> traits_of(const nlohmann::json& j, const char* key)
     return out;
 }
 
+// IGDB's traits: [id, name], the id its number as text.
+std::vector<Trait> igdb_traits_of(const nlohmann::json& j, const char* key)
+{
+    std::vector<Trait> out;
+    const auto it = j.find(key);
+    if (it == j.end() || !it->is_array()) return out;
+    for (const auto& v : *it) {
+        if (out.size() >= SignalBook::MAX_TRAITS) break;
+        if (!v.is_array() || v.size() < 2 || !v[0].is_string() || !v[1].is_string()) continue;
+        Trait t{ v[0].get<std::string>(), v[1].get<std::string>() };
+        if (t.id.empty() || t.id.size() > 10 || t.label.empty() ||
+            !std::all_of(t.id.begin(), t.id.end(), [](char c) { return c >= '0' && c <= '9'; }))
+            continue;
+        if (t.label.size() > MAX_TEXT) t.label.resize(MAX_TEXT);
+        for (char& c : t.label)
+            if ((unsigned char)c < 0x20) c = ' ';
+        out.push_back(std::move(t));
+    }
+    return out;
+}
+
 template <typename T>
 T number_at(const nlohmann::json& j, const char* key)
 {
@@ -83,6 +104,7 @@ bool SignalBook::from_json(const std::string& text)
         g.publishers = traits_of(value, "publishers");
         g.genres = traits_of(value, "genres");
         g.modes = traits_of(value, "modes");
+        g.themes = igdb_traits_of(value, "themes");
         const auto steam = value.find("steam");
         if (steam != value.end() && steam->is_object()) {
             g.steam.app = number_at<uint32_t>(*steam, "app");
