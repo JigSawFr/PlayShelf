@@ -689,6 +689,8 @@
         "welcome_text": "添加你的库服务器以浏览和安装游戏：新游戏、你的游戏缺少的内容和类似的游戏会显示在这里。",
         "recent": "最近玩过",
         "recent_line": "在这台主机上",
+        "tonight": "今晚来一局",
+        "tonight_line": "评价高，几乎没玩过",
         "played_hours": "已玩 {} 小时",
         "played_minutes": "已玩 {} 分钟",
         "search": "搜索",

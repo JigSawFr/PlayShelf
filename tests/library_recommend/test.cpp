@@ -27,6 +27,14 @@ constexpr uint64_t LIKE_P = 0x0100000000110000, SAME_SERIES = 0x0100000000120000
 
 void test_weight()
 {
+    // How good a game is said to be: renown 5 tenths, critics 3, players 2.
+    Renown r;
+    CHECK(quality_of(r, 0) == 0.0);
+    r.score = 80, r.critics = 90;
+    CHECK(quality_of(r, 0) > 0.66 && quality_of(r, 0) < 0.68);
+    CHECK(quality_of(r, 50) > 0.76 && quality_of(r, 50) < 0.78);
+    r.score = 100, r.critics = 100;
+    CHECK(quality_of(r, 100) > 0.999 && quality_of(r, 100) < 1.001);
     const uint64_t now = 1800000000;
     CHECK(owned_weight(0, 0, 0, now) < 0.5);
     CHECK(owned_weight(100 * 3600, 50, now - 90 * 86400, now) > owned_weight(3600, 2, now - 90 * 86400, now));

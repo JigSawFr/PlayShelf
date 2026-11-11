@@ -689,6 +689,8 @@
         "welcome_text": "Aggiungi il tuo server di libreria per sfogliare e installare i tuoi giochi: le novità, ciò che manca ai tuoi giochi e giochi simili appaiono qui.",
         "recent": "Giocati di recente",
         "recent_line": "Su questa console",
+        "tonight": "Per stasera",
+        "tonight_line": "Ben valutati, poco giocati",
         "played_hours": "{} h di gioco",
         "played_minutes": "{} min di gioco",
         "search": "Cerca",

@@ -63,6 +63,10 @@ struct Suggestion
     Reason   reason;
 };
 
+// How good a game is said to be, 0..1: its renown, its critics' score and the
+// players' rating (0: not known), weighed 5, 3 and 2 tenths.
+double quality_of(const Renown& renown, int players_rating);
+
 // How much a game of the console says: its play time (a log of its hours),
 // more for one played in the last month, little for one never played.
 double owned_weight(uint64_t play_s, uint32_t launches, uint64_t last_played, uint64_t now);

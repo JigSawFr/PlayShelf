@@ -689,6 +689,8 @@
         "welcome_text": "Add your library server to browse and install your games: its newest games, what your games are missing and games like them show here.",
         "recent": "Played lately",
         "recent_line": "On this console",
+        "tonight": "Tonight's pick",
+        "tonight_line": "Well rated, hardly played",
         "played_hours": "{} h played",
         "played_minutes": "{} min played",
         "search": "Search",

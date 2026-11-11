@@ -689,6 +689,8 @@
         "welcome_text": "新增你的程式庫伺服器以瀏覽和安裝遊戲：新遊戲、你的遊戲缺少的內容和類似的遊戲會顯示在這裡。",
         "recent": "最近玩過",
         "recent_line": "在這台主機上",
+        "tonight": "今晚來一局",
+        "tonight_line": "評價高，幾乎沒玩過",
         "played_hours": "已玩 {} 小時",
         "played_minutes": "已玩 {} 分鐘",
         "search": "搜尋",

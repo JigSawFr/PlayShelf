@@ -59,7 +59,9 @@ class HomeTab : public TabBase
     void add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,
                     const std::function<Detail(const Pick&)>& detail,
                     const std::function<void(GameTile*, const Pick&)>& each = {});
-    void add_recent(const std::vector<insights::Played>& recent);
+    // A row of the console's games, each with its own detail line.
+    void add_played(const std::string& title, const std::string& line, const std::vector<insights::Played>& games,
+                    const std::function<std::string(const insights::Played&)>& detail);
     void add_wished(const std::vector<insights::Wished>& wished);
     void add_coming(const std::vector<insights::Coming>& coming);
     void add_gaps(const std::vector<insights::SeriesGap>& gaps);
