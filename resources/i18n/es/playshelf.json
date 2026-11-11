@@ -656,6 +656,8 @@
         "note": "Un género, un editor, jugadores o un idioma: solo coinciden los juegos cuyos detalles ya dio Nlib API. Los demás se piden mientras tanto.",
         "genre": "Género",
         "publisher": "Editor",
+        "series": "Saga",
+        "studio": "Estudio",
         "players": "Jugadores",
         "any": "Todos",
         "players_one": "Un jugador",

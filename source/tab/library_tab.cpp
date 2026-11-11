@@ -269,8 +269,19 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
     const size_t count = this->entries.size();
     // Those the filter keeps: by their facts, and by what a catalogue has
     // that the console has not.
-    auto kept = [](const Entry& e) {
+    const auto signals = popular_flow::signals();
+    auto       kept = [&signals](const Entry& e) {
         if (!library::matches(s_filter, nlib_flow::facts(e.game->game.id))) return false;
+        // A series or a studio asked: by Atlas' games.json (a game it does not know has none).
+        if (!s_filter.series.empty() || !s_filter.studio.empty()) {
+            const library::GameSignals* g = signals->find(library::base_of(e.game->game.id));
+            auto has = [](const std::vector<library::Trait>& list, const std::string& label) {
+                return std::ranges::any_of(list, [&label](const library::Trait& t) { return t.label == label; });
+            };
+            if (!g || (!s_filter.series.empty() && !has(g->series, s_filter.series)) ||
+                (!s_filter.studio.empty() && !has(g->developers, s_filter.studio)))
+                return false;
+        }
         const library::TitleState st = state_in(e.data, e.title);
         return !(s_filter.state == library::Filter::State::ToUpdate && !st.update_available) &&
                !(s_filter.state == library::Filter::State::DlcsMissing && !st.dlcs_missing) &&
@@ -288,7 +299,6 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
         std::string publisher, name;
     };
     std::vector<Key> keys(this->entries.size());
-    const auto       signals = popular_flow::signals();
     for (size_t i = 0; i < this->entries.size(); i++) {
         const Entry& e = this->entries[i];
         Key&         k = keys[i];
