@@ -99,6 +99,7 @@ struct Snapshot
     std::vector<Pick>    month;      // released in the last month, the console has not
     std::vector<Pick>    popular;    // the servers' best known games the console has not
     std::vector<Pick>    trending;   // more read lately
+    std::vector<Pick>    local;      // much read in the console's language (Atlas' reach.json)
     std::vector<Suggested> like;     // for the console's player, from every signal (library/recommend)
     std::vector<InSeries>  series;   // in the series of the console's games, the most played's first
     std::vector<Coming>  coming;     // coming out soon (the title databases)

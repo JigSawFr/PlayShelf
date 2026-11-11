@@ -46,6 +46,7 @@ File<library::SignalBook>  s_signals{ "games.json", true };
 File<library::SimilarBook> s_similar{ "similar.json", false };
 File<library::EditionBook> s_editions{ "editions.json", false };
 File<library::UpcomingBook> s_upcoming{ "upcoming.json", false };
+File<library::ReachBook>    s_reach{ "reach.json", false };
 Listeners                            s_listeners;
 bool                                 s_fetching = false;
 
@@ -125,6 +126,7 @@ void fetch_all()
     fetch(s_similar);
     fetch(s_editions);
     fetch(s_upcoming);
+    fetch(s_reach);
     aurore::sync([]() { s_fetching = false; });
 }
 }   // namespace
@@ -139,6 +141,7 @@ void start()
         load(s_similar);
         load(s_editions);
         load(s_upcoming);
+        load(s_reach);
         long oldest = -1;
         // The oldest cached file decides; a missing one is as old as can be.
         for (const std::string& file : { s_popular.cached(), s_signals.cached(), s_similar.cached() }) {
@@ -194,6 +197,11 @@ std::shared_ptr<const library::EditionBook> editions()
 std::shared_ptr<const library::UpcomingBook> upcoming()
 {
     return s_upcoming.book;
+}
+
+std::shared_ptr<const library::ReachBook> reach()
+{
+    return s_reach.book;
 }
 
 int listen(std::function<void()> changed)
