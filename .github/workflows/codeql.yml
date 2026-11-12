@@ -54,7 +54,7 @@ jobs:
       # build would need the devkitPro container for the Switch code paths; source
       # extraction sees both the Switch and the desktop paths instead.
       # extern/ and library/ (Aurore) are not ours to fix, and would bury PlayShelf's own results.
-      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: c-cpp, python, actions
           build-mode: none
@@ -64,4 +64,4 @@ jobs:
               - extern
               - library
               - build
-      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
