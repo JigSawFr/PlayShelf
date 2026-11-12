@@ -49,12 +49,18 @@ struct GameSignals
     std::vector<Trait> themes;   // IGDB's ("Survival"), once Atlas has its keys
     SteamAudience      steam;
     PlayersRating      igdb;
+    std::string        igdb_art;   // the name of IGDB's wide picture of it ("ar1abc"), "" when none
 };
 
 // Reviews or ratings below which a source's say is left out of
 // players_rating() (a handful of voices is not an opinion).
 constexpr uint64_t STEAM_TRUSTED = 50;
 constexpr uint64_t IGDB_TRUSTED = 20;
+
+// A wide picture of a game, asked of wsrv.nl (an image cache and resize service in
+// the European Union) which asks IGDB's image service: PlayShelf never contacts
+// IGDB itself. `w` × `h` at most, a JPEG; "" when the game has no art.
+std::string art_url(const GameSignals& game, int w, int h);
 
 // How well the players rate a game, 0..100: Steam's share of positive
 // reviews and IGDB's rating, the two averaged when both are known; 0 when
