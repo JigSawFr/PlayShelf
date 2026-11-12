@@ -9,8 +9,8 @@
 // zlib).
 //
 // With them, what Home reads of Atlas about those games, made up as
-// well (insights/platforms/switch/: popular.json, games.json with each game's name, similar.json and
-// editions.json, in Atlas' schema 1 and its platforms/switch/ folder), which sim_demo_http.cpp answers in place of
+// well (insights/platforms/switch/: popular.json, games.json with each game's name and themes, similar.json,
+// editions.json, upcoming.json, reach.json and also.json, in Atlas' schema 1 and its platforms/switch/ folder), which sim_demo_http.cpp answers in place of
 // Atlas' own, and the console's first games (console/meta/: a content
 // meta record for each, empty; console/control/: its name and icon), which
 // PlayShelf puts on the simulated console at a first start with the demo
@@ -260,9 +260,11 @@ std::string hex_id(uint64_t id)
     return b;
 }
 
-// popular.json, games.json, similar.json and editions.json of the table's
-// games, made on `day` (today: newer than the files PlayShelf ships, which
-// it takes in their place).
+// popular.json, games.json, similar.json, editions.json, upcoming.json, reach.json
+// and also.json of the table's games, made on `day` (today: newer than the files
+// PlayShelf ships, which it takes in their place). Made up like the rest: the
+// reach, the other stores and the IGDB themes follow from a game's place in the
+// table, only to give every row and line something to show.
 void write_insights(const std::string& dir, const std::vector<Game>& table, const std::string& day)
 {
     mkdir(dir.c_str(), 0755);
@@ -271,6 +273,9 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
     std::string games = head + "\"games\": {";
     std::string similar = head + "\"games\": {";
     std::string editions = head + "\"games\": {";
+    std::string reach = head + "\"languages\": [\"en\", \"fr\", \"de\", \"es\", \"it\", \"ja\", \"nl\", \"pt\", \"ko\", \"ru\", \"zh\"], \"games\": {";
+    std::string also = head + "\"platform\": \"switch\", \"games\": {";
+    std::string upcoming = head + "\"games\": {";
     std::vector<Traits> all;
     for (const Game& g : table) all.push_back(traits_of(g));
     const auto like = similar_of(all);
@@ -292,7 +297,36 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
                      ", \"negative\": " + std::to_string(g.negative) + ", \"owners\": " + std::to_string(g.positive * 20) +
                      ", \"ccu\": " + std::to_string(g.positive / 50) + "}";
         if (g.igdb) games += ", \"igdb_rating\": [" + std::to_string(g.igdb) + ", " + std::to_string(g.igdb_count) + "]";
+        // Two IGDB themes by the game's place: games sharing one read "Like X · Fantasy".
+        {
+            static const char* THEMES[] = { "Fantasy", "Survival", "Open world", "Sci-fi", "Comedy", "Stealth", "Horror", "Drama" };
+            const size_t       a = i % 8, b = (i / 3 + 3) % 8 == a ? (a + 1) % 8 : (i / 3 + 3) % 8;
+            games += ", \"themes\": [[\"" + std::to_string(a + 1) + "\", \"" + THEMES[a] + "\"], [\"" + std::to_string(b + 1) +
+                     "\", \"" + THEMES[b] + "\"]]";
+        }
         games += "}";
+        // Where the game is read (the best known ones only): French, Japanese and English shares.
+        if (g.score >= 40) {
+            const int fr = 15 + (int)((i * 13) % 50), ja = (int)((i * 7) % 30), en = std::max(0, 100 - fr - ja);
+            reach += std::string(reach.back() == '[' || reach.back() == '{' ? "" : ", ") + key + ": [" + std::to_string(en) + ", " +
+                     std::to_string(fr) + ", 0, 0, 0, " + std::to_string(ja) + ", 0, 0, 0, 0, 0]";
+        }
+        // The other stores: Steam for a game with Steam reviews, others by its place.
+        {
+            std::string stores;
+            auto        add = [&stores](const char* store, const std::string& id) {
+                stores += std::string(stores.empty() ? "" : ", ") + "\"" + store + "\": [\"" + id + "\"]";
+            };
+            if (g.positive) add("steam", std::to_string(900000 + i));
+            if (g.score >= 50 && i % 3 == 0) add("xbox", "9DEMO" + std::to_string(100000 + i));
+            if (g.score >= 60 && i % 4 == 1) add("ps", std::to_string(10900000 + i));
+            if (i % 5 == 2) add("gog", "demo_game_" + std::to_string(i));
+            if (!stores.empty()) also += std::string(also.back() == '{' ? "" : ", ") + key + ": {" + stores + "}";
+        }
+        // Still to come: with the follows IGDB would count.
+        if (g.date >= day)
+            upcoming += std::string(upcoming.back() == '{' ? "" : ", ") + key + ": [" + g.date.substr(0, 4) + g.date.substr(5, 2) +
+                        g.date.substr(8, 2) + ", " + json_text(g.name) + ", " + std::to_string(g.score * 60) + "]";
         for (size_t k = 0; k < table.size() && !g.edition_of.empty(); k++)
             if (table[k].name == g.edition_of)
                 editions += std::string(editions.back() == '{' ? "" : ", ") + key + ": " + json_text(hex_id(id_of_game(k)));
@@ -305,6 +339,9 @@ void write_insights(const std::string& dir, const std::vector<Game>& table, cons
     write(dir + "/games.json", games + "}}\n");
     write(dir + "/similar.json", similar + "}}\n");
     write(dir + "/editions.json", editions + "}}\n");
+    write(dir + "/reach.json", reach + "}}\n");
+    write(dir + "/also.json", also + "}}\n");
+    write(dir + "/upcoming.json", upcoming + "}}\n");
 }
 }   // namespace
 
