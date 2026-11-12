@@ -52,6 +52,8 @@ struct Config : kit_settings::Settings
     // Home's popular games: popular.json fetched again once a day (else the
     // one PlayShelf came with).
     bool popular_online = true;
+    // IGDB's wide picture on a game's page, asked of wsrv.nl (only with popular_online too).
+    bool atlas_pictures = true;
     // The newest crash file (logs/crashes/) already said: a newer one means
     // PlayShelf closed unexpectedly since.
     std::string crash_seen;

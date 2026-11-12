@@ -542,7 +542,8 @@
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
         "nlib_api": "아이콘과 게임 페이지를 Nlib API에서 가져오기",
-        "popular_online": "Atlas 인기 게임"
+        "popular_online": "Atlas 데이터",
+        "atlas_pictures": "Atlas 이미지 (wsrv.nl 경유)"
     },
     "game": {
         "rebuilt": "업데이트 포함됨",

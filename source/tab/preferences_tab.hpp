@@ -54,5 +54,6 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::DetailCell,  title_sources,  "pf_title_sources");
     AURORE_BIND(aurore::BooleanCell, nlib_api,       "pf_nlib_api");
     AURORE_BIND(aurore::BooleanCell, popular_online, "pf_popular_online");
+    AURORE_BIND(aurore::BooleanCell, atlas_pictures, "pf_atlas_pictures");
     AURORE_BIND(aurore::DetailCell,  not_interested, "pf_not_interested");
 };

@@ -542,7 +542,8 @@
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
         "nlib_api": "从 Nlib API 获取图标和游戏页面",
-        "popular_online": "来自 Atlas 的热门游戏"
+        "popular_online": "Atlas 数据",
+        "atlas_pictures": "Atlas 图片（经由 wsrv.nl）"
     },
     "game": {
         "rebuilt": "已内置更新",
