@@ -424,6 +424,11 @@ void GameActivity::fill_details_tab()
         for (const library::Trait& t : sig->series)
             if (!t.label.empty()) series += (series.empty() ? "" : ", ") + t.label;
         fact(card, "playshelf/game/series"_i18n, series);
+        // Its IGDB themes (Atlas), by their English names.
+        std::string themes;
+        for (const library::Trait& t : sig->themes)
+            if (!t.label.empty()) themes += (themes.empty() ? "" : ", ") + t.label;
+        fact(card, "playshelf/game/themes"_i18n, themes);
         const uint64_t reviews = sig->steam.positive + sig->steam.negative;
         if (reviews)
             fact(card, "playshelf/game/steam"_i18n,
