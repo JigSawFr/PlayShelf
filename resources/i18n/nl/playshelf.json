@@ -53,6 +53,9 @@
             "largest": "Grootste eerst",
             "updates": "Updates first",
             "publisher": "Op uitgever",
+            "best_known": "Bekendste eerst",
+            "best_reviewed": "Best beoordeeld door critici",
+            "best_rated": "Best beoordeeld door spelers",
             "shelves": "Op genre, als schappen"
         },
         "section": "Sectie",

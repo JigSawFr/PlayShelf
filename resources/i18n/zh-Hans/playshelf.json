@@ -53,6 +53,9 @@
             "largest": "最大在前",
             "updates": "Updates first",
             "publisher": "按发行商",
+            "best_known": "按知名度",
+            "best_reviewed": "按评论家评分",
+            "best_rated": "按玩家评分",
             "shelves": "按类型分架"
         },
         "section": "分区",

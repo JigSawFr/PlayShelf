@@ -180,12 +180,38 @@ void test_filter()
     sel.filter = Filter();
     sel.filter.language = "fr";
     CHECK(pick() == std::vector<size_t>({ 0 }));
-    // A series and a studio are the Library's, applied by its tab (Atlas' signals):
-    // counted as set, no game left out here.
+    // A series and a studio count as set; with no Atlas trait known (no `traits` here) no game has them.
     sel.filter = Filter();
     sel.filter.series = "A saga";
     sel.filter.studio = "A studio";
-    CHECK(pick() == std::vector<size_t>({ 0, 1, 2, 3 }) && sel.filter.active() == 2);
+    CHECK(pick().empty() && sel.filter.active() == 2);
+
+    // A series and a studio: by Atlas' traits, a game it does not know is left out.
+    {
+        Selection atlas;
+        atlas.traits = [&](uint64_t id, const std::string& series, const std::string& studio) {
+            const bool saga = id == t[0].id || id == t[2].id;
+            return (series.empty() || (series == "A saga" && saga)) && (studio.empty() || (studio == "A studio" && id == t[0].id));
+        };
+        atlas.filter.series = "A saga";
+        CHECK(select_titles(t, "", Sort::Name, "", atlas) == std::vector<size_t>({ 0, 2 }) && atlas.filter.active() == 1);
+        atlas.filter.studio = "A studio";
+        CHECK(select_titles(t, "", Sort::Name, "", atlas) == std::vector<size_t>({ 0 }) && atlas.filter.active() == 2);
+        atlas.filter.series = "";
+        CHECK(select_titles(t, "", Sort::Name, "", atlas) == std::vector<size_t>({ 0 }));
+        atlas.traits = nullptr;   // no trait known: a game asked for by one is left out
+        CHECK(select_titles(t, "", Sort::Name, "", atlas).empty());
+        // The Best... sorts: the best score first, the games with none last, by name after that.
+        Selection scored;
+        scored.score = [&](uint64_t id, Sort sort) {
+            const int base = id == t[3].id ? 90 : id == t[1].id ? 40 : 0;
+            return sort == Sort::BestKnown ? base : sort == Sort::BestReviewed ? 100 - base : 0;
+        };
+        CHECK(select_titles(t, "", Sort::BestKnown, "", scored) == std::vector<size_t>({ 3, 1, 0, 2 }));
+        CHECK(select_titles(t, "", Sort::BestReviewed, "", scored) == std::vector<size_t>({ 0, 2, 1, 3 }));
+        CHECK(select_titles(t, "", Sort::BestRated, "", scored) == std::vector<size_t>({ 0, 1, 2, 3 }));   // all 0: by name
+        CHECK(select_titles(t, "", Sort::BestKnown) == std::vector<size_t>({ 0, 1, 2, 3 }));              // no scores known: by name
+    }
 
     // By publisher, those with none last; by date, the facts' when the
     // catalogue has none.

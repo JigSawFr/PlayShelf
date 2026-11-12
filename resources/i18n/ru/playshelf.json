@@ -53,6 +53,9 @@
             "largest": "Сначала большие",
             "updates": "Updates first",
             "publisher": "По издателю",
+            "best_known": "Самые известные",
+            "best_reviewed": "Лучшие по оценкам критиков",
+            "best_rated": "Лучшие по оценкам игроков",
             "shelves": "По жанрам, полками"
         },
         "section": "Раздел",

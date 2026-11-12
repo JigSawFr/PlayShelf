@@ -53,6 +53,9 @@
             "largest": "大きい順",
             "updates": "Updates first",
             "publisher": "発売元順",
+            "best_known": "知名度順",
+            "best_reviewed": "批評家の評価が高い順",
+            "best_rated": "プレイヤーの評価が高い順",
             "shelves": "ジャンル別の棚"
         },
         "section": "セクション",

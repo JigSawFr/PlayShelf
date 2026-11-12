@@ -15,6 +15,7 @@
 #include "action/game_page.hpp"
 #include "action/library_icons.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "action/services_flow.hpp"
 #include "library/servers.hpp"
 #include "tab/filter_sheet.hpp"
@@ -39,8 +40,8 @@ library::Filter s_filter;
 
 // The orders, as library::Sort's, then the shelves: a row of covers a
 // genre, by name.
-const char* const ORDERS[] = { "name", "newest", "largest", "publisher", "shelves" };
-constexpr size_t  SHELVES = 4;
+const char* const ORDERS[] = { "name", "newest", "largest", "publisher", "best_known", "best_reviewed", "best_rated", "shelves" };
+constexpr size_t  SHELVES = 7;
 constexpr size_t  SHELF_MAX = 12;   // covers a shelf, "See all" after them
 
 bool shelves()
@@ -302,8 +303,8 @@ void CatalogueTab::build_grid(bool force)
 {
     const auto* data = this->shown_data.get();
     const library::Filter& f = s_filter;
-    const std::string      key = std::format("{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
-                                             f.language, f.players, std::to_underlying(f.state), f.hide_demos);
+    const std::string      key = std::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
+                                             f.language, f.series, f.studio, f.players, std::to_underlying(f.state), f.hide_demos);
     // Its sections: a choice only when the server has several.
     const bool sections = data && data->fetch.catalog.sections.size() > 1;
     ui::set_visible(section_cell, sections);
@@ -357,6 +358,27 @@ std::vector<size_t> CatalogueTab::select() const
     pick.filter = s_filter;
     pick.facts = [](uint64_t title_id) { return nlib_flow::facts(title_id); };
     pick.state = [data, installed](const library::Title& t) { return library::state_of(t, data->fetch.catalog, *installed); };
+    // Atlas' scores and traits, for the Best... sorts and the series and studio filters.
+    const auto signals = popular_flow::signals();
+    pick.score = [signals](uint64_t title_id, library::Sort sort) {
+        const uint64_t base = library::base_of(title_id);
+        switch (sort) {
+            case library::Sort::BestKnown: return popular_flow::of(base).score;
+            case library::Sort::BestReviewed: return popular_flow::of(base).critics;
+            case library::Sort::BestRated: {
+                const library::GameSignals* g = signals->find(base);
+                return g ? library::players_rating(*g) : 0;
+            }
+            default: return 0;
+        }
+    };
+    pick.traits = [signals](uint64_t title_id, const std::string& series, const std::string& studio) {
+        const library::GameSignals* g = signals->find(library::base_of(title_id));
+        auto has = [](const std::vector<library::Trait>& traits, const std::string& label) {
+            return std::ranges::any_of(traits, [&label](const library::Trait& t) { return t.label == label; });
+        };
+        return g && (series.empty() || has(g->series, series)) && (studio.empty() || has(g->developers, studio));
+    };
     const bool sections = data->fetch.catalog.sections.size() > 1;
     return library::select_titles(data->titles, s_query, sort_of(), sections ? s_section : "", pick);
 }

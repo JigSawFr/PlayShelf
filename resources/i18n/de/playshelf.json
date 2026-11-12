@@ -53,6 +53,9 @@
             "largest": "Größte zuerst",
             "updates": "Updates first",
             "publisher": "Nach Publisher",
+            "best_known": "Bekannteste zuerst",
+            "best_reviewed": "Von der Kritik am besten bewertet",
+            "best_rated": "Von Spielern am besten bewertet",
             "shelves": "Nach Genre, als Regale"
         },
         "section": "Bereich",
