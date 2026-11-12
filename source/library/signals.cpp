@@ -91,6 +91,13 @@ std::string art_url(const GameSignals& g, int w, int h)
            ".jpg&w=" + std::to_string(w) + "&h=" + std::to_string(h) + "&fit=cover&output=jpg&q=75";
 }
 
+std::string cover_url(const GameSignals& g, int size)
+{
+    if (g.igdb_cover.empty() || size <= 0 || size > 1024) return "";
+    return "https://wsrv.nl/?url=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2F" + g.igdb_cover +
+           ".jpg&w=" + std::to_string(size) + "&h=" + std::to_string(size) + "&fit=cover&output=jpg&q=75";
+}
+
 int players_rating(const GameSignals& g)
 {
     double sum = 0;
@@ -123,13 +130,17 @@ bool SignalBook::from_json(const std::string& text)
         g.genres = traits_of(value, "genres");
         g.modes = traits_of(value, "modes");
         g.themes = igdb_traits_of(value, "themes");
-        // The name of IGDB's wide picture: lower case letters and digits, 6 to 40.
-        if (const auto art = value.find("igdb_art"); art != value.end() && art->is_string()) {
-            const std::string& name = art->get_ref<const std::string&>();
-            if (name.size() >= 6 && name.size() <= 40 &&
-                std::all_of(name.begin(), name.end(), [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'); }))
-                g.igdb_art = name;
-        }
+        // The names of IGDB's wide picture and of its cover: lower case letters and digits, 6 to 40.
+        auto plain_name = [&value](const char* field) -> std::string {
+            const auto it = value.find(field);
+            if (it == value.end() || !it->is_string()) return "";
+            const std::string& name = it->get_ref<const std::string&>();
+            const bool plain = name.size() >= 6 && name.size() <= 40 &&
+                               std::all_of(name.begin(), name.end(), [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'); });
+            return plain ? name : "";
+        };
+        g.igdb_art = plain_name("igdb_art");
+        g.igdb_cover = plain_name("igdb_cover");
         const auto steam = value.find("steam");
         if (steam != value.end() && steam->is_object()) {
             g.steam.app = number_at<uint32_t>(*steam, "app");
