@@ -542,7 +542,8 @@
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
         "nlib_api": "アイコンとゲームページを Nlib API から取得",
-        "popular_online": "Atlasの人気ゲーム"
+        "popular_online": "Atlasのデータ",
+        "atlas_pictures": "Atlasの画像（wsrv.nl経由）"
     },
     "game": {
         "rebuilt": "アップデート組み込み済み",

@@ -542,7 +542,8 @@
         "ghostland": "Ghostland",
         "nxmeta": "NXMeta",
         "nlib_api": "Iconos y fichas de juego desde Nlib API",
-        "popular_online": "Juegos populares desde Atlas"
+        "popular_online": "Datos de Atlas",
+        "atlas_pictures": "Imágenes de Atlas (vía wsrv.nl)"
     },
     "game": {
         "rebuilt": "Actualización integrada",

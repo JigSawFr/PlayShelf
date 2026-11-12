@@ -342,8 +342,8 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
         }
         // No banner from Nlib API: IGDB's wide art, by Atlas' name for it, asked of wsrv.nl (an
         // image cache in the European Union: it gets the console's address and the picture's,
-        // IGDB never does). Only with config popular_online, the Atlas data's own switch.
-        if (!config::get().popular_online) return;
+        // IGDB never does). Only with config popular_online (the Atlas data) and atlas_pictures.
+        if (!config::get().popular_online || !config::get().atlas_pictures) return;
         const library::GameSignals* sig = popular_flow::signals()->find(base);
         const std::string           url = sig ? library::art_url(*sig, 854, 480) : "";
         if (url.empty()) return;

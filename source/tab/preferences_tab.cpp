@@ -256,6 +256,11 @@ PreferencesTab::PreferencesTab()
         if (on) popular_flow::refresh();
         changes_flow::start();
     });
+    // A game's wide picture from IGDB, asked of wsrv.nl (action: game page); needs the Atlas data too.
+    atlas_pictures->init("playshelf/titledb/atlas_pictures"_i18n, config::get().atlas_pictures, [](bool on) {
+        config::get().atlas_pictures = on;
+        ui::save_config();
+    });
     // Home's suggestions put away (X on one): all of them suggested again.
     not_interested->registerClickAction([this](aurore::View*) {
         const size_t n = not_interested::games().size();
@@ -277,7 +282,7 @@ PreferencesTab::PreferencesTab()
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
-                       { "pf_popular_online", "bolt" }, { "pf_not_interested", "eye" } });
+                       { "pf_popular_online", "bolt" }, { "pf_atlas_pictures", "globe" }, { "pf_not_interested", "eye" } });
 }
 
 PreferencesTab::~PreferencesTab()
@@ -444,6 +449,7 @@ void PreferencesTab::refresh()
     sphaira_entry->setOn(cfg.sphaira_entry, false);
     nlib_api->setOn(cfg.nlib_api, false);
     popular_online->setOn(cfg.popular_online, false);
+    atlas_pictures->setOn(cfg.atlas_pictures, false);
     const size_t put_away = not_interested::games().size();
     not_interested->setDetailText(!put_away      ? "playshelf/not_interested/none"_i18n
                                   : put_away == 1 ? "playshelf/installed/count_one"_i18n
