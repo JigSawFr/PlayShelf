@@ -101,6 +101,7 @@ void put_away(aurore::View* view, const insights::Pick& p)
     });
 }
 
+constexpr int      COVER_SIZE = 256;    // IGDB's cover asked for a tile without an icon, a square this size
 constexpr uint32_t PLAYED_HOURS = 10;   // from which a suggestion says the hours played of the game it is like
 
 // Why a game is suggested, under its cover.
@@ -473,7 +474,22 @@ void HomeTab::show_icon(uint64_t game_id)
         if (pic && held && *held && gen == this->generation && at < this->tiles.size())
             this->tiles[at]->set_icon(pic->rgba.data(), pic->width, pic->height);
     };
-    library_icons::local(game_id, shown);
+    library_icons::local(game_id, [shown, game_id, gen, weak = ui::Weak(this->alive), this](const library_icons::Picture& pic) {
+        if (pic) {
+            shown(pic);
+            return;
+        }
+        // Neither the title database nor Nlib API has an icon: IGDB's cover, by Atlas' name for it, asked of
+        // wsrv.nl (see the game page's banner: it gets the console's address and the picture's, IGDB
+        // never does). Only with config popular_online (the Atlas data) and atlas_pictures, and for a row
+        // still on screen.
+        const ui::Alive held = weak.lock();
+        if (!held || !*held || gen != this->generation) return;
+        if (!config::get().popular_online || !config::get().atlas_pictures) return;
+        const library::GameSignals* sig = popular_flow::signals()->find(library::base_of(game_id));
+        const std::string           url = sig ? library::cover_url(*sig, COVER_SIZE) : "";
+        if (!url.empty()) library_icons::picture(url, COVER_SIZE, COVER_SIZE, shown);
+    });
 }
 
 void HomeTab::add_covers(const std::string& title, const std::string& line, const std::vector<Pick>& picks,

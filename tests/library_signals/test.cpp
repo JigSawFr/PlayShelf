@@ -66,13 +66,24 @@ void test_art()
         "0100000000020000":{"igdb_art":"short"},
         "0100000000030000":{"igdb_art":"../etc/passwd0"},
         "0100000000040000":{"igdb_art":"UPPER123"},
-        "0100000000050000":{"igdb_art":42}}})"));
+        "0100000000050000":{"igdb_art":42},
+        "0100000000060000":{"igdb_cover":"co1xyz9"},
+        "0100000000070000":{"igdb_cover":"BAD/../cover"}}})"));
     const GameSignals* a = b.find(A);
     if (!CHECK(a)) return;
     CHECK(a->igdb_art == "ar1abc9");
     for (uint64_t id : { B, C, (uint64_t)0x0100000000040000, (uint64_t)0x0100000000050000 })
         if (CHECK(b.find(id))) CHECK(b.find(id)->igdb_art.empty());
     CHECK(art_url(*a, 854, 480) == "https://wsrv.nl/?url=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_1080p%2Far1abc9.jpg&w=854&h=480&fit=cover&output=jpg&q=75");
+    // A cover: read the same way; the address is a square asked of wsrv.nl.
+    const GameSignals* c6 = b.find(0x0100000000060000);
+    if (CHECK(c6)) {
+        CHECK(c6->igdb_cover == "co1xyz9" && c6->igdb_art.empty());
+        CHECK(cover_url(*c6, 256) == "https://wsrv.nl/?url=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2Fco1xyz9.jpg&w=256&h=256&fit=cover&output=jpg&q=75");
+        CHECK(cover_url(*c6, 0).empty() && cover_url(*c6, 2000).empty());
+    }
+    if (CHECK(b.find(0x0100000000070000))) CHECK(b.find(0x0100000000070000)->igdb_cover.empty());
+    CHECK(cover_url(*a, 256).empty());   // art only: no cover
     CHECK(art_url(*b.find(B), 854, 480).empty() && art_url(*a, 0, 480).empty() && art_url(*a, 854, 5000).empty());
 }
 

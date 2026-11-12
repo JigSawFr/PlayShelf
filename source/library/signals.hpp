@@ -50,6 +50,7 @@ struct GameSignals
     SteamAudience      steam;
     PlayersRating      igdb;
     std::string        igdb_art;   // the name of IGDB's wide picture of it ("ar1abc"), "" when none
+    std::string        igdb_cover; // and of its cover
 };
 
 // Reviews or ratings below which a source's say is left out of
@@ -61,6 +62,10 @@ constexpr uint64_t IGDB_TRUSTED = 20;
 // the European Union) which asks IGDB's image service: PlayShelf never contacts
 // IGDB itself. `w` × `h` at most, a JPEG; "" when the game has no art.
 std::string art_url(const GameSignals& game, int w, int h);
+
+// A game's cover, a square of `size` at most (the middle of IGDB's portrait one), asked of wsrv.nl
+// the same way; "" when the game has none.
+std::string cover_url(const GameSignals& game, int size);
 
 // How well the players rate a game, 0..100: Steam's share of positive
 // reviews and IGDB's rating, the two averaged when both are known; 0 when
