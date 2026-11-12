@@ -18,6 +18,7 @@
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
 #include "util/title_id.hpp"
 #include "view/cover_placeholder.hpp"
 #include "view/game_parts.hpp"
@@ -331,11 +332,27 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
 
     // Its banner, over the page once it came.
     ui::Weak weak(this->alive);
-    library_icons::picture(titledb::nlib_banner_url(base), 854, 480, [this, weak](const library_icons::Picture& p) {
+    library_icons::picture(titledb::nlib_banner_url(base), 854, 480, [this, weak, base](const library_icons::Picture& p) {
         const ui::Alive held = weak.lock();
-        if (!held || !*held || !library_icons::show(banner, p)) return;
-        banner->setVisibility(aurore::Visibility::VISIBLE);
-        this->over_banner();
+        if (!held || !*held) return;
+        if (library_icons::show(banner, p)) {
+            banner->setVisibility(aurore::Visibility::VISIBLE);
+            this->over_banner();
+            return;
+        }
+        // No banner from Nlib API: IGDB's wide art, by Atlas' name for it, asked of wsrv.nl (an
+        // image cache in the European Union: it gets the console's address and the picture's,
+        // IGDB never does). Only with config popular_online, the Atlas data's own switch.
+        if (!config::get().popular_online) return;
+        const library::GameSignals* sig = popular_flow::signals()->find(base);
+        const std::string           url = sig ? library::art_url(*sig, 854, 480) : "";
+        if (url.empty()) return;
+        library_icons::picture(url, 854, 480, [this, weak](const library_icons::Picture& art) {
+            const ui::Alive again = weak.lock();
+            if (!again || !*again || !library_icons::show(banner, art)) return;
+            banner->setVisibility(aurore::Visibility::VISIBLE);
+            this->over_banner();
+        });
     });
 }
 

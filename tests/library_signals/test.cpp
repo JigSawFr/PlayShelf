@@ -56,6 +56,26 @@ void test_igdb()
         if (CHECK(b.find(id))) CHECK(b.find(id)->igdb.rating == 0 && b.find(id)->igdb.count == 0);
 }
 
+// IGDB's wide picture: its name read when it is a plain one, and the address asked of wsrv.nl
+// (never IGDB itself).
+void test_art()
+{
+    SignalBook b;
+    CHECK(b.from_json(R"({"schema":1,"generated":"2026-11-11","games":{
+        "0100000000010000":{"igdb_art":"ar1abc9"},
+        "0100000000020000":{"igdb_art":"short"},
+        "0100000000030000":{"igdb_art":"../etc/passwd0"},
+        "0100000000040000":{"igdb_art":"UPPER123"},
+        "0100000000050000":{"igdb_art":42}}})"));
+    const GameSignals* a = b.find(A);
+    if (!CHECK(a)) return;
+    CHECK(a->igdb_art == "ar1abc9");
+    for (uint64_t id : { B, C, (uint64_t)0x0100000000040000, (uint64_t)0x0100000000050000 })
+        if (CHECK(b.find(id))) CHECK(b.find(id)->igdb_art.empty());
+    CHECK(art_url(*a, 854, 480) == "https://wsrv.nl/?url=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_1080p%2Far1abc9.jpg&w=854&h=480&fit=cover&output=jpg&q=75");
+    CHECK(art_url(*b.find(B), 854, 480).empty() && art_url(*a, 0, 480).empty() && art_url(*a, 854, 5000).empty());
+}
+
 // How the players rate a game: Steam's and IGDB's, trusted from a few
 // voices, averaged.
 void test_players_rating()
@@ -188,6 +208,7 @@ int main()
     test_igdb();
     test_themes();
     test_players_rating();
+    test_art();
     test_names();
     test_editions();
     test_names_any();

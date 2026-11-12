@@ -83,6 +83,14 @@ bool is_day(const std::string& s)
     return true;
 }
 
+std::string art_url(const GameSignals& g, int w, int h)
+{
+    if (g.igdb_art.empty() || w <= 0 || h <= 0 || w > 4096 || h > 4096) return "";
+    // The name was checked when read (lower case letters and digits only): nothing to escape.
+    return "https://wsrv.nl/?url=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_1080p%2F" + g.igdb_art +
+           ".jpg&w=" + std::to_string(w) + "&h=" + std::to_string(h) + "&fit=cover&output=jpg&q=75";
+}
+
 int players_rating(const GameSignals& g)
 {
     double sum = 0;
@@ -115,6 +123,13 @@ bool SignalBook::from_json(const std::string& text)
         g.genres = traits_of(value, "genres");
         g.modes = traits_of(value, "modes");
         g.themes = igdb_traits_of(value, "themes");
+        // The name of IGDB's wide picture: lower case letters and digits, 6 to 40.
+        if (const auto art = value.find("igdb_art"); art != value.end() && art->is_string()) {
+            const std::string& name = art->get_ref<const std::string&>();
+            if (name.size() >= 6 && name.size() <= 40 &&
+                std::all_of(name.begin(), name.end(), [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'); }))
+                g.igdb_art = name;
+        }
         const auto steam = value.find("steam");
         if (steam != value.end() && steam->is_object()) {
             g.steam.app = number_at<uint32_t>(*steam, "app");
