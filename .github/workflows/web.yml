@@ -246,7 +246,7 @@ jobs:
     permissions:
       contents: read
       pages: read   # asked by the reusable workflow
-    uses: JigSawFr/boreale-site/.github/workflows/site.yml@49844b1a733f738afdabcc1c903bbf8696028d96 # v1.0.0
+    uses: JigSawFr/boreale-site/.github/workflows/site.yml@5d96c0446ad6bbfce20b977f699b6884643d055a # v1.1.0
     with:
       library_only: true
       download_artifact: site
