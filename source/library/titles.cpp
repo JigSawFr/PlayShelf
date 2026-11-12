@@ -132,6 +132,8 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
     std::vector<size_t> out;
     std::vector<std::string> names(titles.size()), publishers(titles.size());
     std::vector<uint32_t>    dates(titles.size());
+    std::vector<int>         figures(titles.size(), 0);
+    const bool               best = sort == Sort::BestKnown || sort == Sort::BestReviewed || sort == Sort::BestRated;
     for (size_t i = 0; i < titles.size(); i++) {
         const Title& t = titles[i];
         if (!section.empty() && !std::ranges::contains(t.sections, section)) continue;
@@ -140,6 +142,10 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
             continue;
         const Facts facts = selection.facts && t.id ? selection.facts(t.id) : Facts();
         if (!matches(f, facts)) continue;
+        // A series or a studio asked: a game Atlas does not know has none.
+        if ((!f.series.empty() || !f.studio.empty()) && !(selection.traits && t.id && selection.traits(t.id, f.series, f.studio)))
+            continue;
+        if (best && selection.score && t.id) figures[i] = selection.score(t.id, sort);
         if (f.state != Filter::State::Any && selection.state) {
             const TitleState st = selection.state(t);
             if ((f.state == Filter::State::Missing && st.base) || (f.state == Filter::State::Installed && !st.base) ||
@@ -155,6 +161,7 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
         const Title& x = titles[a];
         const Title& y = titles[b];
         if (sort == Sort::Newest && dates[a] != dates[b]) return dates[a] > dates[b];
+        if (best && figures[a] != figures[b]) return figures[a] > figures[b];
         if (sort == Sort::Largest && x.size != y.size) return x.size > y.size;
         if (sort == Sort::Publisher && publishers[a] != publishers[b]) {
             // Those with no publisher known last.

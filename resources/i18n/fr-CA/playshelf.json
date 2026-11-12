@@ -53,6 +53,9 @@
             "largest": "Les plus gros",
             "updates": "Updates first",
             "publisher": "Par éditeur",
+            "best_known": "Les plus connus",
+            "best_reviewed": "Les mieux notés par la critique",
+            "best_rated": "Les mieux notés par les joueurs",
             "shelves": "Par genre, en rayons"
         },
         "section": "Section",

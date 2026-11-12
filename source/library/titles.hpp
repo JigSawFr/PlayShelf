@@ -32,7 +32,8 @@ struct Title
     std::vector<std::string> sections;    // the ids of the sections its items are in
 };
 
-enum class Sort : uint8_t { Name, Newest, Largest, Publisher };
+// BestKnown, BestReviewed and BestRated: by one of Atlas' scores (`Selection::score`), the best first.
+enum class Sort : uint8_t { Name, Newest, Largest, Publisher, BestKnown, BestReviewed, BestRated };
 
 std::vector<Title> group_titles(const Catalog& catalog);
 
@@ -100,13 +101,18 @@ struct Selection
     Filter                                  filter;
     std::function<Facts(uint64_t)>          facts;   // by title id; nullptr: none known
     std::function<TitleState(const Title&)> state;   // nullptr: the filter's state is not applied
+    // Atlas' scores of a game, by title id, for the Best… sorts: 0..100, 0 when not known (nullptr: none known).
+    std::function<int(uint64_t, Sort)>      score;
+    // Whether a game has the series and the studio asked (Atlas' traits: "" asks for none of that kind);
+    // nullptr: none known, so a game is left out when either is asked.
+    std::function<bool(uint64_t, const std::string&, const std::string&)> traits;
 };
 
 // The games whose name (or title id: 8 hex digits at least) holds `query` (case and the
 // Latin accents aside; "" keeps every one), that have an item in `section`
 // ("" for any) and that `selection` keeps, as indexes in `titles`, sorted by
 // `sort` (by name after that; Newest by the facts' date when the catalogue
-// has none, Publisher those with none last).
+// has none, Publisher those with none last, the Best… sorts those with no score last).
 std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::string& query, Sort sort,
                                   const std::string& section = "", const Selection& selection = {});
 

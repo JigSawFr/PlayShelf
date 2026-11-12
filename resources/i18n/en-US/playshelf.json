@@ -53,6 +53,9 @@
             "largest": "Largest first",
             "updates": "Updates first",
             "publisher": "By publisher",
+            "best_known": "Best known",
+            "best_reviewed": "Best reviewed by critics",
+            "best_rated": "Best rated by players",
             "shelves": "By genre, as shelves"
         },
         "section": "Section",

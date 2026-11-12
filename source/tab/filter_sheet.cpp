@@ -95,10 +95,9 @@ void show(std::shared_ptr<Sheet> sheet)
         if (!facts.publisher.empty()) publishers.insert(facts.publisher);
     }
 
-    // The series and studios Atlas knows of these games (the Library only: its
-    // tab applies them), by their English names.
+    // The series and studios Atlas knows of these games, by their English names.
     std::set<std::string> series, studios;
-    if (sheet->states == States::Library) {
+    {
         const auto signals = popular_flow::signals();
         for (uint64_t id : sheet->games)
             if (const library::GameSignals* g = signals->find(library::base_of(id))) {

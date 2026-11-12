@@ -53,6 +53,9 @@
             "largest": "용량 큰 순",
             "updates": "Updates first",
             "publisher": "퍼블리셔순",
+            "best_known": "인지도순",
+            "best_reviewed": "평론가 평점순",
+            "best_rated": "플레이어 평점순",
             "shelves": "장르별 선반"
         },
         "section": "섹션",
