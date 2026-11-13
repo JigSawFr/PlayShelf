@@ -372,6 +372,15 @@ std::vector<size_t> CatalogueTab::select() const
             default: return 0;
         }
     };
+    // A search also finds a game by its series or its developers.
+    pick.related = [signals](uint64_t title_id) {
+        std::string out;
+        if (const library::GameSignals* g = signals->find(library::base_of(title_id))) {
+            for (const library::Trait& t : g->series) out += t.label + "\n";
+            for (const library::Trait& t : g->developers) out += t.label + "\n";
+        }
+        return out;
+    };
     pick.traits = [signals](uint64_t title_id, const library::Filter& asked) {
         const library::GameSignals* g = signals->find(library::base_of(title_id));
         auto has = [](const std::vector<library::Trait>& traits, const std::string& label) {

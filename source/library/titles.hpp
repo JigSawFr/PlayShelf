@@ -106,6 +106,9 @@ struct Selection
     // Whether a game has the series, the studio and the mode the filter asks (Atlas' traits: "" asks for none of that kind);
     // nullptr: none known, so a game is left out when any is asked.
     std::function<bool(uint64_t, const Filter&)> traits;
+    // The names a search also matches, by title id (Atlas' series and developers, space-separated; nullptr: none
+    // known). A query of 3 letters at least only: fewer would match most games.
+    std::function<std::string(uint64_t)> related;
 };
 
 // The games whose name (or title id: 8 hex digits at least) holds `query` (case and the
