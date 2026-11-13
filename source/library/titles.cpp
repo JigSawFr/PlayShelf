@@ -138,7 +138,8 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
         const Title& t = titles[i];
         if (!section.empty() && !std::ranges::contains(t.sections, section)) continue;
         names[i] = fold(t.name);
-        if (!q.empty() && !names[i].contains(q) && !(by_id && t.id && hex16(t.id).find(q) != std::string::npos))
+        if (!q.empty() && !names[i].contains(q) && !(by_id && t.id && hex16(t.id).find(q) != std::string::npos) &&
+            !(q.size() >= 3 && selection.related && t.id && fold(selection.related(t.id)).contains(q)))
             continue;
         const Facts facts = selection.facts && t.id ? selection.facts(t.id) : Facts();
         if (!matches(f, facts)) continue;

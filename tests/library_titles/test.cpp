@@ -127,6 +127,15 @@ void test_select()
     CHECK(select_titles(t, "ECHO", Sort::Name) == std::vector<size_t>({2}));
     CHECK(select_titles(t, "a", Sort::Name, "a") == std::vector<size_t>({0}));
     CHECK(select_titles(t, "", Sort::Name, "b") == std::vector<size_t>({1, 3, 2}));
+    // A search also finds a game by the names Atlas gives it (a series, a developer), from 3 letters: not "an".
+    {
+        Selection rel;
+        rel.related = [&](uint64_t id) { return id == t[2].id ? std::string("An Èxample saga\nAcme Studio\n") : std::string(); };
+        CHECK(select_titles(t, "saga", Sort::Name, "", rel) == std::vector<size_t>({ 2 }));
+        CHECK(select_titles(t, "acme stu", Sort::Name, "", rel) == std::vector<size_t>({ 2 }));
+        CHECK(select_titles(t, "ex", Sort::Name, "", rel).empty());   // 2 letters: only by the name
+        CHECK(select_titles(t, "saga", Sort::Name).empty());           // no names known
+    }
     CHECK(select_titles(t, "6f80023", Sort::Name).empty());   // too short for an id
     CHECK(select_titles(t, "01006F8002326000", Sort::Name) == std::vector<size_t>({3}));
     CHECK(select_titles(t, "zzz", Sort::Name).empty());
