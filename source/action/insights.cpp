@@ -19,6 +19,7 @@
 #include "action/not_interested.hpp"
 #include "action/wishlist.hpp"
 #include "library/installed.hpp"
+#include "library/rows.hpp"
 #include "library/seen.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
@@ -39,10 +40,6 @@ constexpr uint64_t IDLE_S = 90 * 86400;   // a game not played for three months
 constexpr uint64_t IDLE_SIZE = 1000000000;   // and taking 1 GB or more
 constexpr int      TRENDING = 25;         // read a quarter more than before, at least
 constexpr int      POPULAR = 20;          // a score worth showing
-constexpr uint64_t TONIGHT_PLAY_S = 2 * 3600;   // played less than this,
-constexpr uint32_t TONIGHT_LAUNCHES = 3;        // and started fewer times: hardly played
-constexpr double   TONIGHT_QUALITY = 0.45;      // and said to be at least this good
-constexpr int      LOCAL_SHARE = 30;      // of a game's readers in the console's language, at least, in percent
 
 std::shared_ptr<const Snapshot>      s_now = std::make_shared<Snapshot>();
 Listeners                            s_listeners;
@@ -235,16 +232,13 @@ void make()
             if (g.size >= IDLE_SIZE && (!g.last_played || now - g.last_played > IDLE_S))
                 s.idle.push_back({ g, name_of(g.game.id, g.name), found });
             if (g.last_played) s.recent.push_back({ g, name_of(g.game.id, g.name), found });
-            // Hardly played, and well rated: worth an evening.
-            if (g.play_s < TONIGHT_PLAY_S && g.launches < TONIGHT_LAUNCHES) {
-                const library::Renown r = popular_flow::of(g.game.id);
+            // Hardly played, and well rated: worth an evening (library/rows).
+            {
+                const library::Renown       r = popular_flow::of(g.game.id);
                 const library::GameSignals* sig = popular_flow::signals()->find(g.game.id);
-                const int players = sig ? library::players_rating(*sig) : 0;
-                const double quality = library::quality_of(r, players);
-                if (r.score >= POPULAR && quality >= TONIGHT_QUALITY) {
-                    Played p{ g, name_of(g.game.id, g.name), found, std::max(r.critics, players) };
-                    tonight.push_back({ quality, std::move(p) });
-                }
+                const int                   players = sig ? library::players_rating(*sig) : 0;
+                if (const double quality = library::tonight_quality(g.play_s, g.launches, r, players); quality > 0)
+                    tonight.push_back({ quality, Played{ g, name_of(g.game.id, g.name), found, std::max(r.critics, players) } });
             }
         }
     std::stable_sort(getting.begin(), getting.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
@@ -293,7 +287,7 @@ void make()
         const library::Renown r = popular_flow::of(t.id);
         if (r.score >= POPULAR) s.popular.push_back(p);
         if (r.score >= POPULAR && r.trend >= TRENDING) s.trending.push_back(p);
-        if (!language.empty() && language != "en" && reach->share(library::base_of(t.id), language) >= LOCAL_SHARE) s.local.push_back(p);
+        if (library::read_in_language(*reach, library::base_of(t.id), language)) s.local.push_back(p);
     }
     auto by_date = [](const Pick& a, const Pick& b) { return date_of(a.title()) > date_of(b.title()); };
     std::stable_sort(s.newest.begin(), s.newest.end(), by_date);
@@ -341,13 +335,7 @@ void make()
 
     // In the series of the console's games: the most played game's series first.
     {
-        std::map<std::string, std::pair<double, std::string>> mine;   // series id: weight, name
-        for (const library::Owned& o : owned)
-            if (const library::GameSignals* g = signals->find(o.id))
-                for (const library::Trait& t : g->series) {
-                    auto& m = mine[t.id];
-                    if (o.weight > m.first) m = { o.weight, t.label };
-                }
+        const library::Series mine = library::series_of(owned, *signals);
         std::vector<std::pair<double, InSeries>> found;
         for (const Pick& p : fresh) {
             const library::GameSignals* g = signals->find(p.title().id);
@@ -366,26 +354,14 @@ void make()
             s.series.push_back(std::move(f.second));
         }
 
-        // And those of the same series no server has: Atlas knows them by name only.
-        std::vector<std::pair<double, SeriesGap>> gaps;
-        for (const auto& [id, g] : signals->all()) {
-            if (g.name.empty() || where.contains(id) || editions->game_of(id) != id || owned_games.contains(id) ||
-                std::ranges::contains(unwanted, id))
-                continue;
-            for (const library::Trait& t : g.series) {
-                const auto it = mine.find(t.id);
-                if (it == mine.end() || it->second.second.empty()) continue;
-                gaps.push_back({ it->second.first + popular_flow::of(id).score / 1e3, { id, g.name, it->second.second } });
-                break;
-            }
-        }
-        std::stable_sort(gaps.begin(), gaps.end(), [](const auto& a, const auto& b) {
-            return a.first != b.first ? a.first > b.first : a.second.id < b.second.id;
-        });
-        for (auto& g : gaps) {
-            if (s.gaps.size() >= ROW) break;
-            s.gaps.push_back(std::move(g.second));
-        }
+        // And those of the same series no server has: Atlas knows them by name only (library/rows).
+        const auto gaps = library::series_gaps(
+            *signals, mine,
+            [&](uint64_t id) {
+                return where.contains(id) || editions->game_of(id) != id || owned_games.contains(id) || std::ranges::contains(unwanted, id);
+            },
+            [](uint64_t id) { return popular_flow::of(id).score; }, ROW);
+        for (const library::SeriesGame& g : gaps) s.gaps.push_back({ g.id, g.name, g.series });
     }
 
     // Coming out in the next two months (the title databases and Atlas'

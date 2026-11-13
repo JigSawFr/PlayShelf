@@ -288,6 +288,8 @@ library_upcoming_SRC := source/library/upcoming.cpp source/library/signals.cpp t
 library_reach_SRC := source/library/reach.cpp source/library/signals.cpp tests/library_reach/test.cpp
 # The other stores a game is sold on (also.json, Atlas).
 library_also_SRC := source/library/also.cpp source/library/signals.cpp tests/library_also/test.cpp
+# Which games Home's Atlas rows pick: Tonight's pick, in your language, missing from your series.
+library_rows_SRC := source/library/rows.cpp source/library/reach.cpp source/library/recommend.cpp source/library/popular.cpp source/library/seen.cpp source/library/signals.cpp tests/library_rows/test.cpp
 # When each game was first seen on a server; the wishlist's ids.
 library_seen_SRC := source/library/seen.cpp tests/library_seen/test.cpp
 # A game's save as a zip archive, and back.
