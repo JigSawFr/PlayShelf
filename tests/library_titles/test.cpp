@@ -202,7 +202,8 @@ void test_filter()
             const bool saga = id == t[0].id || id == t[2].id;
             return (asked.series.empty() || (asked.series == "A saga" && saga)) &&
                    (asked.studio.empty() || (asked.studio == "A studio" && id == t[0].id)) &&
-                   (asked.mode.empty() || (asked.mode == "Q1" && id == t[2].id));
+                   (asked.mode.empty() || (asked.mode == "Q1" && id == t[2].id)) &&
+                   (asked.theme.empty() || (asked.theme == "Fantasy" && id == t[1].id));
         };
         atlas.filter.series = "A saga";
         CHECK(select_titles(t, "", Sort::Name, "", atlas) == std::vector<size_t>({ 0, 2 }) && atlas.filter.active() == 1);
@@ -214,7 +215,12 @@ void test_filter()
         atlas.filter.studio = "";
         atlas.filter.mode = "Q1";
         CHECK(select_titles(t, "", Sort::Name, "", atlas) == std::vector<size_t>({ 2 }) && atlas.filter.active() == 1);
+        // A theme: the same, and it counts as set.
         atlas.filter.mode = "";
+        atlas.filter.studio = "";
+        atlas.filter.theme = "Fantasy";
+        CHECK(select_titles(t, "", Sort::Name, "", atlas) == std::vector<size_t>({ 1 }) && atlas.filter.active() == 1);
+        atlas.filter.theme = "";
         atlas.filter.studio = "A studio";
         atlas.traits = nullptr;   // no trait known: a game asked for by one is left out
         CHECK(select_titles(t, "", Sort::Name, "", atlas).empty());

@@ -690,7 +690,8 @@
         "mode_coop": "協力プレイ",
         "mode_same_screen": "同じ画面",
         "mode_versus": "対戦",
-        "mode_multi": "マルチプレイ"
+        "mode_multi": "マルチプレイ",
+        "theme": "テーマ"
     },
     "home": {
         "hello_morning": "おはようございます",

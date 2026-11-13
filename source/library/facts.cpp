@@ -143,7 +143,7 @@ std::vector<std::string> FactsBook::publishers() const
 
 size_t Filter::active() const
 {
-    return (size_t)!this->genre.empty() + (size_t)!this->publisher.empty() + (size_t)!this->language.empty() + (size_t)!this->series.empty() + (size_t)!this->studio.empty() + (size_t)!this->mode.empty() +
+    return (size_t)!this->genre.empty() + (size_t)!this->publisher.empty() + (size_t)!this->language.empty() + (size_t)!this->series.empty() + (size_t)!this->studio.empty() + (size_t)!this->mode.empty() + (size_t)!this->theme.empty() +
            (size_t)(this->players != 0) + (size_t)this->hide_demos + (size_t)(this->state != State::Any);
 }
 
