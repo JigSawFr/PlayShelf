@@ -685,7 +685,12 @@
         "clear": "Сбросить фильтры",
         "known": "Известно: {} игр из {}",
         "shown": "Показано: {}",
-        "state_never_played": "Не запускались"
+        "state_never_played": "Не запускались",
+        "mode": "Режим игры",
+        "mode_coop": "Кооператив",
+        "mode_same_screen": "Один экран",
+        "mode_versus": "Versus",
+        "mode_multi": "Мультиплеер"
     },
     "home": {
         "hello_morning": "Доброе утро",

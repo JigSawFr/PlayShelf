@@ -42,6 +42,17 @@ const char* state_key(State s)
     }
 }
 
+// The game modes of Atlas' games.json worth asking for (Wikidata's ids), as the
+// i18n key naming each; nullptr for the others (single-player is nearly every game).
+const char* mode_key(const std::string& id)
+{
+    if (id == "Q1758804") return "playshelf/filters/mode_coop";
+    if (id == "Q61005756") return "playshelf/filters/mode_same_screen";
+    if (id == "Q719798") return "playshelf/filters/mode_versus";
+    if (id == "Q6895044") return "playshelf/filters/mode_multi";
+    return nullptr;
+}
+
 std::string players_text(int players)
 {
     return players == 1 ? "playshelf/filters/players_one"_i18n
@@ -96,7 +107,7 @@ void show(std::shared_ptr<Sheet> sheet)
     }
 
     // The series and studios Atlas knows of these games, by their English names.
-    std::set<std::string> series, studios;
+    std::set<std::string> series, studios, modes;   // modes: Wikidata ids of the ones worth asking for
     {
         const auto signals = popular_flow::signals();
         for (uint64_t id : sheet->games)
@@ -105,6 +116,8 @@ void show(std::shared_ptr<Sheet> sheet)
                     if (!t.label.empty()) series.insert(t.label);
                 for (const library::Trait& t : g->developers)
                     if (!t.label.empty()) studios.insert(t.label);
+                for (const library::Trait& t : g->modes)
+                    if (mode_key(t.id)) modes.insert(t.id);
             }
     }
 
@@ -132,6 +145,12 @@ void show(std::shared_ptr<Sheet> sheet)
         std::vector<std::string> values(publishers.begin(), publishers.end());
         pick_value(sheet, "playshelf/filters/publisher"_i18n, values, values, &library::Filter::publisher);
     }, "server", f.publisher.empty() ? "playshelf/filters/any"_i18n : f.publisher);
+    if (!modes.empty())
+        lines.emplace_back("playshelf/filters/mode"_i18n, [sheet, modes]() {
+            std::vector<std::string> values(modes.begin(), modes.end()), labels;
+            for (const std::string& id : values) labels.push_back(aurore::getStr(mode_key(id)));
+            pick_value(sheet, "playshelf/filters/mode"_i18n, values, labels, &library::Filter::mode);
+        }, "gamepad", f.mode.empty() ? "playshelf/filters/any"_i18n : aurore::getStr(mode_key(f.mode) ? mode_key(f.mode) : "playshelf/filters/any"));
     if (!series.empty())
         lines.emplace_back("playshelf/filters/series"_i18n, [sheet, series]() {
             std::vector<std::string> values(series.begin(), series.end());
@@ -188,6 +207,7 @@ std::string summary(const library::Filter& f)
     if (!f.publisher.empty()) parts.push_back(f.publisher);
     if (!f.series.empty()) parts.push_back(f.series);
     if (!f.studio.empty()) parts.push_back(f.studio);
+    if (const char* key = f.mode.empty() ? nullptr : mode_key(f.mode)) parts.push_back(aurore::getStr(key));
     if (f.players) parts.push_back(players_text(f.players));
     if (!f.language.empty()) parts.push_back("playshelf/game/language_chip"_i18n);
     if (f.state != State::Any) parts.push_back(aurore::getStr(state_key(f.state)));

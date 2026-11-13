@@ -142,8 +142,8 @@ std::vector<size_t> select_titles(const std::vector<Title>& titles, const std::s
             continue;
         const Facts facts = selection.facts && t.id ? selection.facts(t.id) : Facts();
         if (!matches(f, facts)) continue;
-        // A series or a studio asked: a game Atlas does not know has none.
-        if ((!f.series.empty() || !f.studio.empty()) && !(selection.traits && t.id && selection.traits(t.id, f.series, f.studio)))
+        // A series, a studio or a mode asked: a game Atlas does not know has none.
+        if ((!f.series.empty() || !f.studio.empty() || !f.mode.empty()) && !(selection.traits && t.id && selection.traits(t.id, f)))
             continue;
         if (best && selection.score && t.id) figures[i] = selection.score(t.id, sort);
         if (f.state != Filter::State::Any && selection.state) {

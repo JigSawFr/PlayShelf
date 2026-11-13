@@ -272,14 +272,15 @@ void LibraryTab::show_games(std::shared_ptr<const std::vector<installed_flow::Ga
     const auto signals = popular_flow::signals();
     auto       kept = [&signals](const Entry& e) {
         if (!library::matches(s_filter, nlib_flow::facts(e.game->game.id))) return false;
-        // A series or a studio asked: by Atlas' games.json (a game it does not know has none).
-        if (!s_filter.series.empty() || !s_filter.studio.empty()) {
+        // A series, a studio or a mode asked: by Atlas' games.json (a game it does not know has none).
+        if (!s_filter.series.empty() || !s_filter.studio.empty() || !s_filter.mode.empty()) {
             const library::GameSignals* g = signals->find(library::base_of(e.game->game.id));
             auto has = [](const std::vector<library::Trait>& list, const std::string& label) {
                 return std::ranges::any_of(list, [&label](const library::Trait& t) { return t.label == label; });
             };
             if (!g || (!s_filter.series.empty() && !has(g->series, s_filter.series)) ||
-                (!s_filter.studio.empty() && !has(g->developers, s_filter.studio)))
+                (!s_filter.studio.empty() && !has(g->developers, s_filter.studio)) ||
+                (!s_filter.mode.empty() && !std::ranges::any_of(g->modes, [](const library::Trait& t) { return t.id == s_filter.mode; })))
                 return false;
         }
         const library::TitleState st = state_in(e.data, e.title);

@@ -303,8 +303,8 @@ void CatalogueTab::build_grid(bool force)
 {
     const auto* data = this->shown_data.get();
     const library::Filter& f = s_filter;
-    const std::string      key = std::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
-                                             f.language, f.series, f.studio, f.players, std::to_underlying(f.state), f.hide_demos);
+    const std::string      key = std::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}{}{}", s_query, s_order, s_section, f.genre, f.publisher,
+                                             f.language, f.series, f.studio, f.mode, f.players, std::to_underlying(f.state), f.hide_demos);
     // Its sections: a choice only when the server has several.
     const bool sections = data && data->fetch.catalog.sections.size() > 1;
     ui::set_visible(section_cell, sections);
@@ -372,12 +372,16 @@ std::vector<size_t> CatalogueTab::select() const
             default: return 0;
         }
     };
-    pick.traits = [signals](uint64_t title_id, const std::string& series, const std::string& studio) {
+    pick.traits = [signals](uint64_t title_id, const library::Filter& asked) {
         const library::GameSignals* g = signals->find(library::base_of(title_id));
         auto has = [](const std::vector<library::Trait>& traits, const std::string& label) {
             return std::ranges::any_of(traits, [&label](const library::Trait& t) { return t.label == label; });
         };
-        return g && (series.empty() || has(g->series, series)) && (studio.empty() || has(g->developers, studio));
+        auto has_id = [](const std::vector<library::Trait>& traits, const std::string& wanted) {
+            return std::ranges::any_of(traits, [&wanted](const library::Trait& t) { return t.id == wanted; });
+        };
+        return g && (asked.series.empty() || has(g->series, asked.series)) && (asked.studio.empty() || has(g->developers, asked.studio)) &&
+               (asked.mode.empty() || has_id(g->modes, asked.mode));
     };
     const bool sections = data->fetch.catalog.sections.size() > 1;
     return library::select_titles(data->titles, s_query, sort_of(), sections ? s_section : "", pick);

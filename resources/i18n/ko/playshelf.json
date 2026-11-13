@@ -685,7 +685,12 @@
         "clear": "필터 지우기",
         "known": "세부 정보 확인: {}/{}개 게임",
         "shown": "{}개 표시",
-        "state_never_played": "플레이한 적 없음"
+        "state_never_played": "플레이한 적 없음",
+        "mode": "게임 모드",
+        "mode_coop": "협동",
+        "mode_same_screen": "같은 화면",
+        "mode_versus": "대전",
+        "mode_multi": "멀티플레이"
     },
     "home": {
         "hello_morning": "좋은 아침이에요",

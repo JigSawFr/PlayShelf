@@ -685,7 +685,12 @@
         "clear": "Filters wissen",
         "known": "Details bekend: {} van {} games",
         "shown": "{} getoond",
-        "state_never_played": "Nooit gespeeld"
+        "state_never_played": "Nooit gespeeld",
+        "mode": "Spelmodus",
+        "mode_coop": "Coöp",
+        "mode_same_screen": "Zelfde scherm",
+        "mode_versus": "Versus",
+        "mode_multi": "Multiplayer"
     },
     "home": {
         "hello_morning": "Goedemorgen",
