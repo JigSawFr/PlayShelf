@@ -24,6 +24,7 @@
 #include "activity/search_activity.hpp"
 #include "activity/storage_activity.hpp"
 #include "activity/tabs.hpp"
+#include "library/rows.hpp"
 #include "library/seen.hpp"
 #include "library/servers.hpp"
 #include "tab/library_tab.hpp"
@@ -139,6 +140,7 @@ std::string key_of(const insights::Snapshot& s)
     for (const insights::Suggested& l : s.like) key += std::format("{:x}.{}.{:x}.{},", l.pick.title().id, std::to_underlying(l.reason.kind), l.reason.because, l.reason.hours);
     for (const insights::InSeries& l : s.series) key += std::format("{:x},", l.pick.title().id);
     for (const insights::Played& p : s.recent) key += std::format("{:x}.{},", p.game.game.id, p.game.last_played);
+    for (const insights::Played& p : s.together) key += std::format("{:x}.{},", p.game.game.id, p.figure);
     for (const insights::Played& p : s.tonight) key += std::format("{:x}.{},", p.game.game.id, p.figure);
     for (const insights::Wished& w : s.wished) key += std::format("{:x}.{}{},", w.id, w.found.data != nullptr, w.installed);
     for (const insights::Coming& c : s.coming) key += std::format("{:x},", c.id);
@@ -203,6 +205,10 @@ void HomeTab::build(bool force)
                      [](const insights::Played& p) { return installed_flow::play_text(p.game.play_s); });
     this->add_played("playshelf/home/tonight"_i18n, "playshelf/home/tonight_line"_i18n, s.tonight,
                      [](const insights::Played& p) { return aurore::getStr("playshelf/game/critics_score", p.figure); });
+    this->add_played("playshelf/home/together"_i18n, "playshelf/home/together_line"_i18n, s.together, [](const insights::Played& p) {
+        return p.figure == (int)std::to_underlying(library::Together::SameScreen) ? "playshelf/filters/mode_same_screen"_i18n
+                                                                                  : "playshelf/filters/mode_coop"_i18n;
+    });
     const bool online = config::get().nlib_api;
     if (online) this->add_banners("playshelf/installed/featured"_i18n, s.to_get, true);
     // For the player, each with the reason that weighed most; then the

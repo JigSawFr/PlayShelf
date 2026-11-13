@@ -756,7 +756,9 @@
         "because_series": "シリーズ: {}",
         "because_developer": "{} 開発",
         "because_popular": "人気",
-        "because_played": "{1}時間：{0}"
+        "because_played": "{1}時間：{0}",
+        "together": "みんなで遊ぶ",
+        "together_line": "1台で複数人が遊べる手持ちのゲーム"
     },
     "wishlist": {
         "add": "ほしいものリストに追加",

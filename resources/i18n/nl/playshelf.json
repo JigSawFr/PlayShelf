@@ -756,7 +756,9 @@
         "because_series": "Serie: {}",
         "because_developer": "Door {}",
         "because_popular": "Populair",
-        "because_played": "{1} uur {0}"
+        "because_played": "{1} uur {0}",
+        "together": "Samen spelen",
+        "together_line": "Je games voor meerdere spelers op één console"
     },
     "wishlist": {
         "add": "Op verlanglijst",

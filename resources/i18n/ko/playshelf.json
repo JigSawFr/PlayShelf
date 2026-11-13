@@ -756,7 +756,9 @@
         "because_series": "시리즈: {}",
         "because_developer": "{} 개발",
         "because_popular": "인기",
-        "because_played": "{1}시간: {0}"
+        "because_played": "{1}시간: {0}",
+        "together": "함께 플레이",
+        "together_line": "한 대의 콘솔에서 여럿이 즐기는 내 게임"
     },
     "wishlist": {
         "add": "위시리스트에 추가",

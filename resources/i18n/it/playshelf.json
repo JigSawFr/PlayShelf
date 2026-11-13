@@ -756,7 +756,9 @@
         "because_series": "Serie: {}",
         "because_developer": "Di {}",
         "because_popular": "Popolare",
-        "because_played": "{1} h di {0}"
+        "because_played": "{1} h di {0}",
+        "together": "Da giocare insieme",
+        "together_line": "I tuoi giochi per più giocatori su una console"
     },
     "wishlist": {
         "add": "Aggiungi alla lista dei desideri",

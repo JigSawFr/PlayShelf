@@ -756,7 +756,9 @@
         "because_series": "Series: {}",
         "because_developer": "By {}",
         "because_popular": "Popular",
-        "because_played": "{1} h of {0}"
+        "because_played": "{1} h of {0}",
+        "together": "Play together",
+        "together_line": "Your games for several players on one console"
     },
     "wishlist": {
         "add": "Add to wishlist",

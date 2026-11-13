@@ -35,6 +35,12 @@ constexpr double   TONIGHT_QUALITY = 0.45;
 // lot, started often, or not known or not good enough.
 double tonight_quality(uint64_t play_s, uint32_t launches, const Renown& renown, int players_rating);
 
+// To play together: how a game says several play it on one console, by the modes Atlas gives it
+// (Wikidata): on one screen (shared or split screen, hotseat) before co-op, None for the others
+// (multiplayer alone may be online only).
+enum class Together : uint8_t { None, Coop, SameScreen };
+Together together_of(const GameSignals& game);
+
 // Popular in your language: a share of a game's readers of this much (in percent) at least.
 constexpr int LOCAL_SHARE = 30;
 

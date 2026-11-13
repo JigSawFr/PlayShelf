@@ -201,6 +201,7 @@ void make()
     // were played.
     std::vector<std::pair<uint64_t, Pick>> getting;
     std::vector<std::pair<double, Played>> tonight;
+    std::vector<std::pair<int, Played>>    together;
     std::map<std::string, double>          genres;
     std::vector<library::Owned>            owned;
     const uint64_t                         now = (uint64_t)dev_build_flow::now();
@@ -240,6 +241,9 @@ void make()
                 const int                   players = sig ? library::players_rating(*sig) : 0;
                 if (const double quality = library::tonight_quality(g.play_s, g.launches, r, players); quality > 0)
                     tonight.push_back({ quality, Played{ g, name_of(g.game.id, g.name), found, std::max(r.critics, players) } });
+                // Several play it on one console (library/rows): one screen first, then the better known.
+                if (const library::Together how = sig ? library::together_of(*sig) : library::Together::None; how != library::Together::None)
+                    together.push_back({ (int)std::to_underlying(how) * 1000 + r.score, Played{ g, name_of(g.game.id, g.name), found, (int)std::to_underlying(how) } });
             }
         }
     std::stable_sort(getting.begin(), getting.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
@@ -252,6 +256,11 @@ void make()
     for (auto& t : tonight) {
         if (s.tonight.size() >= ROW) break;
         s.tonight.push_back(std::move(t.second));
+    }
+    std::stable_sort(together.begin(), together.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+    for (auto& t : together) {
+        if (s.together.size() >= ROW) break;
+        s.together.push_back(std::move(t.second));
     }
     std::stable_sort(s.idle.begin(), s.idle.end(), [](const Played& a, const Played& b) { return a.game.size > b.game.size; });
 

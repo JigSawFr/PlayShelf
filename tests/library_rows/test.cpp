@@ -11,6 +11,22 @@ namespace
 constexpr uint64_t OWNED = 0x0100000000010000, SAME_A = 0x0100000000020000, SAME_B = 0x0100000000030000,
                    OTHER = 0x0100000000040000, EDITION = 0x0100000000060000;
 
+void test_together()
+{
+    GameSignals g;
+    CHECK(together_of(g) == Together::None);
+    g.modes = { { "Q208850", "single-player video game" }, { "Q6895044", "multiplayer video game" } };
+    CHECK(together_of(g) == Together::None);                 // multiplayer alone may be online only
+    g.modes.push_back({ "Q1758804", "co-op mode" });
+    CHECK(together_of(g) == Together::Coop);
+    g.modes.push_back({ "Q61005756", "shared/splitscreen multiplayer" });
+    CHECK(together_of(g) == Together::SameScreen);           // one screen wins over co-op
+    g.modes = { { "Q1630770", "hotseat" } };
+    CHECK(together_of(g) == Together::SameScreen);
+    g.modes = { { "Q107494132", "local co-op" } };
+    CHECK(together_of(g) == Together::Coop);
+}
+
 void test_tonight()
 {
     Renown good;
@@ -84,6 +100,7 @@ void test_series()
 
 int main()
 {
+    test_together();
     test_tonight();
     test_language();
     test_series();
