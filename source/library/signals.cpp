@@ -108,6 +108,14 @@ int players_rating(const GameSignals& g)
     return says ? (int)std::lround(sum / says) : 0;
 }
 
+std::string related_names(const GameSignals& game)
+{
+    std::string out;
+    for (const Trait& t : game.series) out += t.label + "\n";
+    for (const Trait& t : game.developers) out += t.label + "\n";
+    return out;
+}
+
 bool SignalBook::from_json(const std::string& text)
 {
     this->games.clear();

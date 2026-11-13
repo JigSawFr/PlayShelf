@@ -35,6 +35,8 @@ void test_games()
     // Malformed traits left out; a label never holds a line break.
     CHECK(a->series.size() == 1 && a->series[0].id == "Q1" && a->series[0].label == "A saga");
     CHECK(a->developers.size() == 1 && a->developers[0].label == "A studio line");
+    CHECK(library::related_names(*a) == "A saga\nA studio line\n");          // the series' and developers' names, for a search
+    CHECK(library::related_names(library::GameSignals()).empty());
     CHECK(a->steam.app == 504230 && a->steam.positive == 100 && a->steam.owners == 20000 && a->steam.ccu == 0);
     // No app: no Steam audience.
     CHECK(b.find(B) && b.find(B)->steam.app == 0 && b.find(B)->steam.positive == 0 && b.find(B)->genres.size() == 1);

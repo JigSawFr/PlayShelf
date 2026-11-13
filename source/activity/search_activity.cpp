@@ -13,6 +13,7 @@
 #include "action/installed_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/nlib_flow.hpp"
+#include "action/popular_flow.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
 
@@ -27,6 +28,21 @@ bool has_words(const std::string& text, const std::vector<std::string>& words)
     for (const std::string& w : words)
         if (!text.contains(w)) return false;
     return !words.empty();
+}
+
+// The series and developers Atlas gives a game are matched too, when every word has 3 letters at least
+// (fewer would match most games).
+bool long_words(const std::vector<std::string>& words)
+{
+    for (const std::string& w : words)
+        if (w.size() < 3) return false;
+    return !words.empty();
+}
+
+std::string related_of(uint64_t id)
+{
+    const library::GameSignals* g = id ? popular_flow::signals()->find(library::base_of(id)) : nullptr;
+    return g ? library::fold(library::related_names(*g)) : std::string();
 }
 
 std::vector<std::string> words_of(const std::string& query)
@@ -74,6 +90,7 @@ void SearchActivity::onContentAvailable()
 void SearchActivity::rebuild()
 {
     const std::vector<std::string> words = words_of(this->query);
+    const bool                     related = long_words(words);
     const auto                     installed = library_flow::installed();
 
     // Each game once: its first server's catalogue, and the servers that have it.
@@ -94,7 +111,8 @@ void SearchActivity::rebuild()
                 hits[it->second].servers.push_back(s.name);
                 continue;
             }
-            if (!has_words(library::fold(t.name) + " " + library::fold(nlib_flow::facts(t.id).publisher), words)) continue;
+            const std::string text = library::fold(t.name) + " " + library::fold(nlib_flow::facts(t.id).publisher);
+            if (!has_words(text, words) && !(related && has_words(text + " " + related_of(t.id), words))) continue;
             if (t.id) at[t.id] = hits.size();
             hits.push_back({ { l, i }, { s.name } });
         }
@@ -105,7 +123,8 @@ void SearchActivity::rebuild()
         for (const installed_flow::Game& g : *games) {
             if (at.contains(g.game.id)) continue;
             const std::string name = insights::name_of(g.game.id, g.name);
-            if (has_words(library::fold(name), words)) own.push_back({ g, name, {} });
+            const std::string text = library::fold(name);
+            if (has_words(text, words) || (related && has_words(text + " " + related_of(g.game.id), words))) own.push_back({ g, name, {} });
         }
 
     auto* box = new aurore::Box(aurore::Axis::COLUMN);
