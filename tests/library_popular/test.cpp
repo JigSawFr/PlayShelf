@@ -2,6 +2,7 @@
 // another schema refused.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "check.h"
+#include "library/atlas.hpp"
 #include "library/popular.hpp"
 
 using namespace library;
@@ -11,6 +12,14 @@ int main()
     PopularBook b;
     CHECK(!b.from_json("") && !b.from_json("[]") && !b.from_json("{\"games\":{}}") && b.size() == 0);
     CHECK(!b.from_json("{\"schema\":1,\"generated\":\"27/10/2026\",\"games\":{}}"));
+    // A file's day read from its first bytes, without parsing it: "" when it is not there as Atlas writes it.
+    CHECK(library::atlas_day_at_head(R"({"schema":1,"platform":"switch","generated":"2026-11-13","games":{}})") == "2026-11-13");
+    CHECK(library::atlas_day_at_head(R"({"schema":1,"generated":"27/10/2026","games":{}})").empty());
+    CHECK(library::atlas_day_at_head(R"({"schema":1,"generated":"2026-11-1","games":{}})").empty());
+    CHECK(library::atlas_day_at_head(R"({"schema":1,"games":{"x":{"generated":"2026-11-13"}}})").empty());   // a game's, not the file's
+    CHECK(library::atlas_day_at_head(R"({"schema":1,"generated":"2026-11-13)").empty());                       // cut
+    CHECK(library::atlas_day_at_head(std::string(600, ' ') + R"("generated":"2026-11-13")").empty());          // too far
+    CHECK(library::atlas_day_at_head("").empty());
     CHECK(b.from_json(R"({"schema":1,"generated":"2026-10-27","month":"2026-09","games":{
         "010025400AECE000":[93,12],
         "0100b0c013912000":[71,-40],
