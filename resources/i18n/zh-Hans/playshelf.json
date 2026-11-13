@@ -690,7 +690,8 @@
         "mode_coop": "合作",
         "mode_same_screen": "同屏",
         "mode_versus": "对战",
-        "mode_multi": "多人"
+        "mode_multi": "多人",
+        "theme": "主题"
     },
     "home": {
         "hello_morning": "早上好",

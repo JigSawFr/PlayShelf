@@ -107,7 +107,7 @@ void show(std::shared_ptr<Sheet> sheet)
     }
 
     // The series and studios Atlas knows of these games, by their English names.
-    std::set<std::string> series, studios, modes;   // modes: Wikidata ids of the ones worth asking for
+    std::set<std::string> series, studios, modes, themes;   // modes: Wikidata ids of the ones worth asking for
     {
         const auto signals = popular_flow::signals();
         for (uint64_t id : sheet->games)
@@ -116,6 +116,8 @@ void show(std::shared_ptr<Sheet> sheet)
                     if (!t.label.empty()) series.insert(t.label);
                 for (const library::Trait& t : g->developers)
                     if (!t.label.empty()) studios.insert(t.label);
+                for (const library::Trait& t : g->themes)
+                    if (!t.label.empty()) themes.insert(t.label);
                 for (const library::Trait& t : g->modes)
                     if (mode_key(t.id)) modes.insert(t.id);
             }
@@ -151,6 +153,11 @@ void show(std::shared_ptr<Sheet> sheet)
             for (const std::string& id : values) labels.push_back(aurore::getStr(mode_key(id)));
             pick_value(sheet, "playshelf/filters/mode"_i18n, values, labels, &library::Filter::mode);
         }, "gamepad", f.mode.empty() ? "playshelf/filters/any"_i18n : aurore::getStr(mode_key(f.mode) ? mode_key(f.mode) : "playshelf/filters/any"));
+    if (!themes.empty())
+        lines.emplace_back("playshelf/filters/theme"_i18n, [sheet, themes]() {
+            std::vector<std::string> values(themes.begin(), themes.end());
+            pick_value(sheet, "playshelf/filters/theme"_i18n, values, values, &library::Filter::theme);
+        }, "sparkle", f.theme.empty() ? "playshelf/filters/any"_i18n : f.theme);
     if (!series.empty())
         lines.emplace_back("playshelf/filters/series"_i18n, [sheet, series]() {
             std::vector<std::string> values(series.begin(), series.end());
@@ -208,6 +215,7 @@ std::string summary(const library::Filter& f)
     if (!f.series.empty()) parts.push_back(f.series);
     if (!f.studio.empty()) parts.push_back(f.studio);
     if (const char* key = f.mode.empty() ? nullptr : mode_key(f.mode)) parts.push_back(aurore::getStr(key));
+    if (!f.theme.empty()) parts.push_back(f.theme);
     if (f.players) parts.push_back(players_text(f.players));
     if (!f.language.empty()) parts.push_back("playshelf/game/language_chip"_i18n);
     if (f.state != State::Any) parts.push_back(aurore::getStr(state_key(f.state)));

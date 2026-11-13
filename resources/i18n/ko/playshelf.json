@@ -690,7 +690,8 @@
         "mode_coop": "협동",
         "mode_same_screen": "같은 화면",
         "mode_versus": "대전",
-        "mode_multi": "멀티플레이"
+        "mode_multi": "멀티플레이",
+        "theme": "테마"
     },
     "home": {
         "hello_morning": "좋은 아침이에요",

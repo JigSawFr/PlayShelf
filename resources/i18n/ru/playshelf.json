@@ -690,7 +690,8 @@
         "mode_coop": "Кооператив",
         "mode_same_screen": "Один экран",
         "mode_versus": "Versus",
-        "mode_multi": "Мультиплеер"
+        "mode_multi": "Мультиплеер",
+        "theme": "Тема"
     },
     "home": {
         "hello_morning": "Доброе утро",

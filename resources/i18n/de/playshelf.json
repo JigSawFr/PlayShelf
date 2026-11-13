@@ -690,7 +690,8 @@
         "mode_coop": "Koop",
         "mode_same_screen": "Gleicher Bildschirm",
         "mode_versus": "Versus",
-        "mode_multi": "Mehrspieler"
+        "mode_multi": "Mehrspieler",
+        "theme": "Thema"
     },
     "home": {
         "hello_morning": "Guten Morgen",
