@@ -1,0 +1,38 @@
+name: atlas-contract
+
+# Do PlayShelf's own readers still accept what Atlas publishes? The tests read examples written by
+# hand; this reads the real files, from jsDelivr, where the app reads them (tools/atlas_contract.py).
+# It fails when a file Atlas lists is not served (jsDelivr's 50 MB limit on the data branch shows
+# as a 403), when a reader refuses a file (a format moved without `schema`), or when popular.json
+# or games.json are missing or truncated. A file Atlas has not published yet is only said.
+# Weekly, the day after Atlas' Monday build; and on a change to a reader, against the real data.
+on:
+  schedule:
+    - cron: '23 6 * * 2'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/atlas-contract.yml
+      - tools/atlas_contract.*
+      - source/library/also.*
+      - source/library/changes.*
+      - source/library/popular.*
+      - source/library/reach.*
+      - source/library/signals.*
+      - source/library/upcoming.*
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - name: Compiler messages as annotations
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+      - name: Atlas' files against PlayShelf's readers
+        run: make atlas-contract

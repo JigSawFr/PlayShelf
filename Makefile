@@ -49,7 +49,7 @@ ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindep
 CMAKE_ARGS ?=
 JSON_HPP := library/aurore/library/include/aurore/extern/nlohmann/json.hpp
 
-.PHONY: all clean dist nxlink desktop web web-serve site test fuzz check FORCE
+.PHONY: all clean dist nxlink desktop web web-serve site test fuzz check atlas-contract FORCE
 
 RENDERER := $(if $(GL),-DAURORE_GRAPHICS=GL3,-DAURORE_GRAPHICS=DEKO3D)
 
@@ -414,6 +414,17 @@ test:
 	@test -f $(JSON_HPP) || { echo "Aurore is missing (nlohmann/json for the tests): run git submodule update --init"; exit 1; }
 	@rm -f $(TEST_OKS)
 	@$(MAKE) --no-print-directory -k $(if $(findstring -j,$(MAKEFLAGS)),,-j$(JOBS)) -Otarget $(TEST_OKS)
+
+
+# Atlas' published files (jsDelivr) read by PlayShelf's own readers: tools/atlas_contract.py. Needs the
+# network; the weekly workflow atlas-contract.yml runs it.
+ATLAS_CONTRACT_SOURCES := tools/atlas_contract.cpp source/library/also.cpp source/library/changes.cpp source/library/popular.cpp \
+                          source/library/reach.cpp source/library/signals.cpp source/library/upcoming.cpp
+$(BUILD)/atlas_contract: $(ATLAS_CONTRACT_SOURCES) $(wildcard source/library/*.hpp)
+	@mkdir -p $(BUILD)
+	$(CXX) -std=c++23 -O1 -Wall -Wextra -Wshadow -Werror -Isource -isystem library/aurore/library/include $(ATLAS_CONTRACT_SOURCES) -o $@
+atlas-contract: $(BUILD)/atlas_contract
+	python3 tools/atlas_contract.py $<
 
 # Fuzzing: one libFuzzer program per parser of outside data (tests/fuzz/,
 # see tests/README.md), built by clang with ASan and UBSan, each run for
