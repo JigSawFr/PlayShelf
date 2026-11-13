@@ -12,6 +12,7 @@
 #include <aurore.hpp>
 
 #include "action/changes_flow.hpp"
+#include "action/dev_build_flow.hpp"
 #include "action/download_flow.hpp"
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
@@ -86,7 +87,7 @@ uint32_t day_of(std::time_t t)
 
 uint32_t today(long days = 0)
 {
-    return day_of(std::time(nullptr) + days * 86400);
+    return day_of((std::time_t)dev_build_flow::now() + days * 86400);
 }
 
 uint32_t date_of(const library::Title& t)
@@ -202,7 +203,7 @@ void make()
     std::vector<std::pair<double, Played>> tonight;
     std::map<std::string, double>          genres;
     std::vector<library::Owned>            owned;
-    const uint64_t                         now = (uint64_t)std::time(nullptr);
+    const uint64_t                         now = (uint64_t)dev_build_flow::now();
     if (games)
         for (const installed_flow::Game& g : *games) {
             const double weight = library::owned_weight(g.play_s, g.launches, g.last_played, now);

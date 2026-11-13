@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <fstream>
 #include <map>
@@ -354,9 +356,11 @@ int main(int argc, char** argv)
     const std::string out = argv[1];
     // The day of the build: Atlas' files made on it (newer than the
     // ones PlayShelf ships), the table's `days` counted from it.
+    // PLAYSHELF_DEMO_DAY (YYYY-MM-DD) fixes it, for screenshots to compare.
     const std::time_t now = std::time(nullptr);
     char              day[16];
     std::strftime(day, sizeof day, "%Y-%m-%d", std::gmtime(&now));
+    if (const char* fixed = std::getenv("PLAYSHELF_DEMO_DAY"); fixed && std::strlen(fixed) == 10) std::snprintf(day, sizeof day, "%s", fixed);
     const std::vector<Game> games = read_games(argv[2], day);
     mkdir(out.c_str(), 0755);
     mkdir((out + "/files").c_str(), 0755);

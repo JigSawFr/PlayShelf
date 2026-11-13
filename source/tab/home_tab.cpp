@@ -12,6 +12,7 @@
 #include <aurore/cadran/ui/cadran_list.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
 
+#include "action/dev_build_flow.hpp"
 #include "action/download_flow.hpp"
 #include "action/game_page.hpp"
 #include "action/homebrew_flow.hpp"
@@ -51,7 +52,7 @@ bool inside(aurore::View* view, aurore::View* parent)
 // Today as YYYYMMDD, `days` from it.
 uint32_t day(long days = 0)
 {
-    const std::time_t t = std::time(nullptr) + days * 86400;
+    const std::time_t t = (std::time_t)dev_build_flow::now() + days * 86400;
     std::tm           local{};
     localtime_r(&t, &local);
     return (uint32_t)((local.tm_year + 1900) * 10000 + (local.tm_mon + 1) * 100 + local.tm_mday);
@@ -60,7 +61,7 @@ uint32_t day(long days = 0)
 // The greeting of the hour.
 std::string greeting()
 {
-    const std::time_t now = std::time(nullptr);
+    const std::time_t now = (std::time_t)dev_build_flow::now();
     std::tm           local{};
     localtime_r(&now, &local);
     if (local.tm_hour >= 5 && local.tm_hour < 12) return "playshelf/home/hello_morning"_i18n;
