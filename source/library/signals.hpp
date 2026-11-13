@@ -140,6 +140,9 @@ class EditionBook
 // (a list of them to show again once it came).
 bool names_any(const SignalBook& book, const std::vector<uint64_t>& unnamed);
 
+// The series and developers Atlas gives a game, one per line, for a search to also match ("" when none).
+std::string related_names(const GameSignals& game);
+
 // A base game's title id from 16 hex digits; 0 for anything else.
 uint64_t base_id_of(const std::string& text);
 // Whether a day reads as YYYY-MM-DD.
