@@ -685,7 +685,12 @@
         "clear": "清除篩選",
         "known": "已知詳情：{}/{} 款遊戲",
         "shown": "顯示 {} 款",
-        "state_never_played": "從未玩過"
+        "state_never_played": "從未玩過",
+        "mode": "遊戲模式",
+        "mode_coop": "合作",
+        "mode_same_screen": "同螢幕",
+        "mode_versus": "對戰",
+        "mode_multi": "多人"
     },
     "home": {
         "hello_morning": "早安",

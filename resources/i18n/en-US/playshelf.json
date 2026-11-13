@@ -685,7 +685,12 @@
         "clear": "Clear the filters",
         "known": "Details known: {} of {} games",
         "shown": "{} shown",
-        "state_never_played": "Never played"
+        "state_never_played": "Never played",
+        "mode": "Game mode",
+        "mode_coop": "Co-op",
+        "mode_same_screen": "Same screen",
+        "mode_versus": "Versus",
+        "mode_multi": "Multiplayer"
     },
     "home": {
         "hello_morning": "Good morning",

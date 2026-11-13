@@ -103,9 +103,9 @@ struct Selection
     std::function<TitleState(const Title&)> state;   // nullptr: the filter's state is not applied
     // Atlas' scores of a game, by title id, for the Best… sorts: 0..100, 0 when not known (nullptr: none known).
     std::function<int(uint64_t, Sort)>      score;
-    // Whether a game has the series and the studio asked (Atlas' traits: "" asks for none of that kind);
-    // nullptr: none known, so a game is left out when either is asked.
-    std::function<bool(uint64_t, const std::string&, const std::string&)> traits;
+    // Whether a game has the series, the studio and the mode the filter asks (Atlas' traits: "" asks for none of that kind);
+    // nullptr: none known, so a game is left out when any is asked.
+    std::function<bool(uint64_t, const Filter&)> traits;
 };
 
 // The games whose name (or title id: 8 hex digits at least) holds `query` (case and the

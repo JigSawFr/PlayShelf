@@ -685,7 +685,12 @@
         "clear": "Filter löschen",
         "known": "Details bekannt: {} von {} Spielen",
         "shown": "{} angezeigt",
-        "state_never_played": "Nie gespielt"
+        "state_never_played": "Nie gespielt",
+        "mode": "Spielmodus",
+        "mode_coop": "Koop",
+        "mode_same_screen": "Gleicher Bildschirm",
+        "mode_versus": "Versus",
+        "mode_multi": "Mehrspieler"
     },
     "home": {
         "hello_morning": "Guten Morgen",

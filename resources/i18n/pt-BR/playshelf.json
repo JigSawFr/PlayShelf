@@ -685,7 +685,12 @@
         "clear": "Limpar os filtros",
         "known": "Detalhes conhecidos: {} de {} jogos",
         "shown": "{} mostrados",
-        "state_never_played": "Nunca jogados"
+        "state_never_played": "Nunca jogados",
+        "mode": "Modo de jogo",
+        "mode_coop": "Cooperativo",
+        "mode_same_screen": "Mesma tela",
+        "mode_versus": "Versus",
+        "mode_multi": "Multijogador"
     },
     "home": {
         "hello_morning": "Bom dia",
