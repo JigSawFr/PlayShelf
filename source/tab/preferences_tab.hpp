@@ -32,6 +32,8 @@ class PreferencesTab : public TabBase
 
     cadran::List list;
     int          titledb_listener = 0;
+    int          atlas_listener = 0;
+    void         show_atlas();
     AURORE_BIND(aurore::DetailCell,  language,      "pf_language");
     AURORE_BIND(aurore::DetailCell,  theme,         "pf_theme");
     AURORE_BIND(aurore::DetailCell,  palette,       "pf_palette");
@@ -55,5 +57,6 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::BooleanCell, nlib_api,       "pf_nlib_api");
     AURORE_BIND(aurore::BooleanCell, popular_online, "pf_popular_online");
     AURORE_BIND(aurore::BooleanCell, atlas_pictures, "pf_atlas_pictures");
+    AURORE_BIND(aurore::DetailCell,  atlas_data, "pf_atlas_data");
     AURORE_BIND(aurore::DetailCell,  not_interested, "pf_not_interested");
 };

@@ -546,7 +546,12 @@
         "nxmeta": "NXMeta",
         "nlib_api": "從 Nlib API 取得圖示和遊戲頁面",
         "popular_online": "Atlas 資料",
-        "atlas_pictures": "Atlas 圖片（經由 wsrv.nl）"
+        "atlas_pictures": "Atlas 圖片（經由 wsrv.nl）",
+        "atlas_status": "使用中的 Atlas 資料",
+        "atlas_updating": "更新中…",
+        "atlas_refresh": "立即重新讀取",
+        "atlas_unread": "未讀取",
+        "atlas_about": "PlayShelf 每天重新讀取一次 Atlas 的檔案。下方是各檔案產生的日期;沒有日期的檔案尚未讀取(它們只來自 Atlas,關閉 Atlas 資料時完全不會取得)。"
     },
     "game": {
         "rebuilt": "已內建更新",

@@ -546,7 +546,12 @@
         "nxmeta": "NXMeta",
         "nlib_api": "Ícones e páginas de jogo a partir da Nlib API",
         "popular_online": "Dados do Atlas",
-        "atlas_pictures": "Imagens do Atlas (via wsrv.nl)"
+        "atlas_pictures": "Imagens do Atlas (via wsrv.nl)",
+        "atlas_status": "Dados do Atlas em uso",
+        "atlas_updating": "A atualizar…",
+        "atlas_refresh": "Ler de novo agora",
+        "atlas_unread": "não lido",
+        "atlas_about": "O PlayShelf volta a ler os ficheiros do Atlas uma vez por dia. Abaixo está o dia em que cada um foi feito; um sem dia ainda não foi lido (só vêm do Atlas, e de todo com os dados do Atlas desativados)."
     },
     "game": {
         "rebuilt": "Atualização incluída",

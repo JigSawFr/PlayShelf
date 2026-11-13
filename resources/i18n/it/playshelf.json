@@ -546,7 +546,12 @@
         "nxmeta": "NXMeta",
         "nlib_api": "Icone e schede dei giochi da Nlib API",
         "popular_online": "Dati di Atlas",
-        "atlas_pictures": "Immagini di Atlas (tramite wsrv.nl)"
+        "atlas_pictures": "Immagini di Atlas (tramite wsrv.nl)",
+        "atlas_status": "Dati di Atlas in uso",
+        "atlas_updating": "Aggiornamento…",
+        "atlas_refresh": "Rileggi ora",
+        "atlas_unread": "non letto",
+        "atlas_about": "PlayShelf rilegge i file di Atlas una volta al giorno. Sotto c'è il giorno in cui è stato creato ciascuno; uno senza giorno non è ancora stato letto (arrivano solo da Atlas, e per niente con i dati di Atlas disattivati)."
     },
     "game": {
         "rebuilt": "Aggiornamento incorporato",

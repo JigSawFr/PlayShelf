@@ -546,7 +546,12 @@
         "nxmeta": "NXMeta",
         "nlib_api": "アイコンとゲームページを Nlib API から取得",
         "popular_online": "Atlasのデータ",
-        "atlas_pictures": "Atlasの画像（wsrv.nl経由）"
+        "atlas_pictures": "Atlasの画像（wsrv.nl経由）",
+        "atlas_status": "使用中のAtlasデータ",
+        "atlas_updating": "更新中…",
+        "atlas_refresh": "今すぐ読み直す",
+        "atlas_unread": "未読",
+        "atlas_about": "PlayShelfはAtlasのファイルを1日に1回読み直します。各ファイルが作られた日を下に示します。日付のないファイルはまだ読まれていません(Atlasからしか届かず、Atlasデータをオフにすると届きません)。"
     },
     "game": {
         "rebuilt": "アップデート組み込み済み",

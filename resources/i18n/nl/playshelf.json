@@ -546,7 +546,12 @@
         "nxmeta": "NXMeta",
         "nlib_api": "Pictogrammen en spelpagina's van Nlib API",
         "popular_online": "Atlas-gegevens",
-        "atlas_pictures": "Atlas-afbeeldingen (via wsrv.nl)"
+        "atlas_pictures": "Atlas-afbeeldingen (via wsrv.nl)",
+        "atlas_status": "Gebruikte Atlas-gegevens",
+        "atlas_updating": "Bijwerken…",
+        "atlas_refresh": "Nu opnieuw lezen",
+        "atlas_unread": "niet gelezen",
+        "atlas_about": "PlayShelf leest de bestanden van Atlas één keer per dag opnieuw. Hieronder staat de dag waarop elk is gemaakt; een bestand zonder dag is nog niet gelezen (die komen alleen van Atlas, en helemaal niet als Atlas-gegevens uit staan)."
     },
     "game": {
         "rebuilt": "Update ingebouwd",

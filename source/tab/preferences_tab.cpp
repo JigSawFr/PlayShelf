@@ -261,6 +261,20 @@ PreferencesTab::PreferencesTab()
         config::get().atlas_pictures = on;
         ui::save_config();
     });
+    // The day of Atlas' files, and each one's, with a new read (action/popular_flow).
+    atlas_data->registerClickAction([this](aurore::View*) {
+        std::string about = "playshelf/titledb/atlas_about"_i18n + "\n";
+        for (const auto& [file, day] : popular_flow::status()) about += "\n" + file + ": " + (day.empty() ? "playshelf/titledb/atlas_unread"_i18n : day);
+        std::vector<ui::Choice> lines;
+        if (config::get().popular_online && !popular_flow::fetching())
+            lines.emplace_back("playshelf/titledb/atlas_refresh"_i18n, ui::guarded(this->alive, [this]() {
+                popular_flow::refresh();
+                this->show_atlas();
+            }), "refresh");
+        ui::pick_actions("playshelf/titledb/atlas_status"_i18n, lines, about);
+        return true;
+    });
+    this->atlas_listener = popular_flow::listen(ui::guarded(this->alive, [this]() { this->show_atlas(); }));
     // Home's suggestions put away (X on one): all of them suggested again.
     not_interested->registerClickAction([this](aurore::View*) {
         const size_t n = not_interested::games().size();
@@ -282,12 +296,21 @@ PreferencesTab::PreferencesTab()
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
-                       { "pf_popular_online", "bolt" }, { "pf_atlas_pictures", "globe" }, { "pf_not_interested", "eye" } });
+                       { "pf_popular_online", "bolt" }, { "pf_atlas_pictures", "globe" }, { "pf_atlas_data", "calendar" }, { "pf_not_interested", "eye" } });
 }
 
 PreferencesTab::~PreferencesTab()
 {
     titledb_flow::unlisten(this->titledb_listener);
+    popular_flow::unlisten(this->atlas_listener);
+}
+
+// The day Atlas' newest popular.json was made, or that a fetch is going on.
+void PreferencesTab::show_atlas()
+{
+    const auto status = popular_flow::status();
+    atlas_data->setDetailText(popular_flow::fetching() ? "playshelf/titledb/atlas_updating"_i18n
+                              : status.front().second.empty() ? "playshelf/titledb/atlas_unread"_i18n : status.front().second);
 }
 
 void PreferencesTab::show_titledb()
@@ -456,6 +479,7 @@ void PreferencesTab::refresh()
                                                   : aurore::getStr("playshelf/installed/count", put_away));
     update_via->setDetailText(update_flow::method_text());
     this->show_titledb();
+    this->show_atlas();
     this->list.sync();
     download_flow::show_pill();
 }
