@@ -546,7 +546,12 @@
         "nxmeta": "NXMeta",
         "nlib_api": "Значки и страницы игр из Nlib API",
         "popular_online": "Данные Atlas",
-        "atlas_pictures": "Картинки Atlas (через wsrv.nl)"
+        "atlas_pictures": "Картинки Atlas (через wsrv.nl)",
+        "atlas_status": "Используемые данные Atlas",
+        "atlas_updating": "Обновление…",
+        "atlas_refresh": "Прочитать заново",
+        "atlas_unread": "не прочитан",
+        "atlas_about": "PlayShelf перечитывает файлы Atlas раз в день. Ниже указан день, когда сделан каждый; у файла без дня ещё не прочитан (такие приходят только из Atlas и совсем не приходят при выключенных данных Atlas)."
     },
     "game": {
         "rebuilt": "Обновление встроено",

@@ -18,6 +18,8 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "library/also.hpp"
 #include "library/popular.hpp"
@@ -59,6 +61,12 @@ std::shared_ptr<const library::UpcomingBook> upcoming();
 std::shared_ptr<const library::ReachBook> reach();
 // also.json's: the other stores each game is sold on, empty until the first fetch.
 std::shared_ptr<const library::AlsoBook> also();
+
+// Each file and the day it was made ("2026-11-10"), "" while none was read
+// (the fetched-only ones before their first fetch), for Preferences.
+std::vector<std::pair<std::string, std::string>> status();
+// A fetch is going on.
+bool fetching();
 
 // Told when a book was read or replaced, on the UI thread.
 int  listen(std::function<void()> changed);

@@ -176,6 +176,17 @@ int share_below(int score)
     return s_popular.book->share_below(score);
 }
 
+std::vector<std::pair<std::string, std::string>> status()
+{
+    auto day = [](const auto& file) { return std::make_pair(std::string(file.name), file.book->size() ? file.book->generated() : std::string()); };
+    return { day(s_popular), day(s_signals), day(s_similar), day(s_editions), day(s_upcoming), day(s_reach), day(s_also) };
+}
+
+bool fetching()
+{
+    return s_fetching;
+}
+
 size_t size()
 {
     return s_popular.book->size();
