@@ -756,7 +756,9 @@
         "because_series": "系列：{}",
         "because_developer": "{} 開發",
         "because_popular": "熱門",
-        "because_played": "{1} 小時：{0}"
+        "because_played": "{1} 小時：{0}",
+        "together": "一起玩",
+        "together_line": "可在一台主機上多人遊玩的遊戲"
     },
     "wishlist": {
         "add": "加入願望清單",

@@ -103,6 +103,7 @@ struct Snapshot
 
     std::vector<Pick>    to_get;     // the console's games with something to get, the most played first
     std::vector<Played>  recent;     // played lately, the latest first
+    std::vector<Played>  together;   // the console's games several play on one console (Atlas' modes), one screen first; figure: library::Together
     std::vector<Played>  tonight;    // well rated and hardly played, the best first (Atlas' scores)
     std::vector<Pick>    added;      // new on a server (library/seen), the latest first
     std::vector<Pick>    newest;     // the servers' newest games the console has not

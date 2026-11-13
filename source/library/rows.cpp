@@ -6,6 +6,16 @@
 namespace library
 {
 
+Together together_of(const GameSignals& game)
+{
+    Together best = Together::None;
+    for (const Trait& mode : game.modes) {
+        if (mode.id == "Q61005756" || mode.id == "Q1630770") return Together::SameScreen;   // shared/split screen, hotseat
+        if (mode.id == "Q1758804" || mode.id == "Q107494132") best = Together::Coop;        // co-op, local co-op
+    }
+    return best;
+}
+
 double tonight_quality(uint64_t play_s, uint32_t launches, const Renown& renown, int players_rating)
 {
     if (play_s >= TONIGHT_PLAY_S || launches >= TONIGHT_LAUNCHES || renown.score < TONIGHT_RENOWN) return 0;

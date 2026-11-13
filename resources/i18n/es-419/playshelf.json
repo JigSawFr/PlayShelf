@@ -756,7 +756,9 @@
         "because_series": "Saga: {}",
         "because_developer": "De {}",
         "because_popular": "Popular",
-        "because_played": "{1} h de {0}"
+        "because_played": "{1} h de {0}",
+        "together": "Para jugar juntos",
+        "together_line": "Tus juegos para varios en una misma consola"
     },
     "wishlist": {
         "add": "Añadir a la lista de deseos",

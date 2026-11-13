@@ -756,7 +756,9 @@
         "because_series": "Серия: {}",
         "because_developer": "От {}",
         "because_popular": "Популярное",
-        "because_played": "{1} ч в {0}"
+        "because_played": "{1} ч в {0}",
+        "together": "Играть вместе",
+        "together_line": "Ваши игры для нескольких игроков на одной консоли"
     },
     "wishlist": {
         "add": "В список желаний",
