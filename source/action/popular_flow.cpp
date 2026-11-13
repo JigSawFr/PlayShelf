@@ -8,6 +8,7 @@
 #include <aurore.hpp>
 
 #include "action/insights_index.hpp"
+#include "library/atlas.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/http.hpp"
@@ -84,9 +85,16 @@ bool offer(File<Book>& file, std::shared_ptr<const Book> book)
 template <typename Book>
 void load(File<Book>& file)
 {
-    std::shared_ptr<const Book> shipped =
-        file.shipped ? read<Book>(std::string(AURORE_ASSET("data/")) + file.name) : nullptr;
     std::shared_ptr<const Book> cached = read<Book>(file.cached());
+    std::shared_ptr<const Book> shipped;
+    std::string                 text;
+    if (file.shipped && paths::read_file(std::string(AURORE_ASSET("data/")) + file.name, text)) {
+        // The cached one made the same day or later: the shipped one would be
+        // turned away by offer(), so its megabyte of JSON is not parsed. Its
+        // day is read from its first bytes; not found there, it is parsed.
+        const std::string day = library::atlas_day_at_head(text);
+        if (day.empty() || !cached || !cached->size() || cached->generated() < day) shipped = parse<Book>(text);
+    }
     aurore::sync([&file, shipped, cached]() {
         const bool a = offer(file, shipped);
         const bool b = offer(file, cached);
