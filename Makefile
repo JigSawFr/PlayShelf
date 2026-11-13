@@ -87,7 +87,7 @@ WEB_DEMO_SOURCES := tools/web_demo.cpp $(KIT)/util/aes.cpp source/install/rsa.cp
 ART_PYTHON ?= python3
 %/demo/lantern/apps.json: %/web_demo tools/web_demo_games.json tools/web_demo_art.py tools/web_demo_scenes.py
 	@rm -rf $*/demo
-	@$*/web_demo $*/demo tools/web_demo_games.json
+	@$(if $(filter $*,$(DESKTOP)),PLAYSHELF_DEMO_DAY=2026-10-08 )$*/web_demo $*/demo tools/web_demo_games.json
 	@$(ART_PYTHON) tools/web_demo_art.py tools/web_demo_games.json $*/demo || { rm -rf $*/demo; exit 1; }
 .PRECIOUS: %/web_demo %/demo/lantern/apps.json
 
