@@ -498,6 +498,7 @@
         "found_same": "El catálogo sigue dando la misma dirección: nuevo intento con {}",
         "no_patches_body": "PlayShelf no encuentra ni sys-patch ni sigpatches en esta consola: es posible que un juego instalado sin ellos no inicie.\n\n¿Instalar de todas formas?",
         "no_patches_go": "Instalar de todas formas",
+        "cheats_body": "{} tiene trucos instalados. Su actualización cambia la versión del juego, así que dejarán de funcionar hasta que instales los de la nueva versión.\n\n¿Instalar la actualización de todos modos?",
         "risk_body": "Instalar juegos en una consola que puede conectarse a internet conlleva el riesgo de que Nintendo la bloquee.\n\n{}\n\n¿Instalar de todos modos?",
         "risk_online": "• Puede conectarse a los servidores de Nintendo (sin 90DNS ni otro bloqueo).",
         "risk_sysmmc": "• Esta consola funciona desde la memoria interna, no desde una emuMMC.",

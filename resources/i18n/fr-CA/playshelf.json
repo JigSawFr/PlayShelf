@@ -498,6 +498,7 @@
         "found_same": "Le catalogue donne toujours la même adresse : nouvel essai pour {}",
         "no_patches_body": "PlayShelf ne trouve ni sys-patch ni sigpatches sur cette console : un jeu installé sans eux risque de ne pas démarrer.\n\nInstaller quand même?",
         "no_patches_go": "Installer quand même",
+        "cheats_body": "{} a des cheats installés. Sa mise à jour change la version du jeu : ils ne fonctionneront plus tant que vous n'aurez pas installé ceux de la nouvelle version.\n\nInstaller quand même la mise à jour ?",
         "risk_body": "Installer des jeux sur une console qui peut se connecter à Internet expose à un bannissement par Nintendo.\n\n{}\n\nInstaller quand même ?",
         "risk_online": "• Elle peut joindre les serveurs de Nintendo (ni 90DNS ni autre blocage).",
         "risk_sysmmc": "• Cette console démarre sur sa mémoire interne, pas sur une emuMMC.",

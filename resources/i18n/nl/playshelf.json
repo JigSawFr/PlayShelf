@@ -498,6 +498,7 @@
         "found_same": "De catalogus geeft nog hetzelfde adres: {} wordt opnieuw geprobeerd",
         "no_patches_body": "PlayShelf vindt sys-patch noch sigpatches op deze console: een game die zonder geïnstalleerd is, start misschien niet.\n\nToch installeren?",
         "no_patches_go": "Toch installeren",
+        "cheats_body": "{} heeft cheats geïnstalleerd. De update verandert de versie van de game, dus ze werken niet meer totdat je die voor de nieuwe versie installeert.\n\nDe update toch installeren?",
         "risk_body": "Games installeren op een console die online kan gaan, geeft kans op een ban door Nintendo.\n\n{}\n\nToch installeren?",
         "risk_online": "• Hij kan de servers van Nintendo bereiken (geen 90DNS of andere blokkade).",
         "risk_sysmmc": "• Deze console draait vanaf het interne geheugen, niet vanaf een emuMMC.",
