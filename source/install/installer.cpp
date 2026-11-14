@@ -323,6 +323,9 @@ Done Installer::run()
         const MetaKey key{t.meta.title_id, t.meta.version, t.meta.type};
         if (const Done r = console.push_application_record(t.meta.application_id(), key); !r)
             return stop("application record: " + r.error());
+        // An update raises the version the application may be launched at: the console is told, and drops what
+        // it kept of the application (its name and icon come from the new control data).
+        console.application_changed(t.meta.application_id(), t.meta.type == MetaType::Patch ? t.meta.version : 0);
     }
     made.clear();
     metas.clear();

@@ -273,6 +273,39 @@ Result core_replace_application_record(u64 application_id, const CoreMetaKey *ke
                              .buffers = {{records, count * sizeof records[0]}});
 }
 
+Result core_application_changed(u64 application_id, u32 launch_version)
+{
+    // IApplicationManagerInterface 404: InvalidateApplicationControlCache(u64 application_id).
+    (void)serviceDispatchIn(&s_ns_app, 404, application_id);
+    if (launch_version == 0) return 0;
+    Result rc = avmInitialize();
+    if (R_FAILED(rc)) return rc;
+    rc = avmPushLaunchVersion(application_id, launch_version);
+    avmExit();
+    return rc;
+}
+
+Result core_romfs_read_all(u64 application_id, CoreReadProgress progress, void *user, bool *opened)
+{
+    *opened = false;
+    FsStorage storage;
+    if (R_FAILED(fsOpenDataStorageByProgramId(&storage, application_id))) return 0;
+    *opened = true;
+    s64    size = 0;
+    Result rc = fsStorageGetSize(&storage, &size);
+    enum { PIECE = 4 << 20 };
+    void *buffer = R_SUCCEEDED(rc) ? malloc(PIECE) : NULL;
+    if (R_SUCCEEDED(rc) && !buffer) rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
+    for (s64 at = 0; R_SUCCEEDED(rc) && at < size; at += PIECE) {
+        const s64 n = size - at < PIECE ? size - at : PIECE;
+        rc = fsStorageRead(&storage, at, buffer, (u64)n);
+        if (R_SUCCEEDED(rc) && progress && !progress(user, (u64)(at + n), (u64)size)) rc = MAKERESULT(Module_Libnx, LibnxError_BadInput);
+    }
+    free(buffer);
+    fsStorageClose(&storage);
+    return rc;
+}
+
 Result core_import_ticket(const void *ticket, size_t ticket_size, const void *cert, size_t cert_size)
 {
     return serviceDispatch(&s_es, 1,

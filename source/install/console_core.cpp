@@ -146,6 +146,36 @@ Done CoreConsole::push_application_record(uint64_t application_id, const MetaKey
     return check(core_push_application_record(application_id, &k), "pushing the application record");
 }
 
+void CoreConsole::application_changed(uint64_t application_id, uint32_t launch_version)
+{
+    (void)core_application_changed(application_id, launch_version);
+}
+
+Parsed<bool> CoreConsole::read_through_system(uint64_t application_id, const std::function<bool()>& stop,
+                                              const std::function<void(uint64_t, uint64_t)>& progress)
+{
+    struct Ctx
+    {
+        const std::function<bool()>&                       stop;
+        const std::function<void(uint64_t, uint64_t)>&     progress;
+    } ctx{stop, progress};
+    bool         reached = false;
+    const Result rc = core_romfs_read_all(
+        application_id,
+        [](void* user, u64 done, u64 total) {
+            const Ctx& c = *static_cast<const Ctx*>(user);
+            if (c.progress) c.progress(done, total);
+            return !(c.stop && c.stop());
+        },
+        &ctx, &reached);
+    if (!reached) return false;
+    if (R_FAILED(rc)) {
+        if (stop && stop()) return fail("cancelled");
+        return fail(result_text(rc, "reading the title as the game reads it"));
+    }
+    return true;
+}
+
 Done CoreConsole::replace_application_record(uint64_t application_id, const std::vector<MetaKey>& keys)
 {
     std::vector<CoreMetaKey> k;

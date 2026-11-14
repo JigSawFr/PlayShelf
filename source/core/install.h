@@ -66,6 +66,14 @@ Result core_push_application_record(u64 application_id, const CoreMetaKey *key);
 // PushApplicationRecord with them all, as the installers it comes from replace one. A delete that fails
 // leaves the record as it was; a push that fails after it leaves it empty (the caller puts it back).
 Result core_replace_application_record(u64 application_id, const CoreMetaKey *keys, size_t count);
+/* Tells the console an application's records changed: its cached name and icon are dropped and, when launch_version
+ * is above 0, avm is told the version it may not be launched below. The cache part is best effort. */
+Result core_application_changed(u64 application_id, u32 launch_version);
+/* Reads the whole RomFS of an application through the console's file system (every block checked and decompressed
+ * by the firmware). *opened is false when the console would not open it (then nothing was read and the result is
+ * 0). progress returns false to stop (the result is then a failure). */
+typedef bool (*CoreReadProgress)(void *user, u64 done, u64 total);
+Result core_romfs_read_all(u64 application_id, CoreReadProgress progress, void *user, bool *opened);
 Result core_import_ticket(const void *ticket, size_t ticket_size, const void *cert, size_t cert_size);
 
 // The NCA header key, and one key of a header's key area decrypted with

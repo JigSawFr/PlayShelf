@@ -84,6 +84,19 @@ class Console
     // The application's record made to list exactly these keys (at least one): the old ones dropped, the new
     // ones pushed. A failure may leave it empty: the caller puts its keys back.
     [[nodiscard]] virtual Done replace_application_record(uint64_t, const std::vector<MetaKey>&) { return fail("replacing an application record is not supported"); }
+    // Tells the console an application's records changed, so that it forgets what it kept of them: the cached
+    // name and icon of the title and, when `launch_version` is above 0, the version the application may not be
+    // launched below (avm). Best effort: a console that cannot has nothing to do.
+    virtual void application_changed(uint64_t /*application_id*/, uint32_t /*launch_version*/) {}
+    // The whole RomFS of an application read by the console's own file system, as the game reads it: the firmware
+    // checks every block against its hashes and decompresses it. true: it read right; false: the console would
+    // not open it for us, so nothing is known; an error: a read failed or `stop` said so. `progress` gets the bytes
+    // read and the total.
+    [[nodiscard]] virtual Parsed<bool> read_through_system(uint64_t /*application_id*/, const std::function<bool()>& /*stop*/,
+                                                           const std::function<void(uint64_t, uint64_t)>& /*progress*/)
+    {
+        return false;
+    }
     [[nodiscard]] virtual Done import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate) = 0;
     // The firmware's version, as hosversionGet() gives it: major << 16 | minor << 8 | micro.
     virtual uint32_t system_version() = 0;

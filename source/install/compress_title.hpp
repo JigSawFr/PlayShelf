@@ -100,7 +100,8 @@ struct CompressOptions
     std::optional<MetaKey> merge_update;
 };
 
-enum class CompressStage { Measuring, Writing, Checking };
+// Reading: the console's own file system reads the whole title back, as the game will.
+enum class CompressStage { Measuring, Writing, Checking, Reading };
 
 struct CompressReport
 {

@@ -154,6 +154,7 @@ const char* stage_text(CompressStage s)
         case CompressStage::Measuring: return "Measuring";
         case CompressStage::Writing: return "Writing the compressed copy";
         case CompressStage::Checking: return "Checking it against the original";
+        case CompressStage::Reading: return "Reading it as the console does";
     }
     return "";
 }

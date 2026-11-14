@@ -45,6 +45,8 @@ struct FakeConsole : Console
     std::set<std::string>             meta_removed;
     std::vector<std::pair<uint64_t, MetaKey>> app_records;
     std::vector<std::pair<Bytes, Bytes>>      tickets;
+    std::vector<std::pair<uint64_t, uint32_t>> changed;   // what the console was told: the application, its launch version
+    void application_changed(uint64_t app, uint32_t launch_version) override { changed.push_back({app, launch_version}); }
     uint64_t                          space = 1u << 30;
     uint32_t                          version = 0x0c0000;   // 12.0.0
     // A failure injected at the n-th call of `fail_at` (0: none).
@@ -183,6 +185,8 @@ void check_installed(FakeConsole& c, const Title& t)
         CHECK(*rec == cnmt_install_record(*meta, mc));
     }
     CHECK(c.app_records.size() == 1 && c.app_records[0].first == 0x0100000000010000ull);
+    // The console is told once, after the record: a game has no update version to launch at.
+    CHECK(c.changed.size() == 1 && c.changed[0].first == 0x0100000000010000ull && c.changed[0].second == 0);
     CHECK(c.tickets.size() == 1 && c.tickets[0].first.size() == 0x2c0 && c.tickets[0].second.size() == 0x700);
 }
 
