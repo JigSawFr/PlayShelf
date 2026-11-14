@@ -230,6 +230,15 @@
         "st_unreadable": "unreadable",
         "st_corrupt": "damaged"
     },
+    "saves_local": {
+        "action": "Back up the saves",
+        "done": "{}: the saves were backed up to the SD card ({} copies; the last 3 of each user are kept).",
+        "none": "{} has no save on this console.",
+        "failed": "The saves of {} could not be backed up: {}",
+        "users_failed": "The console's users could not be read.",
+        "write_failed": "The copy could not be written to the SD card.",
+        "auto_done": "Before the update: the saves of {} were backed up to the SD card ({} copies)."
+    },
     "installed": {
         "summary": "On this console",
         "reading": "Reading…",

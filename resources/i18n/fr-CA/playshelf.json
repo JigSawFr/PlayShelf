@@ -230,6 +230,15 @@
         "st_unreadable": "illisible",
         "st_corrupt": "abîmé"
     },
+    "saves_local": {
+        "action": "Sauvegarder les parties",
+        "done": "{} : les parties ont été copiées sur la carte SD ({} copies ; les 3 dernières de chaque joueur sont gardées).",
+        "none": "{} n'a pas de sauvegarde sur cette console.",
+        "failed": "Les parties de {} n'ont pas pu être sauvegardées : {}",
+        "users_failed": "Les utilisateurs de la console n'ont pas pu être lus.",
+        "write_failed": "La copie n'a pas pu être écrite sur la carte SD.",
+        "auto_done": "Avant la mise à jour : les parties de {} ont été copiées sur la carte SD ({} copies)."
+    },
     "installed": {
         "summary": "Sur cette console",
         "reading": "Lecture…",

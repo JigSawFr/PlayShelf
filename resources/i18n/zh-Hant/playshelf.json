@@ -230,6 +230,15 @@
         "st_unreadable": "無法讀取",
         "st_corrupt": "已損毀"
     },
+    "saves_local": {
+        "action": "備份存檔",
+        "done": "{}：存檔已備份到 SD 卡（{} 份；每位使用者保留最近 3 份）。",
+        "none": "{} 在這台主機上沒有存檔。",
+        "failed": "無法備份 {} 的存檔：{}",
+        "users_failed": "無法讀取主機的使用者。",
+        "write_failed": "無法把備份寫入 SD 卡。",
+        "auto_done": "更新前：已把 {} 的存檔備份到 SD 卡（{} 份）。"
+    },
     "installed": {
         "summary": "此主機上",
         "reading": "正在讀取…",

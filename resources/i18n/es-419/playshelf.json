@@ -230,6 +230,15 @@
         "st_unreadable": "ilegible",
         "st_corrupt": "dañado"
     },
+    "saves_local": {
+        "action": "Hacer copia de las partidas",
+        "done": "{}: las partidas se copiaron en la tarjeta SD ({} copias; se guardan las 3 últimas de cada usuario).",
+        "none": "{} no tiene partida en esta consola.",
+        "failed": "No se pudo hacer la copia de las partidas de {}: {}",
+        "users_failed": "No se pudieron leer los usuarios de la consola.",
+        "write_failed": "No se pudo escribir la copia en la tarjeta SD.",
+        "auto_done": "Antes de la actualización: se copiaron en la tarjeta SD las partidas de {} ({} copias)."
+    },
     "installed": {
         "summary": "En esta consola",
         "reading": "Leyendo…",

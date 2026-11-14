@@ -230,6 +230,15 @@
         "st_unreadable": "nicht lesbar",
         "st_corrupt": "beschädigt"
     },
+    "saves_local": {
+        "action": "Spielstände sichern",
+        "done": "{}: Die Spielstände wurden auf der SD-Karte gesichert ({} Kopien; die letzten 3 jedes Benutzers bleiben erhalten).",
+        "none": "{} hat auf dieser Konsole keinen Spielstand.",
+        "failed": "Die Spielstände von {} konnten nicht gesichert werden: {}",
+        "users_failed": "Die Benutzer der Konsole konnten nicht gelesen werden.",
+        "write_failed": "Die Kopie konnte nicht auf die SD-Karte geschrieben werden.",
+        "auto_done": "Vor dem Update: Die Spielstände von {} wurden auf der SD-Karte gesichert ({} Kopien)."
+    },
     "installed": {
         "summary": "Auf dieser Konsole",
         "reading": "Wird gelesen…",

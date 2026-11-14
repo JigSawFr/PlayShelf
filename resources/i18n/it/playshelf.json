@@ -230,6 +230,15 @@
         "st_unreadable": "illeggibile",
         "st_corrupt": "danneggiato"
     },
+    "saves_local": {
+        "action": "Copia i salvataggi",
+        "done": "{}: i salvataggi sono stati copiati sulla scheda SD ({} copie; si conservano le ultime 3 di ogni utente).",
+        "none": "{} non ha salvataggi su questa console.",
+        "failed": "Impossibile copiare i salvataggi di {}: {}",
+        "users_failed": "Impossibile leggere gli utenti della console.",
+        "write_failed": "Impossibile scrivere la copia sulla scheda SD.",
+        "auto_done": "Prima dell'aggiornamento: i salvataggi di {} sono stati copiati sulla scheda SD ({} copie)."
+    },
     "installed": {
         "summary": "Su questa console",
         "reading": "Lettura…",
