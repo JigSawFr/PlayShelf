@@ -246,6 +246,17 @@ Result core_push_application_record(u64 application_id, const CoreMetaKey* key)
     return std::fclose(f) == 0 ? 0 : FAIL;
 }
 
+Result core_application_changed(u64, u32)
+{
+    return 0;   // the simulated console keeps no cache
+}
+
+Result core_romfs_read_all(u64, CoreReadProgress, void*, bool* opened)
+{
+    *opened = false;   // there is no file system of the console to read through
+    return 0;
+}
+
 Result core_replace_application_record(u64 application_id, const CoreMetaKey* keys, size_t count)
 {
     if (count == 0) return FAIL;

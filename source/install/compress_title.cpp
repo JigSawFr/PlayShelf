@@ -168,6 +168,7 @@ Done restore(Console& c, const CompressJournal& j)
     if (j.new_key && j.patch_key) {
         const std::vector<MetaKey> olds = {j.key, *j.patch_key};
         if (auto d = set_app_record(c, j.key.id, olds, olds); !d) return fail("the application record could not be put back: " + d.error());
+        c.application_changed(j.key.id, 0);   // what the console kept of the merged record goes
     }
     return {};
 }
@@ -717,6 +718,19 @@ Done TitleCompressor::run()
     // ns: the title's application record lists the key it is under now and no other.
     if (m.merging) {
         if (auto d = set_app_record(c, m.key.id, {result}, {m.key, m.patch_key}); !d) return undo("the application record could not be updated: " + d.error());
+        // The console is told the title is at the update's version now, and drops what it kept of the old records.
+        c.application_changed(m.key.id, result.version);
+    }
+    // The console's own file system reads the whole title, as the game will: every block checked against its
+    // hashes and decompressed by the firmware. When it does not open the title for us, nothing is known and the
+    // checks above stand.
+    {
+        const Parsed<bool> read = c.read_through_system(
+            m.key.id, [&] { return m.cancelled(); }, [&](uint64_t d, uint64_t t) { m.progress(CompressStage::Reading, d, t); });
+        if (!read) {
+            if (m.merging) c.application_changed(m.key.id, 0);
+            return undo("the console could not read the new title: " + read.error());
+        }
     }
     j.phase = CompressJournal::Phase::Swapped;
     if (!m.store.save(j.text())) return undo("the journal could not be kept");

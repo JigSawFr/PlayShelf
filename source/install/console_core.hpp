@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -42,6 +43,9 @@ class CoreConsole : public Console
     [[nodiscard]] Done commit_meta() override;
     [[nodiscard]] Done push_application_record(uint64_t application_id, const MetaKey& key) override;
     [[nodiscard]] Done replace_application_record(uint64_t application_id, const std::vector<MetaKey>& keys) override;
+    void               application_changed(uint64_t application_id, uint32_t launch_version) override;
+    [[nodiscard]] Parsed<bool> read_through_system(uint64_t application_id, const std::function<bool()>& stop,
+                                                   const std::function<void(uint64_t, uint64_t)>& progress) override;
     [[nodiscard]] Done import_ticket(const std::vector<uint8_t>& ticket, const std::vector<uint8_t>& certificate) override;
     uint32_t system_version() override;
 

@@ -10,6 +10,7 @@
 // recover() from the journal); so is silent corruption of what is written;
 // so are cancels, and a journal that cannot be kept.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <algorithm>
 #include <atomic>
 #include <cstring>
 #include <map>
@@ -139,6 +140,20 @@ struct Mem : Console
         return {};
     }
     std::vector<KeyT> app_record;   // what ns lists for the application
+    // What the console is told of the application's records (the application, its launch version), and its own
+    // file system's reading of the title: 0 does not open it for us, 1 reads it right, 2 finds a block wrong.
+    std::vector<std::pair<uint64_t, uint32_t>> changed;
+    int                                        system_read = 0, system_reads = 0;
+    void application_changed(uint64_t app, uint32_t launch_version) override { changed.push_back({app, launch_version}); }
+    Parsed<bool> read_through_system(uint64_t, const std::function<bool()>&, const std::function<void(uint64_t, uint64_t)>& progress) override
+    {
+        system_reads++;
+        if (system_read == 0) return false;
+        progress(1, 2);
+        progress(2, 2);
+        if (system_read == 2) return fail("a block does not match its hash");
+        return true;
+    }
     int               replaces = 0, replace_half_at = -1;   // the Nth replace drops the record, then fails
     Done replace_application_record(uint64_t, const std::vector<MetaKey>& keys) override
     {
@@ -871,6 +886,36 @@ void test_merge_flow()
         CHECK(c.keep().has_value());
         CHECK(is_merged(w.t.mem, w, 0));
         CHECK(!j.text);
+    }
+    {   // the console is told of the merge, and its own file system reads the merged title
+        for (int mode : {0, 1}) {
+            WithUpdate w = install_with_update(300'000, 54);
+            w.t.mem.system_read = mode;
+            MemJournal              j;
+            std::vector<CompressStage> stages;
+            CompressCallbacks       cb;
+            cb.progress = [&](CompressStage s, uint64_t, uint64_t) { stages.push_back(s); };
+            auto       c = make_merge(w.t.mem, j, cb);
+            CHECK(c.prepare().has_value() && c.run().has_value());
+            CHECK(is_merged(w.t.mem, w, 1));
+            CHECK(w.t.mem.system_reads == 1);
+            const std::vector<std::pair<uint64_t, uint32_t>> told = {{MKEY.id, MKEY.version}};   // at the update's version
+            CHECK(w.t.mem.changed == told);
+            CHECK((std::find(stages.begin(), stages.end(), CompressStage::Reading) != stages.end()) == (mode == 1));
+        }
+    }
+    {   // the console's file system finds the merged title wrong: nothing changes, ns lists the game and its update again
+        WithUpdate w = install_with_update(300'000, 55);
+        w.t.mem.system_read = 2;
+        MemJournal j;
+        auto       c = make_merge(w.t.mem, j);
+        CHECK(c.prepare().has_value());
+        const Done ran = c.run();
+        CHECK(!ran.has_value() && ran.error().find("console could not read") != std::string::npos);
+        CHECK(is_baseline(w.t.mem, w.t) && !j.text);
+        CHECK(w.t.mem.app_record == (std::vector<KeyT>{tk(KEY), tk(PKEY)}));
+        const std::pair<uint64_t, uint32_t> dropped{KEY.id, 0};   // what it kept is dropped
+        CHECK(!w.t.mem.changed.empty() && w.t.mem.changed.back() == dropped);
     }
     {   // revert
         WithUpdate w = install_with_update(300'000, 52);
