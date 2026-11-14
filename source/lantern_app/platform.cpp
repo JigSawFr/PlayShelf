@@ -1,6 +1,9 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "lantern_app/platform.hpp"
 
+#include "lantern_app/discovery.hpp"
+#include "lantern_app/system.hpp"
+#include "library/servers.hpp"
 #include "util/paths.hpp"
 #include "app.hpp"
 
@@ -22,6 +25,31 @@ struct NoNetwork final : lantern::Transport
         return lantern::fail(lantern::Category::transport, "no connection to a server from a browser");
     }
 };
+
+#if !defined(__EMSCRIPTEN__)
+// The address a server of this uid answers at on the network now, asked by broadcast (discovery.hpp);
+// kept as the server's LAN address, so the next start does not ask again. "" when nothing answers.
+std::string relocate_by_uid(const std::string& uid)
+{
+    auto socket = BroadcastSocket::open();
+    if (!socket) return "";
+    for (const Found& f : discover(*socket, directed_broadcast().value_or(""))) {
+        if (f.uid != uid) continue;
+        std::vector<library::Server> all = library::load_servers();
+        bool                         changed = false;
+        for (library::Server& s : all) {
+            if (s.uid == uid && s.lan_url != f.url) {
+                s.lan_url = f.url;
+                changed   = true;
+            }
+        }
+        std::string why;
+        if (changed) (void)library::save_servers(all, &why);   // not kept: it is asked again next time
+        return f.url;
+    }
+    return "";
+}
+#endif
 }   // namespace
 
 SimHooks s_sim;
@@ -58,6 +86,9 @@ Platform::Platform()
 #endif
     if (!transport_) transport_ = std::make_unique<NoNetwork>();
     env_ = std::make_unique<Env>(Env{ *transport_, trust_, random_, clock_, user_agent(), "switch", "" });
+#if !defined(__EMSCRIPTEN__)
+    env_->relocate = relocate_by_uid;
+#endif
 }
 
 }   // namespace lantern_app

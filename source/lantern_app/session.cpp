@@ -85,7 +85,24 @@ Connected connect(const library::Server& server, Env& env, lantern::CredentialSt
         return c;
     }
     c.client.emplace(std::move(*created));
-    const auto shake = c.client->handshake();
+    auto shake = c.client->handshake();
+    // A saved address that does not answer: the server of this uid asked for on the network, before
+    // anything secret is sent (the handshake and its key come first, as ever).
+    if (!shake && !server.uid.empty() && env.relocate) {
+        const std::string moved = without_slash(env.relocate(server.uid));
+        if (moved.starts_with("https://") && moved != c.endpoint) {
+            auto again = lantern::Client::create(env.transport, config_of(env, moved));
+            if (again) {
+                auto answer = again->handshake();
+                if (answer && *answer) {
+                    c.client.emplace(std::move(*again));
+                    c.endpoint = moved;
+                    c.on_lan   = true;
+                    shake      = std::move(answer);
+                }
+            }
+        }
+    }
     if (!shake) {
         c.why = describe(shake.error());
         c.client.reset();
