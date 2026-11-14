@@ -25,6 +25,7 @@
 #include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "action/library_flow.hpp"
+#include "library/facts.hpp"
 #include "library/servers.hpp"
 #include "tab/homebrew_panel.hpp"
 #include "tab/tab_base.hpp"
@@ -38,6 +39,9 @@ class CatalogueTab : public TabBase
     CatalogueTab();
     ~CatalogueTab() override;
     static aurore::View* create();
+    // The Catalogue opened on the games `filter` keeps (a game's sheet: more
+    // of its publisher, of its series): the search, section and order cleared.
+    static void browse(const library::Filter& filter);
 
   protected:
     void refresh() override;

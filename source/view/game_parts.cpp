@@ -269,15 +269,16 @@ aurore::Box* size_bar(const std::vector<Part>& parts, uint64_t free_bytes, const
     return block;
 }
 
-void fact(aurore::Box* card, const std::string& name, const std::string& value)
+aurore::DetailCell* fact(aurore::Box* card, const std::string& name, const std::string& value)
 {
-    if (value.empty()) return;
+    if (value.empty()) return nullptr;
     auto* cell = new aurore::DetailCell();
     cell->setText(name);
     cell->setDetailText(value);
     card->addView(cell);
     cadran::List::row(cell);
     cell->detail->setMaxWidth(640);
+    return cell;
 }
 
 ShotActivity::~ShotActivity() { *this->alive = false; }

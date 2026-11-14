@@ -17,6 +17,8 @@
 #include "action/popular_flow.hpp"
 #include "action/wishlist.hpp"
 #include "library/catalog.hpp"
+#include "library/servers.hpp"
+#include "tab/catalogue_tab.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/title_id.hpp"
@@ -431,25 +433,77 @@ void GameActivity::fill_details_tab()
     const library::Facts           f = nlib_flow::facts(this->page.title_id);
     const library_flow::GameLines& l = this->page.lines;
     const library::GameSignals*    sig = popular_flow::signals()->find(this->page.title_id);
-    using Rows = std::vector<std::pair<std::string, std::string>>;
+    // A row: its name and value; what A on it browses the Catalogue by ("publisher", "genre",
+    // "series", "theme"), with the label and the filter's word of each of its values.
+    struct Row
+    {
+        std::string                                      name, value, key;
+        std::vector<std::pair<std::string, std::string>> picks;
+        Row(std::string n, std::string v, std::string k = "", std::vector<std::pair<std::string, std::string>> p = {})
+            : name(std::move(n)), value(std::move(v)), key(std::move(k)), picks(std::move(p))
+        {
+        }
+    };
+    using Rows = std::vector<Row>;
+    // The Catalogue opened on the games that share a publisher, a genre, a series, a theme.
+    const bool can_browse = !library::load_servers().empty();
+    auto       browse = [](const std::string& key, const std::string& word) {
+        library::Filter filter;
+        if (key == "publisher") filter.publisher = word;
+        else if (key == "genre") filter.genre = word;
+        else if (key == "series") filter.series = word;
+        else if (key == "theme") filter.theme = word;
+        aurore::Application::popActivity(aurore::TransitionAnimation::FADE,
+                                         [filter]() { aurore::sync([filter]() { CatalogueTab::browse(filter); }); });
+    };
+    // Two columns: the sections on the left, what is looked up elsewhere (the age rating, the
+    // eShop page as a QR code) on the right.
+    auto* columns = new aurore::Box(aurore::Axis::ROW);
+    columns->setAlignItems(aurore::AlignItems::FLEX_START);
+    facts->addView(columns);
+    auto* left = new aurore::Box(aurore::Axis::COLUMN);
+    left->setGrow(1);
+    left->setShrink(1);
+    left->setAlignItems(aurore::AlignItems::STRETCH);
+    columns->addView(left);
     bool first = true;
     // A section: its title, its rows in a card, then what `extra` holds (chips).
     auto section = [&](const std::string& name_, const Rows& rows, const std::vector<aurore::Box*>& extra = {}) {
-        const bool any = std::ranges::any_of(rows, [](const auto& r) { return !r.second.empty(); });
+        const bool any = std::ranges::any_of(rows, [](const Row& r) { return !r.value.empty(); });
         if (!any && extra.empty()) return;
         auto* header = new aurore::Header();
         header->setTitle(name_);
         header->setMarginTop(first ? 0 : 24);
         header->setMarginBottom(8);
         first = false;
-        facts->addView(header);
+        left->addView(header);
         cadran::List::section(header);
         auto* box = new aurore::Box(aurore::Axis::COLUMN);
         box->setAlignItems(aurore::AlignItems::STRETCH);
-        facts->addView(box);
+        left->addView(box);
         if (any) {
             aurore::Box* card = cadran::List::rows_in(box);
-            for (const auto& [name, value] : rows) fact(card, name, value);
+            for (const Row& r : rows) {
+                aurore::DetailCell* cell = fact(card, r.name, r.value);
+                if (!cell || !can_browse || r.picks.empty()) continue;
+                // A on it: the Catalogue by its value, or by the one picked among several.
+                cell->detail->setThemeColor("textColor", "cadran/teal");
+                const std::string key = r.key, row_name = r.name;
+                const auto        picks = r.picks;
+                cell->registerClickAction(
+                    [this, browse, key, row_name, picks](aurore::View*) {
+                        if (picks.size() == 1) {
+                            browse(key, picks[0].second);
+                            return true;
+                        }
+                        std::vector<std::string> labels;
+                        for (const auto& p : picks) labels.push_back(p.first);
+                        ui::pick(row_name, labels, 0, ui::guarded(this->alive, [browse, key, picks](int i) {
+                                     if (i >= 0 && i < (int)picks.size()) browse(key, picks[i].second);
+                                 }));
+                        return true;
+                    });
+            }
         }
         for (aurore::Box* e : extra) box->addView(e);
     };
@@ -467,14 +521,24 @@ void GameActivity::fill_details_tab()
 
     // The game: who made it, when, what kind; its languages and age rating as chips.
     Rows game;
-    game.emplace_back("playshelf/game/publisher"_i18n, f.publisher);
+    game.emplace_back("playshelf/game/publisher"_i18n, f.publisher, "publisher",
+                      std::vector<std::pair<std::string, std::string>>(f.publisher.empty() ? 0 : 1, {f.publisher, f.publisher}));
     game.emplace_back("playshelf/game/developer"_i18n, f.developer);
     game.emplace_back("playshelf/game/released"_i18n, date_text(f.release_date));
-    game.emplace_back("playshelf/game/genres"_i18n, join(f.categories, [](const std::string& g) { return nlib_flow::genre_name(g); }));
+    std::vector<std::pair<std::string, std::string>> genre_picks;
+    for (const std::string& g : f.categories) genre_picks.emplace_back(nlib_flow::genre_name(g), g);
+    game.emplace_back("playshelf/game/genres"_i18n, join(f.categories, [](const std::string& g) { return nlib_flow::genre_name(g); }),
+                      "genre", genre_picks);
     // Its series (Atlas, from Wikidata) and its IGDB themes, by their English names.
     if (sig) {
-        game.emplace_back("playshelf/game/series"_i18n, traits(sig->series));
-        game.emplace_back("playshelf/game/themes"_i18n, traits(sig->themes));
+        auto picks_of = [](const std::vector<library::Trait>& items) {
+            std::vector<std::pair<std::string, std::string>> out;
+            for (const library::Trait& t : items)
+                if (!t.label.empty()) out.emplace_back(t.label, t.label);
+            return out;
+        };
+        game.emplace_back("playshelf/game/series"_i18n, traits(sig->series), "series", picks_of(sig->series));
+        game.emplace_back("playshelf/game/themes"_i18n, traits(sig->themes), "theme", picks_of(sig->themes));
     }
     if (f.players) game.emplace_back("playshelf/game/players"_i18n, std::to_string(f.players));
     // The other stores it is sold on (Atlas, from Wikidata): their names only.
@@ -488,11 +552,6 @@ void GameActivity::fill_details_tab()
         for (const std::string& code : f.languages) pills.push_back({language_name(code), code == own});
         std::ranges::stable_partition(pills, [](const Pill& p) { return p.on; });   // the one PlayShelf speaks first
         pill_rows.push_back(chip_block("playshelf/game/languages"_i18n, pills, "cadran/text2", "cadran/surf2"));
-    }
-    if (!f.rating.empty()) {
-        std::vector<Pill> pills;
-        for (const std::string& r : f.rating) pills.push_back({r, false});
-        pill_rows.push_back(chip_block("playshelf/game/rating"_i18n, pills, "cadran/amber", "cadran/amber_surf"));
     }
     section("playshelf/game/section_game"_i18n, game, pill_rows);
 
@@ -568,10 +627,21 @@ void GameActivity::fill_details_tab()
     if (f.nsu_id) ids.emplace_back("playshelf/game/eshop_id"_i18n, std::to_string(f.nsu_id));
     section("playshelf/game/section_ids"_i18n, ids);
 
-    if (f.nsu_id) {
-        aurore::Box* qr = kit::qr(eshop_url(f.nsu_id), 200, "playshelf/game/eshop"_i18n, "playshelf/game/eshop_caption"_i18n);
-        qr->setMarginTop(24);
-        facts->addView(qr);
+    // The right column: its eShop page as a QR code, its age rating as chips (nothing, no column).
+    if (f.nsu_id || !f.rating.empty()) {
+        auto* right = new aurore::Box(aurore::Axis::COLUMN);
+        right->setWidth(280);
+        right->setShrink(0);
+        right->setMarginLeft(24);
+        right->setAlignItems(aurore::AlignItems::STRETCH);
+        columns->addView(right);
+        if (f.nsu_id)
+            right->addView(kit::qr(eshop_url(f.nsu_id), 200, "playshelf/game/eshop"_i18n, "playshelf/game/eshop_caption"_i18n));
+        if (!f.rating.empty()) {
+            std::vector<Pill> pills;
+            for (const std::string& r : f.rating) pills.push_back({r, false});
+            right->addView(chip_block("playshelf/game/rating"_i18n, pills, "cadran/amber", "cadran/amber_surf"));
+        }
     }
 }
 
