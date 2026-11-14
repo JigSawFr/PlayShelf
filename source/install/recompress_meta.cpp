@@ -223,4 +223,40 @@ Parsed<std::vector<uint8_t>> record_with_contents(std::span<const uint8_t> r, Me
     return out;
 }
 
+uint32_t recorded_system_version(std::span<const uint8_t> record)
+{
+    // The record: its extended header's size (u16), then the header (8 bytes), then the extended header.
+    if (record.size() < 8) return UINT32_MAX;
+    const size_t ext = (size_t)record[0] | (size_t)record[1] << 8;
+    if (ext < 12 || record.size() < 8 + ext) return UINT32_MAX;
+    return le32(record.data() + 8 + 8);
+}
+
+ContentMeta merged_cnmt(const ContentMeta& base, const ContentMeta& patch, const ContentInfo& program, const RecordedSystem& recorded)
+{
+    ContentMeta m = base;
+    m.version = patch.version;
+    m.attributes &= (uint8_t)~CNMT_ATTRIBUTE_COMPACTED;
+    m.required_download_system_version = std::max(base.required_download_system_version, patch.required_download_system_version);
+    if (m.extended_header.size() >= 12) {
+        const uint32_t asks = std::max(le32(m.extended_header.data() + 8), patch.required_system_version());
+        const uint32_t seen = std::max(recorded.base, recorded.patch);   // UINT32_MAX when either is not known
+        put_le32(m.extended_header.data() + 8, std::max(std::min(asks, seen), SYSTEM_VERSION_12_0_0));
+    }
+    if (m.extended_header.size() >= 16) put_le32(m.extended_header.data() + 12, 0);   // no required application version
+    m.extended_data.clear();
+    m.contents.clear();
+    m.contents.push_back(program);
+    for (const ContentType t : {ContentType::Data, ContentType::Control, ContentType::HtmlDocument, ContentType::LegalInformation}) {
+        std::vector<ContentInfo> from_patch, from_base;
+        for (const ContentInfo& i : patch.contents)
+            if (i.type == t) from_patch.push_back(i);
+        for (const ContentInfo& i : base.contents)
+            if (i.type == t) from_base.push_back(i);
+        const auto& chosen = from_patch.empty() ? from_base : from_patch;
+        m.contents.insert(m.contents.end(), chosen.begin(), chosen.end());
+    }
+    return m;
+}
+
 }   // namespace install

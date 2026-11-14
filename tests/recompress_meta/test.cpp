@@ -191,6 +191,52 @@ void test_record()
     auto add = record_with_contents(record, MetaType::AddOnContent, {{id_of(0x11), id_of(0x99), 1}});
     if (CHECK(add.has_value())) CHECK(le32(add->data() + 16) == le32(record.data() + 16));
 }
+
+// The game with its update merged in: whole (not Compacted, no application version required), at the update's
+// version, asking the firmware the two ask but no more than the console's records accept, and 12.0.0 at least.
+void test_merged_cnmt()
+{
+    const uint64_t app = 0x0100000000010000ull;
+    auto           base = cnmt_parse(packaged_cnmt(MetaType::Application, app, 0, contents()));
+    auto           patch = cnmt_parse(packaged_cnmt(MetaType::Patch, app | 0x800, 65536, contents(), Bytes(0)));
+    if (!CHECK(base.has_value() && patch.has_value())) return;
+    base->attributes = 0x01 | CNMT_ATTRIBUTE_COMPACTED;   // another attribute stays
+    put_le32(base->extended_header.data() + 12, 7);       // an application version required
+    put_le32(patch->extended_header.data() + 8, 0x40000000);   // the update asks for 16.0.0
+
+    const auto merged = [&](RecordedSystem r) { return merged_cnmt(*base, *patch, now(), r); };
+    const auto asks = [](const ContentMeta& m) { return le32(m.extended_header.data() + 8); };
+
+    ContentMeta m = merged({});
+    CHECK(m.title_id == app && m.type == MetaType::Application && m.version == 65536);
+    CHECK(m.attributes == 0x01);   // no longer Compacted
+    CHECK(le32(m.extended_header.data() + 12) == 0);
+    CHECK(m.contents.size() >= 1 && m.contents[0].id == now().id && m.contents[0].type == ContentType::Program);
+    CHECK(asks(m) == 0x40000000);   // nothing known of the records: what the two ask
+
+    CHECK(asks(merged({0x30000000, 0x30000000})) == SYSTEM_VERSION_12_0_0);   // the records accept 12.0.0: no more
+    CHECK(asks(merged({0x30000000, 0x40000000})) == 0x40000000);              // the update's record says 16.0.0
+    CHECK(asks(merged({0, 0})) == SYSTEM_VERSION_12_0_0);                      // lowered to nothing: 12.0.0 still
+    CHECK(asks(merged({0x50000000, 0x50000000})) == 0x40000000);              // never above what the metas ask
+    CHECK(asks(merged({0x30000000, UINT32_MAX})) == 0x40000000);               // one record unknown: what the metas ask
+    put_le32(patch->extended_header.data() + 8, 0x10000000);                   // both ask below 12.0.0
+    CHECK(asks(merged({})) == SYSTEM_VERSION_12_0_0);
+
+    // The version a record holds.
+    ContentInfo meta_content;
+    meta_content.id = id_of(0x33);
+    meta_content.type = ContentType::Meta;
+    Bytes record = cnmt_install_record(*base, meta_content);
+    CHECK(recorded_system_version(record) == le32(base->extended_header.data() + 8));
+    put_le32(record.data() + 16, 0x2a000000);
+    CHECK(recorded_system_version(record) == 0x2a000000);
+    CHECK(recorded_system_version(std::span<const uint8_t>(record.data(), 7)) == UINT32_MAX);
+    CHECK(recorded_system_version(std::span<const uint8_t>(record.data(), 12)) == UINT32_MAX);   // cut inside the header
+    Bytes short_ext = record;
+    short_ext[0] = 8;   // an extended header too short to hold a version
+    short_ext[1] = 0;
+    CHECK(recorded_system_version(short_ext) == UINT32_MAX);
+}
 }   // namespace
 
 int main()
@@ -199,5 +245,6 @@ int main()
     test_cnmt();
     test_meta_nca();
     test_record();
+    test_merged_cnmt();
     CHECK_DONE("recompress_meta: ok");
 }
