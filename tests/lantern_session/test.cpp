@@ -179,6 +179,50 @@ void test_down_and_no_address()
     library::Server s = server("", "", "u-1");
     CHECK(fetch(s, w.env, w.store).why == "the server has no https:// address");
 }
+
+// A saved LAN address that no longer answers: the server of the same uid asked for on the network,
+// its new address used (and told as the LAN one); not asked when the saved one answers, nor for a
+// server without a uid; one found with another uid is refused as ever.
+void test_relocated()
+{
+    lantern::Credentials c;
+    c.token = "et_fictional";
+    {
+        World w;
+        w.store.kept["u-1"] = c;
+        w.net.respond = [](const std::string& url) { return lantern_server(url, "u-1", "192.168.1.9"); };
+        int asked = 0;
+        w.env.relocate = [&](const std::string& uid) { asked++; return uid == "u-1" ? std::string("https://192.168.1.9:8443/") : std::string(); };
+        const Fetched f = fetch(server("https://192.168.1.5:8443", "", "u-1"), w.env, w.store);
+        CHECK(f.status == Status::Ok && f.on_lan && f.endpoint == "https://192.168.1.9:8443" && asked == 1);
+        CHECK(f.catalog.items.size() == 3 && f.catalog.items[0].url == "https://192.168.1.9:8443/files/a1.nsp");
+    }
+    {
+        World w;   // the saved address answers: nobody is asked
+        w.store.kept["u-1"] = c;
+        w.net.respond = [](const std::string& url) { return lantern_server(url, "u-1", "192.168.1.5"); };
+        int asked = 0;
+        w.env.relocate = [&](const std::string&) { asked++; return std::string("https://192.168.1.9:8443"); };
+        CHECK(fetch(server("https://192.168.1.5:8443", "", "u-1"), w.env, w.store).status == Status::Ok && asked == 0);
+    }
+    {
+        World w;   // no uid to look for, or nothing found: the failure stays
+        w.net.respond = [](const std::string& url) { return lantern_server(url, "u-1", "192.168.1.9"); };
+        int asked = 0;
+        w.env.relocate = [&](const std::string&) { asked++; return std::string(); };
+        CHECK(fetch(server("https://192.168.1.5:8443", "", "u-1"), w.env, w.store).status == Status::Failed && asked == 1);
+        w.env.relocate = [&](const std::string&) { asked++; return std::string("https://192.168.1.9:8443"); };
+        CHECK(fetch(server("https://192.168.1.5:8443", "", ""), w.env, w.store).status == Status::Failed && asked == 1);
+    }
+    {
+        World w;   // the address found is another server's: refused, the token never sent
+        w.store.kept["u-1"] = c;
+        w.net.respond = [](const std::string& url) { return lantern_server(url, "someone-else", "192.168.1.9"); };
+        w.env.relocate = [&](const std::string&) { return std::string("https://192.168.1.9:8443"); };
+        const Fetched f = fetch(server("https://192.168.1.5:8443", "", "u-1"), w.env, w.store);
+        CHECK(f.status == Status::Failed && w.net.bearer.empty());
+    }
+}
 }   // namespace
 
 int main()
@@ -188,5 +232,6 @@ int main()
     test_paired();
     test_other_server();
     test_down_and_no_address();
-    CHECK_DONE("lantern session: address choice, not paired, paged apps and sections, another server refused passed");
+    test_relocated();
+    CHECK_DONE("lantern session: address choice, not paired, paged apps and sections, another server refused, a server found again by uid passed");
 }

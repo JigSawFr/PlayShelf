@@ -5,6 +5,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -29,6 +30,10 @@ struct Env
     std::string           user_agent;
     std::string           platform = "switch";
     std::string           language;   // Accept-Language, "" for none
+    // The https:// address a server of this uid answers at on the local network now ("" when none is
+    // found): asked when the one saved does not answer (a router gave the server another address).
+    // Left empty where nothing can be asked (the simulator, the tests).
+    std::function<std::string(const std::string& uid)> relocate = nullptr;
 };
 
 enum class Status { Ok, Failed, NotPaired };
