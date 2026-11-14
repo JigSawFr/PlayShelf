@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include <aurore.hpp>
 #include <aurore/cadran/ui/guarded.hpp>
@@ -29,6 +30,15 @@ class Banner : public aurore::Image
 // A chip: its mark and its text, on a tint of its ink.
 aurore::Box* chip(const std::string& text, const char* icon_name, const char* ink, const char* tint);
 
+// A caption over a row of chips (languages, age ratings); the `on` ones
+// stand out.
+struct Pill
+{
+    std::string text;
+    bool        on = false;
+};
+aurore::Box* chip_block(const std::string& name, const std::vector<Pill>& pills, const char* ink, const char* tint);
+
 // Where the console stands on a tab's items: a mark in a round of its tint,
 // a line in the display face, a line under it.
 aurore::Box* status_card(const std::string& title, const std::string& line, const char* icon_name, const char* ink,
@@ -43,6 +53,10 @@ std::string language_name(const std::string& code);
 
 // "3 March 2017", in the language's order.
 std::string date_text(uint32_t ymd);
+
+// "Today", "Yesterday", "3 days ago" for a moment (POSIX) within a month, its
+// date beyond; "" when it has none.
+std::string since_text(uint64_t when);
 
 // Its eShop page: ec.nintendo.com sends a phone to the shop of the country
 // PlayShelf's language is spoken in.

@@ -638,7 +638,14 @@
         "similar": "相似游戏",
         "series": "系列",
         "steam": "Steam 评测",
-        "steam_value": "{}% 好评 · {} 篇"
+        "steam_value": "{}% 好评 · {} 篇",
+        "section_game": "The game",
+        "section_reviews": "Reviews",
+        "section_console": "On this console",
+        "section_ids": "Identifiers",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "days_ago": "{} days ago"
     },
     "genres": {
         "action": "动作",

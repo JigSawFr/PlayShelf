@@ -424,97 +424,127 @@ void GameActivity::show_chips()
     this->chips->setVisibility(this->chips->getChildren().empty() ? aurore::Visibility::GONE : aurore::Visibility::VISIBLE);
 }
 
-// Details: its facts in a card, its eShop page as a QR code.
+// Details: its facts in titled sections (the game, what is said of it, where
+// the console stands, where it is to be had, its ids), its eShop page as a
+// QR code. A section with nothing to say is left out.
 void GameActivity::fill_details_tab()
 {
     facts->clearViews(true);
     const library::Facts           f = nlib_flow::facts(this->page.title_id);
     const library_flow::GameLines& l = this->page.lines;
-    auto*                          holder = new aurore::Box(aurore::Axis::COLUMN);
-    holder->setAlignItems(aurore::AlignItems::STRETCH);
-    facts->addView(holder);
-    aurore::Box* card = cadran::List::rows_in(holder);
-    if (this->page.title_id) fact(card, "playshelf/game/title_id"_i18n, title_id::text(this->page.title_id));
-    if (f.nsu_id) fact(card, "playshelf/game/eshop_id"_i18n, std::to_string(f.nsu_id));
-    fact(card, "playshelf/game/publisher"_i18n, f.publisher);
-    fact(card, "playshelf/game/developer"_i18n, f.developer);
-    fact(card, "playshelf/game/released"_i18n, date_text(f.release_date));
-    std::string genres;
-    for (const std::string& g : f.categories) genres += (genres.empty() ? "" : ", ") + nlib_flow::genre_name(g);
-    fact(card, "playshelf/game/genres"_i18n, genres);
-    if (f.players) fact(card, "playshelf/game/players"_i18n, std::to_string(f.players));
-    std::string languages;
-    for (const std::string& code : f.languages) languages += (languages.empty() ? "" : ", ") + language_name(code);
-    fact(card, "playshelf/game/languages"_i18n, languages);
-    std::string rating;
-    for (const std::string& r : f.rating) rating += (rating.empty() ? "" : ", ") + r;
-    fact(card, "playshelf/game/rating"_i18n, rating);
-    // Its series and its Steam audience (Atlas, from Wikidata and SteamSpy).
-    if (const library::GameSignals* sig = popular_flow::signals()->find(this->page.title_id)) {
-        std::string series;
-        for (const library::Trait& t : sig->series)
-            if (!t.label.empty()) series += (series.empty() ? "" : ", ") + t.label;
-        fact(card, "playshelf/game/series"_i18n, series);
-        // Its IGDB themes (Atlas), by their English names.
-        std::string themes;
-        for (const library::Trait& t : sig->themes)
-            if (!t.label.empty()) themes += (themes.empty() ? "" : ", ") + t.label;
-        fact(card, "playshelf/game/themes"_i18n, themes);
-        const uint64_t reviews = sig->steam.positive + sig->steam.negative;
-        if (reviews)
-            fact(card, "playshelf/game/steam"_i18n,
-                 aurore::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews), reviews));
-        // IGDB's players, from enough of them.
-        if (sig->igdb.count >= PLAYERS_TRUSTED)
-            fact(card, "playshelf/game/players_rating"_i18n,
-                 aurore::getStr("playshelf/game/players_rating_value", (int)sig->igdb.rating, sig->igdb.count));
-    }
-    // The other stores it is sold on (Atlas, from Wikidata): their names only.
-    if (const uint8_t stores = popular_flow::also()->of(library::base_of(this->page.title_id)))
-        fact(card, "playshelf/game/also_on"_i18n, library::store_names(stores));
-    // Where it stands among the games Atlas scores: the share it is better known than.
-    if (const library::Renown r = popular_flow::of(this->page.title_id); r.score > 0)
-        fact(card, "playshelf/game/renown_rank"_i18n,
-             aurore::getStr("playshelf/game/renown_rank_value", popular_flow::share_below(r.score)));
-    // What critics gave it (Atlas, from Wikidata: OpenCritic's mostly).
-    if (const int critics = popular_flow::of(this->page.title_id).critics)
-        fact(card, "playshelf/game/critics"_i18n, aurore::getStr("playshelf/game/critics_score", critics));
-    if (f.demo) fact(card, "playshelf/game/demo"_i18n, "playshelf/game/yes"_i18n);
-    if (l.base_size) fact(card, "playshelf/game/size_base"_i18n, library_flow::size_text(l.base_size));
-    if (l.updates_size) fact(card, "playshelf/game/size_updates"_i18n, library_flow::size_text(l.updates_size));
-    if (l.dlcs_size) fact(card, "playshelf/game/size_dlcs"_i18n, library_flow::size_text(l.dlcs_size));
-    if (l.installed) fact(card, "playshelf/game/installed"_i18n, aurore::getStr("playshelf/library/update", l.installed_version));
-    // How much the console played it (core/play).
-    if (const auto games = installed_flow::games())
-        for (const installed_flow::Game& g : *games) {
-            if (g.game.id != this->page.title_id || !g.play_s) continue;
-            std::string played = installed_flow::play_text(g.play_s);
-            played += " · " + (g.launches == 1 ? "playshelf/game/launches_one"_i18n : aurore::getStr("playshelf/game/launches", g.launches));
-            fact(card, "playshelf/game/play_time"_i18n, played);
-            if (g.last_played) {
-                const std::time_t when = (std::time_t)g.last_played;
-                std::tm           day{};
-                localtime_r(&when, &day);
-                fact(card, "playshelf/game/last_played"_i18n,
-                     date_text((uint32_t)((day.tm_year + 1900) * 10000 + (day.tm_mon + 1) * 100 + day.tm_mday)));
-            }
-            break;
-        }
-    // The servers that have it, each with what it has of it.
-    const std::vector<library_flow::Source> sources = library_flow::sources(this->page.title_id);
-    if (!sources.empty()) {
+    const library::GameSignals*    sig = popular_flow::signals()->find(this->page.title_id);
+    using Rows = std::vector<std::pair<std::string, std::string>>;
+    bool first = true;
+    // A section: its title, its rows in a card, then what `extra` holds (chips).
+    auto section = [&](const std::string& name_, const Rows& rows, const std::vector<aurore::Box*>& extra = {}) {
+        const bool any = std::ranges::any_of(rows, [](const auto& r) { return !r.second.empty(); });
+        if (!any && extra.empty()) return;
         auto* header = new aurore::Header();
-        header->setTitle("playshelf/game/sources"_i18n);
-        header->setMarginTop(24);
+        header->setTitle(name_);
+        header->setMarginTop(first ? 0 : 24);
         header->setMarginBottom(8);
+        first = false;
         facts->addView(header);
         cadran::List::section(header);
         auto* box = new aurore::Box(aurore::Axis::COLUMN);
         box->setAlignItems(aurore::AlignItems::STRETCH);
         facts->addView(box);
-        aurore::Box* rows = cadran::List::rows_in(box);
-        for (const library_flow::Source& src : sources) fact(rows, src.server, src.what);
+        if (any) {
+            aurore::Box* card = cadran::List::rows_in(box);
+            for (const auto& [name, value] : rows) fact(card, name, value);
+        }
+        for (aurore::Box* e : extra) box->addView(e);
+    };
+    auto join = [](const std::vector<std::string>& items, auto&& name) {
+        std::string out;
+        for (const std::string& i : items) out += (out.empty() ? "" : ", ") + name(i);
+        return out;
+    };
+    auto traits = [](const std::vector<library::Trait>& items) {
+        std::string out;
+        for (const library::Trait& t : items)
+            if (!t.label.empty()) out += (out.empty() ? "" : ", ") + t.label;
+        return out;
+    };
+
+    // The game: who made it, when, what kind; its languages and age rating as chips.
+    Rows game;
+    game.emplace_back("playshelf/game/publisher"_i18n, f.publisher);
+    game.emplace_back("playshelf/game/developer"_i18n, f.developer);
+    game.emplace_back("playshelf/game/released"_i18n, date_text(f.release_date));
+    game.emplace_back("playshelf/game/genres"_i18n, join(f.categories, [](const std::string& g) { return nlib_flow::genre_name(g); }));
+    // Its series (Atlas, from Wikidata) and its IGDB themes, by their English names.
+    if (sig) {
+        game.emplace_back("playshelf/game/series"_i18n, traits(sig->series));
+        game.emplace_back("playshelf/game/themes"_i18n, traits(sig->themes));
     }
+    if (f.players) game.emplace_back("playshelf/game/players"_i18n, std::to_string(f.players));
+    // The other stores it is sold on (Atlas, from Wikidata): their names only.
+    if (const uint8_t stores = popular_flow::also()->of(library::base_of(this->page.title_id)))
+        game.emplace_back("playshelf/game/also_on"_i18n, library::store_names(stores));
+    if (f.demo) game.emplace_back("playshelf/game/demo"_i18n, "playshelf/game/yes"_i18n);
+    std::vector<aurore::Box*> pill_rows;
+    if (!f.languages.empty()) {
+        const std::string  own = titledb::nlib_language(live_prefs::locale());
+        std::vector<Pill> pills;
+        for (const std::string& code : f.languages) pills.push_back({language_name(code), code == own});
+        std::ranges::stable_partition(pills, [](const Pill& p) { return p.on; });   // the one PlayShelf speaks first
+        pill_rows.push_back(chip_block("playshelf/game/languages"_i18n, pills, "cadran/text2", "cadran/surf2"));
+    }
+    if (!f.rating.empty()) {
+        std::vector<Pill> pills;
+        for (const std::string& r : f.rating) pills.push_back({r, false});
+        pill_rows.push_back(chip_block("playshelf/game/rating"_i18n, pills, "cadran/amber", "cadran/amber_surf"));
+    }
+    section("playshelf/game/section_game"_i18n, game, pill_rows);
+
+    // What is said of it: critics (Atlas, from Wikidata: OpenCritic's mostly), IGDB's players
+    // from enough of them, Steam's, and where it stands among the games Atlas scores.
+    Rows reviews;
+    if (const int critics = popular_flow::of(this->page.title_id).critics)
+        reviews.emplace_back("playshelf/game/critics"_i18n, aurore::getStr("playshelf/game/critics_score", critics));
+    if (sig && sig->igdb.count >= PLAYERS_TRUSTED)
+        reviews.emplace_back("playshelf/game/players_rating"_i18n,
+                             aurore::getStr("playshelf/game/players_rating_value", (int)sig->igdb.rating, sig->igdb.count));
+    if (sig) {
+        const uint64_t reviews_n = sig->steam.positive + sig->steam.negative;
+        if (reviews_n)
+            reviews.emplace_back("playshelf/game/steam"_i18n,
+                                 aurore::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews_n), reviews_n));
+    }
+    if (const library::Renown r = popular_flow::of(this->page.title_id); r.score > 0)
+        reviews.emplace_back("playshelf/game/renown_rank"_i18n,
+                             aurore::getStr("playshelf/game/renown_rank_value", popular_flow::share_below(r.score)));
+    section("playshelf/game/section_reviews"_i18n, reviews);
+
+    // The console: what it has of it, how much it played it (core/play).
+    Rows console;
+    if (l.installed) console.emplace_back("playshelf/game/installed"_i18n, aurore::getStr("playshelf/library/update", l.installed_version));
+    if (l.base_size) console.emplace_back("playshelf/game/size_base"_i18n, library_flow::size_text(l.base_size));
+    if (l.updates_size) console.emplace_back("playshelf/game/size_updates"_i18n, library_flow::size_text(l.updates_size));
+    if (l.dlcs_size) console.emplace_back("playshelf/game/size_dlcs"_i18n, library_flow::size_text(l.dlcs_size));
+    if (const auto games = installed_flow::games())
+        for (const installed_flow::Game& g : *games) {
+            if (g.game.id != this->page.title_id || !g.play_s) continue;
+            std::string played = installed_flow::play_text(g.play_s);
+            played += " · " + (g.launches == 1 ? "playshelf/game/launches_one"_i18n : aurore::getStr("playshelf/game/launches", g.launches));
+            console.emplace_back("playshelf/game/play_time"_i18n, played);
+            console.emplace_back("playshelf/game/last_played"_i18n, since_text(g.last_played));
+            break;
+        }
+    section("playshelf/game/section_console"_i18n, console);
+
+    // The servers that have it, each with what it has of it.
+    Rows servers;
+    for (const library_flow::Source& src : library_flow::sources(this->page.title_id)) servers.emplace_back(src.server, src.what);
+    section("playshelf/game/sources"_i18n, servers);
+
+    // Its ids, last: for whoever looks it up elsewhere.
+    Rows ids;
+    if (this->page.title_id) ids.emplace_back("playshelf/game/title_id"_i18n, title_id::text(this->page.title_id));
+    if (f.nsu_id) ids.emplace_back("playshelf/game/eshop_id"_i18n, std::to_string(f.nsu_id));
+    section("playshelf/game/section_ids"_i18n, ids);
+
     if (f.nsu_id) {
         aurore::Box* qr = kit::qr(eshop_url(f.nsu_id), 200, "playshelf/game/eshop"_i18n, "playshelf/game/eshop_caption"_i18n);
         qr->setMarginTop(24);

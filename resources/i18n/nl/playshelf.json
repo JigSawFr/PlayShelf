@@ -638,7 +638,14 @@
         "similar": "Vergelijkbare games",
         "series": "Serie",
         "steam": "Steam-recensies",
-        "steam_value": "{}% positief · {} recensies"
+        "steam_value": "{}% positief · {} recensies",
+        "section_game": "The game",
+        "section_reviews": "Reviews",
+        "section_console": "On this console",
+        "section_ids": "Identifiers",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "days_ago": "{} days ago"
     },
     "genres": {
         "action": "Actie",
