@@ -638,7 +638,14 @@
         "similar": "Jeux similaires",
         "series": "Série",
         "steam": "Avis Steam",
-        "steam_value": "{} % positifs · {} avis"
+        "steam_value": "{} % positifs · {} avis",
+        "section_game": "Le jeu",
+        "section_reviews": "Avis",
+        "section_console": "Sur cette console",
+        "section_ids": "Identifiants",
+        "today": "Aujourd'hui",
+        "yesterday": "Hier",
+        "days_ago": "Il y a {} jours"
     },
     "genres": {
         "action": "Action",

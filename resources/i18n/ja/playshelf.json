@@ -638,7 +638,14 @@
         "similar": "似ているゲーム",
         "series": "シリーズ",
         "steam": "Steam のレビュー",
-        "steam_value": "好評 {}% · {} 件"
+        "steam_value": "好評 {}% · {} 件",
+        "section_game": "The game",
+        "section_reviews": "Reviews",
+        "section_console": "On this console",
+        "section_ids": "Identifiers",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "days_ago": "{} days ago"
     },
     "genres": {
         "action": "アクション",

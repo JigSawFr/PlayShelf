@@ -1,6 +1,8 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #include "view/game_parts.hpp"
 
+#include <chrono>
+#include <ctime>
 #include <format>
 #include <utility>
 
@@ -61,9 +63,13 @@ aurore::Box* chip(const std::string& text, const char* icon_name, const char* in
     box->setThemeColor("backgroundColor", tint);
     box->setMarginRight(8);
     box->setMarginBottom(6);
-    CadranIcon* mark = kit::icon(icon_name, 16, ink);
-    mark->setMarginRight(7);
-    box->addView(mark);
+    if (icon_name && *icon_name) {
+        CadranIcon* mark = kit::icon(icon_name, 16, ink);
+        mark->setMarginRight(7);
+        box->addView(mark);
+    } else {
+        box->setPaddingLeft(15);
+    }
     aurore::Label* l = kit::label(text, 15, ink);
     l->setSingleLine(true);
     box->addView(l);
@@ -127,6 +133,24 @@ std::string date_text(uint32_t ymd)
 
 // Its eShop page: ec.nintendo.com sends a phone to the shop of the country
 // PlayShelf's language is spoken in.
+std::string since_text(uint64_t when)
+{
+    if (!when) return "";
+    namespace ch = std::chrono;
+    const std::time_t then = (std::time_t)when, now = std::time(nullptr);
+    std::tm           a{}, b{};
+    localtime_r(&then, &a);
+    localtime_r(&now, &b);
+    const auto day = [](const std::tm& t) {
+        return ch::sys_days{ch::year{t.tm_year + 1900} / ch::month{(unsigned)t.tm_mon + 1} / ch::day{(unsigned)t.tm_mday}};
+    };
+    const long days = (day(b) - day(a)).count();
+    if (days == 0) return aurore::getStr("playshelf/game/today");
+    if (days == 1) return aurore::getStr("playshelf/game/yesterday");
+    if (days > 1 && days <= 30) return aurore::getStr("playshelf/game/days_ago", days);
+    return date_text((uint32_t)((a.tm_year + 1900) * 10000 + (a.tm_mon + 1) * 100 + a.tm_mday));
+}
+
 std::string eshop_url(uint64_t nsu_id)
 {
     static const std::pair<const char*, const char*> COUNTRIES[] = {
@@ -142,6 +166,22 @@ std::string eshop_url(uint64_t nsu_id)
 }
 
 // A row of a card of facts: its name, its value (nothing when it has none).
+aurore::Box* chip_block(const std::string& name, const std::vector<Pill>& pills, const char* ink, const char* tint)
+{
+    auto* block = new aurore::Box(aurore::Axis::COLUMN);
+    block->setAlignItems(aurore::AlignItems::STRETCH);
+    block->setMarginTop(16);
+    aurore::Label* caption = kit::label(name, 15, "cadran/text3");
+    caption->setMarginBottom(8);
+    block->addView(caption);
+    auto* row = new aurore::Box(aurore::Axis::ROW);
+    for (const Pill& p : pills)
+        row->addView(p.on ? chip(p.text, "language", "cadran/teal", "cadran/teal_soft") : chip(p.text, nullptr, ink, tint));
+    kit::wrap(row);
+    block->addView(row);
+    return block;
+}
+
 void fact(aurore::Box* card, const std::string& name, const std::string& value)
 {
     if (value.empty()) return;

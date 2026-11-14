@@ -450,6 +450,12 @@ key("Down")                  # the first game
 key("Return")
 time.sleep(2)
 shot("15_game_sheet")
+key("r", 2)                  # R twice: Updates, then Details
+time.sleep(1)
+shot("16_game_details")
+key("Down", 14)              # into its rows, down the page
+time.sleep(1)
+shot("17_game_details_end")
 key("Escape")
 # What the other Boréale homebrews read of PlayShelf: its registry entry and
 # its bell (boreale-link), written once the main screen opened.

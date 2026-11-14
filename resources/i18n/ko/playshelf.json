@@ -638,7 +638,14 @@
         "similar": "비슷한 게임",
         "series": "시리즈",
         "steam": "Steam 평가",
-        "steam_value": "긍정 {}% · {}개"
+        "steam_value": "긍정 {}% · {}개",
+        "section_game": "The game",
+        "section_reviews": "Reviews",
+        "section_console": "On this console",
+        "section_ids": "Identifiers",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "days_ago": "{} days ago"
     },
     "genres": {
         "action": "액션",
