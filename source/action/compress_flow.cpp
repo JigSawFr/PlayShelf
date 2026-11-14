@@ -196,6 +196,7 @@ void prepare(const installed_flow::Game& g)
         else {
             s->keys = *keys;
             CompressOptions options;
+            options.threads = (unsigned)config::get().compress_threads;
             if (merges) options.merge_update = MetaKey{ base.id | 0x800, update, MetaType::Patch };
             CompressCallbacks cb;
             cb.cancel = &s->cancel;

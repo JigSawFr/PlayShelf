@@ -243,7 +243,7 @@ ivfc_SRC := source/install/ivfc.cpp $(KIT)/util/sha256.cpp tests/ivfc/test.cpp
 # The compression layer of an NCA section (blocks and bucket tree); liblz4 from
 # the system (liblz4-dev), the layer's codec is the caller's.
 compressed_storage_SRC  := source/install/compressed_storage.cpp tests/compressed_storage/test.cpp
-compressed_storage_LIBS := -llz4
+compressed_storage_LIBS := -llz4 -pthread
 # The integrity tree of a RomFS section.
 ivfc_SRC := source/install/ivfc.cpp $(KIT)/util/sha256.cpp tests/ivfc/test.cpp
 # An update's RomFS section over a base game's (relocation and subsection tables); liblz4 only for the shared builders.
@@ -256,7 +256,7 @@ bktr_LIBS := -llz4
 # A Program NCA made over with its RomFS compressed (liblz4 from the system).
 recompress_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/bktr.cpp source/install/recompress.cpp \
                    tests/recompress/test.cpp
-recompress_LIBS := -llz4
+recompress_LIBS := -llz4 -pthread
 # The content meta of a recompressed program, and the .cnmt.nca that holds it.
 recompress_meta_SRC  := $(INSTALL_FORMATS) source/install/ivfc.cpp source/install/recompress_meta.cpp tests/recompress_meta/test.cpp
 recompress_meta_LIBS := -llz4
@@ -264,7 +264,7 @@ recompress_meta_LIBS := -llz4
 # faults and crashes injected everywhere (liblz4 from the system).
 compress_title_SRC  := $(INSTALL_FORMATS) source/install/compressed_storage.cpp source/install/ivfc.cpp source/install/bktr.cpp source/install/recompress.cpp \
                        source/install/recompress_meta.cpp source/install/compress_title.cpp tests/compress_title/test.cpp
-compress_title_LIBS := -llz4
+compress_title_LIBS := -llz4 -pthread
 # A package (NSP, NSZ, XCI) installed as one transaction, on a console in memory.
 install_txn_SRC  := $(INSTALL_FORMATS) source/install/content_stream.cpp source/install/package.cpp \
                     source/install/installer.cpp tests/install_txn/test.cpp

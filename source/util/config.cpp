@@ -118,6 +118,7 @@ void sanitize(Config& c)
     if (!keep_ok) c.logs_keep_mb = 0;
     if (c.connections < 1 || c.connections > 8) c.connections = 4;
     if (c.prefetch < 0 || c.prefetch > 2) c.prefetch = 0;
+    if (c.compress_threads < 1 || c.compress_threads > 4) c.compress_threads = 1;
     if (c.screen_off_minutes < 0 || c.screen_off_minutes > 30) c.screen_off_minutes = 0;
     std::vector<std::string> sources;
     for (const std::string& u : c.title_sources)
@@ -212,6 +213,7 @@ static void load_shared()
     read_bool(j, "share_files", c.share_files);
     read_int(j, "connections", c.connections);
     read_int(j, "prefetch", c.prefetch);
+    read_int(j, "compress_threads", c.compress_threads);
     read_int(j, "screen_off_minutes", c.screen_off_minutes);
     read_strings(j, "title_sources", c.title_sources);
     read_bool(j, "nlib_api", c.nlib_api);
@@ -280,6 +282,7 @@ bool snapshot(Snapshot& snap)
     j["share_files"] = s_config.share_files;
     j["connections"] = s_config.connections;
     j["prefetch"] = s_config.prefetch;
+    j["compress_threads"] = s_config.compress_threads;
     j["screen_off_minutes"] = s_config.screen_off_minutes;
     j["title_sources"] = s_config.title_sources;
     j["nlib_api"] = s_config.nlib_api;

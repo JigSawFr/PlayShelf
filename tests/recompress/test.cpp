@@ -148,6 +148,23 @@ void test_roundtrips()
     }
 }
 
+// The same NCA, bit for bit, with several compressing threads.
+void test_threads()
+{
+    for (size_t n : {size_t(70'000), size_t(1'200'000)}) {
+        const Built in = program_nca(n, (uint32_t)n, false);
+        auto        one = make(in.nca);
+        Output      base;
+        CHECK(run(one, base));
+        for (unsigned t : {2u, 4u}) {
+            auto rc = make(in.nca);
+            rc.set_threads(t);
+            Output many;
+            CHECK(run(rc, many) && many.nca == base.nca && many.after == base.after);
+        }
+    }
+}
+
 ReadAtFn reader_of(const Bytes& b)
 {
     return [&b](uint64_t off, std::span<uint8_t> out) {
@@ -445,6 +462,7 @@ void test_stops()
 int main()
 {
     test_roundtrips();
+    test_threads();
     test_verify();
     test_packed_original();
     test_merge();

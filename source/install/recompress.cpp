@@ -287,7 +287,7 @@ Done ProgramRecompressor::rebuild_romfs(int i, Stream& out, std::array<uint8_t, 
             return false;
         }
         return true;
-    });
+    }, threads);
 
     std::vector<uint8_t> buf(PIECE);
     for (uint64_t at = 0; at < image;) {

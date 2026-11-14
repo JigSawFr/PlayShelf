@@ -58,6 +58,9 @@ class ProgramRecompressor
     // not move once inspect() has run.
     void with_update(ReadAtFn update, uint64_t update_size);
     bool merges_update() const { return merging; }
+    // How many threads compress the blocks (cstore::Builder; 1 by default): the NCA made is the
+    // same. The compress and decompress functions are then called from several threads at once.
+    void set_threads(unsigned count) { threads = count; }
 
     // Reads the header and checks the NCA can be made over; why not, with
     // nothing made.
@@ -117,6 +120,7 @@ class ProgramRecompressor
     cstore::CompressFn      compress;
     cstore::DecompressFn    decompress;
     uint32_t                block_size;
+    unsigned                threads = 1;
 
     ReadAtFn                upd_read;
     uint64_t                upd_size = 0;

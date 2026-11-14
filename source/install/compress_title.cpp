@@ -464,6 +464,7 @@ Done TitleCompressor::prepare()
     m.rc = std::make_unique<ProgramRecompressor>(
         [game](uint64_t off, std::span<uint8_t> out) { return game->read(off, out); }, *prog_size, m.keys, m.compress, m.decompress,
         m.options.block_size);
+    m.rc->set_threads(m.options.threads);
     if (m.merging) {
         auto upd = std::make_shared<Cached>(Cached{c, m.patch_program.id, {}, ~0ull, patch_program_size});
         m.rc->with_update([upd](uint64_t off, std::span<uint8_t> out) { return upd->read(off, out); }, patch_program_size);

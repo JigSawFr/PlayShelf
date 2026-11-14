@@ -38,6 +38,7 @@ struct Config : kit_settings::Settings
     bool        look_shared      = true;   // the look shared with the other Boréale homebrews (action/shared_look)
     bool        share_files = false;   // this console serves its homebrew files to the other consoles of the network (action/peer_flow)
     bool        compression = false;   // the storage screen offers to compress a game (action/compress_flow)
+    int         compress_threads = 1;  // threads that compress a game (action/compress_flow), 1 to 4; no screen sets it yet
     bool        saves_before_update = true;   // an update's saves are copied to the SD card before it installs (action/download_flow)
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8

@@ -39,6 +39,7 @@ static void test_defaults()
     CHECK(c.look.language == "system" && c.look.theme == "dark" && c.look.text_size == "auto" && c.look.effects == "auto");
     CHECK(!c.dev_mode && !c.frame_stats && c.look.glow && c.intro && c.support_reminder);
     CHECK(c.crypto == "auto" && c.cpu_boost);
+    CHECK(c.compress_threads == 1);
     CHECK(!c.compression && c.saves_before_update);   // compression off until turned on; the saves copied before an update
     CHECK(c.look.theme_file.empty());   // the boards' own palette
     CHECK(c.start_tab == "home" && c.logs_keep == 20 && c.logs_keep_days == 0 && c.logs_keep_mb == 0);

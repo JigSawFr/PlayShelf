@@ -47,6 +47,7 @@ constexpr uint32_t OFFSETS_PER_NODE = (NODE_SIZE - NODE_HEADER) / 8;           /
 constexpr uint32_t MAX_ENTRIES = ENTRIES_PER_SET * OFFSETS_PER_NODE;
 constexpr uint32_t MAX_BLOCK = 64 * 1024;       // a compressed entry's reach, at most
 constexpr uint32_t MIN_BLOCK = 4 * 1024;
+constexpr unsigned MAX_THREADS = 4;
 constexpr uint32_t DATA_ALIGN = 16;             // where a compressed block may start
 constexpr uint64_t MAX_STORED_RUN = 64ull << 20;   // stored blocks merged into one entry
 constexpr uint32_t HEADER_SIZE = 0x10;          // the BKTR header kept in the FS header
@@ -81,8 +82,12 @@ uint64_t table_size(uint32_t entry_count);
 class Builder
 {
   public:
-    // block_size: a power of two from MIN_BLOCK to MAX_BLOCK.
-    Builder(uint32_t block_size, CompressFn compress, DecompressFn verify, SinkFn sink);
+    // block_size: a power of two from MIN_BLOCK to MAX_BLOCK. threads: how many
+    // compress at once (1: none besides the caller's; at most MAX_THREADS). The
+    // blocks are compressed and read back in batches by that many threads,
+    // then written in order: the data and the table are the same whatever the
+    // count (compress and verify must be callable from several threads at once).
+    Builder(uint32_t block_size, CompressFn compress, DecompressFn verify, SinkFn sink, unsigned threads = 1);
 
     bool add(std::span<const uint8_t> bytes);
     // The last block, then the table. False once anything failed: error().
@@ -96,7 +101,17 @@ class Builder
     const std::vector<uint8_t>& table() const { return table_bytes; }
 
   private:
+    // One block on its way: its bytes, and what compressing it gave.
+    struct Job
+    {
+        std::vector<uint8_t> src, packed;
+        size_t               n = 0;       // the packed bytes (0: stored as it is)
+        bool                 bad = false; // it did not read back as it was
+    };
+    void compute(Job& j) const;
+    bool commit(const Job& j);
     bool block(std::span<const uint8_t> b);
+    bool flush_batch();
     bool emit(std::span<const uint8_t> b);
     bool close_run();
     bool pad();
@@ -106,7 +121,10 @@ class Builder
     CompressFn              compress;
     DecompressFn            verify;
     SinkFn                  sink;
-    std::vector<uint8_t>    pending, packed, check;
+    unsigned                threads = 1;
+    std::vector<uint8_t>    pending;
+    std::vector<Job>        batch;   // blocks waiting for their turn (several threads only)
+    Job                     one;     // the single-thread path's, kept for its buffers
     std::vector<Entry>      entries;
     std::vector<uint8_t>    table_bytes;
     uint64_t                data_end = 0, virt_end = 0;
