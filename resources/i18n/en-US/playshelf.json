@@ -237,7 +237,10 @@
         "failed": "The saves of {} could not be backed up: {}",
         "users_failed": "The console's users could not be read.",
         "write_failed": "The copy could not be written to the SD card.",
-        "auto_done": "Before the update: the saves of {} were backed up to the SD card ({} copies)."
+        "auto_done": "Before the update: the saves of {} were backed up to the SD card ({} copies).",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "On this console",

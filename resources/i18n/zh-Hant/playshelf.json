@@ -237,7 +237,10 @@
         "failed": "無法備份 {} 的存檔：{}",
         "users_failed": "無法讀取主機的使用者。",
         "write_failed": "無法把備份寫入 SD 卡。",
-        "auto_done": "更新前：已把 {} 的存檔備份到 SD 卡（{} 份）。"
+        "auto_done": "更新前：已把 {} 的存檔備份到 SD 卡（{} 份）。",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "此主機上",

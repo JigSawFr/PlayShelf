@@ -74,6 +74,101 @@ Outcome back_up_game(uint64_t title_id)
     return out;
 }
 
+namespace
+{
+// The save of `user` for the game replaced by `zip`: the entries read first (nothing is touched when
+// the archive is bad), the save as it is kept in `kept`, then emptied and the archive written in,
+// committed file by file; the kept one put back should that fail. `put_back` says it was.
+bool restore_copy(const CoreSaveUser& user, uint64_t title_id, const std::string& zip, const std::string& kept, bool* put_back,
+                  std::string* why)
+{
+    std::vector<save_archive::Entry> entries;
+    if (!save_archive::read_entries(zip, &entries, why)) return false;
+    char root[512];
+    if (!R_SUCCEEDED(core_save_mount(&user, title_id, false, root, sizeof root))) {
+        *why = "playshelf/services/save_mount_failed"_i18n;
+        return false;
+    }
+    const bool kept_ok = save_archive::zip_dir(root, kept, nullptr, why);
+    core_save_unmount();
+    if (!kept_ok) {
+        *why = aurore::getStr("playshelf/services/save_keep_failed", *why);
+        return false;
+    }
+    if (!R_SUCCEEDED(core_save_mount(&user, title_id, true, root, sizeof root))) {
+        *why = "playshelf/services/save_mount_failed"_i18n;
+        return false;
+    }
+    const auto commit = [](const std::string&) { return R_SUCCEEDED(core_save_commit()); };
+    bool ok = save_archive::clear_dir(root, why) && R_SUCCEEDED(core_save_commit()) && save_archive::unzip_to(zip, root, commit, nullptr, why) &&
+              R_SUCCEEDED(core_save_commit());
+    if (!ok) {
+        std::string again;
+        *put_back = save_archive::clear_dir(root, &again) && save_archive::unzip_to(kept, root, commit, nullptr, &again) &&
+                    R_SUCCEEDED(core_save_commit());
+    }
+    core_save_unmount();
+    return ok;
+}
+
+void restore_picked(uint64_t title_id, const std::string& name, const CoreSaveUser& user, const local_backups::Copy& copy)
+{
+    const std::string dir = local_backups::dir_of(paths::data_dir(), title_id);
+    const std::string zip = dir + "/" + copy.name;
+    const std::string kept = dir + "/" + local_backups::safety_name(ui::today_date(), ui::now_hms());
+    ui::in_background("local saves restore", [title_id, name, user, zip, kept]() {
+        bool        put_back = false;
+        std::string why;
+        const bool  ok = restore_copy(user, title_id, zip, kept, &put_back, &why);
+        aurore::sync([ok, why, put_back, kept, name]() {
+            if (!ok) {
+                std::string before;
+                if (put_back) before = "playshelf/services/save_put_back"_i18n;
+                else if (paths::exists_or_pending(kept)) before = aurore::getStr("playshelf/services/save_kept_at", kept);
+                ui::error("playshelf/services/save_restore_failed"_i18n, before.empty() ? why : before + "\n\n" + why);
+                return;
+            }
+            ui::info(aurore::getStr("playshelf/services/save_restored", name, kept));
+        });
+    });
+}
+}   // namespace
+
+void open_restore(uint64_t title_id, const std::string& name)
+{
+    if (ui::refuse_read_only()) return;
+    CoreSaveUser users[CORE_SAVE_USERS_MAX];
+    const int    count = core_save_users(users, CORE_SAVE_USERS_MAX);
+    if (count < 0) {
+        ui::error("playshelf/saves_local/restore_action"_i18n, "playshelf/saves_local/users_failed"_i18n);
+        return;
+    }
+    const std::string dir = local_backups::dir_of(paths::data_dir(), title_id);
+    // Only a copy of a user this console still has can be put back.
+    std::vector<local_backups::Copy> shown;
+    std::vector<CoreSaveUser>        owners;
+    std::vector<std::string>         labels;
+    for (const local_backups::Copy& c : local_backups::copies(paths::list_files(dir, ".zip"))) {
+        for (int i = 0; i < count; i++) {
+            if (local_backups::user_tag(users[i].uid[0], users[i].uid[1]) != c.tag) continue;
+            shown.push_back(c);
+            owners.push_back(users[i]);
+            labels.push_back(c.date + " " + c.time + "  ·  " + users[i].name);
+            break;
+        }
+    }
+    if (shown.empty()) {
+        ui::info(aurore::getStr("playshelf/saves_local/restore_none", name));
+        return;
+    }
+    ui::pick("playshelf/saves_local/restore_pick"_i18n, labels, 0, [title_id, name, shown, owners](int i) {
+        const local_backups::Copy& copy = shown[(size_t)i];
+        const CoreSaveUser         user = owners[(size_t)i];
+        ui::confirm_danger(aurore::getStr("playshelf/services/save_restore_body", name, user.name, copy.date + " " + copy.time),
+                           "playshelf/services/save_restore"_i18n, [title_id, name, user, copy]() { restore_picked(title_id, name, user, copy); });
+    });
+}
+
 void open(uint64_t title_id, const std::string& name)
 {
     if (ui::refuse_read_only()) return;

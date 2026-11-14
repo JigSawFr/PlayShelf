@@ -237,7 +237,10 @@
         "failed": "Les parties de {} n'ont pas pu être sauvegardées : {}",
         "users_failed": "Les utilisateurs de la console n'ont pas pu être lus.",
         "write_failed": "La copie n'a pas pu être écrite sur la carte SD.",
-        "auto_done": "Avant la mise à jour : les parties de {} ont été copiées sur la carte SD ({} copies)."
+        "auto_done": "Avant la mise à jour : les parties de {} ont été copiées sur la carte SD ({} copies).",
+        "restore_action": "Restaurer une copie",
+        "restore_none": "{} n'a pas encore de copie sur la carte SD : sauvegarde d'abord les sauvegardes.",
+        "restore_pick": "Restaurer quelle copie ?"
     },
     "installed": {
         "summary": "Sur cette console",

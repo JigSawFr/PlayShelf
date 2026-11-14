@@ -237,7 +237,10 @@
         "failed": "Impossibile copiare i salvataggi di {}: {}",
         "users_failed": "Impossibile leggere gli utenti della console.",
         "write_failed": "Impossibile scrivere la copia sulla scheda SD.",
-        "auto_done": "Prima dell'aggiornamento: i salvataggi di {} sono stati copiati sulla scheda SD ({} copie)."
+        "auto_done": "Prima dell'aggiornamento: i salvataggi di {} sono stati copiati sulla scheda SD ({} copie).",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "Su questa console",

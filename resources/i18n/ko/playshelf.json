@@ -237,7 +237,10 @@
         "failed": "{}의 저장 데이터를 백업할 수 없습니다: {}",
         "users_failed": "콘솔의 사용자를 읽을 수 없습니다.",
         "write_failed": "백업을 SD 카드에 쓸 수 없습니다.",
-        "auto_done": "업데이트 전: {}의 저장 데이터를 SD 카드에 백업했습니다 ({}개)."
+        "auto_done": "업데이트 전: {}의 저장 데이터를 SD 카드에 백업했습니다 ({}개).",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "이 본체",
