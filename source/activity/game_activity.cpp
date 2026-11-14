@@ -36,6 +36,28 @@ constexpr int      SHOTS_PER_ROW = 3;
 constexpr size_t   MAX_OTHERS = 12;        // games in a row of more like it
 constexpr uint64_t PLAYERS_TRUSTED = 20;   // IGDB ratings below which the players' rating is not shown
 
+// How long the console played it ("12 h played"), "" when never.
+std::string played_text(uint64_t title_id)
+{
+    if (const auto games = installed_flow::games())
+        for (const installed_flow::Game& g : *games)
+            if (g.game.id == title_id && g.play_s) return installed_flow::play_text(g.play_s);
+    return "";
+}
+
+// The one score worth a chip: the critics' when there is one, else the
+// players' (IGDB, from enough of them), else Steam's share of positive
+// reviews. 0 when none.
+int score_of(uint64_t title_id)
+{
+    if (const int critics = popular_flow::of(title_id).critics) return critics;
+    const library::GameSignals* sig = popular_flow::signals()->find(title_id);
+    if (!sig) return 0;
+    if (sig->igdb.count >= PLAYERS_TRUSTED) return (int)sig->igdb.rating;
+    const uint64_t reviews = sig->steam.positive + sig->steam.negative;
+    return reviews ? (int)(sig->steam.positive * 100 / reviews) : 0;
+}
+
 enum Tab : size_t { OVERVIEW, UPDATES, DLCS, DETAILS };
 
 }   // namespace
@@ -116,7 +138,10 @@ void GameActivity::add_head()
     this->meta->setMarginTop(6);
     this->meta->setVisibility(aurore::Visibility::GONE);
     text->addView(this->meta);
-    aurore::Label* facts_line = kit::label(this->page.lines.facts, 16, "cadran/text3");
+    std::string    state = this->page.lines.facts;
+    if (const std::string played = played_text(this->page.title_id); !played.empty())
+        state += (state.empty() ? "" : " · ") + played;
+    aurore::Label* facts_line = kit::label(state, 16, "cadran/text3");
     facts_line->setMarginTop(4);
     text->addView(facts_line);
     if (!this->page.note.empty()) {
@@ -388,6 +413,12 @@ void GameActivity::show_chips()
     const std::string own = titledb::nlib_language(live_prefs::locale());
     if (std::ranges::contains(f.languages, own))
         add("playshelf/game/language_chip"_i18n, "language", "cadran/text2", "cadran/surf2");
+    // Its score, tinted by how good it is: what one looks for before installing.
+    if (const int score = score_of(this->page.title_id)) {
+        const bool good = score >= 75, fair = score >= 50;
+        add(aurore::getStr("playshelf/game/critics_score", score), "sparkle", good ? "cadran/teal" : fair ? "cadran/amber" : "cadran/coral",
+            good ? "cadran/teal_soft" : fair ? "cadran/amber_surf" : "cadran/coral_soft");
+    }
     if (f.demo) add("playshelf/game/demo"_i18n, "flag", "cadran/amber", "cadran/amber_surf");
     kit::wrap(this->chips);
     this->chips->setVisibility(this->chips->getChildren().empty() ? aurore::Visibility::GONE : aurore::Visibility::VISIBLE);
