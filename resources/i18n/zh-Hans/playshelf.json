@@ -542,7 +542,8 @@
             "corrupt": "数据包中的某个内容与应有的不符：服务器上的文件可能已损坏。",
             "server_gone": "此下载的游戏库服务器已从 PlayShelf 中删除：请移除该下载，或重新添加服务器。"
         },
-        "saves_before_update": "Copy the saves before an update"
+        "saves_before_update": "Copy the saves before an update",
+        "space_hint": "About {} MB are missing. The games played least recently that would free enough: {}. Nothing is removed unless you do it, from Storage."
     },
     "titledb": {
         "section": "游戏信息数据库",

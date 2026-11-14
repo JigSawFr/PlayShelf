@@ -542,7 +542,8 @@
             "corrupt": "Een inhoud van het pakket is niet wat hij moet zijn: het bestand op de server is misschien beschadigd.",
             "server_gone": "De bibliotheekserver van deze download is uit PlayShelf verwijderd: verwijder de download of voeg de server opnieuw toe."
         },
-        "saves_before_update": "Copy the saves before an update"
+        "saves_before_update": "Copy the saves before an update",
+        "space_hint": "About {} MB are missing. The games played least recently that would free enough: {}. Nothing is removed unless you do it, from Storage."
     },
     "titledb": {
         "section": "Titeldatabase",

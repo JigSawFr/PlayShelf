@@ -9,11 +9,15 @@
 #include <aurore/cadran/ui/guarded.hpp>
 
 #include "action/download_flow.hpp"
+#include "action/installed_flow.hpp"
+#include "action/progress_dialog.hpp"
+#include "action/space_logic.hpp"
 #include "action/library_flow.hpp"
 #include "action/library_icons.hpp"
 #include "titledb/nlib.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "util/title_id.hpp"
 #include "view/banner_card.hpp"
 #include "view/cover_placeholder.hpp"
 
@@ -59,6 +63,44 @@ std::string cause_text(const download::Job& j)
     if (in >= 0) return aurore::getStr("playshelf/downloads/state_retry", short_duration(in + 1), why);
     return aurore::getStr("playshelf/downloads/state_failed", why);
 }
+
+// A download that stopped for lack of room: the games played least recently that would free enough, as
+// a suggestion ("" when it cannot be worked out, or room is not what is missing).
+std::string space_hint(const download::Job& j)
+{
+    const auto                  games = installed_flow::games();
+    const installed_flow::Space space = installed_flow::space();
+    if (!games || !space.known) return "";
+    const uint64_t whole = j.total ? j.total : j.size;
+    if (whole == 0) return "";
+    const uint64_t missing = space_logic::shortfall(space.free, whole > j.done ? whole - j.done : whole);
+    if (missing == 0) return "";
+    std::vector<space_logic::Candidate> candidates;
+    std::vector<const installed_flow::Game*> shown;
+    for (const installed_flow::Game& g : *games) {
+        if (!g.game.base) continue;
+        space_logic::Candidate c;
+        c.id = g.game.id;
+        c.size = g.size;
+        c.last_played = g.last_played;
+        c.play_s = g.play_s;
+        c.keep = g.game.id == j.game_id;   // the game being installed stays
+        candidates.push_back(c);
+        shown.push_back(&g);
+    }
+    const space_logic::Plan plan = space_logic::plan(missing, candidates);
+    if (!plan.enough) return "";
+    constexpr size_t MAX_NAMED = 5;
+    std::string      names;
+    for (size_t k = 0; k < plan.picks.size() && k < MAX_NAMED; k++) {
+        const installed_flow::Game& g = *shown[plan.picks[k]];
+        if (!names.empty()) names += ", ";
+        names += (g.name.empty() ? title_id::text(g.game.id) : g.name) + " (" + progress_dialog::mb_text(g.size) + " MB)";
+    }
+    if (plan.picks.size() > MAX_NAMED) names += ", …";
+    return "\n\n" + aurore::getStr("playshelf/downloads/space_hint", progress_dialog::mb_text(missing), names);
+}
+
 }   // namespace
 
 DownloadsTab::DownloadsTab()
@@ -420,6 +462,7 @@ void DownloadsTab::open_job(const std::string& job_id)
                  : c == download::Cause::Other    ? j->error
                                                   : aurore::getStr(std::string("playshelf/downloads/help/") + download::cause_name(c));
         if (c != download::Cause::Other && c != download::Cause::Unsigned && !j->error.empty()) subtitle += "\n" + j->error;
+        if (c == download::Cause::NoSpace) subtitle += space_hint(*j);
     }
     ui::pick_actions(name, choices, subtitle);
 }

@@ -542,7 +542,8 @@
             "corrupt": "Un contenu du paquet n'est pas ce qu'il devrait être : le fichier sur le serveur est peut-être endommagé.",
             "server_gone": "Le serveur de bibliothèque de ce téléchargement a été supprimé de PlayShelf : retirez le téléchargement, ou ajoutez le serveur de nouveau."
         },
-        "saves_before_update": "Copier les sauvegardes avant une mise à jour"
+        "saves_before_update": "Copier les sauvegardes avant une mise à jour",
+        "space_hint": "Il manque environ {} Mo. Les jeux joués le moins récemment qui libéreraient assez : {}. Rien n'est supprimé sans toi, depuis Stockage."
     },
     "titledb": {
         "section": "Base de titres",
