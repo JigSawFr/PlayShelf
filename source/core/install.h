@@ -39,6 +39,9 @@ void   core_install_close(void);
 Result core_content_has(const u8 id[16], bool *out);
 Result core_placeholder_create(const u8 id[16], u64 size);
 Result core_placeholder_write(const u8 id[16], u64 offset, const void *data, size_t size);
+/* What was written to the placeholders, on the card (ncm keeps it in a cache
+ * until then). */
+Result core_placeholder_flush(void);
 Result core_placeholder_register(const u8 id[16]);
 // The same, a placeholder registered as another content (an id known only
 // once its bytes are all written).

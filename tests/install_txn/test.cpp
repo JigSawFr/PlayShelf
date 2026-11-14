@@ -40,6 +40,7 @@ void write_seed(const std::string& name, const Bytes& b)
 struct FakeConsole : Console
 {
     std::map<ContentId, Bytes>        held, contents;   // placeholders, contents
+    std::map<ContentId, size_t>       flushed;          // of a placeholder, the bytes on the card (the rest is in the cache)
     std::map<std::string, Bytes>      meta;   // committed
     std::map<std::string, Bytes>      meta_pending;
     std::set<std::string>             meta_removed;
@@ -76,6 +77,12 @@ struct FakeConsole : Console
         if (offset > p.size()) return fail("write out of order");
         p.resize(offset);
         p.insert(p.end(), data, data + size);
+        return {};
+    }
+    Done flush_placeholders() override
+    {
+        if (const Done r = inject("flush"); !r) return r;
+        for (const auto& [id, bytes] : held) flushed[id] = bytes.size();
         return {};
     }
     Done register_placeholder(const ContentId& id) override
@@ -394,6 +401,47 @@ void test_undo()
 // Paused halfway through the program, then started again from the journal
 // (as after a restart): the contents registered are kept, a .nca goes on
 // where it stood, a .ncz starts again; cancelled then, every run is undone.
+// A point of resume is kept only for what the console has on the card: the placeholder is flushed first, and when
+// the console cannot say so, no point is kept (the content starts again).
+void test_flush_before_checkpoint()
+{
+    const Title t = application(false);
+    const Bytes pkg = nsp(t);
+    const std::string program = content_id_hex(t.program_info.id);
+    for (bool flush_fails : {false, true}) {
+        FakeConsole       c;
+        if (flush_fails) {
+            c.fail_at = "flush";
+            c.fail_n = 1;
+        }
+        std::atomic<bool> pause{false};
+        Journal           journal;
+        uint64_t          program_start = UINT64_MAX;
+        InstallCallbacks  cb;
+        cb.pause = &pause;
+        cb.journal = [&](const Journal& j) { journal = j; };
+        cb.progress = [&](uint64_t done, uint64_t, const std::string& content) {
+            if (content.compare(0, program.size(), program) != 0) return;
+            if (program_start == UINT64_MAX) program_start = done;
+            if (done - program_start >= 0x5000) pause = true;
+        };
+        MemorySource src(pkg, 0x1000);
+        auto         opened = package_open(src);
+        if (!CHECK(opened)) return;
+        Installer first(src, *opened, c, test_keys(), {SignaturePolicy::Off, false}, cb);
+        CHECK(first.prepare());
+        const Done ran = first.run();
+        CHECK(!ran && first.paused());
+        if (!flush_fails) {
+            // The point kept is on the card.
+            if (CHECK(journal.writing == t.program_info.id && journal.at)) CHECK(c.flushed[t.program_info.id] >= journal.at->offset);
+        } else {
+            // Not on the card: no point, no placeholder, the program is written again from its start.
+            CHECK(!journal.writing && !journal.at && c.held.empty());
+        }
+    }
+}
+
 void test_pause_resume()
 {
     for (bool compressed : {false, true}) {
@@ -545,5 +593,6 @@ int main()
     test_rebuilt();
     test_undo();
     test_pause_resume();
+    test_flush_before_checkpoint();
     CHECK_DONE("install transaction: NSP, NSZ and XCI installed; refusals before writing; every failure undone; paused, resumed, cancelled passed");
 }

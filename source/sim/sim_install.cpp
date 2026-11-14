@@ -110,6 +110,11 @@ Result core_placeholder_create(const u8 id[16], u64)
     return write_file(placeholder(id), "", 0) ? 0 : FAIL;
 }
 
+Result core_placeholder_flush(void)
+{
+    return 0;   // the simulated storage writes at once
+}
+
 Result core_placeholder_write(const u8 id[16], u64 offset, const void* data, size_t size)
 {
     FILE* f = std::fopen(placeholder(id).c_str(), "r+b");

@@ -55,6 +55,10 @@ class Console
     virtual bool     has_content(const ContentId& id) = 0;
     [[nodiscard]] virtual Done create_placeholder(const ContentId& id, uint64_t size) = 0;
     [[nodiscard]] virtual Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) = 0;
+    // What was written to the placeholders is on the card, not only in the
+    // console's cache: a point of resume is kept only after this. A console
+    // with no cache has nothing to do.
+    [[nodiscard]] virtual Done flush_placeholders() { return {}; }
     [[nodiscard]] virtual Done register_placeholder(const ContentId& id) = 0;
     virtual bool     has_placeholder(const ContentId& id) = 0;
     // The same, a placeholder registered as another content (its id known
