@@ -170,6 +170,12 @@ PreferencesTab::PreferencesTab()
         peer_flow::apply();
         this->show_share();
     });
+    // Off until turned on: the storage screen's game menu then offers to
+    // compress a game (action/compress_flow).
+    compression->init("playshelf/compress/pref"_i18n, config::get().compression, [](bool on) {
+        config::get().compression = on;
+        ui::save_config();
+    });
     connections->registerClickAction([this](aurore::View*) {
         std::vector<std::string> values, details;
         for (int n = 1; n <= install::MAX_CONNECTIONS; n++) {
@@ -292,7 +298,7 @@ PreferencesTab::PreferencesTab()
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
                        { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
-                       { "pf_keep_awake", "bolt" }, { "pf_share_files", "upload" }, { "pf_connections", "server" },
+                       { "pf_keep_awake", "bolt" }, { "pf_share_files", "upload" }, { "pf_compression", "save" }, { "pf_connections", "server" },
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
@@ -464,6 +470,7 @@ void PreferencesTab::refresh()
     look_shared->setOn(cfg.look_shared, false);
     keep_awake->setOn(cfg.keep_awake, false);
     share_files->setOn(cfg.share_files, false);
+    compression->setOn(cfg.compression, false);
     this->show_share();
     connections->setDetailText(std::to_string(cfg.connections));
     prefetch->setDetailText(prefetch_text(cfg.prefetch));

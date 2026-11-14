@@ -41,6 +41,7 @@
             <aurore:Header title="@i18n/playshelf/tabs/downloads" marginTop="24" marginBottom="8"/>
             <aurore:BooleanCell id="pf_keep_awake"/>
             <aurore:BooleanCell id="pf_share_files"/>
+            <aurore:BooleanCell id="pf_compression"/>
             <aurore:DetailCell id="pf_connections" title="@i18n/playshelf/downloads/connections"/>
             <aurore:DetailCell id="pf_prefetch" title="@i18n/playshelf/downloads/prefetch"/>
             <aurore:DetailCell id="pf_screen_off" title="@i18n/playshelf/downloads/screen_off"/>

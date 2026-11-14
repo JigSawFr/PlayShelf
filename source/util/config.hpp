@@ -37,6 +37,7 @@ struct Config : kit_settings::Settings
     bool        notices_others   = true;   // the other Boréale homebrews' notices in the bell, counted on it
     bool        look_shared      = true;   // the look shared with the other Boréale homebrews (action/shared_look)
     bool        share_files = false;   // this console serves its homebrew files to the other consoles of the network (action/peer_flow)
+    bool        compression = false;   // the storage screen offers to compress a game (action/compress_flow)
     bool        keep_awake = true;     // the console does not go to sleep while downloads run (action/download_flow)
     int         connections = 4;       // a download's connections at once (install/split_stream), 1 to 8
     int         screen_off_minutes = 0; // Downloads › Turn the screen off after (action/screen_flow), 0 (never) to 30

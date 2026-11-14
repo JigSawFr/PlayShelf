@@ -865,5 +865,9 @@
         "remove_failed": "De homebrew kon niet worden verwijderd",
         "consent_body": "{} schrijft op plaatsen die het opstarten van de console kunnen veranderen:",
         "consent_yes": "Toch installeren"
+    },
+    "compress": {
+        "action": "Deze game comprimeren",
+        "pref": "Geïnstalleerde games comprimeren (experimenteel)"
     }
 }

@@ -865,5 +865,9 @@
         "remove_failed": "无法移除自制软件",
         "consent_body": "{} 会写入可能改变主机启动方式的位置:",
         "consent_yes": "仍然安装"
+    },
+    "compress": {
+        "action": "压缩此游戏",
+        "pref": "压缩已安装的游戏(实验性)"
     }
 }

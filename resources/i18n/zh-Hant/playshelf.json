@@ -865,5 +865,9 @@
         "remove_failed": "無法移除自製軟體",
         "consent_body": "{} 會寫入可能改變主機啟動方式的位置:",
         "consent_yes": "仍然安裝"
+    },
+    "compress": {
+        "action": "壓縮此遊戲",
+        "pref": "壓縮已安裝的遊戲(實驗性)"
     }
 }
