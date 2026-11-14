@@ -415,9 +415,7 @@ void GameActivity::show_chips()
         add("playshelf/game/language_chip"_i18n, "language", "cadran/text2", "cadran/surf2");
     // Its score, tinted by how good it is: what one looks for before installing.
     if (const int score = score_of(this->page.title_id)) {
-        const bool good = score >= 75, fair = score >= 50;
-        add(aurore::getStr("playshelf/game/critics_score", score), "sparkle", good ? "cadran/teal" : fair ? "cadran/amber" : "cadran/coral",
-            good ? "cadran/teal_soft" : fair ? "cadran/amber_surf" : "cadran/coral_soft");
+        add(aurore::getStr("playshelf/game/critics_score", score), "sparkle", score_ink(score), score_tint(score));
     }
     if (f.demo) add("playshelf/game/demo"_i18n, "flag", "cadran/amber", "cadran/amber_surf");
     kit::wrap(this->chips);
@@ -498,31 +496,42 @@ void GameActivity::fill_details_tab()
     }
     section("playshelf/game/section_game"_i18n, game, pill_rows);
 
-    // What is said of it: critics (Atlas, from Wikidata: OpenCritic's mostly), IGDB's players
-    // from enough of them, Steam's, and where it stands among the games Atlas scores.
-    Rows reviews;
+    // What is said of it, as tiles: critics (Atlas, from Wikidata: OpenCritic's mostly), IGDB's
+    // players from enough of them, Steam's, and where it stands among the games Atlas scores.
+    std::vector<aurore::Box*> tiles;
+    auto tile = [&](int score, const std::string& value, const std::string& caption, const std::string& sub) {
+        tiles.push_back(score_tile(value, caption, sub, score_ink(score), score_tint(score)));
+    };
     if (const int critics = popular_flow::of(this->page.title_id).critics)
-        reviews.emplace_back("playshelf/game/critics"_i18n, aurore::getStr("playshelf/game/critics_score", critics));
+        tile(critics, aurore::getStr("playshelf/game/critics_score", critics), "playshelf/game/critics"_i18n, "");
     if (sig && sig->igdb.count >= PLAYERS_TRUSTED)
-        reviews.emplace_back("playshelf/game/players_rating"_i18n,
-                             aurore::getStr("playshelf/game/players_rating_value", (int)sig->igdb.rating, sig->igdb.count));
+        tile((int)sig->igdb.rating, aurore::getStr("playshelf/game/critics_score", (int)sig->igdb.rating),
+             "playshelf/game/players_rating"_i18n, aurore::getStr("playshelf/game/tile_ratings", sig->igdb.count));
     if (sig) {
-        const uint64_t reviews_n = sig->steam.positive + sig->steam.negative;
-        if (reviews_n)
-            reviews.emplace_back("playshelf/game/steam"_i18n,
-                                 aurore::getStr("playshelf/game/steam_value", (int)(sig->steam.positive * 100 / reviews_n), reviews_n));
+        const uint64_t votes = sig->steam.positive + sig->steam.negative;
+        if (votes) {
+            const int share = (int)(sig->steam.positive * 100 / votes);
+            tile(share, std::format("{} %", share), "playshelf/game/steam"_i18n, aurore::getStr("playshelf/game/tile_reviews", votes));
+        }
     }
-    if (const library::Renown r = popular_flow::of(this->page.title_id); r.score > 0)
-        reviews.emplace_back("playshelf/game/renown_rank"_i18n,
-                             aurore::getStr("playshelf/game/renown_rank_value", popular_flow::share_below(r.score)));
-    section("playshelf/game/section_reviews"_i18n, reviews);
+    if (const library::Renown r = popular_flow::of(this->page.title_id); r.score > 0) {
+        const int below = popular_flow::share_below(r.score);
+        tiles.push_back(score_tile(std::format("{} %", below), "playshelf/game/renown_rank"_i18n, "playshelf/game/tile_renown"_i18n,
+                                   "cadran/text2", "cadran/surf2"));
+    }
+    std::vector<aurore::Box*> tile_rows;
+    if (!tiles.empty()) {
+        auto* row = new aurore::Box(aurore::Axis::ROW);
+        for (aurore::Box* t : tiles) row->addView(t);
+        kit::wrap(row);
+        tile_rows.push_back(row);
+    }
+    section("playshelf/game/section_reviews"_i18n, {}, tile_rows);
+
 
     // The console: what it has of it, how much it played it (core/play).
     Rows console;
     if (l.installed) console.emplace_back("playshelf/game/installed"_i18n, aurore::getStr("playshelf/library/update", l.installed_version));
-    if (l.base_size) console.emplace_back("playshelf/game/size_base"_i18n, library_flow::size_text(l.base_size));
-    if (l.updates_size) console.emplace_back("playshelf/game/size_updates"_i18n, library_flow::size_text(l.updates_size));
-    if (l.dlcs_size) console.emplace_back("playshelf/game/size_dlcs"_i18n, library_flow::size_text(l.dlcs_size));
     if (const auto games = installed_flow::games())
         for (const installed_flow::Game& g : *games) {
             if (g.game.id != this->page.title_id || !g.play_s) continue;
@@ -532,7 +541,21 @@ void GameActivity::fill_details_tab()
             console.emplace_back("playshelf/game/last_played"_i18n, since_text(g.last_played));
             break;
         }
-    section("playshelf/game/section_console"_i18n, console);
+    // The room it takes beside the room the console has (what an install would use).
+    std::vector<aurore::Box*> bars;
+    if (const uint64_t need = l.base_size + l.updates_size + l.dlcs_size) {
+        const installed_flow::Space space = installed_flow::space();
+        const bool                  over = space.known && need > space.free;
+        const std::string           caption =
+            !space.known ? aurore::getStr("playshelf/game/space_need", library_flow::size_text(need))
+            : over       ? aurore::getStr("playshelf/game/space_over", library_flow::size_text(need), library_flow::size_text(space.free))
+                         : aurore::getStr("playshelf/game/space_fits", library_flow::size_text(need), library_flow::size_text(space.free));
+        bars.push_back(size_bar({{"playshelf/game/size_base"_i18n, l.base_size, "cadran/teal"},
+                                 {"playshelf/game/size_updates"_i18n, l.updates_size, "cadran/blue"},
+                                 {"playshelf/game/size_dlcs"_i18n, l.dlcs_size, "cadran/violet"}},
+                                space.known ? space.free : 0, caption, over ? "cadran/coral" : "cadran/text3"));
+    }
+    section("playshelf/game/section_console"_i18n, console, bars);
 
     // The servers that have it, each with what it has of it.
     Rows servers;
