@@ -215,34 +215,6 @@ Done do_keep(Console& c, JournalStore& store, const CompressJournal& j)
     return {};
 }
 
-// The content meta of the game with its update merged in: the game's, at the
-// update's version, requiring the firmware that reads the layer and the update's
-// own requirement; its contents the update's where the update has some of a type
-// (control data, legal text, documents, data) and the game's otherwise, and the
-// merged program.
-ContentMeta merged_meta(const ContentMeta& base, const ContentMeta& patch, const ContentInfo& program)
-{
-    ContentMeta m = base;
-    m.version = patch.version;
-    m.required_download_system_version = std::max(base.required_download_system_version, patch.required_download_system_version);
-    if (m.extended_header.size() >= 12) {
-        const uint32_t req = std::max({le32(m.extended_header.data() + 8), patch.required_system_version(), SYSTEM_VERSION_12_0_0});
-        put_le32(m.extended_header.data() + 8, req);
-    }
-    m.extended_data.clear();
-    m.contents.clear();
-    m.contents.push_back(program);
-    for (const ContentType t : {ContentType::Data, ContentType::Control, ContentType::HtmlDocument, ContentType::LegalInformation}) {
-        std::vector<ContentInfo> from_patch, from_base;
-        for (const ContentInfo& i : patch.contents)
-            if (i.type == t) from_patch.push_back(i);
-        for (const ContentInfo& i : base.contents)
-            if (i.type == t) from_base.push_back(i);
-        const auto& chosen = from_patch.empty() ? from_base : from_patch;
-        m.contents.insert(m.contents.end(), chosen.begin(), chosen.end());
-    }
-    return m;
-}
 }   // namespace
 
 // ---------------------------------------------------------------- journal
@@ -672,7 +644,8 @@ Done TitleCompressor::run()
     std::vector<uint8_t> new_cnmt_bytes;
     ContentMeta          merged;
     if (m.merging) {
-        merged = merged_meta(m.base_parsed, m.patch_parsed, now);
+        merged = merged_cnmt(m.base_parsed, m.patch_parsed, now,
+                             {recorded_system_version(m.record), recorded_system_version(m.patch_record)});
         std::array<uint8_t, 32> digest{};
         std::copy(m.cnmt.end() - 32, m.cnmt.end(), digest.begin());
         new_cnmt_bytes = cnmt_serialize(merged, digest);

@@ -11,6 +11,7 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <span>
 #include <vector>
 
 #include "install/cnmt.hpp"
@@ -22,6 +23,11 @@ namespace install
 // 12.0.0, the firmware that reads the compression layer, as a content meta
 // writes a system version (major << 26 | minor << 20 | micro << 16).
 constexpr uint32_t SYSTEM_VERSION_12_0_0 = 12u << 26;
+
+// The Compacted attribute of a content meta: Nintendo cut the game down to go
+// with its day-one update, and the console asks for that update while it is
+// set.
+constexpr uint8_t CNMT_ATTRIBUTE_COMPACTED = 0x04;
 
 // The content id the convention gives a content: its hash's first 16 bytes.
 ContentId content_id_of(const std::array<uint8_t, 32>& sha256);
@@ -60,5 +66,30 @@ struct ContentReplacement
 };
 [[nodiscard]] Parsed<std::vector<uint8_t>> record_with_contents(std::span<const uint8_t> record, MetaType type,
                                                                  const std::vector<ContentReplacement>& replacements);
+
+// The required system version of an installed record (what ncm keeps) of an
+// application or a patch, as it was installed: an installer, or the user, may
+// have lowered it so that the game starts on this firmware. UINT32_MAX when
+// the record is cut short.
+uint32_t recorded_system_version(std::span<const uint8_t> record);
+
+// What the console's records ask for today, for the game and for its update.
+struct RecordedSystem
+{
+    uint32_t base = UINT32_MAX;   // UINT32_MAX: not known
+    uint32_t patch = UINT32_MAX;
+};
+
+// The content meta of the game with its update merged in: the game's, at the
+// update's version, and whole now: the Compacted attribute is cleared (the
+// console would ask to download an update that is already inside) and no
+// application version is required. The firmware it requires is what the two
+// content metas ask for, but not above what the console's records already
+// accept (`recorded`), and never below 12.0.0, which reads the compression
+// layer. Its contents are the update's where the update has some of a type
+// (control data, legal text, documents, data) and the game's otherwise, and the
+// merged `program`.
+ContentMeta merged_cnmt(const ContentMeta& base, const ContentMeta& patch, const ContentInfo& program,
+                        const RecordedSystem& recorded = {});
 
 }   // namespace install
