@@ -26,6 +26,7 @@ struct NoNetwork final : lantern::Transport
     }
 };
 
+#if !defined(__EMSCRIPTEN__)
 // The address a server of this uid answers at on the network now, asked by broadcast (discovery.hpp);
 // kept as the server's LAN address, so the next start does not ask again. "" when nothing answers.
 std::string relocate_by_uid(const std::string& uid)
@@ -48,6 +49,7 @@ std::string relocate_by_uid(const std::string& uid)
     }
     return "";
 }
+#endif
 }   // namespace
 
 SimHooks s_sim;
