@@ -137,6 +137,44 @@ void test_schema()
     CHECK(fs::read(queue_file()) == newer);
 }
 
+Job titled(const char* id, uint64_t title_id, State state = State::Waiting)
+{
+    Job j = job(id, state);
+    j.title_id = title_id;
+    return j;
+}
+
+// An update or an add-on goes after its game when the game waits too, whatever order they were added in.
+void test_game_first()
+{
+    const uint64_t game = 0x0100000000010000ull, update = game | 0x800, dlc = game + 0x1000 + 1, other = 0x0100000000020000ull;
+    // The update and the add-on came first: the game goes, then the update, then the add-on.
+    std::vector<Job> jobs = {titled("u", update), titled("d", dlc), titled("g", game)};
+    CHECK(next_job(jobs) == 2);
+    jobs[2].state = State::Done;
+    CHECK(next_job(jobs) == 0);
+    jobs[0].state = State::Done;
+    CHECK(next_job(jobs) == 1);
+    jobs[1].state = State::Done;
+    CHECK(next_job(jobs) == -1);
+
+    // A game that is not waiting does not hold its update back: done, paused, failed or running.
+    for (State s : {State::Done, State::Paused, State::Failed, State::Running}) {
+        jobs = {titled("u", update), titled("g", game, s)};
+        CHECK(next_job(jobs) == 0);
+    }
+    jobs = {titled("u", update), titled("o", other)};
+    CHECK(next_job(jobs) == 0);   // another game's job is not its game
+
+    // Another game's update stays where it is, and a job of unknown title is a line of its own.
+    jobs = {titled("u", update), titled("x", other | 0x800), titled("g", game)};
+    CHECK(next_job(jobs) == 2);
+    jobs = {titled("n", 0), titled("g", game)};
+    CHECK(next_job(jobs) == 0);
+    jobs = {titled("g", game), titled("u", update)};
+    CHECK(next_job(jobs) == 0);   // in order already
+}
+
 void test_queue()
 {
     std::vector<Job> jobs = {job("1", State::Done, "https://a/1.nsp"), job("2", State::Paused, "https://a/2.nsp"),
@@ -251,6 +289,7 @@ int main()
     test_file();
     test_schema();
     test_queue();
+    test_game_first();
     test_groups();
     test_rate();
     return CHECK_DONE("download queue: its file and journals, a restart, the next job, orphan placeholders, jobs by game and their timeline, the speed, fetching ahead passed");
