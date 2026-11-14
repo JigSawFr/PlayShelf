@@ -212,6 +212,21 @@
         "request_closed": "Nu op de server",
         "request_denied": "Declined"
     },
+    "check": {
+        "action": "Bestanden controleren",
+        "body": "PlayShelf leest elk bestand van {} en vergelijkt het met de controlesom. Bij een grote game duurt dat een paar minuten.",
+        "go": "Controleren",
+        "heading": "Bestanden controleren",
+        "ok": "{}: alle {} bestanden zijn intact.",
+        "bad": "{}: {} van {} bestanden zijn beschadigd:\n\n{}\n\nVerwijder de game en installeer hem opnieuw vanuit je bibliotheek.",
+        "not_here": "{} staat niet op de SD-kaart. Alleen games op de SD-kaart kunnen worden gecontroleerd.",
+        "failed": "De controle kon niet worden uitgevoerd: {}",
+        "more": "\n… en {} meer",
+        "st_missing": "ontbreekt",
+        "st_size": "verkeerde grootte",
+        "st_unreadable": "onleesbaar",
+        "st_corrupt": "beschadigd"
+    },
     "installed": {
         "summary": "Op deze console",
         "reading": "Bezig met lezen…",

@@ -212,6 +212,21 @@
         "request_closed": "现已在服务器上",
         "request_denied": "Declined"
     },
+    "check": {
+        "action": "检查文件",
+        "body": "PlayShelf 将读取 {} 的每个文件，并与其校验和比对。大型游戏需要几分钟。",
+        "go": "检查",
+        "heading": "正在检查文件",
+        "ok": "{}：全部 {} 个文件完好。",
+        "bad": "{}：{} 个文件已损坏（共 {} 个）：\n\n{}\n\n请删除该游戏，并从你的库中重新安装。",
+        "not_here": "{} 不在 SD 卡上。只能检查安装在 SD 卡上的游戏。",
+        "failed": "无法完成检查：{}",
+        "more": "\n… 另有 {} 个",
+        "st_missing": "缺失",
+        "st_size": "大小不符",
+        "st_unreadable": "无法读取",
+        "st_corrupt": "已损坏"
+    },
     "installed": {
         "summary": "此主机上",
         "reading": "正在读取…",
