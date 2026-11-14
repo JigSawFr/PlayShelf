@@ -93,6 +93,7 @@ struct GameLines
     uint64_t                base_size = 0, updates_size = 0, dlcs_size = 0;
     uint32_t                installed_version = 0, latest_version = 0;   // 0: none
     bool                    installed = false;   // the base game is on the console
+    uint32_t                first_seen = 0;      // the day (YYYYMMDD) its server first listed it; 0: unknown
 };
 GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, const std::vector<ui::Choice>& more = {});
 

@@ -79,6 +79,8 @@ std::string date_text(uint32_t ymd);
 // "Today", "Yesterday", "3 days ago" for a moment (POSIX) within a month, its
 // date beyond; "" when it has none.
 std::string since_text(uint64_t when);
+// The same for a day (YYYYMMDD); "" when 0.
+std::string since_day(uint32_t ymd);
 
 // Its eShop page: ec.nintendo.com sends a phone to the shop of the country
 // PlayShelf's language is spoken in.

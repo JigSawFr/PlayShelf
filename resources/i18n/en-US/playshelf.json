@@ -614,6 +614,7 @@
         "publisher": "Publisher",
         "developer": "Developer",
         "released": "Released",
+        "added": "Added to the server",
         "genres": "Genres",
         "players": "Players",
         "languages": "Languages",

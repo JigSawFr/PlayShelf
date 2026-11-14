@@ -614,6 +614,7 @@
         "publisher": "発売元",
         "developer": "開発元",
         "released": "発売日",
+        "added": "サーバーに追加",
         "genres": "ジャンル",
         "players": "プレイ人数",
         "languages": "対応言語",

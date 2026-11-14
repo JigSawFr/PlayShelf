@@ -23,6 +23,7 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
     page.title_id = t.id;
     // An AeroFoil server's own for this game: its cheats, its save backups.
     page.lines = library_flow::game_lines(data, index, services_flow::game_choices(data, t.id));
+    page.lines.first_seen = insights::first_seen(insights::Pick{ data, index });
     auto icon_of = [data](size_t i) -> GameActivity::IconAsk {
         const uint64_t game_id = data->titles[i].id;
         return [game_id](library_icons::Done shown) { library_icons::local(game_id, std::move(shown)); };

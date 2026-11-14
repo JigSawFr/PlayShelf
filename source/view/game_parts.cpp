@@ -151,6 +151,19 @@ std::string since_text(uint64_t when)
     return date_text((uint32_t)((a.tm_year + 1900) * 10000 + (a.tm_mon + 1) * 100 + a.tm_mday));
 }
 
+std::string since_day(uint32_t ymd)
+{
+    if (!ymd) return "";
+    std::tm t{};
+    t.tm_year = (int)(ymd / 10000) - 1900;
+    t.tm_mon = (int)(ymd / 100 % 100) - 1;
+    t.tm_mday = (int)(ymd % 100);
+    t.tm_hour = 12;   // noon: the same day whatever the zone
+    t.tm_isdst = -1;
+    const std::time_t at = std::mktime(&t);
+    return at < 0 ? date_text(ymd) : since_text((uint64_t)at);
+}
+
 std::string eshop_url(uint64_t nsu_id)
 {
     static const std::pair<const char*, const char*> COUNTRIES[] = {
