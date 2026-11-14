@@ -1,6 +1,7 @@
 // install/verify_title.cpp: an installed title read back: every content of its record found, of the
 // size the record says, and hashing to its id; what is not so is named; nothing is written.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <algorithm>
 #include <map>
 #include <set>
 
