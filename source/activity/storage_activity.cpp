@@ -10,11 +10,13 @@
 #include <aurore/cadran/ui/cadran_list.hpp>
 
 #include "action/check_flow.hpp"
+#include "action/compress_flow.hpp"
 #include "action/game_page.hpp"
 #include "action/installed_flow.hpp"
 #include "action/library_flow.hpp"
 #include "action/local_saves_flow.hpp"
 #include "ui/ui.hpp"
+#include "util/config.hpp"
 
 using namespace aurore::literals;
 namespace kit = cadran::kit;
@@ -99,6 +101,8 @@ aurore::DetailCell* StorageActivity::game_cell(const insights::Played& p)
         }
         lines.emplace_back("playshelf/saves_local/action"_i18n, [id, name]() { local_saves_flow::open(id, name); }, "save");
         lines.emplace_back("playshelf/check/action"_i18n, [id, name, found]() { check_flow::open(id, name, found.data, found.index); }, "check");
+        if (config::get().compression)
+            lines.emplace_back("playshelf/compress/action"_i18n, [id]() { compress_flow::open_game(id); }, "save");
         lines.emplace_back(
             "playshelf/installed/delete"_i18n,
             [id, name]() {

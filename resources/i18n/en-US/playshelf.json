@@ -868,5 +868,9 @@
         "remove_failed": "The homebrew could not be removed",
         "consent_body": "{} writes in places that can change how the console starts:",
         "consent_yes": "Install anyway"
+    },
+    "compress": {
+        "action": "Compress this game",
+        "pref": "Compress installed games (experimental)"
     }
 }

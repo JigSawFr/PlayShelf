@@ -260,6 +260,25 @@ void open()
     ui::pick("Compress which game?", labels, 0, [games, shown](int i) { prepare((*games)[shown[(size_t)i]]); });
 }
 
+void open_game(uint64_t id)
+{
+    if (ui::refuse_read_only()) return;
+    const patches::Report& report = ui::patch_report();
+    if (const std::string why = compress_logic::signature_blocker(report); !why.empty()) {
+        ui::error("Compress an installed game", why);
+        return;
+    }
+    if (const auto games = installed_flow::games()) {
+        for (const installed_flow::Game& g : *games) {
+            if (g.game.id == id && g.game.base) {
+                prepare(g);
+                return;
+            }
+        }
+    }
+    ui::error("Compress an installed game", "This game is not known as installed yet: open the Library tab first.");
+}
+
 void recover_at_start()
 {
     if (!paths::exists_or_pending(SdJournal::path())) return;

@@ -45,6 +45,7 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::BooleanCell, notices_others, "pf_notices_others");
     AURORE_BIND(aurore::BooleanCell, look_shared, "pf_look_shared");
     AURORE_BIND(aurore::BooleanCell, keep_awake,     "pf_keep_awake");
+    AURORE_BIND(aurore::BooleanCell, compression,    "pf_compression");
     AURORE_BIND(aurore::BooleanCell, share_files,    "pf_share_files");
     AURORE_BIND(aurore::DetailCell,  connections,    "pf_connections");
     AURORE_BIND(aurore::DetailCell,  prefetch,       "pf_prefetch");

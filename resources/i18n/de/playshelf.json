@@ -868,5 +868,9 @@
         "remove_failed": "Das Homebrew konnte nicht entfernt werden",
         "consent_body": "{} schreibt an Orte, die den Start der Konsole verändern können:",
         "consent_yes": "Trotzdem installieren"
+    },
+    "compress": {
+        "action": "Dieses Spiel komprimieren",
+        "pref": "Installierte Spiele komprimieren (experimentell)"
     }
 }
