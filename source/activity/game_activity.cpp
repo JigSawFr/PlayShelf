@@ -525,6 +525,7 @@ void GameActivity::fill_details_tab()
                       std::vector<std::pair<std::string, std::string>>(f.publisher.empty() ? 0 : 1, {f.publisher, f.publisher}));
     game.emplace_back("playshelf/game/developer"_i18n, f.developer);
     game.emplace_back("playshelf/game/released"_i18n, date_text(f.release_date));
+    game.emplace_back("playshelf/game/added"_i18n, since_day(l.first_seen));
     std::vector<std::pair<std::string, std::string>> genre_picks;
     for (const std::string& g : f.categories) genre_picks.emplace_back(nlib_flow::genre_name(g), g);
     game.emplace_back("playshelf/game/genres"_i18n, join(f.categories, [](const std::string& g) { return nlib_flow::genre_name(g); }),
