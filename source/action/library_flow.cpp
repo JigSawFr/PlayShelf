@@ -296,7 +296,7 @@ std::pair<const Loaded*, size_t> best_source(const Loaded& l, size_t i)
 }
 }   // namespace
 
-size_t install(const Loaded& from, const std::vector<size_t>& items)
+size_t install(const Loaded& from, const std::vector<size_t>& items, bool repair)
 {
     if (ui::refuse_read_only()) return 0;
     std::vector<download::Job> jobs;
@@ -331,6 +331,7 @@ size_t install(const Loaded& from, const std::vector<size_t>& items)
         j.size = it.size;
         j.sha256 = it.sha256;
         j.icon_url = it.icon_url;
+        j.force = repair;
         jobs.push_back(std::move(j));
     }
     return download_flow::add(std::move(jobs));

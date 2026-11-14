@@ -100,6 +100,10 @@ void test_installed()
     CHECK(installed_already(j, have));
     have[j.title_id] = 196608;
     CHECK(installed_already(j, have));
+    // A forced job (a repair) is never "already there": its title is, some of its files are not.
+    Job forced = j;
+    forced.force = true;
+    CHECK(!installed_already(forced, have));
     // A base game: the title at all.
     Job base;
     base.title_id = 0x0100000000010000ull;

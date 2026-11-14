@@ -149,6 +149,7 @@ std::string queue_to_json(const std::vector<Job>& jobs, const std::string& previ
         put(j, "unsigned", job.unsigned_content, true);
         put(j, "compressed", job.compressed_content, true);
         put(j, "accept_unsigned", job.accept_unsigned, true);
+        put(j, "force", job.force, true);
         j["done"] = job.done;
         j["total"] = job.total;
         // A newer build's journal stays until this one writes its own.
@@ -198,6 +199,7 @@ std::vector<Job> queue_from_json(const std::string& text)
         job.unsigned_content = flag(j, "unsigned");
         job.compressed_content = flag(j, "compressed");
         job.accept_unsigned = flag(j, "accept_unsigned");
+        job.force = flag(j, "force");
         job.done = u64(j, "done");
         job.total = u64(j, "total");
         const auto jn = j.find("journal");

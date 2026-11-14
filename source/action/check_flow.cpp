@@ -15,6 +15,7 @@
 #include "install/console_core.hpp"
 #include "install/verify_title.hpp"
 #include "library/catalog.hpp"
+#include "library/repair_plan.hpp"
 #include "ui/ui.hpp"
 
 using namespace aurore::literals;
@@ -62,13 +63,53 @@ std::string short_id(const ContentId& id)
     return content_id_hex(id).substr(0, 8) + "…";
 }
 
+// A title of the game with damaged files: its key, and the contents to write again.
+struct DamagedTitle
+{
+    MetaKey                key;
+    std::vector<ContentId> contents;
+};
+
 struct Outcome
 {
     std::string                 error;       // the check could not be done
     bool                        here = true; // the game is on the SD card
     size_t                      files = 0;
     std::vector<ContentVerdict> damaged;
+    std::vector<DamagedTitle>   titles;
 };
+
+library::Kind kind_of(MetaType t)
+{
+    switch (t) {
+        case MetaType::Application: return library::Kind::Base;
+        case MetaType::Patch: return library::Kind::Update;
+        case MetaType::AddOnContent: return library::Kind::Dlc;
+        default: return library::Kind::Unknown;
+    }
+}
+
+// The damaged files deleted (the installer writes the contents the console lacks), then their packages
+// queued as a repair. A package the library does not have stops it before anything is deleted.
+void repair(const std::shared_ptr<const library_flow::Loaded>& data, const std::string& name, std::vector<size_t> items,
+            std::vector<ContentId> contents)
+{
+    ui::in_background("repair game", [data, name, items = std::move(items), contents = std::move(contents)]() {
+        CoreConsole console(CoreStorage_Sd);
+        std::string error;
+        if (!console.ok()) error = console.error();
+        else
+            for (const ContentId& id : contents) console.delete_content(id);
+        aurore::sync([data, name, items, error]() {
+            if (!error.empty()) {
+                ui::error("playshelf/check/action"_i18n, aurore::getStr("playshelf/check/failed", error));
+                return;
+            }
+            library_flow::install(*data, items, true);
+            ui::info(aurore::getStr("playshelf/check/repair_queued", name));
+        });
+    });
+}
 
 struct Run
 {
@@ -77,7 +118,7 @@ struct Run
     std::atomic<int>                         percent{-1};
 };
 
-void report(const std::string& name, const Outcome& o)
+void report(const std::string& name, const Outcome& o, const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
 {
     if (!o.error.empty()) {
         ui::error("playshelf/check/action"_i18n, aurore::getStr("playshelf/check/failed", o.error));
@@ -97,14 +138,31 @@ void report(const std::string& name, const Outcome& o)
         lines += std::format("{}• {} ({} MB): {}", i ? "\n" : "", short_id(v.id), progress_dialog::mb_text(v.size), state_text(v.state));
     }
     if (o.damaged.size() > LINES_SHOWN) lines += aurore::getStr("playshelf/check/more", o.damaged.size() - LINES_SHOWN);
+    // The library has the packages: the repair is offered.
+    if (data && index < data->titles.size()) {
+        std::vector<library::Damaged> damaged;
+        std::vector<ContentId>        contents;
+        for (const DamagedTitle& t : o.titles) {
+            damaged.push_back({t.key.id, t.key.version, kind_of(t.key.type)});
+            contents.insert(contents.end(), t.contents.begin(), t.contents.end());
+        }
+        const library::RepairPlan plan = library::plan_repair(data->titles[index], data->fetch.catalog.items, damaged);
+        if (plan.missing.empty() && !plan.items.empty()) {
+            ui::confirm(
+                aurore::getStr("playshelf/check/bad_repair", name, o.damaged.size(), o.files, lines, progress_dialog::mb_text(plan.bytes)),
+                "playshelf/check/repair_go"_i18n,
+                [data, name, items = plan.items, contents]() { repair(data, name, items, contents); }, []() {});
+            return;
+        }
+    }
     ui::error("playshelf/check/action"_i18n, aurore::getStr("playshelf/check/bad", name, o.damaged.size(), o.files, lines));
 }
 
-void start(uint64_t game, const std::string& name)
+void start(uint64_t game, const std::string& name, const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
 {
     auto run = std::make_shared<Run>();
     run->dialog = std::make_shared<progress_dialog::Progress>("playshelf/check/heading"_i18n, name, &run->cancel);
-    ui::in_background("check game", [run, game, name]() {
+    ui::in_background("check game", [run, game, name, data, index]() {
         Outcome outcome;
         CoreConsole console(CoreStorage_Sd);
         if (!console.ok()) {
@@ -133,25 +191,27 @@ void start(uint64_t game, const std::string& name)
                     continue;
                 }
                 outcome.files += verdict->contents.size();
+                if (!verdict->damaged().empty()) outcome.titles.push_back({key, verdict->damaged()});
                 for (const ContentVerdict& v : verdict->contents)
                     if (v.state != ContentState::Ok) outcome.damaged.push_back(v);
             }
             if (keys.empty()) outcome.here = false;
         }
-        aurore::sync([run, name, outcome]() {
+        aurore::sync([run, name, outcome, data, index]() {
             const bool cancelled = run->cancel;
             if (run->dialog) run->dialog->close();
             run->dialog.reset();
-            if (!cancelled) report(name, outcome);
+            if (!cancelled) report(name, outcome, data, index);
         });
     });
 }
 }   // namespace
 
-void open(uint64_t game, const std::string& name)
+void open(uint64_t game, const std::string& name, std::shared_ptr<const library_flow::Loaded> data, size_t index)
 {
     ui::confirm(
-        aurore::getStr("playshelf/check/body", name), "playshelf/check/go"_i18n, [game, name]() { start(game, name); }, []() {});
+        aurore::getStr("playshelf/check/body", name), "playshelf/check/go"_i18n, [game, name, data, index]() { start(game, name, data, index); },
+        []() {});
 }
 
 }   // namespace check_flow

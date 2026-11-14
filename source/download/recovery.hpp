@@ -76,6 +76,8 @@ std::string rebase(const std::string& url, const std::string& from, const std::s
 
 // The console has the job's package already: its title at that version or
 // newer (a base game: the title at all). `installed`: title id → version.
+// Never for a job that is forced (a repair: the title is there, some of its
+// files are not).
 bool installed_already(const Job& job, const std::map<uint64_t, uint32_t>& installed);
 
 // The item of a catalogue that is the job's package: the same title id at

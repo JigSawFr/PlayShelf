@@ -47,6 +47,7 @@ struct Job
     bool        unsigned_content = false;   // Failed: on a content not signed by Nintendo
     bool        compressed_content = false; // ... a content stored compressed: a game rebuilt for the console's own compression
     bool        accept_unsigned = false;    // the user said to install it anyway
+    bool        force = false;              // install it though the console lists its package: a repair, some of its files are to be written again
     uint64_t    done = 0, total = 0;        // the install's bytes, as last known
     std::optional<install::Journal> journal;
     // The job as queue.json held it (a JSON object): the keys this build

@@ -138,7 +138,7 @@ std::string rebase(const std::string& url, const std::string& from, const std::s
 
 bool installed_already(const Job& job, const std::map<uint64_t, uint32_t>& installed)
 {
-    if (!job.title_id) return false;
+    if (!job.title_id || job.force) return false;
     const auto it = installed.find(job.title_id);
     if (it == installed.end()) return false;
     return !job.version || it->second >= *job.version;
