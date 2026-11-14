@@ -9,7 +9,7 @@ PlayShelf parcourt un serveur de bibliothèque que vous hébergez vous-même et 
 ## Ce qu'il faut
 
 - Une Nintendo Switch avec [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere).
-- [sys-patch](https://github.com/impeeza/sys-patch) ou des sigpatches, pour que les jeux installés démarrent. PlayShelf les cherche avant d'installer, et demande s'il faut continuer quand il ne trouve ni l'un ni les autres.
+- [sys-patch](https://github.com/impeeza/sys-patch) ou des sigpatches, pour que les jeux installés démarrent. PlayShelf les cherche avant d'installer, et demande s'il faut continuer quand il ne trouve ni l'un ni les autres. Avant la première installation d'une session, il avertit aussi quand la console démarre sur sa mémoire interne plutôt que sur une emuMMC, ou qu'elle peut joindre les serveurs de Nintendo (ni 90DNS ni autre blocage) : installer des jeux sur une telle console expose à un bannissement. Rien n'est demandé quand il ne peut pas le savoir.
 - Votre propre serveur de bibliothèque qui parle [Lantern](https://lantern.boreale.dev), accessible en HTTPS. Un serveur qui parle autre chose (AeroFoil, Ownfoil, un index JSON) a besoin d'un [pont](https://github.com/JigSawFr/lantern-bridge). Voir [Serveurs de bibliothèque](servers.md).
 
 ## Installer PlayShelf

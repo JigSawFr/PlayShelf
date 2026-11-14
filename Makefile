@@ -278,6 +278,8 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 # What is known of the games beyond their catalogue (Nlib API's), kept on
 # the SD card.
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
+# Whether installing here is risky: emuMMC and the names of Nintendo's servers.
+safety_logic_SRC := source/action/safety_logic.cpp tests/safety_logic/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
 # What must hold before a game is compressed in place (loader and FS patched).
