@@ -39,6 +39,27 @@ struct Pill
 };
 aurore::Box* chip_block(const std::string& name, const std::vector<Pill>& pills, const char* ink, const char* tint);
 
+// How good a score (0-100) is, as the ink and the tint of its chip or tile:
+// teal from 75, amber from 50, coral below.
+const char* score_ink(int score);
+const char* score_tint(int score);
+
+// A tile of a score: its value big in the display face, its caption, and a
+// line under it (how many gave it, nothing when none).
+aurore::Box* score_tile(const std::string& value, const std::string& caption, const std::string& sub, const char* ink,
+                        const char* tint);
+
+// The space a game takes: a bar of its parts side by side in a track as long
+// as the free space (or the parts, when they are longer), a legend of the
+// parts and the `caption` under it, in the `caption_ink`.
+struct Part
+{
+    std::string label;
+    uint64_t    bytes = 0;
+    const char* ink = "cadran/teal";
+};
+aurore::Box* size_bar(const std::vector<Part>& parts, uint64_t free_bytes, const std::string& caption, const char* caption_ink);
+
 // Where the console stands on a tab's items: a mark in a round of its tint,
 // a line in the display face, a line under it.
 aurore::Box* status_card(const std::string& title, const std::string& line, const char* icon_name, const char* ink,

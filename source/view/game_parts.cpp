@@ -182,6 +182,93 @@ aurore::Box* chip_block(const std::string& name, const std::vector<Pill>& pills,
     return block;
 }
 
+const char* score_ink(int score)
+{
+    return score >= 75 ? "cadran/teal" : score >= 50 ? "cadran/amber" : "cadran/coral";
+}
+
+const char* score_tint(int score)
+{
+    return score >= 75 ? "cadran/teal_soft" : score >= 50 ? "cadran/amber_surf" : "cadran/coral_soft";
+}
+
+aurore::Box* score_tile(const std::string& value, const std::string& caption, const std::string& sub, const char* ink,
+                        const char* tint)
+{
+    auto* tile = new aurore::Box(aurore::Axis::COLUMN);
+    tile->setWidth(240);
+    tile->setPaddingTop(14);
+    tile->setPaddingBottom(14);
+    tile->setPaddingLeft(18);
+    tile->setPaddingRight(18);
+    tile->setCornerRadius(14);
+    tile->setThemeColor("backgroundColor", tint);
+    tile->setMarginRight(12);
+    tile->setMarginBottom(12);
+    tile->addView(kit::display(value, 30, ink));
+    aurore::Label* name = kit::label(caption, 15, "cadran/text2");
+    name->setMarginTop(2);
+    tile->addView(name);
+    if (!sub.empty()) tile->addView(kit::label(sub, 14, "cadran/text3"));
+    return tile;
+}
+
+aurore::Box* size_bar(const std::vector<Part>& parts, uint64_t free_bytes, const std::string& caption, const char* caption_ink)
+{
+    uint64_t need = 0;
+    for (const Part& p : parts) need += p.bytes;
+    auto* block = new aurore::Box(aurore::Axis::COLUMN);
+    block->setAlignItems(aurore::AlignItems::STRETCH);
+    block->setMarginTop(16);
+    // The track: each part as long as its bytes, the free space left over in the well's tint.
+    auto* track = new aurore::Box(aurore::Axis::ROW);
+    track->setHeight(12);
+    track->setCornerRadius(6);
+    track->setThemeColor("backgroundColor", "cadran/well");
+    for (const Part& p : parts) {
+        if (!p.bytes) continue;
+        auto* seg = new aurore::Box(aurore::Axis::ROW);
+        seg->setHeight(12);
+        seg->setGrow((float)p.bytes);
+        seg->setShrink(1);
+        seg->setThemeColor("backgroundColor", p.ink);
+        track->addView(seg);
+    }
+    if (free_bytes > need) {
+        auto* rest = new aurore::Box(aurore::Axis::ROW);
+        rest->setHeight(12);
+        rest->setGrow((float)(free_bytes - need));
+        rest->setShrink(1);
+        track->addView(rest);
+    }
+    block->addView(track);
+    // The legend: a dot and a name for each part.
+    auto* legend = new aurore::Box(aurore::Axis::ROW);
+    legend->setMarginTop(10);
+    for (const Part& p : parts) {
+        if (!p.bytes) continue;
+        auto* item = new aurore::Box(aurore::Axis::ROW);
+        item->setAlignItems(aurore::AlignItems::CENTER);
+        item->setMarginRight(18);
+        item->setMarginBottom(4);
+        auto* dot = new aurore::Box(aurore::Axis::ROW);
+        dot->setWidth(10);
+        dot->setHeight(10);
+        dot->setCornerRadius(3);
+        dot->setThemeColor("backgroundColor", p.ink);
+        dot->setMarginRight(7);
+        item->addView(dot);
+        item->addView(kit::label(p.label, 14, "cadran/text2"));
+        legend->addView(item);
+    }
+    kit::wrap(legend);
+    block->addView(legend);
+    aurore::Label* line = kit::label(caption, 15, caption_ink);
+    line->setMarginTop(4);
+    block->addView(line);
+    return block;
+}
+
 void fact(aurore::Box* card, const std::string& name, const std::string& value)
 {
     if (value.empty()) return;
