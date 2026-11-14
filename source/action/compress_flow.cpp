@@ -17,6 +17,7 @@
 #include <aurore/cadran/ui/cadran_kit.hpp>
 #include <aurore/cadran/ui/cadran_modal.hpp>
 
+#include "action/compress_logic.hpp"
 #include "action/installed_flow.hpp"
 #include "action/rebuilt.hpp"
 #include "install/compress_title.hpp"
@@ -312,9 +313,8 @@ void open()
         return;
     }
     const patches::Report& report = ui::patch_report();
-    if (report.ldr != patches::Module::SysPatch && report.ldr != patches::Module::File) {
-        ui::error("Compress an installed game",
-                  "The loader is not patched (sys-patch): the compressed copy cannot carry Nintendo's signature and would not start.");
+    if (const std::string why = compress_logic::signature_blocker(report); !why.empty()) {
+        ui::error("Compress an installed game", why);
         return;
     }
     ui::pick("Compress which game?", labels, 0, [games, shown](int i) { prepare((*games)[shown[(size_t)i]]); });

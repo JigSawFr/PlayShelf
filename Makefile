@@ -280,6 +280,8 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
+# What must hold before a game is compressed in place (loader and FS patched).
+compress_logic_SRC := source/action/compress_logic.cpp tests/compress_logic/test.cpp
 # How well known the games are, their trend and critics (popular.json, Atlas).
 library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 # The games still to come and how many follow each (upcoming.json, Atlas).
