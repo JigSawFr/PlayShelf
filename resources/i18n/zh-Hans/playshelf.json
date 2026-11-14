@@ -230,6 +230,15 @@
         "st_unreadable": "无法读取",
         "st_corrupt": "已损坏"
     },
+    "saves_local": {
+        "action": "备份存档",
+        "done": "{}：存档已备份到 SD 卡（{} 份；每位用户保留最近 3 份）。",
+        "none": "{} 在这台主机上没有存档。",
+        "failed": "无法备份 {} 的存档：{}",
+        "users_failed": "无法读取主机的用户。",
+        "write_failed": "无法把备份写入 SD 卡。",
+        "auto_done": "更新前：已把 {} 的存档备份到 SD 卡（{} 份）。"
+    },
     "installed": {
         "summary": "此主机上",
         "reading": "正在读取…",

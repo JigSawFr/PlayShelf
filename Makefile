@@ -284,6 +284,8 @@ safety_logic_SRC := source/action/safety_logic.cpp tests/safety_logic/test.cpp
 verify_title_SRC := $(INSTALL_FORMATS) source/install/recompress_meta.cpp source/install/verify_title.cpp tests/verify_title/test.cpp
 # Which packages of a catalogue repair a game.
 library_repair_SRC := source/library/repair_plan.cpp tests/library_repair/test.cpp
+# A game's local save copies: their names and which to delete.
+local_backups_SRC := source/saves/local_backups.cpp tests/local_backups/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
 # What must hold before a game is compressed in place (loader and FS patched).

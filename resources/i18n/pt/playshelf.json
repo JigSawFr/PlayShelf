@@ -230,6 +230,15 @@
         "st_unreadable": "ilegível",
         "st_corrupt": "danificado"
     },
+    "saves_local": {
+        "action": "Copiar os saves",
+        "done": "{}: os saves foram copiados para o cartão SD ({} cópias; ficam as últimas 3 de cada utilizador).",
+        "none": "{} não tem save nesta consola.",
+        "failed": "Não foi possível copiar os saves de {}: {}",
+        "users_failed": "Não foi possível ler os utilizadores da consola.",
+        "write_failed": "Não foi possível escrever a cópia no cartão SD.",
+        "auto_done": "Antes da atualização: os saves de {} foram copiados para o cartão SD ({} cópias)."
+    },
     "installed": {
         "summary": "Nesta consola",
         "reading": "A ler…",

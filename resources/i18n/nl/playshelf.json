@@ -230,6 +230,15 @@
         "st_unreadable": "onleesbaar",
         "st_corrupt": "beschadigd"
     },
+    "saves_local": {
+        "action": "Back-up van de savegames maken",
+        "done": "{}: de savegames zijn op de SD-kaart gezet ({} kopieën; de laatste 3 van elke gebruiker blijven bewaard).",
+        "none": "{} heeft geen savegame op deze console.",
+        "failed": "Er kon geen back-up van de savegames van {} worden gemaakt: {}",
+        "users_failed": "De gebruikers van de console konden niet worden gelezen.",
+        "write_failed": "De kopie kon niet naar de SD-kaart worden geschreven.",
+        "auto_done": "Vóór de update: de savegames van {} zijn op de SD-kaart gezet ({} kopieën)."
+    },
     "installed": {
         "summary": "Op deze console",
         "reading": "Bezig met lezen…",

@@ -15,6 +15,7 @@
 
 #include "action/download_job.hpp"
 #include "action/library_flow.hpp"
+#include "action/local_saves_flow.hpp"
 #include "action/rebuilt.hpp"
 #include "action/safety_logic.hpp"
 #include "action/safety_probe.hpp"
@@ -54,6 +55,7 @@ Listeners                      s_listeners;
 bool                           s_loaded = false;
 bool                           s_patches_checked = false, s_safety_checked = false, s_asking = false;
 std::set<uint64_t>             s_cheats_told;   // the games whose cheats were spoken of this run
+std::set<uint64_t>             s_saves_kept;    // the games whose saves were backed up before an update this run
 std::string                    s_running;   // the running job's id
 std::shared_ptr<Control>       s_control;
 Live                           s_live;
@@ -481,6 +483,27 @@ void start_next()
                     pause(id);
                     start_next();
                 });
+            return;
+        }
+    }
+    // An update can go wrong, and a save is not made again: once a run per game, the saves of its users are
+    // copied to the SD card before the update installs (the last few of each user are kept). What cannot be
+    // copied is no reason to hold the update back.
+    if (library::kind_of(job.title_id) == library::Kind::Update) {
+        const uint64_t game = library::base_of(job.title_id);
+        if (!s_saves_kept.contains(game)) {
+            s_saves_kept.insert(game);
+            s_asking = true;
+            const std::string name = job.game.empty() ? job.name : job.game;
+            ui::in_background("saves before update", [game, name]() {
+                const local_saves_flow::Outcome o = local_saves_flow::back_up_game(game);
+                aurore::sync([o, name]() {
+                    if (o.copies > 0) ui::notify(aurore::getStr("playshelf/saves_local/auto_done", name, o.copies));
+                    if (!o.error.empty()) aurore::Logger::warning("saves before an update: {}: {}", name, o.error);
+                    s_asking = false;
+                    start_next();
+                });
+            });
             return;
         }
     }
