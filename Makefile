@@ -322,7 +322,7 @@ library_recommend_SRC := source/library/signals.cpp source/library/popular.cpp s
 library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp source/library/titles.cpp source/library/installed.cpp tests/library_installed/test.cpp
 # The downloads' queue (source/download/): its file, the journals in it, the
 # speed, the placeholders no job keeps.
-download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp $(KIT)/util/paths.cpp \
+download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp source/library/catalog.cpp $(KIT)/util/paths.cpp \
                        tests/download_queue/test.cpp
 download_queue_LIBS := -lzstd
 # What a failed download's error means and what can be done about it.

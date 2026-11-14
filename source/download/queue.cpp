@@ -10,6 +10,7 @@
 
 #include <aurore/extern/nlohmann/json.hpp>
 
+#include "library/catalog.hpp"
 #include "util/paths.hpp"
 
 namespace download
@@ -261,8 +262,18 @@ std::string new_job_id()
 
 long next_job(const std::vector<Job>& jobs)
 {
-    for (size_t i = 0; i < jobs.size(); i++)
-        if (jobs[i].state == State::Waiting) return (long)i;
+    for (size_t i = 0; i < jobs.size(); i++) {
+        if (jobs[i].state != State::Waiting) continue;
+        // An update or an add-on goes over its game: when the game waits too, it goes first, whatever
+        // order they were added in.
+        const uint64_t id = jobs[i].title_id;
+        if (id != 0 && library::kind_of(id) != library::Kind::Base) {
+            const uint64_t game = library::base_of(id);
+            for (size_t k = i + 1; k < jobs.size(); k++)
+                if (jobs[k].state == State::Waiting && jobs[k].title_id == game) return (long)k;
+        }
+        return (long)i;
+    }
     return -1;
 }
 

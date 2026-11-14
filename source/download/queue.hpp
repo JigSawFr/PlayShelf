@@ -81,7 +81,9 @@ bool             save_queue(const std::vector<Job>& jobs, std::string* why);
 
 std::string new_job_id();
 
-// The job to start next: the first waiting one, -1 when none.
+// The job to start next: the first waiting one, -1 when none. Except that an
+// update or an add-on waits for its game when the game is waiting too (it goes
+// first): an update is made to be installed over the game it is for.
 long next_job(const std::vector<Job>& jobs);
 // The jobs not finished: waiting, running or paused.
 size_t pending(const std::vector<Job>& jobs);
