@@ -96,7 +96,7 @@ aurore::DetailCell* StorageActivity::game_cell(const insights::Played& p)
             const size_t index = found.index;
             lines.emplace_back("playshelf/storage/open_page"_i18n, [data, index]() { game_page::open(data, index); }, "info");
         }
-        lines.emplace_back("playshelf/check/action"_i18n, [id, name]() { check_flow::open(id, name); }, "check");
+        lines.emplace_back("playshelf/check/action"_i18n, [id, name, found]() { check_flow::open(id, name, found.data, found.index); }, "check");
         lines.emplace_back(
             "playshelf/installed/delete"_i18n,
             [id, name]() {
