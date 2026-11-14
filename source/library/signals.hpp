@@ -143,6 +143,9 @@ bool names_any(const SignalBook& book, const std::vector<uint64_t>& unnamed);
 // The series and developers Atlas gives a game, one per line, for a search to also match ("" when none).
 std::string related_names(const GameSignals& game);
 
+// Whether two games share a series (a Wikidata id, so a name's spelling does not matter).
+bool same_series(const GameSignals& a, const GameSignals& b);
+
 // A base game's title id from 16 hex digits; 0 for anything else.
 uint64_t base_id_of(const std::string& text);
 // Whether a day reads as YYYY-MM-DD.

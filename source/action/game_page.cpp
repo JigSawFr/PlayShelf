@@ -64,6 +64,17 @@ void open(const std::shared_ptr<const library_flow::Loaded>& data, size_t index)
             if (e != id) other_of(e, out);
         return out;
     };
+    // The other games of its series (Atlas' Wikidata id) this server has.
+    page.series = [data, index, icon_of]() {
+        std::vector<GameActivity::Other> out;
+        const library::GameSignals* mine = popular_flow::signals()->find(data->titles[index].id);
+        if (!mine) return out;
+        for (size_t i = 0; i < data->titles.size(); i++) {
+            const library::GameSignals* g = i == index || !data->titles[i].id ? nullptr : popular_flow::signals()->find(data->titles[i].id);
+            if (g && library::same_series(*mine, *g)) out.push_back({ data->titles[i].name, icon_of(i), [data, i]() { open(data, i); } });
+        }
+        return out;
+    };
     // The games most like it (Atlas), on any server read, the most
     // alike first; its own editions are in the row above.
     page.similar = [id = t.id, other_of]() {

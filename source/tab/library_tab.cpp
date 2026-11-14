@@ -556,10 +556,10 @@ void LibraryTab::open(size_t i)
     std::vector<Owned> console;
     for (size_t k = 0; k < this->entries.size(); k++)
         if (k != i) console.push_back({ this->entries[k].game->game.id, this->entries[k].name, this->entries[k].game->icon });
-    auto others = [weak = ui::Weak(this->alive), this, console](const std::function<bool(const library::Facts&)>& like) {
+    auto others = [weak = ui::Weak(this->alive), this, console](const std::function<bool(uint64_t, const library::Facts&)>& like) {
         std::vector<GameActivity::Other> out;
         for (const Owned& o : console) {
-            if (!like(nlib_flow::facts(o.id))) continue;
+            if (!like(o.id, nlib_flow::facts(o.id))) continue;
             const uint64_t other = o.id;
             const auto     bytes = o.icon;
             out.push_back({ o.name,
@@ -580,11 +580,19 @@ void LibraryTab::open(size_t i)
         return out;
     };
     page.by_publisher = [others](const std::string& publisher) {
-        return others([&](const library::Facts& f) { return f.publisher == publisher; });
+        return others([&](uint64_t, const library::Facts& f) { return f.publisher == publisher; });
     };
     page.by_genre = [others](const std::string& genre) {
-        return others([&](const library::Facts& f) {
+        return others([&](uint64_t, const library::Facts& f) {
             return std::ranges::contains(f.categories, genre);
+        });
+    };
+    page.series = [others, game_id]() {
+        const library::GameSignals* mine = popular_flow::signals()->find(game_id);
+        if (!mine) return std::vector<GameActivity::Other>{};
+        return others([&](uint64_t other, const library::Facts&) {
+            const library::GameSignals* g = popular_flow::signals()->find(other);
+            return g && library::same_series(*mine, *g);
         });
     };
     // Its cover as the Library shows it: the console's icon, else the

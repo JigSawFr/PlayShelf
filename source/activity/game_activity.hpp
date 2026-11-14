@@ -64,6 +64,8 @@ class GameActivity : public aurore::Activity
         // Its other editions the servers have, the game itself among them
         // when this is an edition (Atlas' editions.json).
         std::function<std::vector<Other>()> editions;
+        // The other games of its series (Atlas' Wikidata id) the caller has.
+        std::function<std::vector<Other>()> series;
     };
     static void show(Page page);
 

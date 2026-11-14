@@ -214,8 +214,19 @@ void test_shipped()
 }
 }   // namespace
 
+static void test_same_series()
+{
+    library::GameSignals a, b, c;
+    a.series = { { "Q1", "A saga" } };
+    b.series = { { "Q2", "Other" }, { "Q1", "" } };
+    c.series = { { "", "A saga" } };
+    CHECK(library::same_series(a, b) && library::same_series(b, a));
+    CHECK(!library::same_series(a, c) && !library::same_series(c, c) && !library::same_series(a, library::GameSignals{}));
+}
+
 int main()
 {
+    test_same_series();
     test_games();
     test_similar();
     test_igdb();
