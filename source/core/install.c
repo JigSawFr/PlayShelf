@@ -129,6 +129,11 @@ Result core_placeholder_write(const u8 id[16], u64 offset, const void *data, siz
     return ncmContentStorageWritePlaceHolder(&s_storage, &p, offset, data, size);
 }
 
+Result core_placeholder_flush(void)
+{
+    return ncmContentStorageFlushPlaceHolder(&s_storage);
+}
+
 Result core_placeholder_register(const u8 id[16])
 {
     const NcmContentId     c = as_content(id);

@@ -201,7 +201,10 @@ Done Installer::write_content(const ContentInfo& c)
                                              return false;
                                          }
                                          if (!cs.feed({data, size})) return false;
-                                         if (done - journaled >= JOURNAL_EVERY && cs.checkpoint()) {
+                                         // A point of resume says "written up to here": the console has it
+                                         // on the card before it is kept; when it cannot say so, no point is
+                                         // kept now, and the next try is a little later.
+                                         if (done - journaled >= JOURNAL_EVERY && cs.checkpoint() && console.flush_placeholders()) {
                                              state.at = cs.checkpoint();
                                              save_journal();
                                          }
@@ -221,6 +224,7 @@ Done Installer::write_content(const ContentInfo& c)
         // Kept to go on later when its stream can be taken up (a .nca);
         // a .ncz's placeholder is of no use: it starts again.
         state.at = cs.checkpoint();
+        if (state.at && !console.flush_placeholders()) state.at.reset();   // not on the card: from the start
         if (!state.at) {
             console.delete_placeholder(c.id);
             std::erase(made, c.id);

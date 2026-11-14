@@ -28,6 +28,7 @@ class CoreConsole : public Console
     bool     has_content(const ContentId& id) override;
     [[nodiscard]] Done create_placeholder(const ContentId& id, uint64_t size) override;
     [[nodiscard]] Done write_placeholder(const ContentId& id, uint64_t offset, const uint8_t* data, size_t size) override;
+    [[nodiscard]] Done flush_placeholders() override;
     [[nodiscard]] Done register_placeholder(const ContentId& id) override;
     bool     has_placeholder(const ContentId& id) override;
     [[nodiscard]] Done register_placeholder_as(const ContentId& placeholder, const ContentId& content) override;

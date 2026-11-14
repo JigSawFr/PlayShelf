@@ -59,6 +59,11 @@ Done CoreConsole::write_placeholder(const ContentId& id, uint64_t offset, const 
     return check(core_placeholder_write(id.data(), offset, data, size), "writing a placeholder");
 }
 
+Done CoreConsole::flush_placeholders()
+{
+    return check(core_placeholder_flush(), "flushing the placeholders");
+}
+
 Done CoreConsole::register_placeholder(const ContentId& id)
 {
     return check(core_placeholder_register(id.data()), "registering a content");
