@@ -87,13 +87,13 @@ struct Session
     std::string                      name;
 };
 
-const char* stage_text(CompressStage s)
+std::string stage_text(CompressStage s)
 {
     switch (s) {
-        case CompressStage::Measuring: return "Measuring";
-        case CompressStage::Writing: return "Writing the compressed copy";
-        case CompressStage::Checking: return "Checking it against the original";
-        case CompressStage::Reading: return "Reading it as the console does";
+        case CompressStage::Measuring: return "playshelf/compress/st_measuring"_i18n;
+        case CompressStage::Writing: return "playshelf/compress/st_writing"_i18n;
+        case CompressStage::Checking: return "playshelf/compress/st_checking"_i18n;
+        case CompressStage::Reading: return "playshelf/compress/st_reading"_i18n;
     }
     return "";
 }
@@ -106,9 +106,8 @@ void log_failed(const std::string& what, const std::string& why)
 // The user's decision on a compressed game that waits for one.
 void decide(const std::string& name, const std::function<void()>& keep, const std::function<void()>& revert)
 {
-    ui::pick(std::format("{}: does it start?", name),
-             { "Decide later (start the game first)", "Keep the compressed game (the old files are deleted)",
-               "Go back to the original" },
+    ui::pick(aurore::getStr("playshelf/compress/decide", name),
+             { "playshelf/compress/decide_later"_i18n, "playshelf/compress/decide_keep"_i18n, "playshelf/compress/decide_revert"_i18n },
              0, [keep, revert](int i) {
                  if (i == 1) keep();
                  else if (i == 2) revert();
@@ -122,10 +121,10 @@ void keep_session(const std::shared_ptr<Session>& s)
         aurore::sync([s, d]() {
             if (d) {
                 rebuilt::note({ { s->game, true } });
-                ui::info(std::format("{} stays compressed. The old files are deleted.", s->name));
+                ui::info(aurore::getStr("playshelf/compress/kept", s->name));
             } else {
                 log_failed("keep", d.error());
-                ui::error("The compressed game could not be kept", d.error());
+                ui::error("playshelf/compress/keep_failed"_i18n, d.error());
             }
         });
     });
@@ -136,10 +135,10 @@ void revert_session(const std::shared_ptr<Session>& s)
     ui::in_background("compress-revert", [s]() {
         const Done d = s->engine->revert();
         aurore::sync([s, d]() {
-            if (d) ui::info(std::format("{} is as it was.", s->name));
+            if (d) ui::info(aurore::getStr("playshelf/compress/reverted", s->name));
             else {
                 log_failed("revert", d.error());
-                ui::error("Going back failed", d.error());
+                ui::error("playshelf/compress/revert_failed"_i18n, d.error());
             }
         });
     });
@@ -147,9 +146,7 @@ void revert_session(const std::shared_ptr<Session>& s)
 
 void after_run(const std::shared_ptr<Session>& s)
 {
-    ui::info(std::format("{} is compressed. Start it from the HOME menu to try it, then come back here: PlayShelf will ask whether "
-                         "to keep it. Until then the old files are kept.",
-                         s->name));
+    ui::info(aurore::getStr("playshelf/compress/done", s->name));
     decide(s->name, [s]() { keep_session(s); }, [s]() { revert_session(s); });
 }
 
@@ -157,7 +154,7 @@ void run_session(const std::shared_ptr<Session>& s)
 {
     s->cancel = false;
     s->percent = -1;
-    s->dialog = std::make_shared<Progress>("Compressing", s->name, &s->cancel);
+    s->dialog = std::make_shared<Progress>("playshelf/compress/compressing"_i18n, s->name, &s->cancel);
     ui::in_background("compress-run", [s]() {
         cpu_boost::Guard boost(config::get().cpu_boost);
         const Done d = s->engine->run();
@@ -166,10 +163,10 @@ void run_session(const std::shared_ptr<Session>& s)
             if (s->dialog) s->dialog->close();
             s->dialog.reset();
             if (d) after_run(s);
-            else if (cancelled) ui::notify("Cancelled: the game is as it was.");
+            else if (cancelled) ui::notify("playshelf/compress/cancelled"_i18n);
             else {
                 log_failed("run", d.error());
-                ui::error(std::format("{} could not be compressed", s->name), d.error() + "\n\nThe game is as it was.");
+                ui::error(aurore::getStr("playshelf/compress/failed", s->name), d.error() + "playshelf/compress/failed_tail"_i18n);
             }
         });
     });
@@ -178,14 +175,10 @@ void run_session(const std::shared_ptr<Session>& s)
 void confirm_session(const std::shared_ptr<Session>& s, bool merges)
 {
     const CompressReport& r = s->engine->report();
-    ui::confirm(
-        std::format("Compress {}?\n\nIts program goes from {} MB to {} MB ({}% less){}. The new copy needs {} MB free; {} MB are.\n\n"
-                    "Only for a console whose loader is patched (sys-patch): the new copy cannot carry Nintendo's signature. "
-                    "Official updates can no longer be installed over it, and nothing is deleted until you confirm the game "
-                    "starts. This takes a long time; keep the console charged and awake.",
-                    s->name, mb_text(r.program_before), mb_text(r.program_after), r.saving_percent(),
-                    merges ? ", with the installed update merged in" : "", mb_text(r.needed), mb_text(r.free_space)),
-        "Compress", [s]() { run_session(s); });
+    ui::confirm(aurore::getStr("playshelf/compress/confirm", s->name, mb_text(r.program_before), mb_text(r.program_after),
+                               r.saving_percent(), merges ? "playshelf/compress/with_update"_i18n : std::string(), mb_text(r.needed),
+                               mb_text(r.free_space)),
+                "playshelf/compress/go"_i18n, [s]() { run_session(s); });
 }
 
 void prepare(const installed_flow::Game& g)
@@ -194,7 +187,7 @@ void prepare(const installed_flow::Game& g)
     s->game = g.game.id;
     s->name = g.name.empty() ? title_id::text(g.game.id) : g.name;
     const bool merges = g.game.update != 0;
-    s->dialog = std::make_shared<Progress>("Measuring", s->name, &s->cancel);
+    s->dialog = std::make_shared<Progress>("playshelf/compress/st_measuring"_i18n, s->name, &s->cancel);
     const MetaKey base{ g.game.id, g.game.version, MetaType::Application };
     ui::in_background("compress-prepare", [s, base, merges, update = g.game.update]() {
         std::string why;
@@ -223,7 +216,7 @@ void prepare(const installed_flow::Game& g)
             if (!why.empty()) {
                 if (!cancelled) {
                     log_failed("prepare", why);
-                    ui::error(std::format("{} cannot be compressed", s->name), why);
+                    ui::error(aurore::getStr("playshelf/compress/cannot", s->name), why);
                 }
                 return;
             }
@@ -245,19 +238,19 @@ void open()
             if (!g.game.base) continue;
             shown.push_back(i);
             labels.push_back((g.name.empty() ? title_id::text(g.game.id) : g.name) + (g.version.empty() ? "" : " · " + g.version) +
-                             (g.game.update ? " (+ update)" : ""));
+                             (g.game.update ? "playshelf/compress/plus_update"_i18n : ""));
         }
     }
     if (shown.empty()) {
-        ui::error("Compress an installed game", "No installed game is known yet: open the Library tab first.");
+        ui::error("playshelf/compress/title"_i18n, "playshelf/compress/none_known"_i18n);
         return;
     }
     const patches::Report& report = ui::patch_report();
     if (const std::string why = compress_logic::signature_blocker(report); !why.empty()) {
-        ui::error("Compress an installed game", why);
+        ui::error("playshelf/compress/title"_i18n, why);
         return;
     }
-    ui::pick("Compress which game?", labels, 0, [games, shown](int i) { prepare((*games)[shown[(size_t)i]]); });
+    ui::pick("playshelf/compress/which"_i18n, labels, 0, [games, shown](int i) { prepare((*games)[shown[(size_t)i]]); });
 }
 
 void open_game(uint64_t id)
@@ -265,7 +258,7 @@ void open_game(uint64_t id)
     if (ui::refuse_read_only()) return;
     const patches::Report& report = ui::patch_report();
     if (const std::string why = compress_logic::signature_blocker(report); !why.empty()) {
-        ui::error("Compress an installed game", why);
+        ui::error("playshelf/compress/title"_i18n, why);
         return;
     }
     if (const auto games = installed_flow::games()) {
@@ -276,7 +269,7 @@ void open_game(uint64_t id)
             }
         }
     }
-    ui::error("Compress an installed game", "This game is not known as installed yet: open the Library tab first.");
+    ui::error("playshelf/compress/title"_i18n, "playshelf/compress/none_known"_i18n);
 }
 
 void recover_at_start()
@@ -292,13 +285,13 @@ void recover_at_start()
         const auto left = TitleCompressor::recover(console, journal);
         if (!left) {
             log_failed("recover", left.error());
-            aurore::sync([why = left.error()]() { ui::error("A compression was left unfinished and could not be handled", why); });
+            aurore::sync([why = left.error()]() { ui::error("playshelf/compress/left_failed"_i18n, why); });
             return;
         }
         const TitleCompressor::Left found = *left;
         aurore::sync([found]() {
             if (found.found == TitleCompressor::Found::CleanedUp) {
-                ui::info("A compression the console interrupted was undone: the game is as it was.");
+                ui::info("playshelf/compress/left_undone"_i18n);
             } else if (found.found == TitleCompressor::Found::AwaitingDecision) {
                 const std::string name = title_id::text(found.key.id);
                 const uint64_t    id = found.key.id;
@@ -312,8 +305,8 @@ void recover_at_start()
                             aurore::sync([id, name, d]() {
                                 if (d) {
                                     rebuilt::note({ { id, true } });
-                                    ui::info(std::format("{} stays compressed. The old files are deleted.", name));
-                                } else ui::error("The compressed game could not be kept", d.error());
+                                    ui::info(aurore::getStr("playshelf/compress/kept", name));
+                                } else ui::error("playshelf/compress/keep_failed"_i18n, d.error());
                             });
                         });
                     },
@@ -323,8 +316,8 @@ void recover_at_start()
                             SdJournal   store;
                             const Done  d = sd.ok() ? TitleCompressor::revert_left(sd, store) : fail(sd.error());
                             aurore::sync([name, d]() {
-                                if (d) ui::info(std::format("{} is as it was.", name));
-                                else ui::error("Going back failed", d.error());
+                                if (d) ui::info(aurore::getStr("playshelf/compress/reverted", name));
+                                else ui::error("playshelf/compress/revert_failed"_i18n, d.error());
                             });
                         });
                     });
