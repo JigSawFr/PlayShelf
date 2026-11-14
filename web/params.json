@@ -9,6 +9,7 @@
   {"name": "rec", "page": true, "group": "app", "type": "text"},
   {"name": "tour", "page": true, "group": "app", "type": "bool"},
   {"name": "no_demo", "group": "library", "type": "bool"},
+  {"name": "no_atlas", "group": "library", "type": "bool"},
   {"name": "signed", "live": true, "group": "library", "type": "bool"},
   {"name": "speed", "live": true, "group": "library", "type": "number", "min": 0, "placeholder": "96"},
   {"name": "free_mb", "live": true, "group": "library", "type": "number", "min": 0, "placeholder": "32768"},
