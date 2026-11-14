@@ -28,6 +28,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_NOW=<POSIX seconds>` | A frozen console time (with `TZ=` for its time zone) |
 | `PLAYSHELF_SIM_NO_CFW=1` | No Atmosphère |
 | `PLAYSHELF_SIM_NO_GAME=1` | No game open (applet mode with nothing behind it) |
+| `PLAYSHELF_SIM_NO_ATLAS=1` | Nothing fetched from Atlas (`popular_flow`): Home shows the files at hand (the demo's, written by `tools/web_demo.cpp`), not the ones of the day; the desktop smoke test sets it |
 | `PLAYSHELF_SIM_NO_DEMO=1` | A first start without the demo (below): no library server, no game on the console, a console as new (its services' answers stay the demo's) |
 | `PLAYSHELF_SIM_NO_PLAY=1` | No play time on the console (`sim/sim_play.cpp`; unset, each game's play time, starts and last play are made up from its title id) |
 | `PLAYSHELF_SIM_PASTE=https://gist.github.com/u/ab12` | What GitHub answers to *Send a report…* (`offline` for no network) |
