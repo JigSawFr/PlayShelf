@@ -3,17 +3,9 @@
 
 namespace compress_logic
 {
-namespace
-{
-bool patched(patches::Module m)
-{
-    return m == patches::Module::SysPatch || m == patches::Module::File;
-}
-}   // namespace
-
 std::string signature_blocker(const patches::Report& report)
 {
-    const bool ldr = patched(report.ldr), fs = patched(report.fs);
+    const bool ldr = patches::patched(report.ldr), fs = patches::patched(report.fs);
     if (ldr && fs) return {};
     const char* what = !ldr && !fs ? "The loader and the file system are not patched"
                        : !ldr      ? "The loader is not patched"
