@@ -538,7 +538,8 @@
             "no_space": "La carte SD n'a pas assez d'espace libre pour ce paquet : libérez-en, puis réessayez.",
             "corrupt": "Un contenu du paquet n'est pas ce qu'il devrait être : le fichier sur le serveur est peut-être endommagé.",
             "server_gone": "Le serveur de bibliothèque de ce téléchargement a été supprimé de PlayShelf : retirez le téléchargement, ou ajoutez le serveur de nouveau."
-        }
+        },
+        "saves_before_update": "Copier les sauvegardes avant une mise à jour"
     },
     "titledb": {
         "section": "Base de titres",

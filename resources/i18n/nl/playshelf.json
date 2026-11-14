@@ -538,7 +538,8 @@
             "no_space": "De SD-kaart heeft niet genoeg vrije ruimte voor dit pakket: maak ruimte vrij en probeer het opnieuw.",
             "corrupt": "Een inhoud van het pakket is niet wat hij moet zijn: het bestand op de server is misschien beschadigd.",
             "server_gone": "De bibliotheekserver van deze download is uit PlayShelf verwijderd: verwijder de download of voeg de server opnieuw toe."
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "Titeldatabase",

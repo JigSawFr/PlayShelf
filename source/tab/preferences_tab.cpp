@@ -162,6 +162,11 @@ PreferencesTab::PreferencesTab()
         ui::save_config();
         download_flow::keep_awake_changed();
     });
+    // On: an update's saves are copied to the SD card first (action/download_flow).
+    saves_before_update->init("playshelf/downloads/saves_before_update"_i18n, config::get().saves_before_update, [](bool on) {
+        config::get().saves_before_update = on;
+        ui::save_config();
+    });
     // Off until turned on: this console then gives the homebrew files it
     // holds to the other consoles of the network (SPEC.md 19.4).
     share_files->init("playshelf/downloads/share_files"_i18n, config::get().share_files, [this](bool on) {
@@ -298,7 +303,7 @@ PreferencesTab::PreferencesTab()
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
                        { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
-                       { "pf_keep_awake", "bolt" }, { "pf_share_files", "upload" }, { "pf_compression", "save" }, { "pf_connections", "server" },
+                       { "pf_keep_awake", "bolt" }, { "pf_saves_before_update", "save" }, { "pf_share_files", "upload" }, { "pf_compression", "save" }, { "pf_connections", "server" },
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
                        { "pf_titledb", "shelf" }, { "pf_title_sources", "list" }, { "pf_nlib_api", "globe" },
@@ -469,6 +474,7 @@ void PreferencesTab::refresh()
     notices_others->setOn(cfg.notices_others, false);
     look_shared->setOn(cfg.look_shared, false);
     keep_awake->setOn(cfg.keep_awake, false);
+    saves_before_update->setOn(cfg.saves_before_update, false);
     share_files->setOn(cfg.share_files, false);
     compression->setOn(cfg.compression, false);
     this->show_share();
