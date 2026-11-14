@@ -215,7 +215,7 @@ void discover(const std::function<void(const std::string&)>& saved)
     ui::in_background("discovery", [cancel, dialog, saved]() {
         std::string why;
         std::vector<lantern_app::Found> found;
-        if (auto socket = lantern_app::BroadcastSocket::open()) found = lantern_app::discover(*socket);
+        if (auto socket = lantern_app::BroadcastSocket::open()) found = lantern_app::discover(*socket, lantern_app::directed_broadcast().value_or(""));
         else why = lantern_app::describe(socket.error());
         aurore::sync([cancel, dialog, saved, found, why]() {
             if (*cancel) return;   // the dialog is closed already

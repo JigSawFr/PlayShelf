@@ -5,6 +5,10 @@
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
 #pragma once
 
+#include <cstdint>
+#include <optional>
+#include <string>
+
 #include <lantern/discovery.hpp>
 #include <lantern/http_signature.hpp>
 
@@ -23,6 +27,15 @@ class SystemClock final : public lantern::Clock
   public:
     std::int64_t unix_seconds() override;
 };
+
+// The broadcast address of an IPv4 network, from the address and the mask in
+// network byte order ("192.168.1.255"); "" when there is no address. Some
+// consoles drop 255.255.255.255, so discovery asks the network's own too.
+std::string broadcast_address(std::uint32_t address, std::uint32_t mask);
+
+// The broadcast address of the network this device is on, none without one:
+// the console's through nifm, a PC's first IPv4 interface that is up.
+std::optional<std::string> directed_broadcast();
 
 // An IPv4 UDP socket that may send to a broadcast address.
 class BroadcastSocket final : public lantern::UdpSocket

@@ -53,5 +53,15 @@ int main()
     CHECK(!socket->send_to("not-an-address", 1, std::as_bytes(std::span(hello, 4))).has_value());
     ::close(server);
 
-    CHECK_DONE("lantern system: random, clock and the discovery socket passed");
+    // The broadcast address of a network, from an address and a mask in network byte order.
+    const auto net = [](int o1, int o2, int o3, int o4) { return htonl((uint32_t)o1 << 24 | (uint32_t)o2 << 16 | (uint32_t)o3 << 8 | (uint32_t)o4); };
+    CHECK(broadcast_address(net(192, 168, 1, 23), net(255, 255, 255, 0)) == "192.168.1.255");
+    CHECK(broadcast_address(net(10, 20, 30, 40), net(255, 255, 0, 0)) == "10.20.255.255");
+    CHECK(broadcast_address(net(172, 16, 5, 9), net(255, 255, 255, 252)) == "172.16.5.11");
+    CHECK(broadcast_address(net(10, 0, 0, 1), net(0, 0, 0, 0)) == "255.255.255.255");
+    CHECK(broadcast_address(0, net(255, 255, 255, 0)).empty());   // no address
+    // A PC may have no network up: either way it is an address or nothing, never a half answer.
+    if (const auto here = directed_broadcast()) CHECK(here->size() >= 7 && here->find('.') != std::string::npos);
+
+    CHECK_DONE("lantern system: random, clock, broadcast addresses and the discovery socket passed");
 }

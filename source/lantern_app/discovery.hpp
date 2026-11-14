@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <lantern/discovery.hpp>
@@ -20,7 +21,10 @@ struct Found
     std::string url;   // https://<address>:<port>
 };
 
-// What `socket` hears: a server of an uid already found is kept once.
-std::vector<Found> discover(lantern::UdpSocket& socket);
+// What `socket` hears: a server of an uid already found is kept once. It asks
+// 255.255.255.255 first; when nothing answers and `directed` is given (the
+// network's own broadcast address, "192.168.1.255": some consoles drop the
+// general one), it asks that too.
+std::vector<Found> discover(lantern::UdpSocket& socket, std::string_view directed = {});
 
 }   // namespace lantern_app

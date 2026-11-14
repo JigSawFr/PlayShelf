@@ -31,12 +31,16 @@ class Collect final : public lantern::DiscoveryHandler
 };
 }   // namespace
 
-std::vector<Found> discover(lantern::UdpSocket& socket)
+std::vector<Found> discover(lantern::UdpSocket& socket, std::string_view directed)
 {
-    Collect              collect;
+    Collect                   collect;
     lantern::DiscoveryOptions options;
     options.address = "255.255.255.255";
     (void)lantern::discover(socket, options, collect);
+    if (collect.found.empty() && !directed.empty() && directed != options.address) {
+        options.address = directed;
+        (void)lantern::discover(socket, options, collect);
+    }
     return std::move(collect.found);
 }
 
