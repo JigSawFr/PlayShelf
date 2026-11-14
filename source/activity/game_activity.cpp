@@ -350,6 +350,7 @@ void GameActivity::show_details(std::shared_ptr<const titledb::Details> d)
     // The games most like it, then more of its publisher and of its first
     // genre, from the caller.
     if (this->page.editions) this->add_others("playshelf/game/editions"_i18n, this->page.editions());
+    if (this->page.series) this->add_others("playshelf/game/same_series"_i18n, this->page.series());
     if (this->page.similar) this->add_others("playshelf/game/similar"_i18n, this->page.similar());
     if (this->page.by_publisher && !d->publisher.empty())
         this->add_others(aurore::getStr("playshelf/game/more_publisher", d->publisher), this->page.by_publisher(d->publisher));

@@ -269,4 +269,11 @@ bool names_any(const SignalBook& book, const std::vector<uint64_t>& unnamed)
     return false;
 }
 
+bool same_series(const GameSignals& a, const GameSignals& b)
+{
+    for (const Trait& x : a.series)
+        if (!x.id.empty() && std::ranges::any_of(b.series, [&](const Trait& y) { return y.id == x.id; })) return true;
+    return false;
+}
+
 }   // namespace library
