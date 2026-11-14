@@ -435,6 +435,22 @@ key("Return")
 time.sleep(1)
 shot("14_boreale")
 key("Escape")
+# The Catalogue's first game's page (the Catalogue's tiles say nothing of their
+# focus to the log, so by position: the rail's Catalogue, into its pills, back to
+# the games, down to the first tile). Last, after every screen the references compare.
+key("Left")                  # back to the rail, on About
+key("Up", 3)                 # Preferences, Downloads, Catalogue
+key("Right")                 # the server pill
+key("Right")                 # the pill that switches games and homebrew: it was left on Homebrew
+key("Return")
+go_to("Games", "Up")
+key("Return")
+time.sleep(2)
+key("Down")                  # the first game
+key("Return")
+time.sleep(2)
+shot("15_game_sheet")
+key("Escape")
 # What the other Boréale homebrews read of PlayShelf: its registry entry and
 # its bell (boreale-link), written once the main screen opened.
 sd = os.path.join(run_dir, "playshelf_data", "sd", "config", "boreale")
