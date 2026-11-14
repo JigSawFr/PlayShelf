@@ -201,6 +201,9 @@
     "no_demo": {
       "label": "No library server (a first start)"
     },
+    "no_atlas": {
+      "label": "Nothing fetched from Atlas (the files at hand)"
+    },
     "signed": {
       "label": "Demo packages taken as signed by Nintendo",
       "help": "On by default with the demo server. Off: each install asks first, as a package not signed by Nintendo does on a console."

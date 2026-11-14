@@ -201,6 +201,9 @@
     "no_demo": {
       "label": "Kein Bibliotheksserver (ein erster Start)"
     },
+    "no_atlas": {
+      "label": "Nichts von Atlas laden (die vorhandenen Dateien)"
+    },
     "signed": {
       "label": "Demo-Pakete gelten als von Nintendo signiert",
       "help": "Mit dem Demo-Server standardmäßig an. Aus: Jede Installation fragt zuerst, wie ein nicht von Nintendo signiertes Paket auf einer Konsole."

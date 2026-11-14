@@ -8,6 +8,7 @@
 #include <aurore.hpp>
 
 #include "action/insights_index.hpp"
+#include "core/sim_env.h"
 #include "library/atlas.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
@@ -143,7 +144,8 @@ void fetch_all()
 
 void start()
 {
-    const bool online = config::get().popular_online;
+    // PLAYSHELF_SIM_NO_ATLAS (the desktop smoke test): nothing fetched, so the screens come from the files at hand.
+    const bool online = config::get().popular_online && !sim_env_flag("PLAYSHELF_SIM_NO_ATLAS");
     s_fetching = online;
     ui::in_background("insights data", [online]() {
         load(s_popular);
@@ -166,7 +168,7 @@ void start()
 
 void refresh()
 {
-    if (s_fetching || !config::get().popular_online) return;
+    if (s_fetching || !config::get().popular_online || sim_env_flag("PLAYSHELF_SIM_NO_ATLAS")) return;
     s_fetching = true;
     ui::in_background("insights data", []() {
         insights_index::forget();

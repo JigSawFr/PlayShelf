@@ -201,6 +201,9 @@
     "no_demo": {
       "label": "Nenhum servidor de biblioteca (uma primeira inicialização)"
     },
+    "no_atlas": {
+      "label": "Nada baixado do Atlas (os arquivos que já existem)"
+    },
     "signed": {
       "label": "Pacotes de demonstração considerados assinados pela Nintendo",
       "help": "Ativado por padrão com o servidor de demonstração. Desativado: cada instalação pergunta antes, como um pacote não assinado pela Nintendo em um console."

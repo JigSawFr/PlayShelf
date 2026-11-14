@@ -19,7 +19,9 @@ request announces it** on the `Screens:` line of its description (the
 template has it): `Screens: smoke/01_library, smoke/0*` (`scenario/name`
 patterns), `Screens: any` for every screen, `Screens: none` or no line when
 no screen is meant to change. Once the pull request is merged, main's run
-keeps the new screens: nothing to update. The smoke test draws the focus
+keeps the new screens: nothing to update. The smoke test fetches nothing from Atlas (`PLAYSHELF_SIM_NO_ATLAS`) and the
+demo's dates start from one day (`PLAYSHELF_DEMO_DAY`), so Home, which shows
+them, comes out the same on any day. The smoke test draws the focus
 without its moving glow (`PLAYSHELF_SIM_STILL_FOCUS`) and the header's
 version badge on one made-up development build (`PLAYSHELF_SIM_VERSION`), so
 a screen nobody changed comes out the same. The screens are drawn by the

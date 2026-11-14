@@ -85,6 +85,8 @@ env["AURORE_SETTLE_FILE"] = SETTLE
 env.setdefault("PLAYSHELF_SIM_VERSION", "1.0.0:1a2b3c4")
 # No network: the update check answers at once.
 env.setdefault("PLAYSHELF_SIM_LATEST", "offline")
+# Atlas' files are not fetched either: Home shows the demo's, not the ones of the day.
+env.setdefault("PLAYSHELF_SIM_NO_ATLAS", "1")
 # The demo's server at once (docs/contributing/simulator.md): every icon of
 # the Catalogue there for its screenshot.
 env.setdefault("PLAYSHELF_SIM_SPEED", "0")

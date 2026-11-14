@@ -201,6 +201,9 @@
     "no_demo": {
       "label": "Geen bibliotheekserver (een eerste start)"
     },
+    "no_atlas": {
+      "label": "Niets ophalen bij Atlas (de bestanden die er al zijn)"
+    },
     "signed": {
       "label": "Demopakketten gelden als ondertekend door Nintendo",
       "help": "Standaard aan met de demoserver. Uit: elke installatie vraagt eerst, zoals een niet door Nintendo ondertekend pakket op een console."
