@@ -411,8 +411,14 @@ GameLines game_lines(const std::shared_ptr<const Loaded>& data, size_t index, co
     out.more = more;
     out.installed = st.base;
     out.installed_version = st.base ? st.version : 0;
-    out.facts = t.id ? std::format("{:016X} · {}", t.id, size_text(t.size)) : size_text(t.size);
-    if (st.base) out.facts += " · " + aurore::getStr("playshelf/library/installed_version", st.version);
+    // Where it stands: installed (and a newer update to get), then its size. Its id is in Details.
+    if (st.base) {
+        out.facts = aurore::getStr("playshelf/library/installed_version", st.version);
+        if (out.latest_version > st.version) out.facts += " · " + "playshelf/library/update_available"_i18n;
+        out.facts += " · " + size_text(t.size);
+    } else {
+        out.facts = size_text(t.size);
+    }
     // Installed from a package rebuilt for the console's own compression: Nintendo's updates do not go over it.
     if (st.rebuilt) out.facts += " · " + aurore::getStr("playshelf/game/rebuilt");
     return out;
