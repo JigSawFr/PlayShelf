@@ -270,7 +270,7 @@ void open_game(uint64_t id)
     }
     if (const auto games = installed_flow::games()) {
         for (const installed_flow::Game& g : *games) {
-            if (g.game.game.id == id && g.game.base) {
+            if (g.game.id == id && g.game.base) {
                 prepare(g);
                 return;
             }
