@@ -39,13 +39,17 @@ class Collect final : public lantern::DiscoveryHandler
 };
 }   // namespace
 
-std::vector<PeerAddress> find_peers(lantern::UdpSocket& socket, const std::string& server_uid)
+std::vector<PeerAddress> find_peers(lantern::UdpSocket& socket, const std::string& server_uid, std::string_view directed)
 {
     Collect                   collect(server_uid);
     lantern::DiscoveryOptions options;
     options.address = "255.255.255.255";
     options.peers   = true;
     (void)lantern::discover(socket, options, collect);
+    if (collect.found.empty() && !directed.empty() && directed != options.address) {
+        options.address = directed;
+        (void)lantern::discover(socket, options, collect);
+    }
     return std::move(collect.found);
 }
 

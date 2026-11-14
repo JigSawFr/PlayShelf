@@ -3,6 +3,7 @@
 // holds it, a peer that does not, one that gives wrong bytes, and the ranges
 // of a differential update asked of a peer first.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -231,7 +232,12 @@ struct Hear final : lantern::UdpSocket
 {
     std::vector<std::string> replies;
     size_t next = 0;
-    lantern::Result<void> send_to(std::string_view, std::uint16_t, std::span<const std::byte>) override { return {}; }
+    std::vector<std::string> sent;   // the addresses asked
+    lantern::Result<void> send_to(std::string_view address, std::uint16_t, std::span<const std::byte>) override
+    {
+        sent.push_back(std::string(address));
+        return {};
+    }
     lantern::Result<std::optional<lantern::Datagram>> receive(std::span<std::byte> buffer, std::chrono::milliseconds) override
     {
         if (next >= replies.size()) return std::optional<lantern::Datagram>{};
@@ -264,6 +270,19 @@ void test_find()
     CHECK(found[0].uid == "11111111-1111-4111-8111-111111111111");
     CHECK(found[0].port == 47116 && found[0].base == "/lantern" && !found[0].tls);
     CHECK(found[0].host.starts_with("192.168.1."));
+
+    // The network's own broadcast address is asked when the general one gets no answer, and only then.
+    Hear quiet;
+    CHECK(find_peers(quiet, UID, "192.168.1.255").empty());
+    CHECK(!quiet.sent.empty() && quiet.sent.front() == "255.255.255.255");
+    CHECK(std::find(quiet.sent.begin(), quiet.sent.end(), "192.168.1.255") != quiet.sent.end());
+    Hear heard;
+    heard.replies = {peer_reply("11111111-1111-4111-8111-111111111111", UID)};
+    CHECK(find_peers(heard, UID, "192.168.1.255").size() == 1);
+    CHECK(std::find(heard.sent.begin(), heard.sent.end(), "192.168.1.255") == heard.sent.end());
+    Hear plain;   // none known, or the same as the general one: asked once
+    CHECK(find_peers(plain, UID).empty() && find_peers(plain, UID, "255.255.255.255").empty());
+    CHECK(std::count(plain.sent.begin(), plain.sent.end(), "255.255.255.255") == (long)plain.sent.size());
 }
 
 void test_from_peer()

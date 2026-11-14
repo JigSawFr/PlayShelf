@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <lantern/discovery.hpp>
@@ -26,8 +27,10 @@ struct PeerAddress
 
 // The peers whose `servers` hold `server_uid`, as the socket hears them:
 // at most PEERS_MAX, each once. A peer that is on this console's own
-// network only is the SDK's rule, not ours to relax.
-std::vector<PeerAddress> find_peers(lantern::UdpSocket& socket, const std::string& server_uid);
+// network only is the SDK's rule, not ours to relax. It asks 255.255.255.255
+// first; when nothing answers and `directed` is given (the network's own
+// broadcast address: some consoles drop the general one), it asks that too.
+std::vector<PeerAddress> find_peers(lantern::UdpSocket& socket, const std::string& server_uid, std::string_view directed = {});
 
 // The peers of `server_uid` on this console's network, asked for at most
 // once a minute (SPEC.md L-19.5-2): between two asks the last answer stands.
