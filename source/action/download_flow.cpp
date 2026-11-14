@@ -15,6 +15,8 @@
 #include "action/download_job.hpp"
 #include "action/library_flow.hpp"
 #include "action/rebuilt.hpp"
+#include "action/safety_logic.hpp"
+#include "action/safety_probe.hpp"
 #include "action/screen_flow.hpp"
 #include "core/awake.h"
 #include "core/sim_env.h"
@@ -47,7 +49,7 @@ using download_job::Outcome;
 std::vector<download::Job>     s_jobs;
 Listeners                      s_listeners;
 bool                           s_loaded = false;
-bool                           s_patches_checked = false, s_asking = false;
+bool                           s_patches_checked = false, s_safety_checked = false, s_asking = false;
 std::string                    s_running;   // the running job's id
 std::shared_ptr<Control>       s_control;
 Live                           s_live;
@@ -395,6 +397,39 @@ void start_next()
                 });
             return;
         }
+    }
+    // Once a run, before the first install: the console is looked at (emuMMC, the names of Nintendo's servers),
+    // and the user told when it is at risk. What is not known says nothing.
+    if (!s_safety_checked) {
+        s_safety_checked = true;
+        s_asking = true;
+        ui::in_background("safety", []() {
+            const safety_logic::Probe probe = safety_probe::run();
+            aurore::sync([probe]() {
+                if (!safety_logic::risky(probe)) {
+                    s_asking = false;
+                    start_next();
+                    return;
+                }
+                std::string reasons;
+                if (probe.emummc == safety_logic::Answer::No) reasons += "playshelf/downloads/risk_sysmmc"_i18n;
+                if (probe.nintendo_blocked == safety_logic::Answer::No) {
+                    if (!reasons.empty()) reasons += "\n";
+                    reasons += "playshelf/downloads/risk_online"_i18n;
+                }
+                ui::confirm(
+                    aurore::getStr("playshelf/downloads/risk_body", reasons), "playshelf/downloads/no_patches_go"_i18n,
+                    []() {
+                        s_asking = false;
+                        start_next();
+                    },
+                    []() {
+                        s_asking = false;
+                        pause_all();
+                    });
+            });
+        });
+        return;
     }
     download::Job& job = s_jobs[(size_t)i];
     // What can no longer be done as it stands: its server removed, its
