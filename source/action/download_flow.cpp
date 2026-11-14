@@ -8,6 +8,7 @@
 #include <chrono>
 #include <dirent.h>
 #include <map>
+#include <set>
 #include <memory>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
@@ -26,7 +27,9 @@
 #include "install/prefix_source.hpp"
 #include "lantern_app/package.hpp"
 #include "lantern_app/range_source.hpp"
+#include "library/catalog.hpp"
 #include "library/servers.hpp"
+#include "library/services.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
 #include "util/cpu_boost.hpp"
@@ -50,6 +53,7 @@ std::vector<download::Job>     s_jobs;
 Listeners                      s_listeners;
 bool                           s_loaded = false;
 bool                           s_patches_checked = false, s_safety_checked = false, s_asking = false;
+std::set<uint64_t>             s_cheats_told;   // the games whose cheats were spoken of this run
 std::string                    s_running;   // the running job's id
 std::shared_ptr<Control>       s_control;
 Live                           s_live;
@@ -456,6 +460,29 @@ void start_next()
         changed();
         start_next();
         return;
+    }
+    // An update changes the game's version, and the cheats installed for it (Atmosphere keeps them by build id)
+    // stop matching: once a run per game, the user is told before the update installs, and can leave it.
+    if (library::kind_of(job.title_id) == library::Kind::Update) {
+        const uint64_t game = library::base_of(job.title_id);
+        if (!s_cheats_told.contains(game) && !library::installed_cheats(paths::sd_root(), game).empty()) {
+            s_cheats_told.insert(game);
+            s_asking = true;
+            const std::string id = job.id;
+            ui::confirm(
+                aurore::getStr("playshelf/downloads/cheats_body", job.game.empty() ? job.name : job.game),
+                "playshelf/downloads/no_patches_go"_i18n,
+                []() {
+                    s_asking = false;
+                    start_next();
+                },
+                [id]() {
+                    s_asking = false;
+                    pause(id);
+                    start_next();
+                });
+            return;
+        }
     }
     // Its fetch ahead stopped first: the install reads its file.
     if (const auto a = s_ahead.find(job.id); a != s_ahead.end() && a->second.running) {

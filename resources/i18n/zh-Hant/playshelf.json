@@ -498,6 +498,7 @@
         "found_same": "目錄給出的仍是同一位址：重試 {}",
         "no_patches_body": "PlayShelf 在此主機上既找不到 sys-patch 也找不到 sigpatches：在沒有它們的情況下安裝的遊戲可能無法啟動。\n\n仍要安裝嗎？",
         "no_patches_go": "仍要安裝",
+        "cheats_body": "{} 已安裝金手指。更新會改變遊戲版本，在安裝新版本的金手指之前它們將無法使用。\n\n仍要安裝更新嗎？",
         "risk_body": "在可連線的主機上安裝遊戲，有被任天堂封鎖的風險。\n\n{}\n\n仍要安裝嗎？",
         "risk_online": "• 它可以連線到任天堂的伺服器（沒有 90DNS 或其他封鎖）。",
         "risk_sysmmc": "• 此主機從內建儲存空間執行，而不是 emuMMC。",

@@ -498,6 +498,7 @@
         "found_same": "The catalogue still gives the same address: {} tried again",
         "no_patches_body": "PlayShelf finds neither sys-patch nor sigpatches on this console: a game installed without them may not start.\n\nInstall anyway?",
         "no_patches_go": "Install anyway",
+        "cheats_body": "{} has cheats installed. Its update changes the game's version, so they stop working until you install the ones for the new version.\n\nInstall the update anyway?",
         "risk_body": "Installing games on a console that can go online risks a ban from Nintendo.\n\n{}\n\nInstall anyway?",
         "risk_online": "• It can reach Nintendo's servers (no 90DNS or other block).",
         "risk_sysmmc": "• This console runs from its internal memory, not from an emuMMC.",
