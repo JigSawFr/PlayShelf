@@ -21,7 +21,7 @@ std::vector<PeerAddress> peers_of(const std::string& server_uid)
     if (ever && last_uid == server_uid && now - asked < std::chrono::seconds(60)) return last;
     auto socket = BroadcastSocket::open();
     if (!socket) return {};
-    last     = find_peers(*socket, server_uid);
+    last     = find_peers(*socket, server_uid, directed_broadcast().value_or(""));
     last_uid = server_uid;
     asked    = now;
     ever     = true;
