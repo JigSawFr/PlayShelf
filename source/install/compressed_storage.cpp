@@ -3,7 +3,9 @@
 #include "install/compressed_storage.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
+#include <thread>
 
 namespace install::cstore
 {
@@ -16,6 +18,8 @@ constexpr uint32_t VERSION = 1;
 uint32_t sets_for(uint32_t entries) { return (entries + ENTRIES_PER_SET - 1) / ENTRIES_PER_SET; }
 
 // A block must save more than this to be kept compressed.
+constexpr size_t BATCH_PER_THREAD = 8;   // blocks waiting per thread before a batch goes
+
 uint32_t min_saving(size_t len) { return (uint32_t)std::max<size_t>(len / 256, 64); }
 
 void put_node(uint8_t* node, int32_t index, int32_t count, int64_t end)
@@ -42,8 +46,9 @@ uint64_t table_size(uint32_t entry_count)
 
 // ---------------------------------------------------------------- Builder
 
-Builder::Builder(uint32_t bs, CompressFn c, DecompressFn v, SinkFn s)
-    : block_size(bs), compress(std::move(c)), verify(std::move(v)), sink(std::move(s))
+Builder::Builder(uint32_t bs, CompressFn c, DecompressFn v, SinkFn s, unsigned thread_count)
+    : block_size(bs), compress(std::move(c)), verify(std::move(v)), sink(std::move(s)),
+      threads(std::clamp(thread_count, 1u, MAX_THREADS))
 {
     if (bs < MIN_BLOCK || bs > MAX_BLOCK || (bs & (bs - 1)) != 0) fail_with("a block size that is not a power of two from 4 to 64 KiB");
     pending.reserve(bs);
@@ -101,25 +106,34 @@ bool Builder::add(std::span<const uint8_t> bytes)
     return true;
 }
 
-bool Builder::block(std::span<const uint8_t> b)
+void Builder::compute(Job& j) const
 {
-    const size_t len = b.size();
-    bool         done = false;
-    if (len > min_saving(len) + 1) {
-        const size_t room = len - min_saving(len) - 1;
-        packed.resize(room);
-        if (auto n = compress(b, {packed.data(), room}); n && *n > 0 && *n <= room) {
-            check.resize(len);
-            if (!verify({packed.data(), *n}, check) || std::memcmp(check.data(), b.data(), len) != 0)
-                return fail_with("a block that does not decompress to what it was made from");
-            if (!close_run()) return false;
-            if (entries.size() >= MAX_ENTRIES) return fail_with("more blocks than one table holds: use a larger block size");
-            entries.push_back({(int64_t)virt_end, (int64_t)data_end, Kind::Lz4, (int32_t)*n});
-            if (!emit({packed.data(), *n}) || !pad()) return false;
-            done = true;
-        }
+    const size_t len = j.src.size();
+    j.n   = 0;
+    j.bad = false;
+    if (len <= min_saving(len) + 1) return;
+    const size_t room = len - min_saving(len) - 1;
+    j.packed.resize(room);
+    const auto n = compress(j.src, {j.packed.data(), room});
+    if (!n || *n == 0 || *n > room) return;
+    std::vector<uint8_t> check(len);
+    if (!verify({j.packed.data(), *n}, check) || std::memcmp(check.data(), j.src.data(), len) != 0) {
+        j.bad = true;
+        return;
     }
-    if (!done) {
+    j.n = *n;
+}
+
+bool Builder::commit(const Job& j)
+{
+    if (j.bad) return fail_with("a block that does not decompress to what it was made from");
+    const size_t len = j.src.size();
+    if (j.n > 0) {
+        if (!close_run()) return false;
+        if (entries.size() >= MAX_ENTRIES) return fail_with("more blocks than one table holds: use a larger block size");
+        entries.push_back({(int64_t)virt_end, (int64_t)data_end, Kind::Lz4, (int32_t)j.n});
+        if (!emit({j.packed.data(), j.n}) || !pad()) return false;
+    } else {
         const bool extend = in_run && virt_end - (uint64_t)entries.back().virt + len <= MAX_STORED_RUN;
         if (!extend) {
             if (!close_run()) return false;
@@ -127,10 +141,45 @@ bool Builder::block(std::span<const uint8_t> b)
             entries.push_back({(int64_t)virt_end, (int64_t)data_end, Kind::Stored, -1});
             in_run = true;
         }
-        if (!emit(b)) return false;
+        if (!emit(j.src)) return false;
     }
     virt_end += len;
     return true;
+}
+
+bool Builder::block(std::span<const uint8_t> b)
+{
+    if (threads <= 1) {
+        one.src.assign(b.begin(), b.end());
+        compute(one);
+        return commit(one);
+    }
+    batch.emplace_back();
+    batch.back().src.assign(b.begin(), b.end());
+    return batch.size() < (size_t)threads * BATCH_PER_THREAD || flush_batch();
+}
+
+// The waiting blocks compressed and read back by the threads, then written in their order.
+bool Builder::flush_batch()
+{
+    if (batch.empty()) return true;
+    std::atomic<size_t> next{0};
+    const auto          work = [&]() {
+        for (size_t i = next.fetch_add(1); i < batch.size(); i = next.fetch_add(1)) compute(batch[i]);
+    };
+    std::vector<std::thread> helpers;
+    for (unsigned t = 1; t < threads && t < batch.size(); t++) helpers.emplace_back(work);
+    work();
+    for (std::thread& t : helpers) t.join();
+    bool ok = true;
+    for (const Job& j : batch) {
+        if (!commit(j)) {
+            ok = false;
+            break;
+        }
+    }
+    batch.clear();
+    return ok;
 }
 
 bool Builder::finish()
@@ -139,6 +188,7 @@ bool Builder::finish()
     if (finished) return true;
     if (!pending.empty() && !block(pending)) return false;
     pending.clear();
+    if (!flush_batch()) return false;
     if (!close_run()) return false;
     if (entries.empty()) return fail_with("an empty RomFS");
     finished = true;

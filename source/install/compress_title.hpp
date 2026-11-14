@@ -88,6 +88,7 @@ class JournalStore
 struct CompressOptions
 {
     uint32_t block_size = cstore::MAX_BLOCK;
+    unsigned threads = 1;                  // compressing threads (the codec functions must allow it)
     uint64_t free_margin = 256ull << 20;   // room left after the new copy
     uint32_t min_saving_percent = 5;       // below it, not worth losing official updates
     uint32_t min_system_version = 12u << 16;

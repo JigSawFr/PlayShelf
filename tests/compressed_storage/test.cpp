@@ -63,13 +63,14 @@ struct Made
     std::string err;
 };
 
-Made build(const Bytes& img, uint32_t bs, size_t piece, CompressFn c = lz4_compress, DecompressFn v = lz4_decompress)
+Made build(const Bytes& img, uint32_t bs, size_t piece, CompressFn c = lz4_compress, DecompressFn v = lz4_decompress,
+           unsigned threads = 1)
 {
     Made m;
     Builder b(bs, c, v, [&](std::span<const uint8_t> s) {
         m.data.insert(m.data.end(), s.begin(), s.end());
         return true;
-    });
+    }, threads);
     for (size_t i = 0; i < img.size(); i += piece)
         if (!b.add({img.data() + i, std::min(piece, img.size() - i)})) break;
     m.ok = b.finish();
@@ -288,9 +289,34 @@ void test_reader_refusals()
 }
 }   // namespace
 
+// The same data and table whatever the number of threads, for sizes around a batch, a short last
+// block, runs of stored blocks; a block that does not read back fails the build on any of them.
+void test_threads()
+{
+    for (const size_t size : { size_t(1), size_t(4096), size_t(70000), size_t(64) * 1024 * 33 + 123, size_t(64) * 1024 * 100 }) {
+        const Bytes img = image(size, 7);
+        const Made  one = build(img, 65536, 20000);
+        CHECK(one.ok);
+        for (unsigned t = 2; t <= 4; t++) {
+            const Made many = build(img, 65536, 20000, lz4_compress, lz4_decompress, t);
+            CHECK(many.ok && many.data == one.data && many.table == one.table && many.entries == one.entries && many.virt == one.virt);
+        }
+        const Made past = build(img, 65536, 20000, lz4_compress, lz4_decompress, 99);   // more than allowed: clamped
+        CHECK(past.ok && past.data == one.data && past.table == one.table);
+    }
+    // A codec that lies about reading back is caught in a batch, and nothing after it is written.
+    const Bytes img = image(64 * 1024 * 40, 3);
+    const DecompressFn liar = [](std::span<const uint8_t>, std::span<uint8_t> out) {
+        std::fill(out.begin(), out.end(), 0x5a);
+        return true;
+    };
+    for (unsigned t : { 1u, 3u }) CHECK(!build(img, 65536, 65536, lz4_compress, liar, t).ok);
+}
+
 int main()
 {
     test_roundtrips();
+    test_threads();
     test_tables();
     test_builder_refusals();
     test_reader_refusals();
