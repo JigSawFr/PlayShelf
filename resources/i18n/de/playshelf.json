@@ -541,7 +541,8 @@
             "no_space": "Auf der SD-Karte ist nicht genug freier Speicher für dieses Paket: Gib Speicher frei und versuche es erneut.",
             "corrupt": "Ein Inhalt des Pakets ist nicht so, wie er sein sollte: Die Datei auf dem Server ist vielleicht beschädigt.",
             "server_gone": "Der Bibliotheksserver dieses Downloads wurde aus PlayShelf entfernt: Entferne den Download oder füge den Server erneut hinzu."
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "Titeldatenbank",

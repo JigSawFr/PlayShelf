@@ -541,7 +541,8 @@
             "no_space": "The SD card has not enough free space for this package: free some, then try again.",
             "corrupt": "A content of the package is not what it should be: the file on the server may be damaged.",
             "server_gone": "The library server of this download was removed from PlayShelf: remove the download, or add the server again."
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "Title database",

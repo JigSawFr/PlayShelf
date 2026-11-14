@@ -541,7 +541,8 @@
             "no_space": "La scheda SD non ha abbastanza spazio libero per questo pacchetto: liberane un po', poi riprova.",
             "corrupt": "Un contenuto del pacchetto non è come dovrebbe: il file sul server potrebbe essere danneggiato.",
             "server_gone": "Il server della libreria di questo download è stato rimosso da PlayShelf: rimuovi il download, o aggiungi di nuovo il server."
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "Database dei titoli",

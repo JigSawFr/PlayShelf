@@ -488,8 +488,8 @@ void start_next()
     }
     // An update can go wrong, and a save is not made again: once a run per game, the saves of its users are
     // copied to the SD card before the update installs (the last few of each user are kept). What cannot be
-    // copied is no reason to hold the update back.
-    if (library::kind_of(job.title_id) == library::Kind::Update) {
+    // copied is no reason to hold the update back. Preferences can turn it off.
+    if (config::get().saves_before_update && library::kind_of(job.title_id) == library::Kind::Update) {
         const uint64_t game = library::base_of(job.title_id);
         if (!s_saves_kept.contains(game)) {
             s_saves_kept.insert(game);

@@ -541,7 +541,8 @@
             "no_space": "SD 卡的可用空間不足以安裝此封包：請釋放一些空間後重試。",
             "corrupt": "封包中的某個內容與應有的不符：伺服器上的檔案可能已損毀。",
             "server_gone": "此下載的遊戲庫伺服器已從 PlayShelf 中刪除：請移除該下載，或重新加入伺服器。"
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "遊戲資訊資料庫",

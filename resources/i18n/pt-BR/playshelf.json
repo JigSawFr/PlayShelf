@@ -541,7 +541,8 @@
             "no_space": "O cartão SD não tem espaço livre suficiente para este pacote: libere espaço e tente de novo.",
             "corrupt": "Um conteúdo do pacote não é o que deveria ser: o arquivo no servidor pode estar danificado.",
             "server_gone": "O servidor de biblioteca deste download foi removido do PlayShelf: remova o download ou adicione o servidor de novo."
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "Banco de dados de títulos",

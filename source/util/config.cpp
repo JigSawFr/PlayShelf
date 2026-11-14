@@ -207,6 +207,7 @@ static void load_shared()
     read_bool(j, "notices_others", c.notices_others);
     read_bool(j, "look_shared", c.look_shared);
     read_bool(j, "keep_awake", c.keep_awake);
+    read_bool(j, "saves_before_update", c.saves_before_update);
     read_bool(j, "compression", c.compression);
     read_bool(j, "share_files", c.share_files);
     read_int(j, "connections", c.connections);
@@ -274,6 +275,7 @@ bool snapshot(Snapshot& snap)
     j["notices_others"]   = s_config.notices_others;
     j["look_shared"]      = s_config.look_shared;
     j["keep_awake"] = s_config.keep_awake;
+    j["saves_before_update"] = s_config.saves_before_update;
     j["compression"] = s_config.compression;
     j["share_files"] = s_config.share_files;
     j["connections"] = s_config.connections;

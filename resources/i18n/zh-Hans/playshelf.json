@@ -541,7 +541,8 @@
             "no_space": "SD 卡的可用空间不足以安装此数据包：请释放一些空间后重试。",
             "corrupt": "数据包中的某个内容与应有的不符：服务器上的文件可能已损坏。",
             "server_gone": "此下载的游戏库服务器已从 PlayShelf 中删除：请移除该下载，或重新添加服务器。"
-        }
+        },
+        "saves_before_update": "Copy the saves before an update"
     },
     "titledb": {
         "section": "游戏信息数据库",
