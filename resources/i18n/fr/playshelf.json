@@ -212,6 +212,21 @@
         "request_closed": "Sur le serveur désormais",
         "request_denied": "Refusée"
     },
+    "check": {
+        "action": "Vérifier les fichiers",
+        "body": "PlayShelf va lire chaque fichier de {} et le comparer à sa somme de contrôle. Cela prend quelques minutes pour un gros jeu.",
+        "go": "Vérifier",
+        "heading": "Vérification des fichiers",
+        "ok": "{} : les {} fichiers sont intacts.",
+        "bad": "{} : {} fichiers sur {} sont abîmés :\n\n{}\n\nSupprimez le jeu et installez-le à nouveau depuis votre bibliothèque.",
+        "not_here": "{} n'est pas sur la carte SD. Seuls les jeux installés sur la carte SD peuvent être vérifiés.",
+        "failed": "La vérification n'a pas pu se faire : {}",
+        "more": "\n… et {} de plus",
+        "st_missing": "manquant",
+        "st_size": "taille incorrecte",
+        "st_unreadable": "illisible",
+        "st_corrupt": "abîmé"
+    },
     "installed": {
         "summary": "Sur cette console",
         "reading": "Lecture…",

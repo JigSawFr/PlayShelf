@@ -19,6 +19,7 @@
 
 #include "action/compress_logic.hpp"
 #include "action/installed_flow.hpp"
+#include "action/progress_dialog.hpp"
 #include "action/rebuilt.hpp"
 #include "install/compress_title.hpp"
 #include "install/console_core.hpp"
@@ -35,6 +36,8 @@ namespace compress_flow
 namespace
 {
 using namespace install;
+using progress_dialog::mb_text;
+using progress_dialog::Progress;
 
 constexpr int LZ4_LEVEL = 6;
 
@@ -48,11 +51,6 @@ std::optional<size_t> lz4_compress(std::span<const uint8_t> in, std::span<uint8_
 bool lz4_decompress(std::span<const uint8_t> in, std::span<uint8_t> out)
 {
     return LZ4_decompress_safe((const char*)in.data(), (char*)out.data(), (int)in.size(), (int)out.size()) == (int)out.size();
-}
-
-std::string mb_text(uint64_t bytes)
-{
-    return std::format("{:.1f}", (double)bytes / (1024.0 * 1024.0));
 }
 
 // The journal on the SD card, written whole through a file beside it (fsync, then rename).
@@ -73,65 +71,6 @@ class SdJournal : public JournalStore
         std::remove((path() + ".tmp").c_str());
         std::remove((path() + ".part").c_str());
     }
-};
-
-// A dialog with a bar and Cancel, updated from the worker's thread at most once a percent.
-class Progress
-{
-  public:
-    Progress(const std::string& heading, const std::string& name, std::atomic<bool>* cancel)
-        : cancel_flag(cancel)
-    {
-        this->body = cadran::progress_body(heading, name);
-        this->button = new aurore::Button();
-        this->button->setText("hints/cancel"_i18n);
-        cadran::style_button(this->button);
-        this->button->setWidth(260);
-        this->button->setMarginTop(28);
-        this->button->setAlignSelf(aurore::AlignSelf::CENTER);
-        this->button->registerClickAction([this](aurore::View*) {
-            this->cancel();
-            return true;
-        });
-        this->body.box->addView(this->button);
-        this->dialog = new aurore::Dialog(this->body.box);
-        this->dialog->setCancelable(false);
-        this->dialog->getAppletFrame()->registerAction(
-            "hints/cancel"_i18n, aurore::BUTTON_B, [this](aurore::View*) {
-                this->cancel();
-                return true;
-            },
-            false, false, aurore::SOUND_BACK);
-        this->body.show(0.0f, "");
-        this->dialog->open();
-    }
-
-    void show(const std::string& heading, uint64_t done, uint64_t total)
-    {
-        if (!this->dialog) return;
-        this->body.heading->setText(heading);
-        const float part = total ? std::min(1.0f, (float)done / (float)total) : 1.0f;
-        this->body.show(part, std::format("{} / {} MB", mb_text(done), mb_text(total)));
-    }
-
-    void close()
-    {
-        if (this->dialog) this->dialog->close();
-        this->dialog = nullptr;
-    }
-
-  private:
-    void cancel()
-    {
-        if (!this->dialog) return;
-        if (this->cancel_flag) *this->cancel_flag = true;
-        this->close();
-    }
-
-    std::atomic<bool>* cancel_flag;
-    aurore::Dialog*    dialog = nullptr;
-    aurore::Button*    button = nullptr;
-    cadran::Progress   body;
 };
 
 // What one compression holds between its steps: the console, the keys, the journal and the engine.

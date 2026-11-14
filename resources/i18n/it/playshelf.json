@@ -212,6 +212,21 @@
         "request_closed": "Ora sul server",
         "request_denied": "Declined"
     },
+    "check": {
+        "action": "Verifica i file",
+        "body": "PlayShelf leggerà ogni file di {} e lo confronterà con il suo checksum. Per un gioco grande ci vogliono alcuni minuti.",
+        "go": "Verifica",
+        "heading": "Verifica dei file",
+        "ok": "{}: tutti i {} file sono integri.",
+        "bad": "{}: {} file su {} sono danneggiati:\n\n{}\n\nElimina il gioco e installalo di nuovo dalla tua libreria.",
+        "not_here": "{} non è sulla scheda SD. Si possono verificare solo i giochi installati sulla scheda SD.",
+        "failed": "Impossibile eseguire la verifica: {}",
+        "more": "\n… e altri {}",
+        "st_missing": "mancante",
+        "st_size": "dimensione errata",
+        "st_unreadable": "illeggibile",
+        "st_corrupt": "danneggiato"
+    },
     "installed": {
         "summary": "Su questa console",
         "reading": "Lettura…",

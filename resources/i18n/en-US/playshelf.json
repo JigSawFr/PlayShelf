@@ -212,6 +212,21 @@
         "request_closed": "On the server now",
         "request_denied": "Declined"
     },
+    "check": {
+        "action": "Check the files",
+        "body": "PlayShelf will read every file of {} and check it against its checksum. It takes a few minutes for a large game.",
+        "go": "Check",
+        "heading": "Checking the files",
+        "ok": "{}: all {} files are intact.",
+        "bad": "{}: {} of {} files are damaged:\n\n{}\n\nDelete the game and install it again from your library.",
+        "not_here": "{} is not on the SD card. Only games installed on the SD card can be checked.",
+        "failed": "The check could not be done: {}",
+        "more": "\n… and {} more",
+        "st_missing": "missing",
+        "st_size": "wrong size",
+        "st_unreadable": "unreadable",
+        "st_corrupt": "damaged"
+    },
     "installed": {
         "summary": "On this console",
         "reading": "Reading…",

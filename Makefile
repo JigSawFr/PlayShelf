@@ -280,6 +280,8 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # Whether installing here is risky: emuMMC and the names of Nintendo's servers.
 safety_logic_SRC := source/action/safety_logic.cpp tests/safety_logic/test.cpp
+# An installed title read back: its contents there, of their size, hashing to their ids.
+verify_title_SRC := $(INSTALL_FORMATS) source/install/recompress_meta.cpp source/install/verify_title.cpp tests/verify_title/test.cpp
 # What the notification bell holds: its entries, those put away.
 notice_logic_SRC := source/action/notice_logic.cpp tests/notice_logic/test.cpp
 # What must hold before a game is compressed in place (loader and FS patched).

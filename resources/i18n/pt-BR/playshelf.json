@@ -212,6 +212,21 @@
         "request_closed": "Agora no servidor",
         "request_denied": "Declined"
     },
+    "check": {
+        "action": "Verificar os arquivos",
+        "body": "O PlayShelf vai ler cada arquivo de {} e compará-lo com a soma de verificação. Leva alguns minutos em um jogo grande.",
+        "go": "Verificar",
+        "heading": "Verificando os arquivos",
+        "ok": "{}: os {} arquivos estão íntegros.",
+        "bad": "{}: {} de {} arquivos estão danificados:\n\n{}\n\nExclua o jogo e instale-o novamente a partir da sua biblioteca.",
+        "not_here": "{} não está no cartão SD. Só é possível verificar jogos instalados no cartão SD.",
+        "failed": "Não foi possível fazer a verificação: {}",
+        "more": "\n… e mais {}",
+        "st_missing": "ausente",
+        "st_size": "tamanho errado",
+        "st_unreadable": "ilegível",
+        "st_corrupt": "danificado"
+    },
     "installed": {
         "summary": "Neste console",
         "reading": "Lendo…",

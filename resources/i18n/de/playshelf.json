@@ -212,6 +212,21 @@
         "request_closed": "Jetzt auf dem Server",
         "request_denied": "Declined"
     },
+    "check": {
+        "action": "Dateien prüfen",
+        "body": "PlayShelf liest jede Datei von {} und vergleicht sie mit ihrer Prüfsumme. Bei einem großen Spiel dauert das ein paar Minuten.",
+        "go": "Prüfen",
+        "heading": "Dateien werden geprüft",
+        "ok": "{}: Alle {} Dateien sind intakt.",
+        "bad": "{}: {} von {} Dateien sind beschädigt:\n\n{}\n\nLösche das Spiel und installiere es erneut aus deiner Bibliothek.",
+        "not_here": "{} ist nicht auf der SD-Karte. Nur Spiele auf der SD-Karte können geprüft werden.",
+        "failed": "Die Prüfung konnte nicht durchgeführt werden: {}",
+        "more": "\n… und {} weitere",
+        "st_missing": "fehlt",
+        "st_size": "falsche Größe",
+        "st_unreadable": "nicht lesbar",
+        "st_corrupt": "beschädigt"
+    },
     "installed": {
         "summary": "Auf dieser Konsole",
         "reading": "Wird gelesen…",
