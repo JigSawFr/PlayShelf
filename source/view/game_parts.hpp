@@ -65,8 +65,9 @@ aurore::Box* size_bar(const std::vector<Part>& parts, uint64_t free_bytes, const
 aurore::Box* status_card(const std::string& title, const std::string& line, const char* icon_name, const char* ink,
                          const char* tint);
 
-// A row of a card of facts: its name, its value (nothing when it has none).
-void fact(aurore::Box* card, const std::string& name, const std::string& value);
+// A row of a card of facts: its name, its value (nothing when it has none:
+// the row is not made, nullptr).
+aurore::DetailCell* fact(aurore::Box* card, const std::string& name, const std::string& value);
 
 // A game's language in the language PlayShelf speaks ("ko" -> "coréen"),
 // Nlib API's code itself for one PlayShelf has no word for.

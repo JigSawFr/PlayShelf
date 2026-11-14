@@ -17,6 +17,7 @@
 #include "action/nlib_flow.hpp"
 #include "action/popular_flow.hpp"
 #include "action/services_flow.hpp"
+#include "activity/tabs.hpp"
 #include "library/servers.hpp"
 #include "tab/filter_sheet.hpp"
 #include "ui/ui.hpp"
@@ -37,6 +38,7 @@ std::string   s_section;
 bool          s_homebrew = false;   // the server's homebrew shown, not its games
 size_t        s_horder = 0;         // its order, as HomebrewPanel::Order
 library::Filter s_filter;
+CatalogueTab*   s_live = nullptr;   // the one on screen, when there is one
 
 // The orders, as library::Sort's, then the shelves: a row of covers a
 // genre, by name.
@@ -109,6 +111,7 @@ bool inside(aurore::View* view, aurore::View* parent)
 CatalogueTab::CatalogueTab()
     : TabBase("xml/tab/catalogue.xml", false), list(this)
 {
+    s_live = this;
     homebrew_panel = std::make_unique<HomebrewPanel>(homebrew, status);
     cadran::kit::Empty empty = cadran::kit::empty("shelf");
     empty.title->setText("playshelf/library/empty_title"_i18n);
@@ -208,8 +211,22 @@ const library::Server* CatalogueTab::server() const
 
 CatalogueTab::~CatalogueTab()
 {
+    if (s_live == this) s_live = nullptr;
     download_flow::unlisten(this->downloads_listener);
     nlib_flow::unlisten(this->nlib_listener);
+}
+
+void CatalogueTab::browse(const library::Filter& filter)
+{
+    // A tab is made again when it opens: it reads these.
+    s_query.clear();
+    s_section.clear();
+    s_order = 0;
+    s_homebrew = false;
+    s_filter = filter;
+    // The Catalogue already on screen reads them again; another tab opens it anew.
+    if (s_live && s_live->shown()) s_live->refresh();
+    else ui::open_tab(tabs::catalogue);
 }
 
 void CatalogueTab::refresh()

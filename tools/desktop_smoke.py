@@ -456,6 +456,17 @@ shot("16_game_details")
 key("Down", 14)              # into its rows, down the page
 time.sleep(1)
 shot("17_game_details_end")
+# A on a fact browses the Catalogue by it: its page again, its publisher.
+key("Escape")
+time.sleep(1)
+key("Return")
+time.sleep(2)
+key("r", 2)
+time.sleep(1)
+key("Down")
+key("Return")
+time.sleep(3)
+shot("18_game_browse")
 key("Escape")
 # What the other Boréale homebrews read of PlayShelf: its registry entry and
 # its bell (boreale-link), written once the main screen opened.
