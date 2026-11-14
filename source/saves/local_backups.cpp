@@ -70,4 +70,27 @@ std::vector<std::string> expired(const std::vector<std::string>& names, size_t k
     return out;
 }
 
+std::vector<Copy> copies(const std::vector<std::string>& names)
+{
+    std::vector<Copy> out;
+    for (const std::string& n : names) {
+        Copy c;
+        if (!is_ours(n, &c.tag)) continue;
+        c.name = n;
+        c.date = n.substr(0, 10);
+        c.time = n.substr(11, 8);
+        std::replace(c.time.begin(), c.time.end(), '-', ':');
+        out.push_back(std::move(c));
+    }
+    std::sort(out.begin(), out.end(), [](const Copy& a, const Copy& b) { return a.name > b.name; });   // newest first
+    return out;
+}
+
+std::string safety_name(const std::string& date, const std::string& time)
+{
+    std::string t = time;
+    std::replace(t.begin(), t.end(), ':', '-');
+    return "before_restore_" + date + "_" + t + ".zip";
+}
+
 }   // namespace local_backups

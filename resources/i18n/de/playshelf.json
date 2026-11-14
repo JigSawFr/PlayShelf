@@ -237,7 +237,10 @@
         "failed": "Die Spielstände von {} konnten nicht gesichert werden: {}",
         "users_failed": "Die Benutzer der Konsole konnten nicht gelesen werden.",
         "write_failed": "Die Kopie konnte nicht auf die SD-Karte geschrieben werden.",
-        "auto_done": "Vor dem Update: Die Spielstände von {} wurden auf der SD-Karte gesichert ({} Kopien)."
+        "auto_done": "Vor dem Update: Die Spielstände von {} wurden auf der SD-Karte gesichert ({} Kopien).",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "Auf dieser Konsole",

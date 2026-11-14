@@ -237,7 +237,10 @@
         "failed": "{} のセーブデータをバックアップできませんでした：{}",
         "users_failed": "本体のユーザーを読み取れませんでした。",
         "write_failed": "バックアップを SD カードに書き込めませんでした。",
-        "auto_done": "アップデートの前に：{} のセーブデータを SD カードにバックアップしました（{} 件）。"
+        "auto_done": "アップデートの前に：{} のセーブデータを SD カードにバックアップしました（{} 件）。",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "この本体",

@@ -237,7 +237,10 @@
         "failed": "无法备份 {} 的存档：{}",
         "users_failed": "无法读取主机的用户。",
         "write_failed": "无法把备份写入 SD 卡。",
-        "auto_done": "更新前：已把 {} 的存档备份到 SD 卡（{} 份）。"
+        "auto_done": "更新前：已把 {} 的存档备份到 SD 卡（{} 份）。",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "此主机上",

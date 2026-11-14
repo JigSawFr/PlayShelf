@@ -237,7 +237,10 @@
         "failed": "Не удалось сделать копию сохранений {}: {}",
         "users_failed": "Не удалось прочитать пользователей консоли.",
         "write_failed": "Не удалось записать копию на SD-карту.",
-        "auto_done": "Перед обновлением: сохранения {} скопированы на SD-карту ({} шт.)."
+        "auto_done": "Перед обновлением: сохранения {} скопированы на SD-карту ({} шт.).",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "На этой консоли",

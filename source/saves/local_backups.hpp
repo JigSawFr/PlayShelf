@@ -33,4 +33,20 @@ bool is_ours(const std::string& name, std::string* tag = nullptr);
 // oldest, by the date and time in the name. Names that are not ours are never in it.
 std::vector<std::string> expired(const std::vector<std::string>& names, size_t keep = KEEP);
 
+// One of our copies, read from its name.
+struct Copy
+{
+    std::string name;   // the file name
+    std::string date;   // "2026-11-14"
+    std::string time;   // "11:12:54"
+    std::string tag;    // the user's (user_tag)
+};
+
+// Our copies among `names`, the newest first; what is not ours is left out.
+std::vector<Copy> copies(const std::vector<std::string>& names);
+
+// "before_restore_2026-11-14_11-12-54.zip": the save a restore replaces, kept first. Not ours by
+// design: the count above never deletes it.
+std::string safety_name(const std::string& date, const std::string& time);
+
 }   // namespace local_backups

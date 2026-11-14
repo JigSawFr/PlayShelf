@@ -100,6 +100,7 @@ aurore::DetailCell* StorageActivity::game_cell(const insights::Played& p)
             lines.emplace_back("playshelf/storage/open_page"_i18n, [data, index]() { game_page::open(data, index); }, "info");
         }
         lines.emplace_back("playshelf/saves_local/action"_i18n, [id, name]() { local_saves_flow::open(id, name); }, "save");
+        lines.emplace_back("playshelf/saves_local/restore_action"_i18n, [id, name]() { local_saves_flow::open_restore(id, name); }, "restore");
         lines.emplace_back("playshelf/check/action"_i18n, [id, name, found]() { check_flow::open(id, name, found.data, found.index); }, "check");
         if (config::get().compression)
             lines.emplace_back("playshelf/compress/action"_i18n, [id]() { compress_flow::open_game(id); }, "save");

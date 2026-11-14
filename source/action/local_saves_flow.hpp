@@ -23,4 +23,9 @@ Outcome back_up_game(uint64_t title_id);
 // "Back up the saves" of the storage screen: back_up_game on a worker, then what it made.
 void open(uint64_t title_id, const std::string& name);
 
+// "Restore a saved copy" of the storage screen: the copies of the game on the SD card (back_up_game's),
+// the newest first; the one picked replaces the save of its user, the save it replaces kept beside
+// them first and put back if anything goes wrong.
+void open_restore(uint64_t title_id, const std::string& name);
+
 }   // namespace local_saves_flow

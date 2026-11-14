@@ -237,7 +237,10 @@
         "failed": "Não foi possível copiar os saves de {}: {}",
         "users_failed": "Não foi possível ler os utilizadores da consola.",
         "write_failed": "Não foi possível escrever a cópia no cartão SD.",
-        "auto_done": "Antes da atualização: os saves de {} foram copiados para o cartão SD ({} cópias)."
+        "auto_done": "Antes da atualização: os saves de {} foram copiados para o cartão SD ({} cópias).",
+        "restore_action": "Restore a saved copy",
+        "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
+        "restore_pick": "Restore which copy?"
     },
     "installed": {
         "summary": "Nesta consola",

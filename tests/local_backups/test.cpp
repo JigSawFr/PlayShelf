@@ -42,5 +42,12 @@ int main()
     const auto g2 = expired(same, 3);
     CHECK(g2.size() == 1 && g2[0] == at("2026-11-14", "08:00:00", tag));
 
-    CHECK_DONE("local backups: names, what is ours, the oldest beyond the last three of each user passed");
+    // The copies of a folder, newest first, with their date, time and user; the others left out.
+    const auto list = copies(same);
+    CHECK(list.size() == 4 && list[0].time == "12:00:00" && list[3].time == "08:00:00" && list[0].date == "2026-11-14" && list[0].tag == tag);
+    CHECK(copies(names).size() == 6 && copies({ "notes.txt", "before_restore_2026-11-14_11-12-54.zip" }).empty() && copies({}).empty());
+    const std::string safe = safety_name("2026-11-14", "11:12:54");
+    CHECK(safe == "before_restore_2026-11-14_11-12-54.zip" && !is_ours(safe));
+
+    CHECK_DONE("local backups: names, what is ours, the oldest beyond the last three of each user, the copies listed passed");
 }
