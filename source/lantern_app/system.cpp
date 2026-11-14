@@ -7,6 +7,10 @@
 #include <cstring>
 #include <ctime>
 #include <netinet/in.h>
+#if !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
+#include <ifaddrs.h>
+#include <net/if.h>
+#endif
 #include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -46,6 +50,45 @@ lantern::Result<void> SystemRandom::fill(std::span<std::uint8_t> out)
 }
 
 std::int64_t SystemClock::unix_seconds() { return (std::int64_t)::time(nullptr); }
+
+std::string broadcast_address(std::uint32_t address, std::uint32_t mask)
+{
+    if (address == 0) return {};
+    in_addr to{};
+    to.s_addr = (address & mask) | ~mask;
+    char text[INET_ADDRSTRLEN] = {};
+    if (!::inet_ntop(AF_INET, &to, text, sizeof text)) return {};
+    return text;
+}
+
+std::optional<std::string> directed_broadcast()
+{
+#if defined(__SWITCH__)
+    if (R_FAILED(nifmInitialize(NifmServiceType_User))) return std::nullopt;
+    u32        address = 0, mask = 0, gateway = 0, dns1 = 0, dns2 = 0;
+    const bool ok = R_SUCCEEDED(nifmGetCurrentIpConfigInfo(&address, &mask, &gateway, &dns1, &dns2)) && address != 0;
+    nifmExit();
+    if (!ok) return std::nullopt;
+    const std::string text = broadcast_address(address, mask);
+    if (text.empty()) return std::nullopt;
+    return text;
+#elif defined(__EMSCRIPTEN__)
+    return std::nullopt;   // a page has no sockets of its own
+#else
+    ifaddrs* all = nullptr;
+    if (::getifaddrs(&all) != 0) return std::nullopt;
+    std::optional<std::string> found;
+    for (const ifaddrs* it = all; it && !found; it = it->ifa_next) {
+        if (!it->ifa_addr || !it->ifa_netmask || it->ifa_addr->sa_family != AF_INET) continue;
+        if (!(it->ifa_flags & IFF_UP) || (it->ifa_flags & IFF_LOOPBACK) || !(it->ifa_flags & IFF_BROADCAST)) continue;
+        const std::string text = broadcast_address(reinterpret_cast<const sockaddr_in*>(it->ifa_addr)->sin_addr.s_addr,
+                                                   reinterpret_cast<const sockaddr_in*>(it->ifa_netmask)->sin_addr.s_addr);
+        if (!text.empty()) found = text;
+    }
+    ::freeifaddrs(all);
+    return found;
+#endif
+}
 
 lantern::Result<BroadcastSocket> BroadcastSocket::open()
 {

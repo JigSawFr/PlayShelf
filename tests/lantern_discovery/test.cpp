@@ -1,6 +1,7 @@
 // source/lantern_app/discovery.cpp over a socket that answers as servers would:
 // found once by uid, named safely, the address of the answer.
 // Copyright (C) 2026 JigSawFr.  GPLv3-or-later (see LICENSE).
+#include <algorithm>
 #include <cstring>
 #include <deque>
 
@@ -57,5 +58,26 @@ int main()
         CHECK(found[0].url == "https://192.168.1.5:8443" && found[0].name == "Living room");   // the first answer of a uid
         CHECK(found[1].url == "https://192.168.1.9:9443" && found[1].name == "Attic");
     }
-    CHECK_DONE("lantern discovery: servers found once by uid, junk ignored passed");
+
+    // The network's own broadcast address is asked when the general one gets no answer, and only then.
+    {
+        Answering quiet;   // nothing answers
+        CHECK(lantern_app::discover(quiet, "192.168.1.255").empty());
+        CHECK(!quiet.sent.empty() && quiet.sent.front() == "255.255.255.255:47115");
+        CHECK(std::find(quiet.sent.begin(), quiet.sent.end(), "192.168.1.255:47115") != quiet.sent.end());
+        CHECK(std::find(quiet.sent.begin(), quiet.sent.end(), "255.255.255.255:47115") < std::find(quiet.sent.begin(), quiet.sent.end(), "192.168.1.255:47115"));
+
+        Answering heard;   // the general one is answered: the directed one is not asked
+        heard.replies = {{"192.168.1.5", reply("6f1c2a8e-4b7d-4e2a-9c31-8d5e2f0a7b14", "Living room", 8443)}};
+        CHECK(lantern_app::discover(heard, "192.168.1.255").size() == 1);
+        CHECK(std::find(heard.sent.begin(), heard.sent.end(), "192.168.1.255:47115") == heard.sent.end());
+
+        Answering none;    // no directed address known, or the same as the general one: asked once
+        CHECK(lantern_app::discover(none).empty());
+        CHECK(std::count(none.sent.begin(), none.sent.end(), "255.255.255.255:47115") == (long)none.sent.size());
+        Answering same;
+        CHECK(lantern_app::discover(same, "255.255.255.255").empty());
+        CHECK(std::count(same.sent.begin(), same.sent.end(), "255.255.255.255:47115") == (long)same.sent.size());
+    }
+    CHECK_DONE("lantern discovery: servers found once by uid, junk ignored, the network's own broadcast asked after the general one passed");
 }
