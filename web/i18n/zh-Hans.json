@@ -204,6 +204,9 @@
     "no_atlas": {
       "label": "不从 Atlas 获取任何内容（使用现有文件）"
     },
+    "no_shipped_atlas": {
+      "label": "不读取 PlayShelf 自带的 Atlas 文件（保留演示的文件）"
+    },
     "signed": {
       "label": "将演示数据包视为已由 Nintendo 签名",
       "help": "有演示服务器时默认开启。关闭：每次安装都会先询问，就像主机上未经 Nintendo 签名的数据包一样。"

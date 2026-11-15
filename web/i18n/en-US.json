@@ -204,6 +204,9 @@
     "no_atlas": {
       "label": "Nothing fetched from Atlas (the files at hand)"
     },
+    "no_shipped_atlas": {
+      "label": "The Atlas files shipped with PlayShelf not read (the demo's are kept)"
+    },
     "signed": {
       "label": "Demo packages taken as signed by Nintendo",
       "help": "On by default with the demo server. Off: each install asks first, as a package not signed by Nintendo does on a console."

@@ -204,6 +204,9 @@
     "no_atlas": {
       "label": "Nichts von Atlas laden (die vorhandenen Dateien)"
     },
+    "no_shipped_atlas": {
+      "label": "Die mit PlayShelf gelieferten Atlas-Dateien nicht lesen (die der Demo bleiben)"
+    },
     "signed": {
       "label": "Demo-Pakete gelten als von Nintendo signiert",
       "help": "Mit dem Demo-Server standardmäßig an. Aus: Jede Installation fragt zuerst, wie ein nicht von Nintendo signiertes Paket auf einer Konsole."

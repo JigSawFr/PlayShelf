@@ -204,6 +204,9 @@
     "no_atlas": {
       "label": "Niets ophalen bij Atlas (de bestanden die er al zijn)"
     },
+    "no_shipped_atlas": {
+      "label": "De met PlayShelf meegeleverde Atlas-bestanden niet lezen (die van de demo blijven)"
+    },
     "signed": {
       "label": "Demopakketten gelden als ondertekend door Nintendo",
       "help": "Standaard aan met de demoserver. Uit: elke installatie vraagt eerst, zoals een niet door Nintendo ondertekend pakket op een console."
