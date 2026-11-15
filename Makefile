@@ -328,6 +328,11 @@ library_installed_SRC := source/library/catalog.cpp source/library/facts.cpp sou
 download_queue_SRC  := $(filter-out tests/%,$(install_txn_SRC)) source/download/queue.cpp source/library/catalog.cpp $(KIT)/util/paths.cpp \
                        tests/download_queue/test.cpp
 download_queue_LIBS := -lzstd
+# What PlayShelf says to Home Assistant through the agent (source/link/): the
+# `state` document built from the queue, and the orders it takes.
+link_state_SRC  := $(filter-out tests/%,$(download_queue_SRC)) source/link/link_state.cpp library/boreale-link/source/bl_json.c \
+                   tests/link_state/test.cpp
+link_state_LIBS := -lzstd
 # What a failed download's error means and what can be done about it.
 download_recovery_SRC  := $(filter-out tests/%,$(download_queue_SRC)) source/download/recovery.cpp tests/download_recovery/test.cpp
 download_recovery_LIBS := -lzstd
