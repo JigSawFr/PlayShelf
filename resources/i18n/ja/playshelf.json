@@ -542,7 +542,8 @@
             "corrupt": "パッケージのコンテンツが本来の内容と一致しません。サーバー上のファイルが破損している可能性があります。",
             "server_gone": "このダウンロードのライブラリサーバーはPlayShelfから削除されました。ダウンロードを削除するか、サーバーをもう一度追加してください。"
         },
-        "saves_before_update": "Copy the saves before an update"
+        "saves_before_update": "Copy the saves before an update",
+        "space_hint": "About {} MB are missing. The games played least recently that would free enough: {}. Nothing is removed unless you do it, from Storage."
     },
     "titledb": {
         "section": "タイトルデータベース",

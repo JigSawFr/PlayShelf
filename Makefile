@@ -280,6 +280,7 @@ library_titles_SRC := source/library/catalog.cpp source/library/facts.cpp source
 library_facts_SRC := source/library/facts.cpp tests/library_facts/test.cpp
 # Whether installing here is risky: emuMMC and the names of Nintendo's servers.
 safety_logic_SRC := source/action/safety_logic.cpp tests/safety_logic/test.cpp
+space_logic_SRC := source/action/space_logic.cpp tests/space_logic/test.cpp
 # An installed title read back: its contents there, of their size, hashing to their ids.
 verify_title_SRC := $(INSTALL_FORMATS) source/install/recompress_meta.cpp source/install/verify_title.cpp tests/verify_title/test.cpp
 # Which packages of a catalogue repair a game.
