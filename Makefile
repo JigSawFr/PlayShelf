@@ -297,6 +297,8 @@ library_popular_SRC := source/library/popular.cpp tests/library_popular/test.cpp
 library_upcoming_SRC := source/library/upcoming.cpp source/library/signals.cpp tests/library_upcoming/test.cpp
 # Where each game is read, by language (reach.json, Atlas).
 library_reach_SRC := source/library/reach.cpp source/library/signals.cpp tests/library_reach/test.cpp
+# A count with its thousands grouped (the reviews of a game's sheet).
+library_digits_SRC := source/library/digits.cpp tests/library_digits/test.cpp
 # The other stores a game is sold on (also.json, Atlas).
 library_also_SRC := source/library/also.cpp source/library/signals.cpp tests/library_also/test.cpp
 # Which games Home's Atlas rows pick: Tonight's pick, in your language, missing from your series.

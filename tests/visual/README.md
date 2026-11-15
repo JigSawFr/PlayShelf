@@ -2,7 +2,7 @@
 
 What `tools/desktop_smoke.py` shows on screens that come out the same in every
 run (console time fixed, footer clock redrawn at the console's time, 16:00),
-one folder per scenario: `smoke/` (the default one) and `loading/`.
+one folder per scenario: `smoke/` (the default one), `loading/` and `atlas/` (the demo's Atlas files let in, a game with its series, its play time and its reviews).
 
 Each folder's `SCREENS` names the stable screens compared, one a line: that
 list is all git keeps. The references are **main's own screens**, never

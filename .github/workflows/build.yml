@@ -195,6 +195,7 @@ jobs:
           sleep 1
           python3 tools/desktop_smoke.py smoke
           python3 tools/desktop_smoke.py smoke-loading loading
+          python3 tools/desktop_smoke.py smoke-atlas atlas
       # The screens the pull request announces it changes: its description's
       # `Screens:` line (tests/visual/README.md). `none` or no line: none;
       # `any`: every screen; else `scenario/name` patterns.
@@ -227,7 +228,7 @@ jobs:
           EXPECTED: ${{ steps.announced.outputs.screens }}
         run: |
           failed=""
-          for sc in smoke loading; do
+          for sc in smoke loading atlas; do
             if [ "$sc" = smoke ]; then out=smoke; else out="smoke-$sc"; fi
             echo "::group::$sc"
             if [ "$KEEP" = 1 ]; then
