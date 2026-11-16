@@ -176,11 +176,19 @@ void publish()
         if (app::in_focus()) count_others();
     });
     s_others_timer->start();
-    const std::string version = app::version(), nro = app::self_path();
-    write_shared("Boréale registry", shared_bell_logic::app_file(paths::sd_root()), [version, nro](const std::string& before) {
-        return shared_bell_logic::app_text(version, nro, before);
-    });
+    write_registry();
     write_shared_bell();
+}
+
+void write_registry()
+{
+    if (!s_published) return;
+    const std::string version = app::version(), nro = app::self_path();
+    const int         publish = config::get().link_publish ? 1 : 0;
+    write_shared("Boréale registry", shared_bell_logic::app_file(paths::sd_root()),
+                 [version, nro, publish](const std::string& before) {
+                     return shared_bell_logic::app_text(version, nro, before, publish);
+                 });
 }
 
 int listen(std::function<void()> fn)

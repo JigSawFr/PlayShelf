@@ -334,6 +334,7 @@
         "intro": "顯示開場畫面 2 秒",
         "support_reminder": "每月提醒一次支持 PlayShelf",
         "notices_others": "其他 Boréale homebrew 的通知",
+        "link_publish": "Publish PlayShelf's state (Boréale agent)",
         "look_shared": "與其他 Boréale 自製軟體外觀相同",
         "effects": "視覺效果",
         "effects_values": {

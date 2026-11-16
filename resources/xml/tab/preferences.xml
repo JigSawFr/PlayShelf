@@ -38,6 +38,7 @@
             <aurore:BooleanCell id="pf_intro"/>
             <aurore:BooleanCell id="pf_support_reminder"/>
             <aurore:BooleanCell id="pf_notices_others"/>
+            <aurore:BooleanCell id="pf_link_publish"/>
             <aurore:Header title="@i18n/playshelf/tabs/downloads" marginTop="24" marginBottom="8"/>
             <aurore:BooleanCell id="pf_keep_awake"/>
             <aurore:BooleanCell id="pf_saves_before_update"/>

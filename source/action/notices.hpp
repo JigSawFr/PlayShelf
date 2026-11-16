@@ -53,6 +53,9 @@ int action_count();   // the bell's number, with others_count()
 int others_count();
 void count_others();
 int info_count();     // the entries for information: the bell's dot
+// The registry file again, after Preferences › Publish PlayShelf's state changed
+// (`publish=1` or `publish=0`); a no-op before publish().
+void write_registry();
 
 // Called (UI thread) after every change of what the bell shows.
 // MainActivity, once per start: PlayShelf in the Boréale homebrews' registry

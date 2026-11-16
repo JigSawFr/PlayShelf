@@ -15,6 +15,7 @@ PlayShelf keeps its settings in `sd:/config/playshelf/config.json` (`./playshelf
 | `intro` | `true`, `false` | `true` | The loading screen stays 2 s at start-up |
 | `start_tab` | `home`, `library`, `catalogue`, `preferences`, `about` | `home` | *Preferences › Start on* |
 | `look_shared` | `true`, `false` | `true` | the language, the theme, the text size and the visual effects shared with the other Boréale homebrews (`config/boreale/prefs.conf`): taken at start-up, written at each change |
+| `link_publish` | `true`, `false` | `true` | *Preferences › Publish PlayShelf's state*: PlayShelf's downloads and free space go to Home Assistant through the Boréale agent when one runs, and its registry file (`config/boreale/apps/playshelf.conf`) says `publish=1`; off, it opens no session with the agent and writes `publish=0` |
 | `notices_others` | `true`, `false` | `true` | the notification bell lists the other Boréale homebrews' notices and counts those to do or failed |
 | `support_reminder` | `true`, `false` | `true` | "Support PlayShelf" once a month at start-up |
 | `compression` | `true`, `false` | `false` | *Preferences › Downloads › Compress installed games*: the storage screen's game menu offers *Compress this game* (experimental, SD card games, needs the signature patches) |

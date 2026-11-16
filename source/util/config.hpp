@@ -35,6 +35,7 @@ struct Config : kit_settings::Settings
     std::string library_view = "grid";         // the Library's games: "grid" (covers) or "list" (Ⓨ switches)
 
     bool        notices_others   = true;   // the other Boréale homebrews' notices in the bell, counted on it
+    bool        link_publish     = true;   // PlayShelf's state goes out through the Boréale agent, the registry file says so (action/link_flow, action/notices)
     bool        look_shared      = true;   // the look shared with the other Boréale homebrews (action/shared_look)
     bool        share_files = false;   // this console serves its homebrew files to the other consoles of the network (action/peer_flow)
     bool        compression = false;   // the storage screen offers to compress a game (action/compress_flow)
