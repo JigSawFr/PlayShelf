@@ -3,6 +3,7 @@
 
 #include "action/changes_flow.hpp"
 #include "action/download_flow.hpp"
+#include "action/agent_setup.hpp"
 #include "action/link_flow.hpp"
 #include "action/homebrew_flow.hpp"
 #include "action/peer_flow.hpp"
@@ -50,6 +51,7 @@ void MainActivity::onContentAvailable()
     rebuilt::start();
     compress_flow::recover_at_start();
     download_flow::init();
+    agent_setup::install();   // boreale-kit's agent screen: where the agent is carried, the link's hand-over
     link_flow::start();   // the state to Home Assistant, through the agent when one runs
     peer_flow::apply();   // serves the homebrew files to the network when its user turned that on
     this->update_title();

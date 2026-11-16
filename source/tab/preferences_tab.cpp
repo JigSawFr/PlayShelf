@@ -8,6 +8,7 @@
 #include <aurore/cadran/ui/cadran_frame.hpp>
 
 #include "action/changes_flow.hpp"
+#include "activity/agent_activity.hpp"
 #include "action/download_flow.hpp"
 #include "action/not_interested.hpp"
 #include "action/notices.hpp"
@@ -153,6 +154,11 @@ PreferencesTab::PreferencesTab()
         config::get().link_publish = on;
         ui::save_config();
         notices::write_registry();
+    });
+    // The Boréale agent: boreale-kit's screen (install, update, start, stop, remove).
+    agent->registerClickAction([](aurore::View*) {
+        aurore::Application::pushActivity(new AgentActivity());
+        return true;
     });
     // The language, theme, text size and effects shared with the other
     // Boréale homebrews (action/shared_look): turned on, PlayShelf's become
@@ -309,7 +315,7 @@ PreferencesTab::PreferencesTab()
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
-                       { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" }, { "pf_link_publish", "upload" },
+                       { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" }, { "pf_link_publish", "upload" }, { "pf_agent", "server" },
                        { "pf_keep_awake", "bolt" }, { "pf_saves_before_update", "save" }, { "pf_share_files", "upload" }, { "pf_compression", "save" }, { "pf_connections", "server" },
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
@@ -451,6 +457,13 @@ void PreferencesTab::source_sheet(size_t index)
 
 // What the sharing line says: what this console holds for the others, while
 // it shares.
+void PreferencesTab::show_agent()
+{
+    const char* color = "cadran/text2";
+    agent->setDetailText(AgentActivity::summary(&color));
+    agent->detail->setThemeColor("textColor", color);
+}
+
 void PreferencesTab::show_share()
 {
     if (!config::get().share_files) {
@@ -480,6 +493,7 @@ void PreferencesTab::refresh()
     support_reminder->setOn(cfg.support_reminder, false);
     notices_others->setOn(cfg.notices_others, false);
     link_publish->setOn(cfg.link_publish, false);
+    this->show_agent();
     look_shared->setOn(cfg.look_shared, false);
     keep_awake->setOn(cfg.keep_awake, false);
     saves_before_update->setOn(cfg.saves_before_update, false);
