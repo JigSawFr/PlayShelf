@@ -376,7 +376,11 @@ set(ASSEMBLE_RESOURCES
     COMMAND ${CMAKE_COMMAND} -E remove -f ${MERGED_RESOURCES}/release-notes/README.md ${MERGED_RESOURCES}/img/emoji/README.md
     # Inside the app, the icon without the name (icon.jpg carries it for the
     # HOME menu; the screens say it): the brand kit's images/icon-512.png.
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/images/icon-512.png ${MERGED_RESOURCES}/img/app_icon.png)
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/images/icon-512.png ${MERGED_RESOURCES}/img/app_icon.png
+    # The shared agent, when built (make agent): the kit's agent screens install it from here.
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DDEST=${MERGED_RESOURCES}/sysmodules
+            -DAPP_VERSION=${APP_VERSION} -DAPP_COMMIT=${APP_COMMIT}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/bundle_sysmodules.cmake)
 
 # The web simulator: Japanese, Korean and Chinese drawn with the characters
 # the catalogs use, cut out of Noto Sans CJK (tools/web_cjk_font.py), as the
