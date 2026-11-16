@@ -89,7 +89,9 @@ void load(File<Book>& file)
     std::shared_ptr<const Book> cached = read<Book>(file.cached());
     std::shared_ptr<const Book> shipped;
     std::string                 text;
-    if (file.shipped && paths::read_file(std::string(AURORE_ASSET("data/")) + file.name, text)) {
+    // PLAYSHELF_SIM_NO_SHIPPED_ATLAS (the desktop smoke test's "atlas" scenario): the demo's files are older than the
+    // shipped ones, so they would be turned away: the shipped ones are not read.
+    if (file.shipped && !sim_env_flag("PLAYSHELF_SIM_NO_SHIPPED_ATLAS") && paths::read_file(std::string(AURORE_ASSET("data/")) + file.name, text)) {
         // The cached one made the same day or later: the shipped one would be
         // turned away by offer(), so its megabyte of JSON is not parsed. Its
         // day is read from its first bytes; not found there, it is parsed.

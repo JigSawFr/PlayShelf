@@ -19,6 +19,7 @@
 #include "lantern_app/discovery.hpp"
 #include "lantern_app/platform.hpp"
 #include "lantern_app/system.hpp"
+#include "library/digits.hpp"
 #include "library/installed.hpp"
 #include "library/servers.hpp"
 #include "ui/ui.hpp"
@@ -137,6 +138,12 @@ std::string size_text(uint64_t bytes)
     const size_t dot = text.find('.');
     if (dot != std::string::npos) text.replace(dot, 1, kit_text::str("games/decimal_mark"));
     return aurore::getStr(mb >= 1024.0 ? "playshelf/library/size_gb" : "playshelf/library/size_mb", text);
+}
+
+std::string count_text(uint64_t n)
+{
+    // The group separator is the one the decimal mark is not: a comma beside a point, a no-break space beside a comma.
+    return library::group_digits(n, kit_text::str("games/decimal_mark") == "," ? "\xC2\xA0" : ",");
 }
 
 std::shared_ptr<const Installed> installed()

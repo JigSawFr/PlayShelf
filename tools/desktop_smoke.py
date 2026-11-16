@@ -13,7 +13,11 @@ The "loading" scenario stops the start-up on the loading screen
 other scenario waits for the first screen after it, at least 2 s later (the
 intro).
 
-Usage: tools/desktop_smoke.py <out-dir> [loading]   (needs DISPLAY, xdotool, ImageMagick)
+The "atlas" scenario lets the demo's Atlas files come (the other scenarios turn them off, PLAYSHELF_SIM_NO_ATLAS) and
+opens, in the Catalogue ordered by the best known, the game the demo's Atlas says most of: its sheet with the score, its
+series row, its Details tab with the reviews' tiles.
+
+Usage: tools/desktop_smoke.py <out-dir> [loading|atlas]   (needs DISPLAY, xdotool, ImageMagick)
 Environment knobs of the simulated backend (PLAYSHELF_SIM_*) are passed
 through; the console time is fixed (PLAYSHELF_SIM_NOW, TZ), the focus glow
 still (PLAYSHELF_SIM_STILL_FOCUS) and the header's version badge on one
@@ -39,7 +43,8 @@ APP = os.path.join(ROOT, "build-desktop", "playshelf")
 OUT = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "smoke")
 SCENARIO = sys.argv[2] if len(sys.argv) > 2 else ""
 LOADING = SCENARIO == "loading"
-if SCENARIO not in ("", "loading"):
+ATLAS = SCENARIO == "atlas"
+if SCENARIO not in ("", "loading", "atlas"):
     print("unknown scenario:", SCENARIO)
     sys.exit(2)
 os.makedirs(OUT, exist_ok=True)
@@ -85,8 +90,11 @@ env["AURORE_SETTLE_FILE"] = SETTLE
 env.setdefault("PLAYSHELF_SIM_VERSION", "1.0.0:1a2b3c4")
 # No network: the update check answers at once.
 env.setdefault("PLAYSHELF_SIM_LATEST", "offline")
-# Atlas' files are not fetched either: Home shows the demo's, not the ones of the day.
-env.setdefault("PLAYSHELF_SIM_NO_ATLAS", "1")
+# Atlas' files are not fetched either: Home shows the demo's, not the ones of the day (the "atlas" scenario has the demo's).
+if ATLAS:
+    env.setdefault("PLAYSHELF_SIM_NO_SHIPPED_ATLAS", "1")    # the demo's files are older than the shipped ones: they would be turned away
+else:
+    env.setdefault("PLAYSHELF_SIM_NO_ATLAS", "1")
 # The demo's server at once (docs/contributing/simulator.md): every icon of
 # the Catalogue there for its screenshot.
 env.setdefault("PLAYSHELF_SIM_SPEED", "0")
@@ -339,6 +347,54 @@ if not logged("start-up: intro, 2000 ms at least"):
 
 if LOADING:
     shot("01_loading")
+    finish()
+
+if ATLAS:
+    time.sleep(6)                # the demo's Atlas files come (action/popular_flow.cpp), and the rows they change
+    key("Down", 2)               # the Catalogue
+    key("Right", 4)              # the Order pill
+    key("Return")
+    go_to("Best known", "Down")
+    key("Return")
+    time.sleep(2)
+    key("Down")                  # the first game: the one the demo's Atlas gives the best score
+    key("Return")
+    time.sleep(3)
+    shot("01_game_atlas")
+    key("Down", 3)               # down the Overview, to its series row
+    time.sleep(1)
+    shot("02_game_series")
+    key("Up", 3)
+    key("r", 3)                  # R three times: Updates, Add-ons, Details
+    time.sleep(1)
+    key("Down", 4)
+    time.sleep(1)
+    shot("03_game_details")
+    key("Down", 5)               # into its rows
+    time.sleep(1)
+    shot("04_game_details_more")
+    key("Down", 14)
+    time.sleep(1)
+    shot("05_game_details_end")
+    # The game players rate best (IGDB), with the reviews of Steam: its tiles of reviews, its size bar.
+    key("Escape")                # back to the Catalogue
+    key("Up")                    # the pills above the games: the Order pill, where the focus was left
+    key("Return")
+    go_to("Best rated by players", "Down")
+    key("Return")
+    time.sleep(2)
+    key("Down")                  # the first game
+    key("Return")
+    time.sleep(3)
+    shot("06_game_reviews")
+    key("r", 2)                  # R twice: Add-ons, then Details
+    time.sleep(1)
+    key("Down", 5)
+    time.sleep(1)
+    shot("07_game_reviews_details")
+    key("Down", 5)
+    time.sleep(1)
+    shot("08_game_reviews_more")
     finish()
 
 ready = [l for l in log_lines() if "start-up: first screen ready after" in l]

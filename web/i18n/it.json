@@ -204,6 +204,9 @@
     "no_atlas": {
       "label": "Niente scaricato da Atlas (i file già presenti)"
     },
+    "no_shipped_atlas": {
+      "label": "Non leggere i file Atlas inclusi in PlayShelf (restano quelli della demo)"
+    },
     "signed": {
       "label": "Pacchetti demo considerati firmati da Nintendo",
       "help": "Attivo per impostazione predefinita con il server demo. Disattivo: ogni installazione chiede prima, come un pacchetto non firmato da Nintendo su una console."

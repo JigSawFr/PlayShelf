@@ -204,6 +204,9 @@
     "no_atlas": {
       "label": "Nada descarregado do Atlas (os ficheiros já existentes)"
     },
+    "no_shipped_atlas": {
+      "label": "Não ler os ficheiros Atlas incluídos no PlayShelf (ficam os da demonstração)"
+    },
     "signed": {
       "label": "Pacotes de demonstração considerados assinados pela Nintendo",
       "help": "Ativo por predefinição com o servidor de demonstração. Desativado: cada instalação pergunta primeiro, como um pacote não assinado pela Nintendo numa consola."

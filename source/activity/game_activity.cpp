@@ -567,12 +567,12 @@ void GameActivity::fill_details_tab()
         tile(critics, aurore::getStr("playshelf/game/critics_score", critics), "playshelf/game/critics"_i18n, "");
     if (sig && sig->igdb.count >= PLAYERS_TRUSTED)
         tile((int)sig->igdb.rating, aurore::getStr("playshelf/game/critics_score", (int)sig->igdb.rating),
-             "playshelf/game/players_rating"_i18n, aurore::getStr("playshelf/game/tile_ratings", sig->igdb.count));
+             "playshelf/game/players_rating"_i18n, aurore::getStr("playshelf/game/tile_ratings", library_flow::count_text(sig->igdb.count)));
     if (sig) {
         const uint64_t votes = sig->steam.positive + sig->steam.negative;
         if (votes) {
             const int share = (int)(sig->steam.positive * 100 / votes);
-            tile(share, std::format("{} %", share), "playshelf/game/steam"_i18n, aurore::getStr("playshelf/game/tile_reviews", votes));
+            tile(share, std::format("{} %", share), "playshelf/game/steam"_i18n, aurore::getStr("playshelf/game/tile_reviews", library_flow::count_text(votes)));
         }
     }
     if (const library::Renown r = popular_flow::of(this->page.title_id); r.score > 0) {
