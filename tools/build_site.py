@@ -77,7 +77,7 @@ LANGUAGES = list(boreale.LANGUAGES)
 # the language button), boreale-site's i18n/: not in site/i18n/.
 COMMON_TEXTS = boreale.common_catalogs()
 # The documentation, in the sidebar's order.
-DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide"), ("themes", "guide"),
+DOCS = [("getting-started", "guide"), ("servers", "guide"), ("downloads", "guide"), ("home-assistant", "guide"), ("themes", "guide"),
         ("troubleshooting", "guide"),
         ("config", "reference")]
 # The documentation's folder of a language (docs/<folder>/), when not its own code.
