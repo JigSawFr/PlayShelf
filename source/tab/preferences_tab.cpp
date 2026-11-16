@@ -9,6 +9,7 @@
 
 #include "action/changes_flow.hpp"
 #include "activity/agent_activity.hpp"
+#include "activity/link_conf_activity.hpp"
 #include "action/download_flow.hpp"
 #include "action/not_interested.hpp"
 #include "action/notices.hpp"
@@ -158,6 +159,11 @@ PreferencesTab::PreferencesTab()
     // The Boréale agent: boreale-kit's screen (install, update, start, stop, remove).
     agent->registerClickAction([](aurore::View*) {
         aurore::Application::pushActivity(new AgentActivity());
+        return true;
+    });
+    // The broker's settings every Boréale homebrew shares (link.conf): boreale-kit's screen.
+    link_conf->registerClickAction([](aurore::View*) {
+        aurore::Application::pushActivity(new LinkConfActivity());
         return true;
     });
     // The language, theme, text size and effects shared with the other
@@ -315,7 +321,7 @@ PreferencesTab::PreferencesTab()
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
-                       { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" }, { "pf_link_publish", "upload" }, { "pf_agent", "server" },
+                       { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" }, { "pf_link_publish", "upload" }, { "pf_agent", "server" }, { "pf_link_conf", "globe" },
                        { "pf_keep_awake", "bolt" }, { "pf_saves_before_update", "save" }, { "pf_share_files", "upload" }, { "pf_compression", "save" }, { "pf_connections", "server" },
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
@@ -464,6 +470,13 @@ void PreferencesTab::show_agent()
     agent->detail->setThemeColor("textColor", color);
 }
 
+void PreferencesTab::show_link_conf()
+{
+    const char* color = "cadran/text2";
+    link_conf->setDetailText(LinkConfActivity::summary(&color));
+    link_conf->detail->setThemeColor("textColor", color);
+}
+
 void PreferencesTab::show_share()
 {
     if (!config::get().share_files) {
@@ -494,6 +507,7 @@ void PreferencesTab::refresh()
     notices_others->setOn(cfg.notices_others, false);
     link_publish->setOn(cfg.link_publish, false);
     this->show_agent();
+    this->show_link_conf();
     look_shared->setOn(cfg.look_shared, false);
     keep_awake->setOn(cfg.keep_awake, false);
     saves_before_update->setOn(cfg.saves_before_update, false);

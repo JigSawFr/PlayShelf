@@ -40,6 +40,7 @@
             <aurore:BooleanCell id="pf_notices_others"/>
             <aurore:BooleanCell id="pf_link_publish"/>
             <aurore:DetailCell id="pf_agent" title="@i18n/kit/agent/title"/>
+            <aurore:DetailCell id="pf_link_conf" title="@i18n/kit/link/title"/>
             <aurore:Header title="@i18n/playshelf/tabs/downloads" marginTop="24" marginBottom="8"/>
             <aurore:BooleanCell id="pf_keep_awake"/>
             <aurore:BooleanCell id="pf_saves_before_update"/>
