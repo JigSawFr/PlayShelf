@@ -334,6 +334,7 @@
         "intro": "De intro 2 seconden tonen",
         "support_reminder": "Herinner me één keer per maand om PlayShelf te steunen",
         "notices_others": "Meldingen van de andere Boréale-homebrews",
+        "link_publish": "Publish PlayShelf's state (Boréale agent)",
         "look_shared": "Hetzelfde uiterlijk als de andere Boréale-homebrews",
         "effects": "Visuele effecten",
         "effects_values": {

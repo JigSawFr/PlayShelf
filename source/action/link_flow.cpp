@@ -9,6 +9,7 @@
 #include "app.hpp"
 #include "bl_relay_nx.h"
 #include "core/install.h"
+#include "util/config.hpp"
 #include "link/link_state.hpp"
 
 namespace link_flow
@@ -37,7 +38,7 @@ void gone_if_closed()
 
 void look_for_agent()
 {
-    if (!bl_relay_available()) return;
+    if (!config::get().link_publish || !bl_relay_available()) return;
     BlRelayHelloReply reply;
     uint32_t          rc = 0;
     if (!bl_relay_open(link_state::MODULE, app::version().c_str(), &reply, &rc) || !reply.accepted) return;
@@ -80,6 +81,13 @@ void take_orders()
 
 void tick()
 {
+    if (s_open && !config::get().link_publish) {   // switched off in Preferences: leave the agent
+        bl_relay_close();
+        s_open = false;
+        s_sent.clear();
+        s_idle = 0;
+        aurore::Logger::info("link: not publishing any more");
+    }
     if (!s_open) {
         if (++s_idle >= LOOK_EVERY) {
             s_idle = 0;

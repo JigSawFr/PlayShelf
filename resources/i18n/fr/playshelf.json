@@ -334,6 +334,7 @@
         "intro": "Afficher l'intro pendant 2 secondes",
         "support_reminder": "Me rappeler une fois par mois de soutenir PlayShelf",
         "notices_others": "Les notifications des autres homebrews Boréale",
+        "link_publish": "Publier l'état de PlayShelf (agent Boréale)",
         "look_shared": "Même apparence que les autres homebrews Boréale",
         "effects": "Effets visuels",
         "effects_values": {

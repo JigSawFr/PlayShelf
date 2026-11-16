@@ -147,6 +147,13 @@ PreferencesTab::PreferencesTab()
         ui::save_config();
         notices::count_others();
     });
+    // PlayShelf's state through the Boréale agent (action/link_flow) and the
+    // registry file that says so (action/notices).
+    link_publish->init("playshelf/prefs/link_publish"_i18n, config::get().link_publish, [](bool on) {
+        config::get().link_publish = on;
+        ui::save_config();
+        notices::write_registry();
+    });
     // The language, theme, text size and effects shared with the other
     // Boréale homebrews (action/shared_look): turned on, PlayShelf's become
     // theirs at their next start.
@@ -302,7 +309,7 @@ PreferencesTab::PreferencesTab()
     this->list.tiles({ { "pf_language", "language" }, { "pf_theme", "contrast" }, { "pf_text_size", "eye" },
                        { "pf_start_tab", "home" } }, false);
     this->list.apply({ { "pf_palette", "pencil" }, { "pf_effects", "sparkle" }, { "pf_look_shared", "palette" }, { "pf_intro", "bolt" },
-                       { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" },
+                       { "pf_support_reminder", "heart" }, { "pf_notices_others", "bell" }, { "pf_link_publish", "upload" },
                        { "pf_keep_awake", "bolt" }, { "pf_saves_before_update", "save" }, { "pf_share_files", "upload" }, { "pf_compression", "save" }, { "pf_connections", "server" },
                        { "pf_prefetch", "folder" }, { "pf_screen_off", "eye" },
                        { "pf_update_daily", "calendar" }, { "pf_update_via", "server" }, { "pf_sphaira_entry", "download" },
@@ -472,6 +479,7 @@ void PreferencesTab::refresh()
     intro->setOn(cfg.intro, false);
     support_reminder->setOn(cfg.support_reminder, false);
     notices_others->setOn(cfg.notices_others, false);
+    link_publish->setOn(cfg.link_publish, false);
     look_shared->setOn(cfg.look_shared, false);
     keep_awake->setOn(cfg.keep_awake, false);
     saves_before_update->setOn(cfg.saves_before_update, false);
