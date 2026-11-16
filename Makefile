@@ -2,6 +2,7 @@
 #
 #   make              -> ./playshelf.nro            (needs devkitPro, DEVKITPRO set)
 #   make dist         -> ./playshelf.zip            (unzip onto the SD card root)
+#   make agent        -> library/boreale-link/agent/out/boreale-link.nsp (the shared agent; `make` builds it first and bundles it)
 #   make desktop      -> ./build-desktop/playshelf  (UI with a simulated backend and the demo; SDL3, built with it,
 #                        and Playwright for the demo's pictures: DESKTOP_DEMO= builds it without)
 #   make web          -> ./build-web/simulator/     (the web simulator; needs Emscripten's emcmake)
@@ -49,11 +50,20 @@ ZIP_TREE = find . -exec touch -h -d @$(SOURCE_DATE_EPOCH) {} + && find . -mindep
 CMAKE_ARGS ?=
 JSON_HPP := library/aurore/library/include/aurore/extern/nlohmann/json.hpp
 
-.PHONY: all clean dist nxlink desktop web web-serve site test fuzz check atlas-contract FORCE
+.PHONY: all clean dist nxlink desktop web web-serve site test fuzz check atlas-contract agent FORCE
 
 RENDERER := $(if $(GL),-DAURORE_GRAPHICS=GL3,-DAURORE_GRAPHICS=DEKO3D)
 
-all:
+# The shared agent (library/boreale-link/agent/, the sysmodule that holds the
+# console's one broker connection), built from here as PlayGuard does: it takes
+# boreale-kit's console helpers from the sibling submodule, and the app carries
+# the .nsp in its romfs (cmake/bundle_sysmodules.cmake). Needs devkitPro.
+AGENT_DIR := library/boreale-link/agent
+AGENT_VERSION ?= $(shell sed -n 's/^set(VERSION_\(MAJOR\|MINOR\|ALTER\) "\([0-9]*\)").*/\2/p' CMakeLists.txt | paste -sd.)
+agent:
+	@$(MAKE) --no-print-directory -C $(AGENT_DIR) AGENT_VERSION=$(AGENT_VERSION)
+
+all: agent
 	@cmake -B $(BUILD) -S . -DAURORE_PLATFORM=SWITCH $(RENDERER) $(CMAKE_ARGS)
 	@cmake --build $(BUILD) --target $(TARGET).nro -j $(JOBS)
 	@cp $(BUILD)/$(TARGET).nro  $(TARGET).nro
@@ -525,6 +535,7 @@ check: test
 clean:
 	@echo clean ...
 	@rm -rf $(BUILD) $(DESKTOP) out $(TARGET).zip $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+	@$(MAKE) --no-print-directory -C $(AGENT_DIR) clean 2>/dev/null || true
 
 nxlink: all
 	nxlink $(BUILD)/$(TARGET).nro
