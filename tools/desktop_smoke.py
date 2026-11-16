@@ -77,6 +77,9 @@ open(os.path.join(other_sd, "atmosphere", "contents", agent_tid, "version.txt"),
 bundled_dir = os.path.join(run_dir, "bundled")
 os.makedirs(os.path.join(bundled_dir, "agent"), exist_ok=True)
 open(os.path.join(bundled_dir, "agent", "exefs.nsp"), "w").write("NEW")
+os.makedirs(os.path.join(other_sd, "config", "boreale"), exist_ok=True)
+open(os.path.join(other_sd, "config", "boreale", "link.conf"), "w").write(
+    "schema=1\nenabled=1\nhost=broker.example.org\nport=8883\ntls=1\nusername=console\npassword=secret\n")
 open(os.path.join(bundled_dir, "agent", "version.txt"), "w").write(
     "version=1.0.0\ncommit=abcdef0\nsha256=" + hashlib.sha256(b"NEW").hexdigest() + "\n")
 
@@ -468,6 +471,12 @@ go_to("Boréale agent", "Down")
 key("Return")
 time.sleep(1)
 shot("15_agent")
+key("Escape")
+# Preferences › Home Assistant link: the broker's settings (link.conf), a made-up broker.
+go_to("Home Assistant link", "Down")
+key("Return")
+time.sleep(1)
+shot("16_link_conf")
 key("Escape")
 key("Left")                  # back to the rail, on Preferences
 key("Down")                  # About

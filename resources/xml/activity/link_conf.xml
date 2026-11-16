@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The broker's settings the Boréale homebrews share (link.conf). The rows are built by
+     boreale-kit's activity/link_conf_activity.cpp. -->
+
+<aurore:AppletFrame
+    iconInterpolation="linear">
+
+    <ScrollView
+        title="@i18n/kit/link/title"
+        icon="@res/img/app_icon.png"
+        width="auto"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        grow="1.0">
+
+        <aurore:Box
+            id="lc_list"
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingTop="@style/aurore/sidebar/padding_top"
+            paddingRight="@style/aurore/sidebar/padding_right"
+            paddingBottom="@style/aurore/sidebar/padding_bottom"
+            paddingLeft="@style/aurore/sidebar/padding_left"/>
+
+    </ScrollView>
+
+</aurore:AppletFrame>
