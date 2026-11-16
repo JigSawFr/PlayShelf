@@ -29,6 +29,7 @@ class PreferencesTab : public TabBase
     void source_sheet(size_t index);
     void show_titledb();
     void show_share();
+    void show_agent();   // the Boréale agent's state on its row
 
     cadran::List list;
     int          titledb_listener = 0;
@@ -48,6 +49,7 @@ class PreferencesTab : public TabBase
     AURORE_BIND(aurore::BooleanCell, saves_before_update, "pf_saves_before_update");
     AURORE_BIND(aurore::BooleanCell, compression,    "pf_compression");
     AURORE_BIND(aurore::BooleanCell, link_publish,   "pf_link_publish");
+    AURORE_BIND(aurore::DetailCell,  agent,          "pf_agent");
     AURORE_BIND(aurore::BooleanCell, share_files,    "pf_share_files");
     AURORE_BIND(aurore::DetailCell,  connections,    "pf_connections");
     AURORE_BIND(aurore::DetailCell,  prefetch,       "pf_prefetch");

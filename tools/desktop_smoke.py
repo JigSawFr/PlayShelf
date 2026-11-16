@@ -29,6 +29,7 @@ import atexit
 import ctypes
 import ctypes.util
 import glob
+import hashlib
 import json
 import os
 import re
@@ -67,7 +68,21 @@ for rel, text in (
     os.makedirs(os.path.dirname(os.path.join(other_sd, rel)), exist_ok=True)
     open(os.path.join(other_sd, rel), "w").write(text)
 
+# The Boréale agent (Preferences › Boréale agent): an older one on the SD card,
+# running, and a newer one carried in the romfs, so the screen offers the update.
+agent_tid = "4200000000504741"
+os.makedirs(os.path.join(other_sd, "atmosphere", "contents", agent_tid), exist_ok=True)
+open(os.path.join(other_sd, "atmosphere", "contents", agent_tid, "exefs.nsp"), "w").write("OLD")
+open(os.path.join(other_sd, "atmosphere", "contents", agent_tid, "version.txt"), "w").write("version=0.9.0\n")
+bundled_dir = os.path.join(run_dir, "bundled")
+os.makedirs(os.path.join(bundled_dir, "agent"), exist_ok=True)
+open(os.path.join(bundled_dir, "agent", "exefs.nsp"), "w").write("NEW")
+open(os.path.join(bundled_dir, "agent", "version.txt"), "w").write(
+    "version=1.0.0\ncommit=abcdef0\nsha256=" + hashlib.sha256(b"NEW").hexdigest() + "\n")
+
 env = dict(os.environ, LIBGL_ALWAYS_SOFTWARE="1")
+env["PLAYSHELF_SIM_BUNDLED"] = bundled_dir
+env["PLAYSHELF_SIM_MODULES"] = "agent:running"
 # ImageMagick 7 keeps the version 6 commands (import, convert, montage) as
 # aliases of `magick` that warn on every call; version 6 has no `magick`.
 IM = ["magick"] if shutil.which("magick") else []
@@ -447,6 +462,14 @@ key("Down")
 key("Return")
 key("Left", 3)
 key("Left")                  # back to the rail
+# Preferences › Boréale agent: installed and running, a newer one carried.
+key("Right")
+go_to("Boréale agent", "Down")
+key("Return")
+time.sleep(1)
+shot("15_agent")
+key("Escape")
+key("Left")                  # back to the rail, on Preferences
 key("Down")                  # About
 shot("06_about")
 # The quick settings (−): the language, the theme, the text size.

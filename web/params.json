@@ -38,6 +38,8 @@
   {"name": "paste", "live": true, "group": "updates", "type": "text", "placeholder": "https://gist.github.com/u/ab12", "suggestions": ["offline"]},
   {"name": "still_focus", "group": "capture", "type": "bool"},
   {"name": "version", "group": "capture", "type": "text", "placeholder": "1.0.0:1a2b3c4"},
+  {"name": "bundled", "group": "capture", "type": "text", "panel": false},
+  {"name": "modules", "group": "console", "type": "text", "panel": false},
   {"name": "hold_loading", "group": "capture", "type": "bool"},
   {"name": "cadran_noglow", "group": "capture", "type": "bool"},
   {"name": "stats", "group": "capture", "type": "text", "panel": false},

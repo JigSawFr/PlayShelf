@@ -22,6 +22,7 @@ constexpr int BUILD_EVERY = 5;   // seconds between two builds of the document
 
 bool        s_started = false;
 bool        s_open = false;        // a session with the agent
+bool        s_held = false;        // an install, an update or a stop of the agent goes on: no session
 int         s_idle = LOOK_EVERY;   // seconds since the last look (the first turn looks)
 int         s_since_build = BUILD_EVERY;
 std::string s_sent;                // the document the agent has
@@ -38,7 +39,7 @@ void gone_if_closed()
 
 void look_for_agent()
 {
-    if (!config::get().link_publish || !bl_relay_available()) return;
+    if (s_held || !config::get().link_publish || !bl_relay_available()) return;
     BlRelayHelloReply reply;
     uint32_t          rc = 0;
     if (!bl_relay_open(link_state::MODULE, app::version().c_str(), &reply, &rc) || !reply.accepted) return;
@@ -81,12 +82,13 @@ void take_orders()
 
 void tick()
 {
-    if (s_open && !config::get().link_publish) {   // switched off in Preferences: leave the agent
+    if (s_open && (s_held || !config::get().link_publish)) {   // switched off in Preferences, or held: leave the agent
         bl_relay_close();
         s_open = false;
         s_sent.clear();
         s_idle = 0;
-        aurore::Logger::info("link: not publishing any more");
+        if (s_held) aurore::Logger::info("link: leaving the agent alone");
+        else aurore::Logger::info("link: not publishing any more");
     }
     if (!s_open) {
         if (++s_idle >= LOOK_EVERY) {
@@ -103,6 +105,17 @@ void tick()
     aurore::delay(1000, []() { tick(); });
 }
 }   // namespace
+
+void hold(bool on)
+{
+    s_held = on;
+    if (on && s_open) {   // at once: the agent is about to leave
+        bl_relay_close();
+        s_open = false;
+        s_sent.clear();
+    }
+    if (!on) s_idle = LOOK_EVERY;   // look for the agent at the next turn
+}
 
 void start()
 {

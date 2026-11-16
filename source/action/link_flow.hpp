@@ -21,4 +21,10 @@ namespace link_flow
 // Starts the turns (once, when the main screen is up).
 void start();
 
+// While the agent is being installed, updated or stopped, PlayShelf leaves it
+// alone: its session closes and none opens until `hold(false)`
+// (boreale-kit's agent_manage_flow). The turns look for the agent again
+// right away when it ends, whether it came back or not.
+void hold(bool on);
+
 }   // namespace link_flow
