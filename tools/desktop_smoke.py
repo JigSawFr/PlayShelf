@@ -86,6 +86,7 @@ open(os.path.join(bundled_dir, "agent", "version.txt"), "w").write(
 env = dict(os.environ, LIBGL_ALWAYS_SOFTWARE="1")
 env["PLAYSHELF_SIM_BUNDLED"] = bundled_dir
 env["PLAYSHELF_SIM_MODULES"] = "agent:running"
+env["PLAYSHELF_SIM_AGENT_RELEASE"] = "1.2.0"   # boreale-link's latest release, newer than both copies
 # ImageMagick 7 keeps the version 6 commands (import, convert, montage) as
 # aliases of `magick` that warn on every call; version 6 has no `magick`.
 IM = ["magick"] if shutil.which("magick") else []
@@ -471,6 +472,13 @@ go_to("Boréale agent", "Down")
 key("Return")
 time.sleep(1)
 shot("15_agent")
+# Check GitHub: the latest release (simulated) is newer than the carried copy and the card's.
+go_to("Check for a newer agent", "Down")
+key("Return")
+time.sleep(1)
+shot("15_agent_release")
+key("Return")                # Cancel, which has the focus, on the offer
+pause(1)
 key("Escape")
 # Preferences › Home Assistant link: the broker's settings (link.conf), a made-up broker.
 go_to("Home Assistant link", "Down")

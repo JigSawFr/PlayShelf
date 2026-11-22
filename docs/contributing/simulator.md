@@ -28,6 +28,7 @@ Part of the [contributor's guide](../../CONTRIBUTING.md).
 | `PLAYSHELF_SIM_NOW=<POSIX seconds>` | A frozen console time (with `TZ=` for its time zone) |
 | `PLAYSHELF_SIM_NO_CFW=1` | No Atmosphère |
 | `PLAYSHELF_SIM_MODULES=agent:running` | Sysmodules running at start (`name:running`, comma-separated; `agent`, or a program id in hex): a module starts only when its `exefs.nsp` is on the simulated SD card (boreale-kit's `sim_sysmodule.c`) |
+| `PLAYSHELF_SIM_AGENT_RELEASE=1.2.0` | boreale-link's latest agent release, as *Boréale agent › Check for a newer agent* sees it: a version number (a release of that version, with the exefs's SHA-256 in its manifest), `none` (no release published) or `offline` |
 | `PLAYSHELF_SIM_BUNDLED=<folder>` | The folder holding the sysmodules PlayShelf carries (`agent/exefs.nsp` and `version.txt`), in place of the romfs's: the *Boréale agent* screen then offers an update; the desktop smoke makes one |
 | `PLAYSHELF_SIM_NO_GAME=1` | No game open (applet mode with nothing behind it) |
 | `PLAYSHELF_SIM_NO_SHIPPED_ATLAS=1` | The Atlas files shipped with PlayShelf (`popular.json`, `games.json`) are not read, so the demo's (older: made the demo's day) are the ones kept; the desktop smoke test's `atlas` scenario sets it |
