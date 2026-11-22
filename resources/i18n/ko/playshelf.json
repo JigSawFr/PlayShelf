@@ -669,7 +669,9 @@
         "tile_renown": "의 게임보다 인지도가 높음",
         "space_fits": "필요 {} · 여유 {}",
         "space_over": "필요 {}, 여유 공간은 {}뿐",
-        "space_need": "필요 {}"
+        "space_need": "필요 {}",
+        "no_sigpatches": "No sigpatches found",
+        "no_sigpatches_body": "Games installed outside Nintendo's tools may not start on this console. It installs all the same."
     },
     "genres": {
         "action": "액션",

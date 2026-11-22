@@ -669,7 +669,9 @@
         "tile_renown": "van de games is minder bekend",
         "space_fits": "{} nodig · {} vrij",
         "space_over": "{} nodig, slechts {} vrij",
-        "space_need": "{} nodig"
+        "space_need": "{} nodig",
+        "no_sigpatches": "No sigpatches found",
+        "no_sigpatches_body": "Games installed outside Nintendo's tools may not start on this console. It installs all the same."
     },
     "genres": {
         "action": "Actie",

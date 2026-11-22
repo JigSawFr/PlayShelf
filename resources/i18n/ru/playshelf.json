@@ -669,7 +669,9 @@
         "tile_renown": "игр известны меньше",
         "space_fits": "{} нужно · {} свободно",
         "space_over": "{} нужно, свободно только {}",
-        "space_need": "{} нужно"
+        "space_need": "{} нужно",
+        "no_sigpatches": "No sigpatches found",
+        "no_sigpatches_body": "Games installed outside Nintendo's tools may not start on this console. It installs all the same."
     },
     "genres": {
         "action": "Экшен",

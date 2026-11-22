@@ -21,6 +21,7 @@
 #include "tab/catalogue_tab.hpp"
 #include "ui/ui.hpp"
 #include "util/config.hpp"
+#include "util/patches.hpp"
 #include "util/title_id.hpp"
 #include "view/cover_placeholder.hpp"
 #include "view/game_parts.hpp"
@@ -246,6 +247,12 @@ void GameActivity::add_tabs()
         kit::wrap(row);
         lines_box->addView(row);
     }
+
+    // A game that is not installed yet, on a console where nothing patches signature checks: said before
+    // anyone installs it (the game installs all the same).
+    if (!l.installed && patches::status(ui::patch_report()) == patches::Status::None)
+        lines_box->addView(status_card("playshelf/game/no_sigpatches"_i18n, "playshelf/game/no_sigpatches_body"_i18n, "alert",
+                                       "cadran/amber", "cadran/amber_surf"));
 
     // Updates: the versions installed and newest, then the lines.
     if (l.update_count) {
