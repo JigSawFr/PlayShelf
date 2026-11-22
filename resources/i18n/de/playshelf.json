@@ -545,7 +545,10 @@
             "server_gone": "Der Bibliotheksserver dieses Downloads wurde aus PlayShelf entfernt: Entferne den Download oder füge den Server erneut hinzu."
         },
         "saves_before_update": "Copy the saves before an update",
-        "space_hint": "About {} MB are missing. The games played least recently that would free enough: {}. Nothing is removed unless you do it, from Storage."
+        "space_hint": "About {} MB are missing. The games played least recently that would free enough: {}. Nothing is removed unless you do it, from Storage.",
+        "internal_memory": "Install to the internal memory instead",
+        "internal_go": "Install there",
+        "internal_body": "The internal memory of the console is small and the system uses it too. Install this package there instead of on the SD card? Only this download goes there; the rest stays on the SD card."
     },
     "titledb": {
         "section": "Titeldatenbank",

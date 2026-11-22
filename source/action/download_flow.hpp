@@ -60,6 +60,7 @@ size_t add(std::vector<download::Job> jobs);
 
 void pause(const std::string& id);
 void resume(const std::string& id);      // a paused or failed job: waiting again
+void install_internal(const std::string& id);   // failed for lack of room on the SD card: again, to the internal memory
 void accept_unsigned(const std::string& id);   // failed on a content not signed by Nintendo: again, taking it
 // Removes it, what its runs installed undone (a running one is cancelled).
 void cancel(const std::string& id);

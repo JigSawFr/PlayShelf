@@ -115,7 +115,7 @@ Outcome run(const download::Job& job, const library::Server& server, const std::
         o.why = pkg.error();
         return ctl->stop ? stopped() : o;
     }
-    CoreConsole console(CoreStorage_Sd);
+    CoreConsole console(job.internal ? CoreStorage_Nand : CoreStorage_Sd);
     if (!console.ok()) {
         o.why = console.error();
         return o;
