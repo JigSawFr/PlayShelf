@@ -263,6 +263,16 @@ void test_prepare_refuses()
     Run         r = install(c1, nsp(missing));
     CHECK(!r.prepared && r.why.find("lacks") != std::string::npos);
     CHECK(c1.contents.empty() && c1.held.empty());
+    // Made for Switch 2 (platform 1 in its cnmt): refused before anything is written; platform 0 is
+    // the Switch's and installs.
+    Title switch2 = t;
+    switch2.cnmt[0xd] = 1;
+    switch2.meta_nca = cnmt_nca(switch2.cnmt);
+    switch2.files[0].data = switch2.meta_nca;
+    FakeConsole c0;
+    r = install(c0, nsp(switch2));
+    CHECK(!r.prepared && r.why.find("Switch 2") != std::string::npos);
+    CHECK(c0.contents.empty() && c0.held.empty() && c0.app_records.empty());
     // ...unless the console has it already.
     FakeConsole c2;
     c2.contents[t.control_info.id] = t.control;

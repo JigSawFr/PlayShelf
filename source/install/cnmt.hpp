@@ -69,6 +69,9 @@ struct ContentMeta
     uint32_t                 version = 0;
     MetaType                 type = MetaType::Application;
     uint8_t                  attributes = 0;
+    // The console it is for, since firmware 17.0.0 (byte 0xD of the header; before, reserved and 0):
+    // 0 Switch, 1 Switch 2. Content for Switch 2 does not run on a Switch: the installer refuses it.
+    uint8_t                  platform = 0;
     uint32_t                 required_download_system_version = 0;
     std::vector<uint8_t>     extended_header;
     std::vector<ContentInfo> contents;   // every one, delta fragments included

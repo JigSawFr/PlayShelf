@@ -310,6 +310,14 @@ void test_cnmt_serialize()
         std::array<uint8_t, 32> digest;
         std::copy(packaged.end() - 32, packaged.end(), digest.begin());
         CHECK(cnmt_serialize(*meta, digest) == packaged);
+        CHECK(meta->platform == 0);
+        // The platform (byte 0xD, since 17.0.0) is read and written back.
+        Bytes switch2 = packaged;
+        switch2[0xd] = 1;
+        const auto two = cnmt_parse(switch2);
+        if (CHECK(two.has_value())) {
+            CHECK(two->platform == 1 && cnmt_serialize(*two, digest) == switch2);
+        }
         // And once changed: parsed back as changed.
         ContentMeta changed = *meta;
         changed.version = 99;
