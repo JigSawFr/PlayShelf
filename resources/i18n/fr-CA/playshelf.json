@@ -241,7 +241,9 @@
         "auto_done": "Avant la mise à jour : les parties de {} ont été copiées sur la carte SD ({} copies).",
         "restore_action": "Restaurer une copie",
         "restore_none": "{} n'a pas encore de copie sur la carte SD : sauvegarde d'abord les sauvegardes.",
-        "restore_pick": "Restaurer quelle copie ?"
+        "restore_pick": "Restaurer quelle copie ?",
+        "user_device": "Console (sauvegarde partagée)",
+        "user_bcat": "Téléchargements du système (BCAT)"
     },
     "installed": {
         "summary": "Sur cette console",

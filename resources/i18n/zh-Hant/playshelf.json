@@ -241,7 +241,9 @@
         "auto_done": "更新前：已把 {} 的存檔備份到 SD 卡（{} 份）。",
         "restore_action": "Restore a saved copy",
         "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
-        "restore_pick": "Restore which copy?"
+        "restore_pick": "Restore which copy?",
+        "user_device": "Console (shared save)",
+        "user_bcat": "System downloads (BCAT)"
     },
     "installed": {
         "summary": "此主機上",

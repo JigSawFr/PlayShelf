@@ -241,7 +241,9 @@
         "auto_done": "Antes de la actualización: se copiaron en la tarjeta SD las partidas de {} ({} copias).",
         "restore_action": "Restore a saved copy",
         "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
-        "restore_pick": "Restore which copy?"
+        "restore_pick": "Restore which copy?",
+        "user_device": "Console (shared save)",
+        "user_bcat": "System downloads (BCAT)"
     },
     "installed": {
         "summary": "En esta consola",

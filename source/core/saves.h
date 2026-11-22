@@ -27,6 +27,22 @@ typedef struct
 // The console's users, at most `max`; -1 when they cannot be read.
 int core_save_users(CoreSaveUser *out, int max);
 
+// Saves that belong to no account, as two more "users" with no account behind them (uid[0] is 0, which
+// no account has): the console's own shared save of a game (device), and the data the system
+// downloaded for it (BCAT, read only: the system manages it).
+#define CORE_SAVE_DEVICE 1
+#define CORE_SAVE_BCAT   2
+
+// 0 for an account, else CORE_SAVE_DEVICE or CORE_SAVE_BCAT.
+static inline int core_save_shared_kind(const CoreSaveUser *user)
+{
+    return user->uid[0] == 0 ? (int)user->uid[1] : 0;
+}
+
+// The users as core_save_users gives them, then the two shared ones (their names left empty: the
+// caller words them). At most `max`, the accounts cut to leave room; -1 when they cannot be read.
+int core_save_users_all(CoreSaveUser *out, int max);
+
 // The games `user` has a save of, at most `max`; -1 when they cannot be read.
 int core_save_titles(const CoreSaveUser *user, u64 *out, int max);
 

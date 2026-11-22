@@ -241,7 +241,9 @@
         "auto_done": "アップデートの前に：{} のセーブデータを SD カードにバックアップしました（{} 件）。",
         "restore_action": "Restore a saved copy",
         "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
-        "restore_pick": "Restore which copy?"
+        "restore_pick": "Restore which copy?",
+        "user_device": "Console (shared save)",
+        "user_bcat": "System downloads (BCAT)"
     },
     "installed": {
         "summary": "この本体",
