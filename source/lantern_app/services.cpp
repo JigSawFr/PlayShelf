@@ -93,6 +93,8 @@ library::SaveBackup backup_of(const lantern::Save& s)
     b.created    = posix_time(b.created_at);
     b.size       = s.size;
     b.sha256     = hex_of(s.sha256);
+    if (s.game_version_code) b.game_version = *s.game_version_code;
+    b.profile    = library::display_text(std::string(s.profile), 64);
     return b;
 }
 
@@ -187,7 +189,7 @@ bool list_saves(const library::Server& server, std::vector<library::SaveBackup>*
 }
 
 bool upload_save(const library::Server& server, uint64_t title_id, const std::string& zip_path, const std::string& note,
-                 const std::function<void(uint64_t, uint64_t)>& progress, const std::atomic<bool>* cancel, std::string* why)
+                 uint32_t game_version, const std::string& profile, const std::function<void(uint64_t, uint64_t)>& progress, const std::atomic<bool>* cancel, std::string* why)
 {
     const uint64_t total = size_of(zip_path);
     if (total == 0 || total > MAX_UPLOAD) {
@@ -209,6 +211,9 @@ bool upload_save(const library::Server& server, uint64_t title_id, const std::st
     lantern::SaveInfo info;
     info.kind = "account";
     info.note = note;
+    if (game_version != 0) info.game_version_code = game_version;
+    const std::string shown = library::display_text(profile, 64);   // 64 bytes at most (§ 9.1)
+    info.profile = shown;
     const std::string id = hex_id(title_id);
     const auto sent = link->client()->upload_save(id, bytes, info);
     if (!sent) {

@@ -210,7 +210,8 @@
         "request_failed": "Die Anfrage konnte nicht gesendet werden",
         "request_open": "Waiting",
         "request_closed": "Jetzt auf dem Server",
-        "request_denied": "Declined"
+        "request_denied": "Declined",
+        "save_newer_game": "This backup was made with a newer version of the game ({}) than the one installed ({}): the game may not be able to read it."
     },
     "check": {
         "action": "Dateien prüfen",

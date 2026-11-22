@@ -42,7 +42,13 @@ struct SaveBackup
     uint64_t    size = 0;
     std::string sha256;       // of the archive, 64 hex digits
     bool        latest = false;   // the newest of its game's
+    uint64_t    game_version = 0;   // the game's version_code when it was saved, 0: not told
+    std::string profile;            // the name of the console profile it belongs to ("" when not told)
 };
+
+// Whether restoring `backup` would put a save made with a newer game version than the installed one
+// (`installed_version`, 0 when not known) back under the game: the game may not read it (L-9.1-2).
+bool backup_is_newer(const SaveBackup& backup, uint32_t installed_version);
 
 struct TitleRequest
 {

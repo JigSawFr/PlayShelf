@@ -23,8 +23,10 @@ namespace lantern_app
 [[nodiscard]] bool fetch_cheat(const library::Server& server, const library::Cheat& cheat, std::string* text, std::string* why);
 
 [[nodiscard]] bool list_saves(const library::Server& server, std::vector<library::SaveBackup>* out, std::string* why);
-// `zip_path` sent as the backup of `title_id`'s account save; progress as (sent, total).
+// `zip_path` sent as the backup of `title_id`'s account save; progress as (sent, total). `game_version`: the
+// version of the game saved (0: not told); `profile`: the console profile's name ("" for none).
 bool upload_save(const library::Server& server, uint64_t title_id, const std::string& zip_path, const std::string& note,
+                 uint32_t game_version, const std::string& profile,
                  const std::function<void(uint64_t, uint64_t)>& progress, const std::atomic<bool>* cancel, std::string* why);
 // The archive of `backup` written to `zip_path`, whole and checked.
 bool download_save(const library::Server& server, const library::SaveBackup& backup, const std::string& zip_path,

@@ -11,6 +11,7 @@
 #include <map>
 #include <set>
 
+#include "action/installed_flow.hpp"
 #include "action/titledb_flow.hpp"
 #include "core/saves.h"
 #include "lantern_app/services.hpp"
@@ -40,6 +41,15 @@ std::string game_name(const library_flow::Loaded& l, uint64_t id, const std::str
         if (t.id == id && !t.name.empty()) return t.name;
     if (const auto t = titledb_flow::title(id); t && !t->name.empty()) return t->name;
     return fallback.empty() ? title_id::text(id) : fallback;
+}
+
+// The version of the game as the console runs it (its update's, else its own); 0 when it is not known.
+uint32_t installed_version(uint64_t title_id)
+{
+    if (const auto games = installed_flow::games())
+        for (const installed_flow::Game& g : *games)
+            if (g.game.id == title_id && g.game.base) return library::running_version(g.game);
+    return 0;
 }
 
 // A dialog while something runs in the background: its line below says how
@@ -250,8 +260,9 @@ std::string backup_label(const library::SaveBackup& s)
 void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const std::string& note)
 {
     const library::Server link = l->server;
-    auto                b = busy(aurore::getStr("playshelf/services/save_sending", game_name(*l, title_id)), true);
-    ui::in_background("save backup", [b, link, user, title_id, note, l]() {
+    const uint32_t        version = installed_version(title_id);
+    auto                  b = busy(aurore::getStr("playshelf/services/save_sending", game_name(*l, title_id)), true);
+    ui::in_background("save backup", [b, link, user, title_id, note, l, version]() {
         std::string       why;
         const std::string zip = paths::cache_dir() + "/save_upload.zip";
         paths::ensure_dir(paths::cache_dir());
@@ -263,7 +274,7 @@ void back_up(const Loaded& l, const CoreSaveUser& user, uint64_t title_id, const
             core_save_unmount();
         }
         if (ok && !*b->cancel) {
-            ok = lantern_app::upload_save(link, title_id, zip, note,
+            ok = lantern_app::upload_save(link, title_id, zip, note, version, user.name,
                                       [b](uint64_t done, uint64_t total) { show_progress(b, done, total); },
                                       b->cancel.get(), &why);
         }
@@ -397,8 +408,12 @@ void game_saves(const Loaded& l, const std::shared_ptr<const SaveData>& d, uint6
                                  std::vector<Choice> what;
                                  if (here)
                                      what.emplace_back("playshelf/services/save_restore"_i18n, [l, user, s]() {
-                                         ui::confirm_danger(aurore::getStr("playshelf/services/save_restore_body", game_name(*l, s.title_id, s.title_name),
-                                                                         user.name, backup_label(s)),
+                                         std::string body = aurore::getStr("playshelf/services/save_restore_body", game_name(*l, s.title_id, s.title_name),
+                                                                           user.name, backup_label(s));
+                                         const uint32_t have = installed_version(s.title_id);
+                                         if (library::backup_is_newer(s, have))
+                                             body += "\n\n" + aurore::getStr("playshelf/services/save_newer_game", s.game_version, have);
+                                         ui::confirm_danger(body,
                                                             "playshelf/services/save_restore"_i18n, [l, user, s]() { restore(l, user, s); });
                                      }, "restore");
                                  else
