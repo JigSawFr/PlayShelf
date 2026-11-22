@@ -70,6 +70,10 @@ Done Installer::prepare()
         if (!bytes) return fail(f->name + ": " + bytes.error());
         auto meta = cnmt_parse(*bytes);
         if (!meta) return fail(f->name + ": " + meta.error());
+        // Made for Switch 2 (the cnmt says so since firmware 17.0.0): it does not run here, and
+        // nothing of it is written.
+        if (meta->platform != 0)
+            return fail(f->name + ": made for Nintendo Switch 2, which does not run on this console: install the Switch version of the game");
         t.meta = std::move(*meta);
         t.meta_content.id = *id;
         t.meta_content.size = t.meta_nca.size();

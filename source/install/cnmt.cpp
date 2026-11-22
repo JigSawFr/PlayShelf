@@ -76,6 +76,7 @@ Parsed<ContentMeta> cnmt_parse(std::span<const uint8_t> data)
     m.title_id = le64(data.data());
     m.version = le32(data.data() + 8);
     m.type = (MetaType)data[0xc];
+    m.platform = data[0xd];
     const size_t ext = le16(data.data() + 0xe), contents = le16(data.data() + 0x10), metas = le16(data.data() + 0x12);
     m.attributes = data[0x14];
     m.required_download_system_version = le32(data.data() + 0x18);
@@ -115,6 +116,7 @@ std::vector<uint8_t> cnmt_serialize(const ContentMeta& meta, const std::array<ui
     put_le64(p, meta.title_id);
     put_le32(p + 8, meta.version);
     p[0xc] = std::to_underlying(meta.type);
+    p[0xd] = meta.platform;
     put_le16(p + 0xe, (uint16_t)meta.extended_header.size());
     put_le16(p + 0x10, (uint16_t)meta.contents.size());
     put_le16(p + 0x12, (uint16_t)meta.metas.size());
