@@ -58,6 +58,17 @@ int core_save_users(CoreSaveUser* out, int max)
     return n;
 }
 
+int core_save_users_all(CoreSaveUser* out, int max)
+{
+    if (max < 3) return core_save_users(out, max);
+    const int n = core_save_users(out, max - 2);
+    if (n < 0) return n;
+    std::memset(&out[n], 0, 2 * sizeof out[0]);
+    out[n].uid[1] = CORE_SAVE_DEVICE;
+    out[n + 1].uid[1] = CORE_SAVE_BCAT;
+    return n + 2;
+}
+
 int core_save_titles(const CoreSaveUser* user, u64* out, int max)
 {
     DIR* d = ::opendir((saves_dir() + "/" + uid_text(user)).c_str());
@@ -79,7 +90,8 @@ Result core_save_mount(const CoreSaveUser* user, u64 app_id, bool writable, char
     std::snprintf(id, sizeof id, "%016llx", (unsigned long long)app_id);
     const std::string dir = saves_dir() + "/" + uid_text(user) + "/" + id;
     struct stat       st;
-    // A game the user never played has no save, to read or to write.
+    // A game the user never played has no save, to read or to write; the system's BCAT data is read only.
+    if (core_save_shared_kind(user) == CORE_SAVE_BCAT && writable) return NXM_RC_INVALID_ARGUMENT;
     (void)writable;
     if (::stat(dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)) return NXM_RC_INVALID_ARGUMENT;
     std::snprintf(root, root_size, "%s/", dir.c_str());

@@ -241,7 +241,9 @@
         "auto_done": "Vóór de update: de savegames van {} zijn op de SD-kaart gezet ({} kopieën).",
         "restore_action": "Restore a saved copy",
         "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
-        "restore_pick": "Restore which copy?"
+        "restore_pick": "Restore which copy?",
+        "user_device": "Console (shared save)",
+        "user_bcat": "System downloads (BCAT)"
     },
     "installed": {
         "summary": "Op deze console",

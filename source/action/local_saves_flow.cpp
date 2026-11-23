@@ -23,6 +23,21 @@ namespace
 {
 constexpr int MAX_TITLES = 2048;
 
+// The console's users, then the two saves that belong to no account (the shared one and the system's
+// downloads), the latter named for people.
+int read_users(CoreSaveUser* users)
+{
+    const int count = core_save_users_all(users, CORE_SAVE_USERS_MAX);
+    for (int i = 0; i < count; i++) {
+        const int         shared = core_save_shared_kind(&users[i]);
+        const std::string name = shared == CORE_SAVE_DEVICE ? "playshelf/saves_local/user_device"_i18n
+                               : shared == CORE_SAVE_BCAT   ? "playshelf/saves_local/user_bcat"_i18n
+                                                            : std::string();
+        if (!name.empty()) std::snprintf(users[i].name, sizeof users[i].name, "%s", name.c_str());
+    }
+    return count;
+}
+
 bool has_save(const CoreSaveUser& user, uint64_t title_id)
 {
     std::vector<u64> titles(MAX_TITLES);
@@ -35,7 +50,7 @@ Outcome back_up_game(uint64_t title_id)
 {
     Outcome out;
     CoreSaveUser users[CORE_SAVE_USERS_MAX];
-    const int    count = core_save_users(users, CORE_SAVE_USERS_MAX);
+    const int    count = read_users(users);
     if (count < 0) {
         out.error = "playshelf/saves_local/users_failed"_i18n;
         return out;
@@ -138,7 +153,7 @@ void open_restore(uint64_t title_id, const std::string& name)
 {
     if (ui::refuse_read_only()) return;
     CoreSaveUser users[CORE_SAVE_USERS_MAX];
-    const int    count = core_save_users(users, CORE_SAVE_USERS_MAX);
+    const int    count = read_users(users);
     if (count < 0) {
         ui::error("playshelf/saves_local/restore_action"_i18n, "playshelf/saves_local/users_failed"_i18n);
         return;
@@ -151,6 +166,7 @@ void open_restore(uint64_t title_id, const std::string& name)
     for (const local_backups::Copy& c : local_backups::copies(paths::list_files(dir, ".zip"))) {
         for (int i = 0; i < count; i++) {
             if (local_backups::user_tag(users[i].uid[0], users[i].uid[1]) != c.tag) continue;
+            if (core_save_shared_kind(&users[i]) == CORE_SAVE_BCAT) break;   // the system's own data is never put back
             shown.push_back(c);
             owners.push_back(users[i]);
             labels.push_back(c.date + " " + c.time + "  ·  " + users[i].name);

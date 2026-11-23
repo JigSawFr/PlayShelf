@@ -241,7 +241,9 @@
         "auto_done": "업데이트 전: {}의 저장 데이터를 SD 카드에 백업했습니다 ({}개).",
         "restore_action": "Restore a saved copy",
         "restore_none": "{} has no saved copy on the SD card yet: back up the saves first.",
-        "restore_pick": "Restore which copy?"
+        "restore_pick": "Restore which copy?",
+        "user_device": "Console (shared save)",
+        "user_bcat": "System downloads (BCAT)"
     },
     "installed": {
         "summary": "이 본체",
