@@ -669,7 +669,9 @@
         "tile_renown": "dei giochi sono meno noti",
         "space_fits": "{} necessari · {} liberi",
         "space_over": "{} necessari, solo {} liberi",
-        "space_need": "{} necessari"
+        "space_need": "{} necessari",
+        "no_sigpatches": "No sigpatches found",
+        "no_sigpatches_body": "Games installed outside Nintendo's tools may not start on this console. It installs all the same."
     },
     "genres": {
         "action": "Azione",

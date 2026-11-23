@@ -669,7 +669,9 @@
         "tile_renown": "的遊戲不如它知名",
         "space_fits": "需要 {} · 剩餘 {}",
         "space_over": "需要 {}，僅剩 {}",
-        "space_need": "需要 {}"
+        "space_need": "需要 {}",
+        "no_sigpatches": "No sigpatches found",
+        "no_sigpatches_body": "Games installed outside Nintendo's tools may not start on this console. It installs all the same."
     },
     "genres": {
         "action": "動作",

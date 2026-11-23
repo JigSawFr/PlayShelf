@@ -669,7 +669,9 @@
         "tile_renown": "のゲームより知名度が高い",
         "space_fits": "必要 {} · 空き {}",
         "space_over": "必要 {}、空きは {} のみ",
-        "space_need": "必要 {}"
+        "space_need": "必要 {}",
+        "no_sigpatches": "No sigpatches found",
+        "no_sigpatches_body": "Games installed outside Nintendo's tools may not start on this console. It installs all the same."
     },
     "genres": {
         "action": "アクション",
