@@ -432,6 +432,12 @@ void DownloadsTab::open_job(const std::string& job_id)
             case download::Remedy::FindAgain:
                 choices.emplace_back("playshelf/downloads/find_again"_i18n, [job_id]() { download_flow::find_again(job_id); }, "eye");
                 break;
+            case download::Remedy::InternalMemory:
+                choices.emplace_back("playshelf/downloads/internal_memory"_i18n, [job_id]() {
+                    ui::confirm("playshelf/downloads/internal_body"_i18n, "playshelf/downloads/internal_go"_i18n,
+                                [job_id]() { download_flow::install_internal(job_id); });
+                }, "folder");
+                break;
             case download::Remedy::InstallAnyway:
                 choices.emplace_back("playshelf/downloads/install_anyway"_i18n, [job_id]() { download_flow::accept_unsigned(job_id); },
                                      "alert", "", "", Choice::Tone::WARN);

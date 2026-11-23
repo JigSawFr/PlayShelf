@@ -114,8 +114,11 @@ std::vector<Remedy> remedies(Cause c, const Situation& s)
         break;
     case Cause::ServerGone:
         break;
-    case Cause::Corrupt:
     case Cause::NoSpace:
+        out.push_back(Remedy::Retry);
+        if (s.on_sd) out.push_back(Remedy::InternalMemory);
+        break;
+    case Cause::Corrupt:
     case Cause::Other:
         out.push_back(Remedy::Retry);
         break;

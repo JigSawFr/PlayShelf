@@ -545,7 +545,10 @@
             "server_gone": "Le serveur de bibliothèque de ce téléchargement a été supprimé de PlayShelf : retirez le téléchargement, ou ajoutez le serveur de nouveau."
         },
         "saves_before_update": "Copier les sauvegardes avant une mise à jour",
-        "space_hint": "Il manque environ {} Mo. Les jeux joués le moins récemment qui libéreraient assez : {}. Rien n'est supprimé sans toi, depuis Stockage."
+        "space_hint": "Il manque environ {} Mo. Les jeux joués le moins récemment qui libéreraient assez : {}. Rien n'est supprimé sans toi, depuis Stockage.",
+        "internal_memory": "Installer plutôt dans la mémoire interne",
+        "internal_go": "Installer là",
+        "internal_body": "La mémoire interne de la console est petite et le système l'utilise aussi. Installer ce paquet là plutôt que sur la carte SD ? Seul ce téléchargement y va ; le reste reste sur la carte SD."
     },
     "titledb": {
         "section": "Base de titres",

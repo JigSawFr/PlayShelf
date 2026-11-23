@@ -60,12 +60,14 @@ enum class Remedy : uint8_t
     EditServer,     // the server's profile: its credentials, its key
     FindAgain,      // the package found again in its server's catalogue
     InstallAnyway,  // the unsigned content taken
+    InternalMemory, // installed to the console's internal memory instead of the SD card (no room there)
 };
 
 struct Situation
 {
     bool server_known = false;    // the job's server is in servers.json
     bool other_address = false;   // that server has another address than the job's
+    bool on_sd = true;            // the job installs to the SD card (not to the internal memory already)
 };
 std::vector<Remedy> remedies(Cause c, const Situation& s);
 

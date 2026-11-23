@@ -69,7 +69,10 @@ void test_remedies()
     CHECK(remedies(Cause::Corrupt, known) == std::vector<Remedy>{ Remedy::Retry });
     CHECK(remedies(Cause::Unsigned, known) == std::vector<Remedy>{ Remedy::InstallAnyway });
     CHECK(remedies(Cause::ServerGone, known).empty());   // only removed
-    CHECK(remedies(Cause::NoSpace, known) == std::vector<Remedy>{ Remedy::Retry });
+    CHECK((remedies(Cause::NoSpace, known) == std::vector<Remedy>{ Remedy::Retry, Remedy::InternalMemory }));
+    Situation internal = known;   // already on the internal memory: nowhere else to go
+    internal.on_sd = false;
+    CHECK((remedies(Cause::NoSpace, internal) == std::vector<Remedy>{ Remedy::Retry }));
 }
 
 void test_rebase()

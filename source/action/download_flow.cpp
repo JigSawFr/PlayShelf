@@ -521,8 +521,9 @@ void undo_stopped(const download::Job& job)
 {
     if (!job.journal) return;
     const install::Journal jn = *job.journal;
-    ui::in_background("download undo", [jn]() {
-        install::CoreConsole console(CoreStorage_Sd);
+    const bool internal = job.internal;
+    ui::in_background("download undo", [jn, internal]() {
+        install::CoreConsole console(internal ? CoreStorage_Nand : CoreStorage_Sd);
         if (!console.ok()) return;
         for (const auto& id : jn.registered) console.delete_content(id);
         if (jn.writing) console.delete_placeholder(*jn.writing);
@@ -610,6 +611,14 @@ void resume(const std::string& id)
     start_next();
 }
 
+void install_internal(const std::string& id)
+{
+    if (download::Job* j = find(id)) {
+        j->internal = true;
+        resume(id);
+    }
+}
+
 void accept_unsigned(const std::string& id)
 {
     if (download::Job* j = find(id)) {
@@ -692,6 +701,7 @@ std::string other_url(const download::Job& job, const library::Server& s)
 std::vector<download::Remedy> remedies(const download::Job& job)
 {
     download::Situation at;
+    at.on_sd = !job.internal;
     if (const auto s = server_of(job)) {
         at.server_known = true;
         at.other_address = !other_url(job, *s).empty();
