@@ -9,6 +9,11 @@
 namespace library
 {
 
+bool backup_is_newer(const SaveBackup& backup, uint32_t installed_version)
+{
+    return backup.game_version != 0 && installed_version != 0 && backup.game_version > installed_version;
+}
+
 std::string normal_build_id(const std::string& build_id)
 {
     if (build_id.empty() || build_id.size() > 64) return "";

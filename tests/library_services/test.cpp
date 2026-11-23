@@ -11,6 +11,16 @@ using namespace library;
 
 int main()
 {
+    // A backup made with a newer game version than the installed one is warned about; unknown on either
+    // side, or an equal or older one, is not.
+    {
+        SaveBackup b;
+        b.game_version = 131072;
+        CHECK(backup_is_newer(b, 65536) && !backup_is_newer(b, 131072) && !backup_is_newer(b, 196608));
+        CHECK(!backup_is_newer(b, 0));   // the installed version is not known
+        b.game_version = 0;
+        CHECK(!backup_is_newer(b, 65536));   // the backup does not say
+    }
     CHECK(normal_build_id("0a1b2C") == "0A1B2C");
     CHECK(normal_build_id("").empty() && normal_build_id("xyz").empty() && normal_build_id(std::string(65, 'a')).empty());
     CHECK(normal_build_id(std::string(64, 'f')) == std::string(64, 'F'));

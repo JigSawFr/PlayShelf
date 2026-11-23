@@ -210,7 +210,8 @@
         "request_failed": "요청을 보낼 수 없습니다",
         "request_open": "Waiting",
         "request_closed": "이제 서버에 있음",
-        "request_denied": "Declined"
+        "request_denied": "Declined",
+        "save_newer_game": "This backup was made with a newer version of the game ({}) than the one installed ({}): the game may not be able to read it."
     },
     "check": {
         "action": "파일 확인",

@@ -210,7 +210,8 @@
         "request_failed": "無法傳送申請",
         "request_open": "Waiting",
         "request_closed": "現已在伺服器上",
-        "request_denied": "Declined"
+        "request_denied": "Declined",
+        "save_newer_game": "This backup was made with a newer version of the game ({}) than the one installed ({}): the game may not be able to read it."
     },
     "check": {
         "action": "檢查檔案",

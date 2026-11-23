@@ -210,7 +210,8 @@
         "request_failed": "La demande n'a pas pu être envoyée",
         "request_open": "En attente",
         "request_closed": "Sur le serveur désormais",
-        "request_denied": "Refusée"
+        "request_denied": "Refusée",
+        "save_newer_game": "Cette sauvegarde a été faite avec une version du jeu plus récente ({}) que celle installée ({}) : le jeu pourrait ne pas la lire."
     },
     "check": {
         "action": "Vérifier les fichiers",
