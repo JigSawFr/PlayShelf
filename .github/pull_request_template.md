@@ -4,13 +4,25 @@ docs(build): …): CI checks it, and the squash merge makes it the commit subjec
 release-please writes the changelog from.
 -->
 
-## What this changes, and why
+## ✨ At a glance
 
-<!-- The diff says what; this says what it is for. Link the issue it closes, if any. -->
+<!-- One or two sentences: what changes for the player, or for the code, and whether it is a fix, a feature or a refactor. -->
 
-## How it was verified
+## 🤔 Why
 
-<!-- Beyond CI. Say whether it ran on a console (firmware, Atmosphère, launcher) or only in `make desktop`. -->
+<!-- The reason, and the issue it closes, if any. The diff says what; this says what it is for. -->
+
+## 🔧 What changes
+
+<!-- The main parts of the change. Skip what the diff already makes obvious. -->
+
+## 🖼️ Before / After
+
+<!-- For each screen named on the `Screens:` line: a picture from `tools/desktop_smoke.py`, or from the console for a firmware-dependent change. Drop the table when no screen changes. -->
+
+| Screen | Before | After |
+|---|---|---|
+| | | |
 
 Screens: none
 
@@ -18,11 +30,8 @@ Screens: none
 `Screens: smoke/01_library, loading/*` (scenario/name patterns), `any` for every screen, `none` for no change meant.
 A screen that changes without being named here fails the desktop job. -->
 
-## Checklist
+## ✅ Checked
 
-- [ ] `make check` passes
-- [ ] A screen that changes on purpose is named on the `Screens:` line above
-- [ ] New strings are in every `resources/i18n/*/playshelf.json` (English is fine as a placeholder)
-- [ ] New website texts are in every `site/i18n/*.json`, translated
-- [ ] `source/kit/` includes nothing of the app (`tools/check_sources.py`)
+<!-- Beyond CI, which runs `make test`, the resource, source, web-parameter and compatibility checks, the visual check, clang-tidy and CodeQL. Say whether it ran on a console (firmware, Atmosphère, launcher) or only in `make desktop`. -->
+
 - [ ] Nothing sent or stored in the clear: TLS verified, no secret in a plain file
